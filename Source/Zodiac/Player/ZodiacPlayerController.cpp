@@ -7,3 +7,8 @@ AZodiacPlayerController::AZodiacPlayerController(const FObjectInitializer& Objec
 	: Super(ObjectInitializer)
 {
 }
+
+void AZodiacPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+}

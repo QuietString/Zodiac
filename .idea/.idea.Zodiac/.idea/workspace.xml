@@ -10,24 +10,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawData.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawData.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputConfig.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputConfig.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacLocalPlayer.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacLocalPlayer.h" afterDir="false" />
+    <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="Player input binding">
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Attributes/ZodiacCombatSet.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Attributes/ZodiacCombatSet.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySet.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySet.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawnData.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultInput.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultInput.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacAssetManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacAssetManager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacAssetManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacAssetManager.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Zodiac.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/Zodiac.uproject" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawData.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawData.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawnData.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerState.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerState.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerState.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerState.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +38,16 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
@@ -76,7 +86,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "LiveTemplatesSettingsId",
+    "settings.editor.selected.configurable": "preferences.keymap",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -217,8 +227,17 @@
       <workItem from="1712933302114" duration="8593000" />
       <workItem from="1712996785962" duration="2158000" />
       <workItem from="1712998968189" duration="781000" />
-      <workItem from="1713103509321" duration="6265000" />
+      <workItem from="1713103509321" duration="13023000" />
     </task>
+    <task id="LOCAL-00001" summary="Player input binding">
+      <option name="closed" value="true" />
+      <created>1713110087673</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1713110087673</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -242,6 +261,8 @@
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="Player input binding" />
+    <option name="LAST_COMMIT_MESSAGE" value="Player input binding" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

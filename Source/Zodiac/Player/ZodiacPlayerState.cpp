@@ -36,3 +36,9 @@ UAbilitySystemComponent* AZodiacPlayerState::GetAbilitySystemComponent() const
 {
 	return GetZodiacAbilitySystemComponent();
 }
+
+void AZodiacPlayerState::ClientInitialize(AController* C)
+{
+	Super::ClientInitialize(C);
+	
+}

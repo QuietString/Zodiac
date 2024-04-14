@@ -1,0 +1,80 @@
+﻿// the.quiet.string@gmail.com
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
+#include "Engine/DataAsset.h"
+#include "ZodiacAbilitySet.generated.h"
+
+struct FActiveGameplayEffectHandle;
+struct FGameplayAbilitySpecHandle;
+class UZodiacAbilitySystemComponent;
+class UAttributeSet;
+
+
+/**
+ *	Data used by the ability set to grant attribute sets.
+ */
+USTRUCT(BlueprintType)
+struct FZodiacAbilitySet_AttributeSet
+{
+	GENERATED_BODY()
+
+public:
+	// Gameplay attribute to grant.
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UAttributeSet> AttributeSet;
+
+};
+
+
+/**
+ *	Data used to store handles to what has been granted by the ability set.
+ */
+USTRUCT(BlueprintType)
+struct FZodiacAbilitySet_GrantedHandles
+{
+	GENERATED_BODY()
+
+public:
+
+	//void AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle);
+	//void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
+	void AddAttributeSet(UAttributeSet* Set);
+
+protected:
+
+	// Handles to the granted abilities.
+	//UPROPERTY()
+	//TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
+
+	// Handles to the granted gameplay effects.
+	//UPROPERTY()
+	//TArray<FActiveGameplayEffectHandle> GameplayEffectHandles;
+
+	// Pointers to the granted attribute sets
+	UPROPERTY()
+	TArray<TObjectPtr<UAttributeSet>> GrantedAttributeSets;
+};
+
+
+/**
+ *	Non-mutable data asset used to grant gameplay abilities and gameplay effects.
+ */
+UCLASS(BlueprintType, Const)
+class ZODIAC_API UZodiacAbilitySet : public UPrimaryDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	UZodiacAbilitySet(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	void GiveToAbilitySystem(UZodiacAbilitySystemComponent* ZodiacASC, FZodiacAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
+
+protected:
+
+	// Attribute sets to grant when this ability set is granted.
+	UPROPERTY(EditDefaultsOnly, Category = "Attribute Sets", meta=(TitleProperty=AttributeSet))
+	TArray<FZodiacAbilitySet_AttributeSet> GrantedAttributes;
+};

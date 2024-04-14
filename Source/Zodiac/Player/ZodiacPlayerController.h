@@ -16,5 +16,8 @@ class ZODIAC_API AZodiacPlayerController : public ACommonPlayerController
 {
 	GENERATED_BODY()
 
+public:
 	AZodiacPlayerController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	virtual void OnPossess(APawn* InPawn) override;
 };

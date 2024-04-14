@@ -46,6 +46,7 @@ public:
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const { return AbilitySystemComponent; }
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	virtual void ClientInitialize(AController* C) override;
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Zodaic|PlayerState")
 	UZodiacAbilitySystemComponent* AbilitySystemComponent;
@@ -55,4 +56,6 @@ private:
 
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTags;
+
+	
 };

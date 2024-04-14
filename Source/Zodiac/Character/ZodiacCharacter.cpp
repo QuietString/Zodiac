@@ -8,13 +8,13 @@
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHeroComponent.h"
 #include "ZodiacLogChannels.h"
-#include "ZodiacPawData.h"
+#include "ZodiacPawnData.h"
 #include "ZodiacPawnExtensionComponent.h"
+#include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "AbilitySystem/Attributes/ZodiacHealthSet.h"
+#include "AbilitySystem/Attributes/ZodiacCombatSet.h"
 #include "Input/ZodiacInputComponent.h"
 #include "Player/ZodiacPlayerState.h"
-#include "Widgets/Misc/KeyAlreadyBoundWarning.h"
 
 
 AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
@@ -99,31 +99,11 @@ void AZodiacCharacter::Input_LookMouse(const FInputActionValue& InputActionValue
 void AZodiacCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
 }
 
 void AZodiacCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
-
-void AZodiacCharacter::AddDefaultAbilities(UZodiacAbilitySystemComponent* ZodiacASC)
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (ASC && DefaultAbilitySpecs.Num() > 0)
-	{
-		for (auto& AbilitySpec : DefaultAbilitySpecs)
-		{
-			if (AbilitySpec.Ability && AbilitySpec.Level > 0)
-			{
-				ASC->GiveAbility(AbilitySpec);	
-			}
-			else
-			{
-				UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("Attempted to give an invalid ability spec."));
-			}
-		}
-	}
 }
 
 void AZodiacCharacter::InitializePlayerInput()
@@ -222,12 +202,39 @@ bool AZodiacCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& T
 	return false;
 }
 
+void AZodiacCharacter::AddDefaultAbilities(UZodiacAbilitySystemComponent* ZodiacASC)
+{
+	if (PawnData && PawnData->DefaultAbilities.Num() > 0)
+	{
+		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : PawnData->DefaultAbilities)
+		{
+			AbilitySet->GiveToAbilitySystem(ZodiacASC, nullptr);
+		}
+	}
+}
+
+void AZodiacCharacter::OnManaChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	float NewValue = OnAttributeChangeData.NewValue;
+	float OldValue = OnAttributeChangeData.OldValue;
+
+	UE_LOG(LogTemp, Warning, TEXT("Mana changed from %.1f to %.1f"), OldValue, NewValue);
+}
+
 void AZodiacCharacter::OnAbilitySystemInitialized()
 {
 	UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent();
 	check(ZodiacASC);
 
+	AddDefaultAbilities(ZodiacASC);
+	
 	HealthComponent->InitializeWithAbilitySystem(ZodiacASC);
+
+	
+	if (ZodiacASC->GetAttributeSet(UZodiacCombatSet::StaticClass()))
+	{
+		ZodiacASC->GetGameplayAttributeValueChangeDelegate(UZodiacCombatSet::GetManaAttribute()).AddUObject(this, &ThisClass::OnManaChanged);
+	}
 }
 
 void AZodiacCharacter::PossessedBy(AController* NewController)
@@ -235,11 +242,4 @@ void AZodiacCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	PawnExtComponent->CheckPawnReadyToInitialize();
-	// AZodiacPlayerState* ZodiacPS = NewController->GetPlayerState<AZodiacPlayerState>();
-	// check(ZodiacPS);
-	//
-	// AbilitySystemComponent = ZodiacPS->GetZodiacAbilitySystemComponent();
-	//
-	// OnAbilitySystemInitialized(AbilitySystemComponent);
-	// HealthComponent->OnAbilitySystemInitialized(AbilitySystemComponent);
 }
