@@ -33,6 +33,5 @@ protected:
 private:
 
 	// Sets up the ability system
-	void InitializeAbilitySystem();
 	void InitializeGameplayCueManager();
 };

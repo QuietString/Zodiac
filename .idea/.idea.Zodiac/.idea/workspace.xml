@@ -10,16 +10,38 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="PawnExtensionComponent,&#10;HeroComponent,&#10;HealthComponent" />
+    <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawData.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawData.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputConfig.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputConfig.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacLocalPlayer.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacLocalPlayer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultInput.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultInput.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacAssetManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacAssetManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacAssetManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacAssetManager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Zodiac.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/Zodiac.uproject" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
@@ -34,13 +56,16 @@
   &quot;associatedIndex&quot;: 4
 }</component>
   <component name="ProjectId" id="2eyd8CMZhhR3BaYBYoKGJSgjIKM" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
     "C++ Project.Zodiac.executor": "Debug",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -192,6 +217,7 @@
       <workItem from="1712933302114" duration="8593000" />
       <workItem from="1712996785962" duration="2158000" />
       <workItem from="1712998968189" duration="781000" />
+      <workItem from="1713103509321" duration="6265000" />
     </task>
     <servers />
   </component>
@@ -199,7 +225,19 @@
     <option name="version" value="3" />
   </component>
   <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>

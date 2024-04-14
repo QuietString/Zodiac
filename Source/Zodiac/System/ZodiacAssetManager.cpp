@@ -28,20 +28,12 @@ void UZodiacAssetManager::StartInitialLoading()
 	// This does all of the scanning, need to do this now even if loads are deferred
 	Super::StartInitialLoading();
 
-	InitializeAbilitySystem();
+	InitializeGameplayCueManager();
 }
 
 void UZodiacAssetManager::PreBeginPIE(bool bStartSimulate)
 {
 	Super::PreBeginPIE(bStartSimulate);
-}
-
-void UZodiacAssetManager::InitializeAbilitySystem()
-{
-	FZodiacGameplayTags::InitializeNativeTags();
-
-	UAbilitySystemGlobals::Get().InitGlobalData();
-
 }
 
 void UZodiacAssetManager::InitializeGameplayCueManager()

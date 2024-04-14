@@ -9,6 +9,9 @@
 #include "GameplayTagAssetInterface.h"
 #include "ZodiacCharacter.generated.h"
 
+struct FInputActionValue;
+class UZodiacPawData;
+class UInputMappingContext;
 class UZodiacHeroComponent;
 class UZodiacPawnExtensionComponent;
 class UZodiacHealthComponent;
@@ -46,6 +49,9 @@ protected:
 	virtual void OnRep_Controller() override;
 	virtual void OnRep_PlayerState() override;
 
+	void Input_Move(const FInputActionValue& InputActionValue);
+	void Input_LookMouse(const FInputActionValue& InputActionValue);
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
@@ -53,13 +59,16 @@ public:
 
 private:
 	void AddDefaultAbilities(UZodiacAbilitySystemComponent* ZodiacASC);
-	
-protected:
 
+	void InitializePlayerInput();
+protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities, DisplayName = InitialAbilities)
 	TArray<FGameplayAbilitySpec> DefaultAbilitySpecs;
-
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Input")
+	UZodiacPawData* PawnData;
+	
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Character", meta = (AllowPrivateAccess = true))
