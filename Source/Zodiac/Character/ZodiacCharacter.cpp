@@ -13,6 +13,7 @@
 
 
 AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -43,14 +44,14 @@ void AZodiacCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
 
-	PawnExtComponent->CheckPawnReadyToInitialize();
+	PawnExtComponent->HandleControllerChanged();
 }
 
 void AZodiacCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 
-	PawnExtComponent->CheckPawnReadyToInitialize();
+	PawnExtComponent->HandlePlayerStateReplicated();
 }
 
 void AZodiacCharacter::Tick(float DeltaTime)
@@ -62,25 +63,8 @@ void AZodiacCharacter::Tick(float DeltaTime)
 void AZodiacCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
 
-void AZodiacCharacter::AddDefaultAbilities(UZodiacAbilitySystemComponent* ZodiacASC)
-{
-	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	if (ASC && DefaultAbilitySpecs.Num() > 0)
-	{
-		for (auto& AbilitySpec : DefaultAbilitySpecs)
-		{
-			if (AbilitySpec.Ability && AbilitySpec.Level > 0)
-			{
-				ASC->GiveAbility(AbilitySpec);	
-			}
-			else
-			{
-				UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("Attempted to give an invalid ability spec."));
-			}
-		}
-	}
+	PawnExtComponent->SetupPlayerInputComponent();
 }
 
 UAbilitySystemComponent* AZodiacCharacter::GetAbilitySystemComponent() const
@@ -127,6 +111,11 @@ bool AZodiacCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& T
 	return false;
 }
 
+void AZodiacCharacter::ToggleCrouch()
+{
+	// @TODO
+}
+
 void AZodiacCharacter::OnAbilitySystemInitialized()
 {
 	UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent();
@@ -139,7 +128,7 @@ void AZodiacCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	PawnExtComponent->CheckPawnReadyToInitialize();
+	PawnExtComponent->HandleControllerChanged();
 	// AZodiacPlayerState* ZodiacPS = NewController->GetPlayerState<AZodiacPlayerState>();
 	// check(ZodiacPS);
 	//

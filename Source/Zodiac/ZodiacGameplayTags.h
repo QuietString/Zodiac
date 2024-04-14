@@ -2,78 +2,59 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
+#include "NativeGameplayTags.h"
 
-class UGameplayTagsManager;
-
-/**
- * FZodiacGameplayTags
- *
- *	Singleton containing native gameplay tags.
- */
-struct FZodiacGameplayTags
+namespace ZodiacGameplayTags
 {
-public:
+	ZODIAC_API	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
 
-	static const FZodiacGameplayTags& Get() { return GameplayTags; }
+	// Declare all of the custom native tags that Zodiac will use
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_IsDead);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cooldown);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cost);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_TagsBlocked);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_TagsMissing);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Networking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_ActivationGroup);
 
-	static void InitializeNativeTags();
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Behavior_SurvivesDeath);
 
-	static FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Mouse);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Stick);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Crouch);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_AutoRun);
 
-	FGameplayTag Ability_ActivateFail_IsDead;
-	FGameplayTag Ability_ActivateFail_Cooldown;
-	FGameplayTag Ability_ActivateFail_Cost;
-	FGameplayTag Ability_ActivateFail_TagsBlocked;
-	FGameplayTag Ability_ActivateFail_TagsMissing;
-	FGameplayTag Ability_ActivateFail_Networking;
-	FGameplayTag Ability_ActivateFail_ActivationGroup;
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_Spawned);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataAvailable);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataInitialized);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_GameplayReady);
 
-	FGameplayTag Ability_Behavior_SurvivesDeath;
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_Death);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_Reset);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_RequestReset);
 
-	FGameplayTag InputTag_Move;
-	FGameplayTag InputTag_Look_Mouse;
-	FGameplayTag InputTag_Look_Stick;
-	FGameplayTag InputTag_Crouch;
-	FGameplayTag InputTag_AutoRun;
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Heal);
 
-	FGameplayTag GameplayEvent_Death;
-	FGameplayTag GameplayEvent_Reset;
-	FGameplayTag GameplayEvent_RequestReset;
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_GodMode);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_UnlimitedHealth);
 
-	FGameplayTag SetByCaller_Damage;
-	FGameplayTag SetByCaller_Heal;
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Crouching);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_AutoRunning);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dying);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dead);
 
-	FGameplayTag Cheat_GodMode;
-	FGameplayTag Cheat_UnlimitedHealth;
+	// These are mappings from MovementMode enums to GameplayTags associated with those enums (below)
+	ZODIAC_API	extern const TMap<uint8, FGameplayTag> MovementModeTagMap;
+	ZODIAC_API	extern const TMap<uint8, FGameplayTag> CustomMovementModeTagMap;
 
-	FGameplayTag Status_Crouching;
-	FGameplayTag Status_AutoRunning;
-	FGameplayTag Status_Death;
-	FGameplayTag Status_Death_Dying;
-	FGameplayTag Status_Death_Dead;
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Walking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_NavWalking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Falling);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Swimming);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Flying);
 
-	FGameplayTag Effect_Test;
-	
-	FGameplayTag Movement_Mode_Walking;
-	FGameplayTag Movement_Mode_NavWalking;
-	FGameplayTag Movement_Mode_Falling;
-	FGameplayTag Movement_Mode_Swimming;
-	FGameplayTag Movement_Mode_Flying;
-	FGameplayTag Movement_Mode_Custom;
-
-	TMap<uint8, FGameplayTag> MovementModeTagMap;
-	TMap<uint8, FGameplayTag> CustomMovementModeTagMap;
-
-protected:
-
-	void AddAllTags(UGameplayTagsManager& Manager);
-	void AddTag(FGameplayTag& OutTag, const ANSICHAR* TagName, const ANSICHAR* TagComment);
-	void AddMovementModeTag(FGameplayTag& OutTag, const ANSICHAR* TagName, uint8 MovementMode);
-	void AddCustomMovementModeTag(FGameplayTag& OutTag, const ANSICHAR* TagName, uint8 CustomMovementMode);
-
-private:
-
-	static FZodiacGameplayTags GameplayTags;
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Custom);
 };

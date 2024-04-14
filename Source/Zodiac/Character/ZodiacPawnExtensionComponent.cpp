@@ -1,10 +1,23 @@
-﻿// the.quiet.string@gmail.com
-
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ZodiacPawnExtensionComponent.h"
 
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Components/GameFrameworkComponentDelegates.h"
+#include "Components/GameFrameworkComponentManager.h"
+#include "GameFramework/Controller.h"
+#include "GameFramework/Pawn.h"
+#include "ZodiacGameplayTags.h"
+#include "ZodiacLogChannels.h"
+#include "ZodiacPawnData.h"
+#include "Net/UnrealNetwork.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacPawnExtensionComponent)
+
+class FLifetimeProperty;
+class UActorComponent;
+
+const FName UZodiacPawnExtensionComponent::NAME_ActorFeatureName("PawnExtension");
 
 UZodiacPawnExtensionComponent::UZodiacPawnExtensionComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -13,6 +26,80 @@ UZodiacPawnExtensionComponent::UZodiacPawnExtensionComponent(const FObjectInitia
 	PrimaryComponentTick.bCanEverTick = false;
 
 	SetIsReplicatedByDefault(true);
+
+	PawnData = nullptr;
+	AbilitySystemComponent = nullptr;
+}
+
+void UZodiacPawnExtensionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UZodiacPawnExtensionComponent, PawnData);
+}
+
+void UZodiacPawnExtensionComponent::OnRegister()
+{
+	Super::OnRegister();
+
+	const APawn* Pawn = GetPawn<APawn>();
+	ensureAlwaysMsgf((Pawn != nullptr), TEXT("ZodiacPawnExtensionComponent on [%s] can only be added to Pawn actors."), *GetNameSafe(GetOwner()));
+
+	TArray<UActorComponent*> PawnExtensionComponents;
+	Pawn->GetComponents(UZodiacPawnExtensionComponent::StaticClass(), PawnExtensionComponents);
+	ensureAlwaysMsgf((PawnExtensionComponents.Num() == 1), TEXT("Only one ZodiacPawnExtensionComponent should exist on [%s]."), *GetNameSafe(GetOwner()));
+
+	// Register with the init state system early, this will only work if this is a game world
+	RegisterInitStateFeature();
+}
+
+void UZodiacPawnExtensionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Listen for changes to all features
+	BindOnActorInitStateChanged(NAME_None, FGameplayTag(), false);
+	
+	// Notifies state manager that we have spawned, then try rest of default initialization
+	ensure(TryToChangeInitState(ZodiacGameplayTags::InitState_Spawned));
+	CheckDefaultInitialization();
+}
+
+void UZodiacPawnExtensionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UninitializeAbilitySystem();
+	UnregisterInitStateFeature();
+
+	Super::EndPlay(EndPlayReason);
+}
+
+void UZodiacPawnExtensionComponent::SetPawnData(const UZodiacPawnData* InPawnData)
+{
+	check(InPawnData);
+
+	APawn* Pawn = GetPawnChecked<APawn>();
+
+	if (Pawn->GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
+
+	if (PawnData)
+	{
+		UE_LOG(LogZodiac, Error, TEXT("Trying to set PawnData [%s] on pawn [%s] that already has valid PawnData [%s]."), *GetNameSafe(InPawnData), *GetNameSafe(Pawn), *GetNameSafe(PawnData));
+		return;
+	}
+
+	PawnData = InPawnData;
+
+	Pawn->ForceNetUpdate();
+
+	CheckDefaultInitialization();
+}
+
+void UZodiacPawnExtensionComponent::OnRep_PawnData()
+{
+	CheckDefaultInitialization();
 }
 
 void UZodiacPawnExtensionComponent::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwnerActor)
@@ -20,60 +107,195 @@ void UZodiacPawnExtensionComponent::InitializeAbilitySystem(UZodiacAbilitySystem
 	check(InASC);
 	check(InOwnerActor);
 
+	if (AbilitySystemComponent == InASC)
+	{
+		// The ability system component hasn't changed.
+		return;
+	}
+
+	if (AbilitySystemComponent)
+	{
+		// Clean up the old ability system component.
+		UninitializeAbilitySystem();
+	}
+
 	APawn* Pawn = GetPawnChecked<APawn>();
+	AActor* ExistingAvatar = InASC->GetAvatarActor();
+
+	UE_LOG(LogZodiac, Verbose, TEXT("Setting up ASC [%s] on pawn [%s] owner [%s], existing [%s] "), *GetNameSafe(InASC), *GetNameSafe(Pawn), *GetNameSafe(InOwnerActor), *GetNameSafe(ExistingAvatar));
+
+	if ((ExistingAvatar != nullptr) && (ExistingAvatar != Pawn))
+	{
+		UE_LOG(LogZodiac, Log, TEXT("Existing avatar (authority=%d)"), ExistingAvatar->HasAuthority() ? 1 : 0);
+
+		// There is already a pawn acting as the ASC's avatar, so we need to kick it out
+		// This can happen on clients if they're lagged: their new pawn is spawned + possessed before the dead one is removed
+		ensure(!ExistingAvatar->HasAuthority());
+
+		if (UZodiacPawnExtensionComponent* OtherExtensionComponent = FindPawnExtensionComponent(ExistingAvatar))
+		{
+			OtherExtensionComponent->UninitializeAbilitySystem();
+		}
+	}
 
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
 
+	// @TODO: RelationshipMapping
+	// if (ensure(PawnData))
+	// {
+	// 	InASC->SetTagRelationshipMapping(PawnData->TagRelationshipMapping);
+	// }
+
 	OnAbilitySystemInitialized.Broadcast();
 }
 
-bool UZodiacPawnExtensionComponent::CheckPawnReadyToInitialize()
+void UZodiacPawnExtensionComponent::UninitializeAbilitySystem()
 {
-	if (bPawnReadyToInitialize)
+	if (!AbilitySystemComponent)
 	{
-		return true;
+		return;
 	}
 
-	APawn* Pawn = GetPawnChecked<APawn>();
-
-	const bool bHasAuthority = Pawn->HasAuthority();
-	const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
-
-	if (bHasAuthority || bIsLocallyControlled)
+	// Uninitialize the ASC if we're still the avatar actor (otherwise another pawn already did it when they became the avatar actor)
+	if (AbilitySystemComponent->GetAvatarActor() == GetOwner())
 	{
-		// Check for being possessed by a controller.
-		if (!GetController<AController>())
+		FGameplayTagContainer AbilityTypesToIgnore;
+		AbilityTypesToIgnore.AddTag(ZodiacGameplayTags::Ability_Behavior_SurvivesDeath);
+
+		AbilitySystemComponent->CancelAbilities(nullptr, &AbilityTypesToIgnore);
+		// @TODO: AbilitySystemComponent->ClearAbilityInput();
+		AbilitySystemComponent->RemoveAllGameplayCues();
+
+		if (AbilitySystemComponent->GetOwnerActor() != nullptr)
 		{
-			return false;
+			AbilitySystemComponent->SetAvatarActor(nullptr);
+		}
+		else
+		{
+			// If the ASC doesn't have a valid owner, we need to clear *all* actor info, not just the avatar pairing
+			AbilitySystemComponent->ClearActorInfo();
+		}
+
+		OnAbilitySystemUninitialized.Broadcast();
+	}
+
+	AbilitySystemComponent = nullptr;
+}
+
+void UZodiacPawnExtensionComponent::HandleControllerChanged()
+{
+	if (AbilitySystemComponent && (AbilitySystemComponent->GetAvatarActor() == GetPawnChecked<APawn>()))
+	{
+		ensure(AbilitySystemComponent->AbilityActorInfo->OwnerActor == AbilitySystemComponent->GetOwnerActor());
+		if (AbilitySystemComponent->GetOwnerActor() == nullptr)
+		{
+			UninitializeAbilitySystem();
+		}
+		else
+		{
+			AbilitySystemComponent->RefreshAbilityActorInfo();
 		}
 	}
 
-	// Pawn is ready to initialize.
-	bPawnReadyToInitialize = true;
-	OnPawnReadyToInitialize.Broadcast();
-
-	UE_LOG(LogTemp, Warning, TEXT("check pawn ready true"));
-
-	return true;
+	CheckDefaultInitialization();
 }
 
-void UZodiacPawnExtensionComponent::RegisterAndCall_OnPawnReadyToInitialize(
-	FSimpleMulticastDelegate::FDelegate Delegate)
+void UZodiacPawnExtensionComponent::HandlePlayerStateReplicated()
 {
-	if (!OnPawnReadyToInitialize.IsBoundToObject(Delegate.GetUObject()))
-	{
-		OnPawnReadyToInitialize.Add(Delegate);
-	}
+	CheckDefaultInitialization();
+}
 
-	if (bPawnReadyToInitialize)
+void UZodiacPawnExtensionComponent::SetupPlayerInputComponent()
+{
+	CheckDefaultInitialization();
+}
+
+void UZodiacPawnExtensionComponent::CheckDefaultInitialization()
+{
+	// Before checking our progress, try progressing any other features we might depend on
+	CheckDefaultInitializationForImplementers();
+
+	static const TArray<FGameplayTag> StateChain = { ZodiacGameplayTags::InitState_Spawned, ZodiacGameplayTags::InitState_DataAvailable, ZodiacGameplayTags::InitState_DataInitialized, ZodiacGameplayTags::InitState_GameplayReady };
+
+	// This will try to progress from spawned (which is only set in BeginPlay) through the data initialization stages until it gets to gameplay ready
+	ContinueInitStateChain(StateChain);
+}
+
+bool UZodiacPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const
+{
+	check(Manager);
+
+	APawn* Pawn = GetPawn<APawn>();
+	if (!CurrentState.IsValid() && DesiredState == ZodiacGameplayTags::InitState_Spawned)
 	{
-		Delegate.Execute();
+		// As long as we are on a valid pawn, we count as spawned
+		if (Pawn)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ext: have pawn"));
+			return true;
+		}
+	}
+	if (CurrentState == ZodiacGameplayTags::InitState_Spawned && DesiredState == ZodiacGameplayTags::InitState_DataAvailable)
+	{
+		// Pawn data is required.
+		if (!PawnData)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ext: no pawn data"));
+			return false;
+		}
+
+		const bool bHasAuthority = Pawn->HasAuthority();
+		const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
+
+		if (bHasAuthority || bIsLocallyControlled)
+		{
+			// Check for being possessed by a controller.
+			if (!GetController<AController>())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("ext: no c"));
+				return false;
+			}
+		}
+
+		return true;
+	}
+	else if (CurrentState == ZodiacGameplayTags::InitState_DataAvailable && DesiredState == ZodiacGameplayTags::InitState_DataInitialized)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ext: have all feature"));
+		// Transition to initialize if all features have their data available
+		return Manager->HaveAllFeaturesReachedInitState(Pawn, ZodiacGameplayTags::InitState_DataAvailable);
+	}
+	else if (CurrentState == ZodiacGameplayTags::InitState_DataInitialized && DesiredState == ZodiacGameplayTags::InitState_GameplayReady)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ext: true"));
+		return true;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("ext: false"));
+	return false;
+}
+
+void UZodiacPawnExtensionComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState)
+{
+	if (DesiredState == ZodiacGameplayTags::InitState_DataInitialized)
+	{
+		// This is currently all handled by other components listening to this state change
 	}
 }
 
-void UZodiacPawnExtensionComponent::RegisterAndCall_OnAbilitySystemInitialized(
-	FSimpleMulticastDelegate::FDelegate Delegate)
+void UZodiacPawnExtensionComponent::OnActorInitStateChanged(const FActorInitStateChangedParams& Params)
+{
+	// If another feature is now in DataAvailable, see if we should transition to DataInitialized
+	if (Params.FeatureName != NAME_ActorFeatureName)
+	{
+		if (Params.FeatureState == ZodiacGameplayTags::InitState_DataAvailable)
+		{
+			CheckDefaultInitialization();
+		}
+	}
+}
+
+void UZodiacPawnExtensionComponent::RegisterAndCall_OnAbilitySystemInitialized(FSimpleMulticastDelegate::FDelegate Delegate)
 {
 	if (!OnAbilitySystemInitialized.IsBoundToObject(Delegate.GetUObject()))
 	{
@@ -86,7 +308,11 @@ void UZodiacPawnExtensionComponent::RegisterAndCall_OnAbilitySystemInitialized(
 	}
 }
 
-void UZodiacPawnExtensionComponent::OnRegister()
+void UZodiacPawnExtensionComponent::Register_OnAbilitySystemUninitialized(FSimpleMulticastDelegate::FDelegate Delegate)
 {
-	Super::OnRegister();
+	if (!OnAbilitySystemUninitialized.IsBoundToObject(Delegate.GetUObject()))
+	{
+		OnAbilitySystemUninitialized.Add(Delegate);
+	}
 }
+

@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "CommonPlayerController.h"
+#include "ZodiacPlayerState.h"
+#include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "ZodiacPlayerController.generated.h"
 
 /**
@@ -16,5 +18,16 @@ class ZODIAC_API AZodiacPlayerController : public ACommonPlayerController
 {
 	GENERATED_BODY()
 
+public:
 	AZodiacPlayerController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	AZodiacPlayerState* GetZodiacPlayerState() const;
+	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
+
+	void SetIsAutoRunning(const bool bEnabled);
+	bool GetIsAutoRunning() const;
+
+protected:
+	void OnStartAutoRun();
+	void OnEndAutoRun();
 };

@@ -13,7 +13,8 @@
 				"Engine",
 				"ModularGameplayActors",
 				"ModularGameplay",
-				"GameplayAbilities"
+				"GameplayAbilities",
+				"CommonGame"
 			]
 		}
 	],

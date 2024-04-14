@@ -5,6 +5,7 @@
 
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
+#include "Character/ZodiacPawnExtensionComponent.h"
 #include "Net/UnrealNetwork.h"
 
 AZodiacPlayerState::AZodiacPlayerState(const FObjectInitializer& ObjectInitializer)
@@ -35,4 +36,14 @@ void AZodiacPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 UAbilitySystemComponent* AZodiacPlayerState::GetAbilitySystemComponent() const
 {
 	return GetZodiacAbilitySystemComponent();
+}
+
+void AZodiacPlayerState::ClientInitialize(AController* C)
+{
+	Super::ClientInitialize(C);
+
+	if (UZodiacPawnExtensionComponent* PawnExtComp = UZodiacPawnExtensionComponent::FindPawnExtensionComponent(GetPawn()))
+	{
+		PawnExtComp->CheckDefaultInitialization();
+	}
 }

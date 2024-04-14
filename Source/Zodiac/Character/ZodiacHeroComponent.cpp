@@ -1,18 +1,25 @@
-// the.quiet.string@gmail.com
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ZodiacHeroComponent.h"
+#include "Components/GameFrameworkComponentDelegates.h"
+#include "Logging/MessageLog.h"
 #include "ZodiacLogChannels.h"
-#include "GameFramework/Pawn.h"
-#include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Player/ZodiacPlayerController.h"
 #include "Player/ZodiacPlayerState.h"
+#include "Player/ZodiacLocalPlayer.h"
 #include "Character/ZodiacPawnExtensionComponent.h"
+#include "Character/ZodiacPawnData.h"
 #include "Character/ZodiacCharacter.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Input/ZodiacInputConfig.h"
+#include "Input/ZodiacInputComponent.h"
 #include "ZodiacGameplayTags.h"
-#include "Engine/LocalPlayer.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "UserSettings/EnhancedInputUserSettings.h"
+#include "InputMappingContext.h"
+
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroComponent)
 
 #if WITH_EDITOR
 #include "Misc/UObjectToken.h"
@@ -25,30 +32,19 @@ namespace ZodiacHero
 };
 
 const FName UZodiacHeroComponent::NAME_BindInputsNow("BindInputsNow");
+const FName UZodiacHeroComponent::NAME_ActorFeatureName("Hero");
 
 UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PrimaryComponentTick.bStartWithTickEnabled = false;
-	PrimaryComponentTick.bCanEverTick = false;
-	
 	//AbilityCameraMode = nullptr;
-	bPawnHasInitialized = false;
-	bReadyToBindInputs = false;
 }
 
 void UZodiacHeroComponent::OnRegister()
 {
 	Super::OnRegister();
-	
-	if (const APawn* Pawn = GetPawn<APawn>())
-	{
-		if (UZodiacPawnExtensionComponent* PawnExtComp = UZodiacPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
-		{
-			PawnExtComp->RegisterAndCall_OnPawnReadyToInitialize(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnPawnReadyToInitialize));
-		}
-	}
-	else
+
+	if (!GetPawn<APawn>())
 	{
 		UE_LOG(LogZodiac, Error, TEXT("[UZodiacHeroComponent::OnRegister] This component has been added to a blueprint whose base class is not a Pawn. To use this component, it MUST be placed on a Pawn Blueprint."));
 
@@ -66,125 +62,180 @@ void UZodiacHeroComponent::OnRegister()
 		}
 #endif
 	}
+	else
+	{
+		// Register with the init state system early, this will only work if this is a game world
+		RegisterInitStateFeature();
+	}
 }
 
-bool UZodiacHeroComponent::IsPawnComponentReadyToInitialize() const
+bool UZodiacHeroComponent::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const
 {
-	// The player state is required.
-	if (!GetPlayerState<AZodiacPlayerState>())
-	{
-		return false;
-	}
-
-	const APawn* Pawn = GetPawn<APawn>();
-
-	// A pawn is required.
-	if (!Pawn)
-	{
-		return false;
-	}
-
-	// If we're authority or autonomous, we need to wait for a controller with registered ownership of the player state.
-	if (Pawn->GetLocalRole() != ROLE_SimulatedProxy)
-	{
-		AController* Controller = GetController<AController>();
-
-		const bool bHasControllerPairedWithPS = (Controller != nullptr) && \
-												(Controller->PlayerState != nullptr) && \
-												(Controller->PlayerState->GetOwner() == Controller);
-
-		if (!bHasControllerPairedWithPS)
-		{
-			return false;
-		}
-	}
-	
-	const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
-	const bool bIsBot = Pawn->IsBotControlled();
-
-	if (bIsLocallyControlled && !bIsBot)
-	{
-		// The input component is required when locally controlled.
-		if (!Pawn->InputComponent)
-		{
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void UZodiacHeroComponent::OnPawnReadyToInitialize()
-{
-	UE_LOG(LogTemp, Warning, TEXT("on pawn ready to initialized"));
-
-	if (!ensure(!bPawnHasInitialized))
-	{
-		// Don't initialize twice
-		return;
-	}
+	check(Manager);
 
 	APawn* Pawn = GetPawn<APawn>();
-	if (!Pawn)
+
+	if (!CurrentState.IsValid() && DesiredState == ZodiacGameplayTags::InitState_Spawned)
 	{
-		return;
+		// As long as we have a real pawn, let us transition
+		if (Pawn)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("have pawn"));
+			return true;
+		}
 	}
-	const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
-
-	AZodiacPlayerState* ZodiacPS = GetPlayerState<AZodiacPlayerState>();
-	check(ZodiacPS);
-	
-	UE_LOG(LogTemp, Warning, TEXT("on pawn ready to initialized 2"));
-	
-	if (UZodiacPawnExtensionComponent* PawnExtComp = UZodiacPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+	else if (CurrentState == ZodiacGameplayTags::InitState_Spawned && DesiredState == ZodiacGameplayTags::InitState_DataAvailable)
 	{
-		// The player state holds the persistent data for this player (state that persists across deaths and multiple pawns).
-		// The ability system component and attribute sets live on the player state.
-		PawnExtComp->InitializeAbilitySystem(ZodiacPS->GetZodiacAbilitySystemComponent(), ZodiacPS);
+		// The player state is required.
+		if (!GetPlayerState<AZodiacPlayerState>())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("no ps"));
+			return false;
+		}
+
+		// If we're authority or autonomous, we need to wait for a controller with registered ownership of the player state.
+		if (Pawn->GetLocalRole() != ROLE_SimulatedProxy)
+		{
+			AController* Controller = GetController<AController>();
+
+			const bool bHasControllerPairedWithPS = (Controller != nullptr) && \
+				(Controller->PlayerState != nullptr) && \
+				(Controller->PlayerState->GetOwner() == Controller);
+
+			if (!bHasControllerPairedWithPS)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("simul"));
+				return false;
+			}
+		}
+
+		const bool bIsLocallyControlled = Pawn->IsLocallyControlled();
+		const bool bIsBot = Pawn->IsBotControlled();
+
+		if (bIsLocallyControlled && !bIsBot)
+		{
+			AZodiacPlayerController* ZodiacPC = GetController<AZodiacPlayerController>();
+
+			// The input component and local player is required when locally controlled.
+			if (!Pawn->InputComponent || !ZodiacPC || !ZodiacPC->GetLocalPlayer())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("no ic or pc or lp"));
+				return false;
+			}
+		}
+
+		return true;
+	}
+	else if (CurrentState == ZodiacGameplayTags::InitState_DataAvailable && DesiredState == ZodiacGameplayTags::InitState_DataInitialized)
+	{
+		// Wait for player state and extension component
+		AZodiacPlayerState* ZodiacPS = GetPlayerState<AZodiacPlayerState>();
+		UE_LOG(LogTemp, Warning, TEXT("featur reached"));
+		return ZodiacPS && Manager->HasFeatureReachedInitState(Pawn, UZodiacPawnExtensionComponent::NAME_ActorFeatureName, ZodiacGameplayTags::InitState_DataInitialized);
+	}
+	else if (CurrentState == ZodiacGameplayTags::InitState_DataInitialized && DesiredState == ZodiacGameplayTags::InitState_GameplayReady)
+	{
+		// TODO add ability initialization checks?
+		return true;
 	}
 
-	// if (AZodiacPlayerController* ZodiacPC = GetController<AZodiacPlayerController>())
-	// {
-	// 	if (Pawn->InputComponent != nullptr)
-	// 	{
-	// 		InitializePlayerInput(Pawn->InputComponent);
-	// 	}
-	// }
+	return false;
+}
 
-	if (bIsLocallyControlled)
+void UZodiacHeroComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState)
+{
+	if (CurrentState == ZodiacGameplayTags::InitState_DataAvailable && DesiredState == ZodiacGameplayTags::InitState_DataInitialized)
 	{
-		// if (UZodiacCameraComponent* CameraComponent = UZodiacCameraComponent::FindCameraComponent(Pawn))
+		UE_LOG(LogTemp, Warning, TEXT("handle change init state"));
+
+		APawn* Pawn = GetPawn<APawn>();
+		AZodiacPlayerState* ZodiacPS = GetPlayerState<AZodiacPlayerState>();
+		if (!ensure(Pawn && ZodiacPS))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("handle change init state: no ps"));
+
+			return;
+		}
+
+		const UZodiacPawnData* PawnData = nullptr;
+
+		if (UZodiacPawnExtensionComponent* PawnExtComp = UZodiacPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("handle change init state: have pawnext"));
+
+			PawnData = PawnExtComp->GetPawnData<UZodiacPawnData>();
+
+			// The player state holds the persistent data for this player (state that persists across deaths and multiple pawns).
+			// The ability system component and attribute sets live on the player state.
+			PawnExtComp->InitializeAbilitySystem(ZodiacPS->GetZodiacAbilitySystemComponent(), ZodiacPS);
+		}
+		if (AZodiacPlayerController* ZodiacPC = GetController<AZodiacPlayerController>())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("handle change init state: have pc"));
+
+			if (Pawn->InputComponent != nullptr)
+			{
+				InitializePlayerInput(Pawn->InputComponent);
+			}
+			UE_LOG(LogTemp, Warning, TEXT("handle change init state: no input comp"));
+
+		}
+
+		// @TODO: Hook up the delegate for all pawns, in case we spectate later
+		// if (PawnData)
 		// {
-		// 	CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
+		// 	if (UZodiacCameraComponent* CameraComponent = UZodiacCameraComponent::FindCameraComponent(Pawn))
+		// 	{
+		// 		CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
+		// 	}
 		// }
 	}
+}
 
-	bPawnHasInitialized = true;
+void UZodiacHeroComponent::OnActorInitStateChanged(const FActorInitStateChangedParams& Params)
+{
+	if (Params.FeatureName == UZodiacPawnExtensionComponent::NAME_ActorFeatureName)
+	{
+		if (Params.FeatureState == ZodiacGameplayTags::InitState_DataInitialized)
+		{
+			// If the extension component says all all other components are initialized, try to progress to next state
+			CheckDefaultInitialization();
+		}
+	}
+}
+
+void UZodiacHeroComponent::CheckDefaultInitialization()
+{
+	static const TArray<FGameplayTag> StateChain = { ZodiacGameplayTags::InitState_Spawned, ZodiacGameplayTags::InitState_DataAvailable, ZodiacGameplayTags::InitState_DataInitialized, ZodiacGameplayTags::InitState_GameplayReady };
+	UE_LOG(LogTemp, Warning, TEXT("check default init"));
+	// This will try to progress from spawned (which is only set in BeginPlay) through the data initialization stages until it gets to gameplay ready
+	ContinueInitStateChain(StateChain);
 }
 
 void UZodiacHeroComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Listen for when the pawn extension component changes init state
+	BindOnActorInitStateChanged(UZodiacPawnExtensionComponent::NAME_ActorFeatureName, FGameplayTag(), false);
+
+	// Notifies that we are done spawning, then try the rest of initialization
+	ensure(TryToChangeInitState(ZodiacGameplayTags::InitState_Spawned));
+	CheckDefaultInitialization();
 }
 
 void UZodiacHeroComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	// if (const APawn* Pawn = GetPawn<APawn>())
-	// {
-	// 	if (UZodiacPawnExtensionComponent* PawnExtComp = UZodiacPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
-	// 	{
-	// 		PawnExtComp->UninitializeAbilitySystem();
-	// 	}	
-	// }
+	UnregisterInitStateFeature();
 
 	Super::EndPlay(EndPlayReason);
 }
 
-#if 0
 void UZodiacHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputComponent)
 {
 	check(PlayerInputComponent);
 
+	UE_LOG(LogTemp, Warning, TEXT("init player input"));
 	const APawn* Pawn = GetPawn<APawn>();
 	if (!Pawn)
 	{
@@ -194,142 +245,69 @@ void UZodiacHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCom
 	const APlayerController* PC = GetController<APlayerController>();
 	check(PC);
 
-	const ULocalPlayer* LP = PC->GetLocalPlayer();
+	const UZodiacLocalPlayer* LP = Cast<UZodiacLocalPlayer>(PC->GetLocalPlayer());
 	check(LP);
 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
 	check(Subsystem);
 
 	Subsystem->ClearAllMappings();
-
+	UE_LOG(LogTemp, Warning, TEXT("init player input2"));
 	if (const UZodiacPawnExtensionComponent* PawnExtComp = UZodiacPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
 	{
 		if (const UZodiacPawnData* PawnData = PawnExtComp->GetPawnData<UZodiacPawnData>())
 		{
+			UE_LOG(LogTemp, Warning, TEXT("init player input3"));
 			if (const UZodiacInputConfig* InputConfig = PawnData->InputConfig)
 			{
-				const FZodiacGameplayTags& GameplayTags = FZodiacGameplayTags::Get();
-	
-				// Register any default input configs with the settings so that they will be applied to the player during AddInputMappings
-				for (const FMappableConfigPair& Pair : DefaultInputConfigs)
+				for (const FInputMappingContextAndPriority& Mapping : DefaultInputMappings)
 				{
-					FMappableConfigPair::ActivatePair(Pair);
-				}
-				
-				UZodiacInputComponent* ZodiacIC = CastChecked<UZodiacInputComponent>(PlayerInputComponent);
-				ZodiacIC->AddInputMappings(InputConfig, Subsystem);
-				if (UZodiacSettingsLocal* LocalSettings = UZodiacSettingsLocal::Get())
-				{
-					LocalSettings->OnInputConfigActivated.AddUObject(this, &UZodiacHeroComponent::OnInputConfigActivated);
-					LocalSettings->OnInputConfigDeactivated.AddUObject(this, &UZodiacHeroComponent::OnInputConfigDeactivated);
+					if (UInputMappingContext* IMC = Mapping.InputMapping)
+					{
+						if (Mapping.bRegisterWithSettings)
+						{
+							if (UEnhancedInputUserSettings* Settings = Subsystem->GetUserSettings())
+							{
+								UE_LOG(LogTemp, Warning, TEXT("player input registered"));
+								Settings->RegisterInputMappingContext(IMC);
+							}
+							
+							FModifyContextOptions Options = {};
+							Options.bIgnoreAllPressedKeysUntilRelease = false;
+							// Actually add the config to the local player							
+							Subsystem->AddMappingContext(IMC, Mapping.Priority, Options);
+						}
+					}
 				}
 
-				TArray<uint32> BindHandles;
-				ZodiacIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, /*out*/ BindHandles);
+				// The Zodiac Input Component has some additional functions to map Gameplay Tags to an Input Action.
+				// If you want this functionality but still want to change your input component class, make it a subclass
+				// of the UZodiacInputComponent or modify this component accordingly.
+				UZodiacInputComponent* ZodiacIC = Cast<UZodiacInputComponent>(PlayerInputComponent);
+				if (ensureMsgf(ZodiacIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UZodiacInputComponent or a subclass of it.")))
+				{
+					// Add the key mappings that may have been set by the player
+					ZodiacIC->AddInputMappings(InputConfig, Subsystem);
 
-				ZodiacIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
-				ZodiacIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
-				ZodiacIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Look_Stick, ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
-				ZodiacIC->BindNativeAction(InputConfig, GameplayTags.InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
-				ZodiacIC->BindNativeAction(InputConfig, GameplayTags.InputTag_AutoRun, ETriggerEvent::Triggered, this, &ThisClass::Input_AutoRun, /*bLogIfNotFound=*/ false);
+					// This is where we actually bind and input action to a gameplay tag, which means that Gameplay Ability Blueprints will
+					// be triggered directly by these input actions Triggered events. 
+					TArray<uint32> BindHandles;
+					ZodiacIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, /*out*/ BindHandles);
+
+					ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
+					ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
+					ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Stick, ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
+					ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
+					ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_AutoRun, ETriggerEvent::Triggered, this, &ThisClass::Input_AutoRun, /*bLogIfNotFound=*/ false);
+				}
 			}
 		}
 	}
-
-	if (ensure(!bReadyToBindInputs))
-	{
-		bReadyToBindInputs = true;
-	}
-
+ 
 	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APlayerController*>(PC), NAME_BindInputsNow);
 	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
 }
 
-void UZodiacHeroComponent::OnInputConfigActivated(const FLoadedMappableConfigPair& ConfigPair)
-{
-	if (AZodiacPlayerController* ZodiacPC = GetController<AZodiacPlayerController>())
-	{
-		if (APawn* Pawn = GetPawn<APawn>())
-		{
-			if (UZodiacInputComponent* ZodiacIC = Cast<UZodiacInputComponent>(Pawn->InputComponent))
-			{
-				if (const ULocalPlayer* LP = ZodiacPC->GetLocalPlayer())
-				{
-					if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-					{
-						ZodiacIC->AddInputConfig(ConfigPair, Subsystem);	
-					}	
-				}
-			}
-		}
-	}
-}
-
-void UZodiacHeroComponent::OnInputConfigDeactivated(const FLoadedMappableConfigPair& ConfigPair)
-{
-	if (AZodiacPlayerController* ZodiacPC = GetController<AZodiacPlayerController>())
-	{
-		if (APawn* Pawn = GetPawn<APawn>())
-		{
-			if (UZodiacInputComponent* ZodiacIC = Cast<UZodiacInputComponent>(Pawn->InputComponent))
-			{
-				if (const ULocalPlayer* LP = ZodiacPC->GetLocalPlayer())
-				{
-					if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
-					{
-						ZodiacIC->RemoveInputConfig(ConfigPair, Subsystem);
-					}
-				}
-			}
-		}
-	}
-}
-
-void UZodiacHeroComponent::AddAdditionalInputConfig(const UZodiacInputConfig* InputConfig)
-{
-	TArray<uint32> BindHandles;
-
-	const APawn* Pawn = GetPawn<APawn>();
-	if (!Pawn)
-	{
-		return;
-	}
-
-	UZodiacInputComponent* ZodiacIC = Pawn->FindComponentByClass<UZodiacInputComponent>();
-	check(ZodiacIC);
-
-	const APlayerController* PC = GetController<APlayerController>();
-	check(PC);
-
-	const ULocalPlayer* LP = PC->GetLocalPlayer();
-	check(LP);
-
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-	check(Subsystem);
-
-	if (const UZodiacPawnExtensionComponent* PawnExtComp = UZodiacPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
-	{
-		ZodiacIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, /*out*/ BindHandles);
-	}
-}
-
-void UZodiacHeroComponent::RemoveAdditionalInputConfig(const UZodiacInputConfig* InputConfig)
-{
-	//@TODO: Implement me!
-}
-#endif
-
-bool UZodiacHeroComponent::HasPawnInitialized() const
-{
-	return bPawnHasInitialized;
-}
-
-bool UZodiacHeroComponent::IsReadyToBindInputs() const
-{
-	return bReadyToBindInputs;
-}
-
-#if 0
 void UZodiacHeroComponent::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 {
 	if (const APawn* Pawn = GetPawn<APawn>())
@@ -338,7 +316,7 @@ void UZodiacHeroComponent::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 		{
 			if (UZodiacAbilitySystemComponent* ZodiacASC = PawnExtComp->GetZodiacAbilitySystemComponent())
 			{
-				ZodiacASC->AbilityInputTagPressed(InputTag);
+				// @TODO: ZodiacASC->AbilityInputTagPressed(InputTag);
 			}
 		}	
 	}
@@ -356,7 +334,7 @@ void UZodiacHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 	{
 		if (UZodiacAbilitySystemComponent* ZodiacASC = PawnExtComp->GetZodiacAbilitySystemComponent())
 		{
-			ZodiacASC->AbilityInputTagReleased(InputTag);
+			// @TODO: ZodiacASC->AbilityInputTagReleased(InputTag);
 		}
 	}
 }
@@ -458,6 +436,7 @@ void UZodiacHeroComponent::Input_AutoRun(const FInputActionValue& InputActionVal
 	}
 }
 
+#if 0
 TSubclassOf<UZodiacCameraMode> UZodiacHeroComponent::DetermineCameraMode() const
 {
 	if (AbilityCameraMode)
@@ -499,4 +478,4 @@ void UZodiacHeroComponent::ClearAbilityCameraMode(const FGameplayAbilitySpecHand
 		AbilityCameraModeOwningSpecHandle = FGameplayAbilitySpecHandle();
 	}
 }
-#endif
+#endif 

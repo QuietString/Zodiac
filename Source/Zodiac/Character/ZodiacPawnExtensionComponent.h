@@ -1,59 +1,102 @@
-﻿// the.quiet.string@gmail.com
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "Components/GameFrameworkInitStateInterface.h"
 #include "Components/PawnComponent.h"
+
 #include "ZodiacPawnExtensionComponent.generated.h"
 
+namespace EEndPlayReason { enum Type : int; }
+
+class UGameFrameworkComponentManager;
 class UZodiacAbilitySystemComponent;
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FZodiacDynamicMulticastDelegate);
-
+class UZodiacPawnData;
+class UObject;
+struct FActorInitStateChangedParams;
+struct FFrame;
+struct FGameplayTag;
 
 /**
- * UZodiacPawnExtensionComponent
- *
- *	Component used to add functionality to all Pawn classes.
+ * Component that adds functionality to all Pawn classes so it can be used for characters/vehicles/etc.
+ * This coordinates the initialization of other components.
  */
 UCLASS()
-class ZODIAC_API UZodiacPawnExtensionComponent : public UPawnComponent
+class ZODIAC_API UZodiacPawnExtensionComponent : public UPawnComponent, public IGameFrameworkInitStateInterface
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacPawnExtensionComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	// Returns the pawn extension component if one exists on the specified actor.
+	UZodiacPawnExtensionComponent(const FObjectInitializer& ObjectInitializer);
+
+	/** The name of this overall feature, this one depends on the other named component features */
+	static const FName NAME_ActorFeatureName;
+
+	//~ Begin IGameFrameworkInitStateInterface interface
+	virtual FName GetFeatureName() const override { return NAME_ActorFeatureName; }
+	virtual bool CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const override;
+	virtual void HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) override;
+	virtual void OnActorInitStateChanged(const FActorInitStateChangedParams& Params) override;
+	virtual void CheckDefaultInitialization() override;
+	//~ End IGameFrameworkInitStateInterface interface
+
+	/** Returns the pawn extension component if one exists on the specified actor. */
 	UFUNCTION(BlueprintPure, Category = "Zodiac|Pawn")
 	static UZodiacPawnExtensionComponent* FindPawnExtensionComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UZodiacPawnExtensionComponent>() : nullptr); }
 
-	// Should be called by the owning pawn to become the avatar of the ability system.
+	/** Gets the pawn data, which is used to specify pawn properties in data */
+	template <class T>
+	const T* GetPawnData() const { return Cast<T>(PawnData); }
+
+	/** Sets the current pawn data */
+	void SetPawnData(const UZodiacPawnData* InPawnData);
+
+	/** Gets the current ability system component, which may be owned by a different actor */
+	UFUNCTION(BlueprintPure, Category = "Zodiac|Pawn")
+	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const { return AbilitySystemComponent; }
+
+	/** Should be called by the owning pawn to become the avatar of the ability system. */
 	void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwnerActor);
 
-	// Call this anytime the pawn needs to check if it's ready to be initialized (pawn data assigned, possessed, etc..). 
-	bool CheckPawnReadyToInitialize();
+	/** Should be called by the owning pawn to remove itself as the avatar of the ability system. */
+	void UninitializeAbilitySystem();
 
-	// Register with the OnPawnReadyToInitialize delegate and broadcast if condition is already met.
-	void RegisterAndCall_OnPawnReadyToInitialize(FSimpleMulticastDelegate::FDelegate Delegate);
+	/** Should be called by the owning pawn when the pawn's controller changes. */
+	void HandleControllerChanged();
 
-	// Register with the OnAbilitySystemInitialized delegate and broadcast if condition is already met.
+	/** Should be called by the owning pawn when the player state has been replicated. */
+	void HandlePlayerStateReplicated();
+
+	/** Should be called by the owning pawn when the input component is setup. */
+	void SetupPlayerInputComponent();
+
+	/** Register with the OnAbilitySystemInitialized delegate and broadcast if our pawn has been registered with the ability system component */
 	void RegisterAndCall_OnAbilitySystemInitialized(FSimpleMulticastDelegate::FDelegate Delegate);
 
-protected:
-	virtual void OnRegister() override;
+	/** Register with the OnAbilitySystemUninitialized delegate fired when our pawn is removed as the ability system's avatar actor */
+	void Register_OnAbilitySystemUninitialized(FSimpleMulticastDelegate::FDelegate Delegate);
 
-	// Delegate fired when pawn has everything needed for initialization.
-	FSimpleMulticastDelegate OnPawnReadyToInitialize;
-	
-	// Delegate fired when our pawn becomes the ability system's avatar actor
+protected:
+
+	virtual void OnRegister() override;
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	UFUNCTION()
+	void OnRep_PawnData();
+
+	/** Delegate fired when our pawn becomes the ability system's avatar actor */
 	FSimpleMulticastDelegate OnAbilitySystemInitialized;
 
-protected:
-	// Pointer to the ability system component that is cached for convenience.
-	UPROPERTY()
-	UZodiacAbilitySystemComponent* AbilitySystemComponent;
+	/** Delegate fired when our pawn is removed as the ability system's avatar actor */
+	FSimpleMulticastDelegate OnAbilitySystemUninitialized;
 
-	// True when the pawn has everything needed for initialization.
-	int32 bPawnReadyToInitialize : 1;
+	/** Pawn data used to create the pawn. Specified from a spawn function or on a placed instance. */
+	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_PawnData, Category = "Zodiac|Pawn")
+	TObjectPtr<const UZodiacPawnData> PawnData;
+
+	/** Pointer to the ability system component that is cached for convenience. */
+	UPROPERTY()
+	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 };

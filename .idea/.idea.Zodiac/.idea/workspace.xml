@@ -10,14 +10,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="PawnExtensionComponent,&#10;HeroComponent,&#10;HealthComponent" />
+    <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="Input with GameFrameworkManager&#10;Working on" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
@@ -34,24 +39,27 @@
   &quot;associatedIndex&quot;: 4
 }</component>
   <component name="ProjectId" id="2eyd8CMZhhR3BaYBYoKGJSgjIKM" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
     "C++ Project.Zodiac.executor": "Debug",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "5.3",
     "ignore.virus.scanning.warn.message": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "LiveTemplatesSettingsId",
+    "settings.editor.selected.configurable": "preferences.editor",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -192,7 +200,27 @@
       <workItem from="1712933302114" duration="8593000" />
       <workItem from="1712996785962" duration="2158000" />
       <workItem from="1712998968189" duration="781000" />
+      <workItem from="1712999802235" duration="8367000" />
+      <workItem from="1713028002383" duration="13368000" />
+      <workItem from="1713101616329" duration="594000" />
     </task>
+    <task id="LOCAL-00001" summary="PawnExtensionComponent&#10;HeroComponent&#10;HealthComponent">
+      <option name="closed" value="true" />
+      <created>1713000104617</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1713000104617</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Input with GameFrameworkManager&#10;Working on">
+      <option name="closed" value="true" />
+      <created>1713102025688</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1713102025688</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -200,10 +228,15 @@
   </component>
   <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <ignored-roots>
       <path value="$PROJECT_DIR$/.." />
     </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="PawnExtensionComponent&#10;HeroComponent&#10;HealthComponent" />
+    <MESSAGE value="5.3 style Input&#10;Working on" />
+    <MESSAGE value="Input with GameFrameworkManager&#10;Working on" />
+    <option name="LAST_COMMIT_MESSAGE" value="Input with GameFrameworkManager&#10;Working on" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

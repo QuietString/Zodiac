@@ -3,10 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
-#include "GameplayAbilitySpec.h"
 #include "GameplayTagAssetInterface.h"
+#include "ModularCharacter.h"
 #include "ZodiacCharacter.generated.h"
 
 class UZodiacHeroComponent;
@@ -18,7 +17,7 @@ class UZodiacAbilitySystemComponent;
 class UAbilitySystemComponent;
 
 UCLASS()
-class ZODIAC_API AZodiacCharacter : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface 
+class ZODIAC_API AZodiacCharacter : public AModularCharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface 
 {
 	GENERATED_BODY()
 
@@ -37,6 +36,8 @@ public:
 	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
 	//~End of IGameplayTagAssetInterface interface
 
+	void ToggleCrouch();
+
 protected:
 	virtual void OnAbilitySystemInitialized();
 	
@@ -51,14 +52,7 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-private:
-	void AddDefaultAbilities(UZodiacAbilitySystemComponent* ZodiacASC);
-	
 protected:
-
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities, DisplayName = InitialAbilities)
-	TArray<FGameplayAbilitySpec> DefaultAbilitySpecs;
 
 private:
 

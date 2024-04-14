@@ -46,6 +46,10 @@ public:
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const { return AbilitySystemComponent; }
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	//~APlayerState interface
+	virtual void ClientInitialize(AController* C) override;
+	//~End of APlayerState interface
+	
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Zodaic|PlayerState")
 	UZodiacAbilitySystemComponent* AbilitySystemComponent;
