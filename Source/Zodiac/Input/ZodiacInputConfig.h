@@ -11,8 +11,6 @@ class UInputAction;
 class UObject;
 
 /**
- * FZodiacInputAction
- *
  *	Struct used to map a input action to a gameplay input tag.
  */
 USTRUCT(BlueprintType)
@@ -30,8 +28,6 @@ public:
 };
 
 /**
- * UZodiacInputConfig
- *
  *	Non-mutable data asset that contains input configuration properties.
  */
 UCLASS(BlueprintType, Const)

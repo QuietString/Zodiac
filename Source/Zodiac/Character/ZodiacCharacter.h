@@ -49,6 +49,9 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void BeginPlay() override;
 
+	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
+	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
+	
 	virtual void OnRep_Controller() override;
 	virtual void OnRep_PlayerState() override;
 
@@ -63,9 +66,7 @@ public:
 
 	void InitializePlayerInput();
 
-	
 protected:
-
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Input")
 	UZodiacPawnData* PawnData;
 	
@@ -76,10 +77,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Character", meta = (AllowPrivateAccess = true))
 	UZodiacHeroComponent* HeroComponent;
-	
-	UPROPERTY()
-	UZodiacAbilitySystemComponent* AbilitySystemComponent;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Character", meta = (AllowPrivateAccess = true))
 	UZodiacHealthComponent* HealthComponent;
 	

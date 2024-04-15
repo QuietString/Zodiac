@@ -6,6 +6,8 @@
 #include "CommonPlayerController.h"
 #include "ZodiacPlayerController.generated.h"
 
+class UZodiacAbilitySystemComponent;
+class AZodiacPlayerState;
 /**
  * AZodiacPlayerController
  *
@@ -19,5 +21,13 @@ class ZODIAC_API AZodiacPlayerController : public ACommonPlayerController
 public:
 	AZodiacPlayerController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	AZodiacPlayerState* GetZodiacPlayerState() const;
+	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
+
+	
 	virtual void OnPossess(APawn* InPawn) override;
+
+	//~APlayerController interface
+	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
+	//~End of APlayerController interface
 };

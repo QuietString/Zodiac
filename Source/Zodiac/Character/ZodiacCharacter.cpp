@@ -4,6 +4,7 @@
 #include "ZodiacCharacter.h"
 
 #include "EnhancedInputSubsystems.h"
+#include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHeroComponent.h"
@@ -18,9 +19,25 @@
 
 
 AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
+	ZodiacMoveComp->GravityScale = 1.0f;
+	ZodiacMoveComp->MaxAcceleration = 2400.0f;
+	ZodiacMoveComp->BrakingFrictionFactor = 1.0f;
+	ZodiacMoveComp->BrakingFriction = 6.0f;
+	ZodiacMoveComp->GroundFriction = 8.0f;
+	ZodiacMoveComp->BrakingDecelerationWalking = 1400.0f;
+	ZodiacMoveComp->bUseControllerDesiredRotation = false;
+	ZodiacMoveComp->bOrientRotationToMovement = false;
+	ZodiacMoveComp->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	ZodiacMoveComp->bAllowPhysicsRotationDuringAnimRootMotion = false;
+	ZodiacMoveComp->GetNavAgentPropertiesRef().bCanCrouch = true;
+	ZodiacMoveComp->bCanWalkOffLedgesWhenCrouching = true;
+	ZodiacMoveComp->SetCrouchedHalfHeight(65.0f);
+	
 	PawnExtComponent = CreateDefaultSubobject<UZodiacPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 	PawnExtComponent->RegisterAndCall_OnAbilitySystemInitialized(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
 
@@ -44,6 +61,17 @@ void AZodiacCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	InitializePlayerInput();
+}
+
+void AZodiacCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
+{
+	UE_LOG(LogTemp, Warning, TEXT("jump input pressed by tag"));
+	GetZodiacAbilitySystemComponent()->AbilityInputTagPressed(InputTag);
+}
+
+void AZodiacCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
+{
+	GetZodiacAbilitySystemComponent()->AbilityInputTagReleased(InputTag);
 }
 
 void AZodiacCharacter::OnRep_Controller()
@@ -144,10 +172,10 @@ void AZodiacCharacter::InitializePlayerInput()
 				// This is where we actually bind and input action to a gameplay tag, which means that Gameplay Ability Blueprints will
 				// be triggered directly by these input actions Triggered events. 
 				TArray<uint32> BindHandles;
-				//ZodiacIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, /*out*/ BindHandles);
+				ZodiacIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, OUT BindHandles);
 
-				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
-				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
+				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
+				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, false);
 				//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Stick, ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
 				//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
 				//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_AutoRun, ETriggerEvent::Triggered, this, &ThisClass::Input_AutoRun, /*bLogIfNotFound=*/ false);

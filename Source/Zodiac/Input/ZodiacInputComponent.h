@@ -13,8 +13,6 @@ class UObject;
 
 
 /**
- * UZodiacInputComponent
- *
  *	Component used to manage input mappings and bindings using an input config data asset.
  */
 UCLASS(Config = Input)

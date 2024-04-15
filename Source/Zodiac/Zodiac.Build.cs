@@ -32,6 +32,8 @@ public class Zodiac : ModuleRules
 				"ReplicationGraph",
 				"GameFeatures",
 				"SignificanceManager",
+				"AnimationLocomotionLibraryRuntime",
+				"AnimGraphRuntime",
 				"Hotfix",
 				"CommonLoadingScreen",
 				"Niagara",
