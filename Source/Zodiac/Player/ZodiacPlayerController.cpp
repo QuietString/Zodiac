@@ -5,6 +5,7 @@
 
 #include "ZodiacPlayerState.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Character/ZodiacCharacter.h"
 
 AZodiacPlayerController::AZodiacPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -18,8 +19,8 @@ AZodiacPlayerState* AZodiacPlayerController::GetZodiacPlayerState() const
 
 UZodiacAbilitySystemComponent* AZodiacPlayerController::GetZodiacAbilitySystemComponent() const
 {
-	const AZodiacPlayerState* ZodiacPS = GetZodiacPlayerState();
-	return (ZodiacPS ? ZodiacPS->GetZodiacAbilitySystemComponent() : nullptr);
+	const AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetCharacter());
+	return ZodiacCharacter->GetZodiacAbilitySystemComponent();
 }
 
 void AZodiacPlayerController::OnPossess(APawn* InPawn)

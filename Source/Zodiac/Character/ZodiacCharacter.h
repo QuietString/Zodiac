@@ -15,7 +15,6 @@ class UInputMappingContext;
 class UZodiacHeroComponent;
 class UZodiacPawnExtensionComponent;
 class UZodiacHealthComponent;
-class UZodiacHealthSet;
 class AZodiacPlayerState;
 class UZodiacAbilitySystemComponent;
 class UAbilitySystemComponent;
@@ -28,7 +27,7 @@ class ZODIAC_API AZodiacCharacter : public ACharacter, public IAbilitySystemInte
 public:
 	AZodiacCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	AZodiacPlayerState* GetZodiacPlayerState() const;
+	virtual void PostInitializeComponents() override;
 	
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -42,19 +41,15 @@ public:
 
 protected:
 
-	void AddDefaultAbilities(UZodiacAbilitySystemComponent* ZodiacASC);
+	void AddDefaultAbilities();
 	void OnManaChanged(const FOnAttributeChangeData& OnAttributeChangeData);
-	virtual void OnAbilitySystemInitialized();
+	virtual void InitializeAbilitySystemComponent();
 	
-	virtual void PossessedBy(AController* NewController) override;
 	virtual void BeginPlay() override;
 
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 	
-	virtual void OnRep_Controller() override;
-	virtual void OnRep_PlayerState() override;
-
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 
@@ -62,8 +57,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-
+	
 	void InitializePlayerInput();
 
 protected:
@@ -72,15 +66,17 @@ protected:
 	
 private:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Character", meta = (AllowPrivateAccess = true))
-	UZodiacPawnExtensionComponent* PawnExtComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Character", meta = (AllowPrivateAccess = true))
-	UZodiacHeroComponent* HeroComponent;
-
+	UPROPERTY(VisibleAnywhere, Category = "Zodiac|PlayerState")
+	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Character", meta = (AllowPrivateAccess = true))
 	UZodiacHealthComponent* HealthComponent;
 	
+	// Health attribute set used by this actor.
 	UPROPERTY()
-	const UZodiacHealthSet* HealthSet;
+	TObjectPtr<const class UZodiacHealthSet> HealthSet;
+	
+	// Combat attribute set used by this actor.
+	UPROPERTY()
+	TObjectPtr<const class UZodiacCombatSet> CombatSet;
 };

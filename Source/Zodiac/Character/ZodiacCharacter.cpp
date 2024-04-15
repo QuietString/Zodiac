@@ -1,28 +1,29 @@
 ﻿// the.quiet.string@gmail.com
 
-
 #include "ZodiacCharacter.h"
 
 #include "EnhancedInputSubsystems.h"
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHealthComponent.h"
-#include "ZodiacHeroComponent.h"
 #include "ZodiacLogChannels.h"
 #include "ZodiacPawnData.h"
-#include "ZodiacPawnExtensionComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
+#include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "Input/ZodiacInputComponent.h"
-#include "Player/ZodiacPlayerState.h"
-
 
 AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySysteComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	
+	
 	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
 	ZodiacMoveComp->GravityScale = 1.0f;
 	ZodiacMoveComp->MaxAcceleration = 2400.0f;
@@ -37,23 +38,29 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	ZodiacMoveComp->GetNavAgentPropertiesRef().bCanCrouch = true;
 	ZodiacMoveComp->bCanWalkOffLedgesWhenCrouching = true;
 	ZodiacMoveComp->SetCrouchedHalfHeight(65.0f);
-	
-	PawnExtComponent = CreateDefaultSubobject<UZodiacPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
-	PawnExtComponent->RegisterAndCall_OnAbilitySystemInitialized(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
 
+	HealthSet = CreateDefaultSubobject<UZodiacHealthSet>(TEXT("HealthSet"));
+
+	
 	HealthComponent = CreateDefaultSubobject<UZodiacHealthComponent>(TEXT("HealthComponent"));
 
-	HeroComponent = CreateDefaultSubobject<UZodiacHeroComponent>(TEXT("HeroComponent"));
 }
 
-AZodiacPlayerState* AZodiacCharacter::GetZodiacPlayerState() const
+void AZodiacCharacter::PostInitializeComponents()
 {
-	return CastChecked<AZodiacPlayerState>(GetPlayerState(), ECastCheckedType::NullAllowed);
+	Super::PostInitializeComponents();
+
+	InitializeAbilitySystemComponent();
 }
 
 UZodiacAbilitySystemComponent* AZodiacCharacter::GetZodiacAbilitySystemComponent() const
 {
-	return Cast<UZodiacAbilitySystemComponent>(GetAbilitySystemComponent());
+	return Cast<UZodiacAbilitySystemComponent>(AbilitySystemComponent);
+}
+
+UAbilitySystemComponent* AZodiacCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 void AZodiacCharacter::BeginPlay()
@@ -65,27 +72,12 @@ void AZodiacCharacter::BeginPlay()
 
 void AZodiacCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	UE_LOG(LogTemp, Warning, TEXT("jump input pressed by tag"));
-	GetZodiacAbilitySystemComponent()->AbilityInputTagPressed(InputTag);
+	AbilitySystemComponent->AbilityInputTagPressed(InputTag);
 }
 
 void AZodiacCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	GetZodiacAbilitySystemComponent()->AbilityInputTagReleased(InputTag);
-}
-
-void AZodiacCharacter::OnRep_Controller()
-{
-	Super::OnRep_Controller();
-
-	PawnExtComponent->CheckPawnReadyToInitialize();
-}
-
-void AZodiacCharacter::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	PawnExtComponent->CheckPawnReadyToInitialize();
+	AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 }
 
 void AZodiacCharacter::Input_Move(const FInputActionValue& InputActionValue)
@@ -186,25 +178,19 @@ void AZodiacCharacter::InitializePlayerInput()
 	}
 }
 
-UAbilitySystemComponent* AZodiacCharacter::GetAbilitySystemComponent() const
-{
-	AZodiacPlayerState* ZodiacPS = GetZodiacPlayerState();
-	return ZodiacPS->GetZodiacAbilitySystemComponent();
-}
-
 void AZodiacCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
-	if (const UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	if (AbilitySystemComponent)
 	{
-		ZodiacASC->GetOwnedGameplayTags(TagContainer);
+		AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);	
 	}
 }
 
 bool AZodiacCharacter::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
 {
-	if (const UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	if (AbilitySystemComponent)
 	{
-		return ZodiacASC->HasMatchingGameplayTag(TagToCheck);
+		return AbilitySystemComponent->HasMatchingGameplayTag(TagToCheck);	
 	}
 
 	return false;
@@ -212,31 +198,31 @@ bool AZodiacCharacter::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
 
 bool AZodiacCharacter::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
 {
-	if (const UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	if (AbilitySystemComponent)
 	{
-		return ZodiacASC->HasAllMatchingGameplayTags(TagContainer);
+		return AbilitySystemComponent->HasAllMatchingGameplayTags(TagContainer);	
 	}
-
+	
 	return false;
 }
 
 bool AZodiacCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
 {
-	if (const UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	if (AbilitySystemComponent)
 	{
-		return ZodiacASC->HasAnyMatchingGameplayTags(TagContainer);
+		return AbilitySystemComponent->HasAnyMatchingGameplayTags(TagContainer);
 	}
 
 	return false;
 }
 
-void AZodiacCharacter::AddDefaultAbilities(UZodiacAbilitySystemComponent* ZodiacASC)
+void AZodiacCharacter::AddDefaultAbilities()
 {
 	if (PawnData && PawnData->DefaultAbilities.Num() > 0)
 	{
 		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : PawnData->DefaultAbilities)
 		{
-			AbilitySet->GiveToAbilitySystem(ZodiacASC, nullptr);
+			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 		}
 	}
 }
@@ -249,25 +235,16 @@ void AZodiacCharacter::OnManaChanged(const FOnAttributeChangeData& OnAttributeCh
 	UE_LOG(LogTemp, Warning, TEXT("Mana changed from %.1f to %.1f"), OldValue, NewValue);
 }
 
-void AZodiacCharacter::OnAbilitySystemInitialized()
+void AZodiacCharacter::InitializeAbilitySystemComponent()
 {
-	UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent();
-	check(ZodiacASC);
-
-	AddDefaultAbilities(ZodiacASC);
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	
-	HealthComponent->InitializeWithAbilitySystem(ZodiacASC);
-
+	AddDefaultAbilities();
 	
-	if (ZodiacASC->GetAttributeSet(UZodiacCombatSet::StaticClass()))
+	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+	
+	if (AbilitySystemComponent->GetAttributeSet(UZodiacCombatSet::StaticClass()))
 	{
-		ZodiacASC->GetGameplayAttributeValueChangeDelegate(UZodiacCombatSet::GetManaAttribute()).AddUObject(this, &ThisClass::OnManaChanged);
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UZodiacCombatSet::GetManaAttribute()).AddUObject(this, &ThisClass::OnManaChanged);
 	}
-}
-
-void AZodiacCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-
-	PawnExtComponent->CheckPawnReadyToInitialize();
 }

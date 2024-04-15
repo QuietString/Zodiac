@@ -140,7 +140,7 @@ void UZodiacHeroComponent::OnPawnReadyToInitialize()
 	{
 		// The player state holds the persistent data for this player (state that persists across deaths and multiple pawns).
 		// The ability system component and attribute sets live on the player state.
-		PawnExtComp->InitializeAbilitySystem(ZodiacPS->GetZodiacAbilitySystemComponent(), ZodiacPS);
+		// PawnExtComp->InitializeAbilitySystem(ZodiacPS->GetZodiacAbilitySystemComponent(), ZodiacPS);
 	}
 
 	// if (AZodiacPlayerController* ZodiacPC = GetController<AZodiacPlayerController>())

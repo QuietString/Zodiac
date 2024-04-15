@@ -30,12 +30,10 @@ enum class EZodiacPlayerConnectionType : uint8
 };
 
 /**
- * AZodiacPlayerState
- *
  * Base player state class used by this project.
  */
 UCLASS(Config = Game)
-class ZODIAC_API AZodiacPlayerState : public AModularPlayerState, public IAbilitySystemInterface
+class ZODIAC_API AZodiacPlayerState : public AModularPlayerState//, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -43,19 +41,13 @@ public:
 	AZodiacPlayerState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&) const override;
-	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const { return AbilitySystemComponent; }
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	virtual void ClientInitialize(AController* C) override;
 private:
-	UPROPERTY(VisibleAnywhere, Category = "Zodaic|PlayerState")
-	UZodiacAbilitySystemComponent* AbilitySystemComponent;
 
 	UPROPERTY(Replicated)
 	EZodiacPlayerConnectionType MyPlayerConnectionType;
 
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTags;
-
 	
 };

@@ -55,5 +55,5 @@ protected:
 	UZodiacAbilitySystemComponent* AbilitySystemComponent;
 
 	// True when the pawn has everything needed for initialization.
-	int32 bPawnReadyToInitialize : 1;
+	bool bPawnReadyToInitialize = false;
 };
