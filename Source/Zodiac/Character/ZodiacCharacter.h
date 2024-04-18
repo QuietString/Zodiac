@@ -7,8 +7,12 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpec.h"
 #include "GameplayTagAssetInterface.h"
+#include "InputActionValue.h"
 #include "ZodiacCharacter.generated.h"
 
+class AZodiacTaggedActor;
+class UZodiacHeroData;
+class UZodiacCharacterCosmeticComponent;
 struct FInputActionValue;
 class UZodiacPawnData;
 class UInputMappingContext;
@@ -19,6 +23,7 @@ class AZodiacPlayerState;
 class UZodiacAbilitySystemComponent;
 class UAbilitySystemComponent;
 
+
 UCLASS()
 class ZODIAC_API AZodiacCharacter : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface 
 {
@@ -27,7 +32,10 @@ class ZODIAC_API AZodiacCharacter : public ACharacter, public IAbilitySystemInte
 public:
 	AZodiacCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	//~AActor interface
 	virtual void PostInitializeComponents() override;
+	virtual void BeginPlay() override;
+	//~End of AActor interface
 	
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -39,38 +47,61 @@ public:
 	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
 	//~End of IGameplayTagAssetInterface interface
 
+	TArray<UZodiacHeroData*> GetHeroes();
+
+	UFUNCTION(BlueprintCallable)
+	UZodiacCharacterCosmeticComponent* GetCosmeticComponent();
+
+	UFUNCTION(BlueprintCallable)
+	TArray<TSubclassOf<AZodiacTaggedActor>> GetTaggedActors();
+	
+	void Input_ChangeCharacter(int32 SlotIndex);
+
 protected:
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	void InitializeAbilitySystemComponent();
+	void InitializePlayerInput();
 
 	void AddDefaultAbilities();
 	void OnManaChanged(const FOnAttributeChangeData& OnAttributeChangeData);
-	virtual void InitializeAbilitySystemComponent();
 	
-	virtual void BeginPlay() override;
-
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 	
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
+	void Input_Crouch(const FInputActionValue& InputActionValue);
 
-public:
-	virtual void Tick(float DeltaTime) override;
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual bool CanJumpInternal_Implementation() const override;
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	void InitializePlayerInput();
+	UFUNCTION(BlueprintCallable)
+	void Input_ChangeCharacter(const int32 NewSlotIndex, const FGameplayTag SlotActionTag);
 
+	UFUNCTION(BlueprintCallable)
+	USkeletalMeshComponent* GetRetargetedMeshComponent();
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Input")
 	UZodiacPawnData* PawnData;
 	
 private:
 
-	UPROPERTY(VisibleAnywhere, Category = "Zodiac|PlayerState")
+	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Character", meta = (AllowPrivateAccess = true))
+	UPROPERTY()
 	UZodiacHealthComponent* HealthComponent;
+
+	UPROPERTY()
+	UZodiacCharacterCosmeticComponent* CosmeticComponent;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Zodiac|Heroes")
+	USkeletalMeshComponent* RetargetedMeshComponent;
+	
+	//UPROPERTY()
+	//UZodiacCharacterCosmeticComponent* CosmeticComponent;
 	
 	// Health attribute set used by this actor.
 	UPROPERTY()
@@ -79,4 +110,10 @@ private:
 	// Combat attribute set used by this actor.
 	UPROPERTY()
 	TObjectPtr<const class UZodiacCombatSet> CombatSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zodiac|Heroes", meta = (AllowPrivateAccess = true))
+	TArray<UZodiacHeroData*> Heroes;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Heroes")
+	TArray<TSubclassOf<AZodiacTaggedActor>> TaggedActors;
 };

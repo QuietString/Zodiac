@@ -10,8 +10,6 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCharacterMovementComponent)
 
-UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_MovementStopped, "Gameplay.MovementStopped");
-
 namespace ZodiacCharacter
 {
 	static float GroundTraceDistance = 100000.0f;
@@ -102,30 +100,4 @@ void UZodiacCharacterMovementComponent::SetReplicatedAcceleration(const FVector&
 {
 	bHasReplicatedAcceleration = true;
 	Acceleration = InAcceleration;
-}
-
-FRotator UZodiacCharacterMovementComponent::GetDeltaRotation(float DeltaTime) const
-{
-	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
-	{
-		if (ASC->HasMatchingGameplayTag(TAG_Gameplay_MovementStopped))
-		{
-			return FRotator(0,0,0);
-		}
-	}
-
-	return Super::GetDeltaRotation(DeltaTime);
-}
-
-float UZodiacCharacterMovementComponent::GetMaxSpeed() const
-{
-	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
-	{
-		if (ASC->HasMatchingGameplayTag(TAG_Gameplay_MovementStopped))
-		{
-			return 0;
-		}
-	}
-
-	return Super::GetMaxSpeed();
 }

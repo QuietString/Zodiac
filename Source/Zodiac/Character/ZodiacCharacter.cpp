@@ -6,10 +6,13 @@
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHealthComponent.h"
+#include "ZodiacHeroData.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "ZodiacLogChannels.h"
 #include "ZodiacPawnData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Cosmetics/ZodiacCharacterCosmeticComponent.h"
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "Input/ZodiacInputComponent.h"
@@ -18,11 +21,17 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySysteComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	CosmeticComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacCharacterCosmeticComponent>(this, TEXT("CosmeticComponent"));
 	
+	RetargetedMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("RetargetedMesh"));
+	RetargetedMeshComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	//CosmeticComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacCharacterCosmeticComponent>(this, TEXT("CosmeticComponent"));
 	
 	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
 	ZodiacMoveComp->GravityScale = 1.0f;
@@ -40,7 +49,6 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	ZodiacMoveComp->SetCrouchedHalfHeight(65.0f);
 
 	HealthSet = CreateDefaultSubobject<UZodiacHealthSet>(TEXT("HealthSet"));
-
 	
 	HealthComponent = CreateDefaultSubobject<UZodiacHealthComponent>(TEXT("HealthComponent"));
 
@@ -116,9 +124,74 @@ void AZodiacCharacter::Input_LookMouse(const FInputActionValue& InputActionValue
 	}
 }
 
-void AZodiacCharacter::Tick(float DeltaTime)
+void AZodiacCharacter::Input_Crouch(const FInputActionValue& InputActionValue)
 {
-	Super::Tick(DeltaTime);
+	const UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
+
+	if (bIsCrouched || ZodiacMoveComp->bWantsToCrouch)
+	{
+		UnCrouch();
+	}
+	else if (ZodiacMoveComp->IsMovingOnGround())
+	{
+		Crouch();
+	}
+}
+
+void AZodiacCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	{
+		ZodiacASC->SetLooseGameplayTagCount(ZodiacGameplayTags::Status_Crouching, 1);
+	}
+	
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+}
+
+void AZodiacCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	{
+		ZodiacASC->SetLooseGameplayTagCount(ZodiacGameplayTags::Status_Crouching, 0);
+	}
+	
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+}
+
+bool AZodiacCharacter::CanJumpInternal_Implementation() const
+{
+	// same as ACharacter's implementation but without the crouch check
+	return JumpIsAllowedInternal();
+}
+
+void AZodiacCharacter::Input_ChangeCharacter(const int32 NewSlotIndex, const FGameplayTag SlotActionTag)
+{
+	FGameplayEventData EventData;
+	EventData.EventMagnitude = NewSlotIndex;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, SlotActionTag, EventData);
+}
+
+USkeletalMeshComponent* AZodiacCharacter::GetRetargetedMeshComponent()
+{
+	return RetargetedMeshComponent;
+}
+
+UZodiacCharacterCosmeticComponent* AZodiacCharacter::GetCosmeticComponent()
+{
+	return CosmeticComponent;
+}
+
+TArray<TSubclassOf<AZodiacTaggedActor>> AZodiacCharacter::GetTaggedActors()
+{
+	return TaggedActors;
+}
+
+void AZodiacCharacter::Input_ChangeCharacter(int32 SlotIndex)
+{
+	UE_LOG(LogTemp, Warning, TEXT("change character"));
+	RetargetedMeshComponent->SetSkeletalMesh(Heroes[SlotIndex]->HeroMesh);
+	RetargetedMeshComponent->SetAnimInstanceClass(Heroes[SlotIndex]->AnimInstance);
 }
 
 void AZodiacCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -169,10 +242,8 @@ void AZodiacCharacter::InitializePlayerInput()
 				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
 				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, false);
 				//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Stick, ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
-				//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
+				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch, false);
 				//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_AutoRun, ETriggerEvent::Triggered, this, &ThisClass::Input_AutoRun, /*bLogIfNotFound=*/ false);
-
-				UE_LOG(LogTemp, Warning, TEXT("input config added"));
 			}
 		}
 	}
@@ -216,6 +287,12 @@ bool AZodiacCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& T
 	return false;
 }
 
+
+TArray<UZodiacHeroData*> AZodiacCharacter::GetHeroes()
+{
+	return Heroes;
+}
+
 void AZodiacCharacter::AddDefaultAbilities()
 {
 	if (PawnData && PawnData->DefaultAbilities.Num() > 0)
@@ -238,7 +315,6 @@ void AZodiacCharacter::OnManaChanged(const FOnAttributeChangeData& OnAttributeCh
 void AZodiacCharacter::InitializeAbilitySystemComponent()
 {
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	
 	AddDefaultAbilities();
 	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);

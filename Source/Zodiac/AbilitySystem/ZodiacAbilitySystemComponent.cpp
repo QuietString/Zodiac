@@ -16,9 +16,6 @@ UZodiacAbilitySystemComponent::UZodiacAbilitySystemComponent(const FObjectInitia
 
 void UZodiacAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ability input tag: %s"), *InputTag.GetTagName().ToString());
-
-
 	if (InputTag.IsValid())
 	{
 		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)

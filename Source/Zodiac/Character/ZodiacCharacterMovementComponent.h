@@ -57,13 +57,7 @@ public:
 
 	void SetReplicatedAcceleration(const FVector& InAcceleration);
 
-	//~UMovementComponent interface
-	virtual FRotator GetDeltaRotation(float DeltaTime) const override;
-	virtual float GetMaxSpeed() const override;
-	//~End of UMovementComponent interface
-
 protected:
-
 	virtual void InitializeComponent() override;
 
 protected:

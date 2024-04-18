@@ -13,7 +13,7 @@ class UZodiacInputConfig;
 /**
  *	Non-mutable data asset that contains properties used to define a pawn.
  */
-UCLASS(BlueprintType, Const, meta = (DisplayName = "Zodaic Pawn Data", ShortToolTip = "Data asset used to define a Pawn."))
+UCLASS(BlueprintType, Const, meta = (DisplayName = "Zodiac Pawn Data", ShortToolTip = "Data asset used to define a Pawn."))
 class ZODIAC_API UZodiacPawnData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()

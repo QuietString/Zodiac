@@ -6,6 +6,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "ZodiacGameplayAbility.generated.h"
 
+class AZodiacCharacter;
 /**
  *	The base gameplay ability class used by this project.
  */
@@ -18,6 +19,9 @@ public:
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
+	AZodiacCharacter* GetZodiacCharacterFromActorInfo() const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
