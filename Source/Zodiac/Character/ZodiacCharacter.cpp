@@ -8,8 +8,10 @@
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "ZodiacCharacterChangeComponent.h"
 #include "ZodiacLogChannels.h"
 #include "ZodiacPawnData.h"
+#include "ZodiacRetargetedMeshComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Cosmetics/ZodiacCharacterCosmeticComponent.h"
@@ -17,20 +19,26 @@
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "Input/ZodiacInputComponent.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCharacter)
+
 AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
-
+	
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySysteComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
-	CosmeticComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacCharacterCosmeticComponent>(this, TEXT("CosmeticComponent"));
 	
-	RetargetedMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("RetargetedMesh"));
-	RetargetedMeshComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	CharacterChangeComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacCharacterChangeComponent>(this, TEXT("CharacterChangeComponent"));
+	CharacterChangeComponent->SetIsReplicated(true);
+	
+	RetargetedMeshComponent2 = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("RetargetedMeshComponent"));
+	RetargetedMeshComponent2->SetupAttachment(GetMesh(), NAME_None);
+	RetargetedMeshComponent2->SetIsReplicated(true);
+	//AddInstanceComponent(RetargetedMeshComponent);
+	
 	//CosmeticComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacCharacterCosmeticComponent>(this, TEXT("CosmeticComponent"));
 	
 	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
@@ -51,7 +59,6 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	HealthSet = CreateDefaultSubobject<UZodiacHealthSet>(TEXT("HealthSet"));
 	
 	HealthComponent = CreateDefaultSubobject<UZodiacHealthComponent>(TEXT("HealthComponent"));
-
 }
 
 void AZodiacCharacter::PostInitializeComponents()
@@ -74,8 +81,6 @@ UAbilitySystemComponent* AZodiacCharacter::GetAbilitySystemComponent() const
 void AZodiacCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	InitializePlayerInput();
 }
 
 void AZodiacCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
@@ -168,18 +173,18 @@ void AZodiacCharacter::Input_ChangeCharacter(const int32 NewSlotIndex, const FGa
 {
 	FGameplayEventData EventData;
 	EventData.EventMagnitude = NewSlotIndex;
-
+	
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, SlotActionTag, EventData);
 }
 
 USkeletalMeshComponent* AZodiacCharacter::GetRetargetedMeshComponent()
 {
-	return RetargetedMeshComponent;
+	return RetargetedMeshComponent2;
 }
 
-UZodiacCharacterCosmeticComponent* AZodiacCharacter::GetCosmeticComponent()
+UZodiacCharacterChangeComponent* AZodiacCharacter::GetCharacterChangeComponent()
 {
-	return CosmeticComponent;
+	return CharacterChangeComponent;
 }
 
 TArray<TSubclassOf<AZodiacTaggedActor>> AZodiacCharacter::GetTaggedActors()
@@ -190,13 +195,18 @@ TArray<TSubclassOf<AZodiacTaggedActor>> AZodiacCharacter::GetTaggedActors()
 void AZodiacCharacter::Input_ChangeCharacter(int32 SlotIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("change character"));
-	RetargetedMeshComponent->SetSkeletalMesh(Heroes[SlotIndex]->HeroMesh);
-	RetargetedMeshComponent->SetAnimInstanceClass(Heroes[SlotIndex]->AnimInstance);
+	RetargetedMeshComponent2->SetSkeletalMesh(Heroes[SlotIndex]->HeroMesh);
+	RetargetedMeshComponent2->SetAnimInstanceClass(Heroes[SlotIndex]->AnimInstance);
 }
 
 void AZodiacCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (IsLocallyControlled())
+	{
+		InitializePlayerInput();
+	}
 }
 
 void AZodiacCharacter::InitializePlayerInput()

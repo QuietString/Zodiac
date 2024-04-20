@@ -5,6 +5,7 @@
 
 #include "ZodiacCharacter.h"
 #include "ZodiacHeroData.h"
+#include "Net/UnrealNetwork.h"
 
 
 UZodiacCharacterChangeComponent::UZodiacCharacterChangeComponent(const FObjectInitializer& ObjectInitializer)
@@ -12,37 +13,71 @@ UZodiacCharacterChangeComponent::UZodiacCharacterChangeComponent(const FObjectIn
 {
 }
 
-void UZodiacCharacterChangeComponent::OnRegister()
+void UZodiacCharacterChangeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::OnRegister();
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	InitializeData();
+	DOREPLIFETIME(UZodiacCharacterChangeComponent, RetargetedMesh);
 }
 
-TArray<UZodiacHeroData*> UZodiacCharacterChangeComponent::GetHeroes() const
+AZodiacCharacter* UZodiacCharacterChangeComponent::GetZodiacCharacter()
 {
-	TArray<UZodiacHeroData*> Data;
-	
-	if (GetOwner())
+	if (AActor* Owner = GetOwner())
 	{
-		if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetOwner()))
+		if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(Owner))
 		{
-			Data.Append(ZodiacCharacter->GetHeroes());
+			return ZodiacCharacter;
 		}
 	}
 
-	return Data;
+	return nullptr;
 }
 
-
-void UZodiacCharacterChangeComponent::InitializeData()
+USkeletalMeshComponent* UZodiacCharacterChangeComponent::GetRetargetedMeshComponent()
 {
-	if (GetOwner())
+	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacter())
 	{
-		if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetOwner()))
+		return ZodiacCharacter->GetRetargetedMeshComponent();
+	}
+
+	return nullptr;
+}
+
+void UZodiacCharacterChangeComponent::ChangeCharacter(USkeletalMesh* NewMesh)
+{
+	UE_LOG(LogTemp, Warning, TEXT("character change"));
+
+	if (AActor* Owner = GetOwner())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("got owner"));
+
+		if (Owner->HasAuthority())
 		{
-			Heroes = ZodiacCharacter->GetHeroes();
-			
+			UE_LOG(LogTemp, Warning, TEXT("has authority and mesh changed"));
+
+			RetargetedMesh = NewMesh;
 		}
 	}
+	else
+	{
+		ServerChangeMesh(NewMesh);
+	}
+}
+
+void UZodiacCharacterChangeComponent::OnRep_RetargetedMesh()
+{
+	UE_LOG(LogTemp, Warning, TEXT("onrep"));
+	if (USkeletalMeshComponent* RetargetedMeshComp = GetRetargetedMeshComponent())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("set skeletal mesh"));
+
+		RetargetedMeshComp->SetSkeletalMeshAsset(RetargetedMesh);
+	}
+}
+
+void UZodiacCharacterChangeComponent::ServerChangeMesh_Implementation(USkeletalMesh* NewMesh)
+{
+	UE_LOG(LogTemp, Warning, TEXT("server change mesh"));
+
+	RetargetedMesh = NewMesh;
 }

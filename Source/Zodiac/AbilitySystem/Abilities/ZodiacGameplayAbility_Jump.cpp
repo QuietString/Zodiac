@@ -14,6 +14,8 @@ struct FGameplayTagContainer;
 UZodiacGameplayAbility_Jump::UZodiacGameplayAbility_Jump(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
 void UZodiacGameplayAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -25,11 +27,13 @@ void UZodiacGameplayAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHand
 	CharacterJumpStart();
 
 	UAbilityTask_StartAbilityState* JumpAbilityState = UAbilityTask_StartAbilityState::StartAbilityState(this, TEXT("Jumping"), true);
-	JumpAbilityState->OnStateEnded.AddDynamic(this, &ThisClass::UZodiacGameplayAbility_Jump::CharacterJumpStop);
-	JumpAbilityState->OnStateInterrupted.AddDynamic(this, &ThisClass::UZodiacGameplayAbility_Jump::CharacterJumpStop);
-
+	//JumpAbilityState->OnStateEnded.AddDynamic(this, &ThisClass::UZodiacGameplayAbility_Jump::CharacterJumpStop);
+	//JumpAbilityState->OnStateInterrupted.AddDynamic(this, &ThisClass::UZodiacGameplayAbility_Jump::CharacterJumpStop);
+	JumpAbilityState->Activate();
+	
 	UAbilityTask_WaitInputRelease* WaitInputRelease = UAbilityTask_WaitInputRelease::WaitInputRelease(this, true);
 	WaitInputRelease->OnRelease.AddDynamic(this, &ThisClass::OnInputRelease);
+	WaitInputRelease->Activate();
 }
 
 bool UZodiacGameplayAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const

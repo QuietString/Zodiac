@@ -10,9 +10,9 @@
 #include "InputActionValue.h"
 #include "ZodiacCharacter.generated.h"
 
+class UZodiacCharacterChangeComponent;
 class AZodiacTaggedActor;
 class UZodiacHeroData;
-class UZodiacCharacterCosmeticComponent;
 struct FInputActionValue;
 class UZodiacPawnData;
 class UInputMappingContext;
@@ -23,6 +23,17 @@ class AZodiacPlayerState;
 class UZodiacAbilitySystemComponent;
 class UAbilitySystemComponent;
 
+USTRUCT(BlueprintType)
+struct FZodiacCharacterChangedMessage
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category=Inventory)
+	TObjectPtr<AActor> Owner = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = Inventory)
+	int32 SlotIndex;
+};
 
 UCLASS()
 class ZODIAC_API AZodiacCharacter : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface 
@@ -40,6 +51,12 @@ public:
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UFUNCTION(BlueprintCallable)
+	USkeletalMeshComponent* GetRetargetedMeshComponent();
+
+	UFUNCTION(BlueprintCallable)
+	UZodiacCharacterChangeComponent* GetCharacterChangeComponent();
+
 	//~IGameplayTagAssetInterface interface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
@@ -48,10 +65,7 @@ public:
 	//~End of IGameplayTagAssetInterface interface
 
 	TArray<UZodiacHeroData*> GetHeroes();
-
-	UFUNCTION(BlueprintCallable)
-	UZodiacCharacterCosmeticComponent* GetCosmeticComponent();
-
+	
 	UFUNCTION(BlueprintCallable)
 	TArray<TSubclassOf<AZodiacTaggedActor>> GetTaggedActors();
 	
@@ -80,12 +94,11 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void Input_ChangeCharacter(const int32 NewSlotIndex, const FGameplayTag SlotActionTag);
 
-	UFUNCTION(BlueprintCallable)
-	USkeletalMeshComponent* GetRetargetedMeshComponent();
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Input")
 	UZodiacPawnData* PawnData;
-	
+
 private:
 
 	UPROPERTY()
@@ -93,16 +106,13 @@ private:
 	
 	UPROPERTY()
 	UZodiacHealthComponent* HealthComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zodiac|Heroes", meta=(AllowPrivateAccess=true))
+	TObjectPtr<USkeletalMeshComponent> RetargetedMeshComponent2;
 
 	UPROPERTY()
-	UZodiacCharacterCosmeticComponent* CosmeticComponent;
-	
-	UPROPERTY(VisibleAnywhere, Category = "Zodiac|Heroes")
-	USkeletalMeshComponent* RetargetedMeshComponent;
-	
-	//UPROPERTY()
-	//UZodiacCharacterCosmeticComponent* CosmeticComponent;
-	
+	UZodiacCharacterChangeComponent* CharacterChangeComponent;
+
 	// Health attribute set used by this actor.
 	UPROPERTY()
 	TObjectPtr<const class UZodiacHealthSet> HealthSet;
@@ -116,4 +126,5 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Heroes")
 	TArray<TSubclassOf<AZodiacTaggedActor>> TaggedActors;
+	
 };

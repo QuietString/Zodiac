@@ -5,6 +5,22 @@
 
 #include "AbilitySystemComponent.h"
 #include "Character/ZodiacCharacter.h"
+#include "ZodiacAbilitySimpleFailureMessage.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+
+UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE, "Ability.UserFacingSimpleActivateFail.Message");
+UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_PLAY_MONTAGE_FAILURE_MESSAGE, "Ability.PlayMontageOnActivateFail.Message");
+
+UZodiacGameplayAbility::UZodiacGameplayAbility(const FObjectInitializer& ObjectInitializer)
+{
+	ReplicationPolicy = EGameplayAbilityReplicationPolicy::ReplicateNo;
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
+	NetSecurityPolicy = EGameplayAbilityNetSecurityPolicy::ClientOrServer;
+
+	ActivationPolicy = EZodiacAbilityActivationPolicy::OnInputTriggered;
+	ActivationGroup = EZodiacAbilityActivationGroup::Independent;
+}
 
 void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
@@ -52,4 +68,37 @@ void UZodiacGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 AZodiacCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
 {
 	return (CurrentActorInfo ? Cast<AZodiacCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
+}
+
+void UZodiacGameplayAbility::NativeOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const
+{
+	bool bSimpleFailureFound = false;
+	for (FGameplayTag Reason : FailedReason)
+	{
+		if (!bSimpleFailureFound)
+		{
+			if (const FText* pUserFacingMessage = FailureTagToUserFacingMessages.Find(Reason))
+			{
+				FZodiacAbilitySimpleFailureMessage Message;
+				Message.PlayerController = GetActorInfo().PlayerController.Get();
+				Message.FailureTags = FailedReason;
+				Message.UserFacingReason = *pUserFacingMessage;
+
+				UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+				MessageSystem.BroadcastMessage(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE, Message);
+				bSimpleFailureFound = true;
+			}
+		}
+		
+		if (UAnimMontage* pMontage = FailureTagToAnimMontage.FindRef(Reason))
+		{
+			FZodiacAbilityMontageFailureMessage Message;
+			Message.PlayerController = GetActorInfo().PlayerController.Get();
+			Message.FailureTags = FailedReason;
+			Message.FailureMontage = pMontage;
+
+			UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+			MessageSystem.BroadcastMessage(TAG_ABILITY_PLAY_MONTAGE_FAILURE_MESSAGE, Message);
+		}
+	}
 }

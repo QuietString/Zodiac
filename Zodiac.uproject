@@ -15,7 +15,8 @@
 				"ModularGameplay",
 				"GameplayAbilities",
 				"EnhancedInput",
-				"CommonGame"
+				"CommonGame",
+				"ReplicationGraph"
 			]
 		}
 	],

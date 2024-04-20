@@ -11,33 +11,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_ChangeChar.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_ChangeChar.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Jump.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Jump.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacTaggedActor.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacTaggedActor.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroData.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroData.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Cosmetics/ZodiacCharacterCosmeticComponent.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Cosmetics/ZodiacCharacterCosmeticComponent.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Cosmetics/ZodiacCharacterPartTypes.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Cosmetics/ZodiacCosmeticAnimationTypes.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Cosmetics/ZodiacCosmeticAnimationTypes.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacAbilitySimpleFailureMessage.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacGlobalAbilitySystem.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacGlobalAbilitySystem.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacRetargetedMeshComponent.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacRetargetedMeshComponent.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacReplicationGraph.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacReplicationGraph.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/DefaultGameplayTags.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultGameplayTags.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Jump.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Jump.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Animation/ZodiacAnimInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Animation/ZodiacAnimInstance.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterMovementComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterMovementComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterMovementComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterMovementComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawnData.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPawnData.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Zodiac.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/Zodiac.uproject" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +49,90 @@
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_5.3/Engine/Plugins/Runtime/GameplayAbilities/Intermediate/Build/Win64/UnrealEditor/Inc/GameplayAbilities/UHT/GameplayAbilitySpec.generated.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacter.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacter.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacter.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacCharacterChangeComponent.cpp" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProjectColorInfo">{
@@ -231,6 +311,12 @@
       <workItem from="1713275995873" duration="2544000" />
       <workItem from="1713319349904" duration="9757000" />
       <workItem from="1713409523036" duration="5858000" />
+      <workItem from="1713484296480" duration="605000" />
+      <workItem from="1713495729892" duration="1840000" />
+      <workItem from="1713513550493" duration="9360000" />
+      <workItem from="1713585803123" duration="20670000" />
+      <workItem from="1713608656795" duration="653000" />
+      <workItem from="1713609321772" duration="534000" />
     </task>
     <task id="LOCAL-00001" summary="Player input binding">
       <option name="closed" value="true" />

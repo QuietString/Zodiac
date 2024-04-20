@@ -190,34 +190,34 @@ private:
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Characte_State_Data)
-		bool IsOnGround;
+	bool IsOnGround;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-		bool IsCrouching;
+	bool IsCrouching;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-		bool CrouchStateChange;
+	bool CrouchStateChange;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-		bool ADSStateChanged;
+	bool ADSStateChanged;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-		bool WasADSLastUpdate;
+	bool WasADSLastUpdate;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-		float TimeSinceFiredWeapon = 9999.f;
+	float TimeSinceFiredWeapon = 9999.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-		bool IsJumping;
+	bool IsJumping;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-		bool IsFalling;
+	bool IsFalling;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-		float TimeToJumpApex;
+	float TimeToJumpApex;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-		bool IsRunningIntoWall;
+	bool IsRunningIntoWall;
 
 private:
 

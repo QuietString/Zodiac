@@ -7,31 +7,51 @@
 #include "ZodiacCharacterChangeComponent.generated.h"
 
 
+class AZodiacCharacter;
 class UZodiacHeroData;
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class ZODIAC_API UZodiacCharacterChangeComponent : public UPawnComponent
+USTRUCT()
+struct FCharacterMeshInfo
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere)
+	USkeletalMesh* RetargetedMesh;
+
+	UPROPERTY(EditAnywhere)
+	UAnimInstance* AnimInstance;
+};
+
+UCLASS(meta=(BlueprintSpawnableComponent))
+class UZodiacCharacterChangeComponent : public UPawnComponent
 {
 	GENERATED_BODY()
 
 public:
 	UZodiacCharacterChangeComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	virtual void OnRegister() override;
-	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(BlueprintCallable)
+	void ChangeCharacter(USkeletalMesh* NewMesh);
+
 protected:
-	TArray<UZodiacHeroData*> GetHeroes() const;
+
+	AZodiacCharacter* GetZodiacCharacter();
+
+	USkeletalMeshComponent* GetRetargetedMeshComponent();
 	
-	void InitializeData();
+	UFUNCTION()
+	void OnRep_RetargetedMesh();
 
-private:
+	UFUNCTION(Server, Reliable)
+	void ServerChangeMesh(USkeletalMesh* NewMesh);
+protected:
 
-	UPROPERTY()
-	TArray<UZodiacHeroData*> Heroes;
+	UPROPERTY(ReplicatedUsing=OnRep_RetargetedMesh)
+	USkeletalMesh* RetargetedMesh;
 
-	UPROPERTY()
-	TArray<USkeletalMesh*> Meshes;
-
-	UPROPERTY()
-	TArray<UAnimInstance*> AnimInstances;
+	//UPROPERTY()
+	//UAnimInstance* AnimInstance;
 };

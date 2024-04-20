@@ -3,8 +3,13 @@
 
 #include "ZodiacAbilitySystemComponent.h"
 
+#include "ZodiacGlobalAbilitySystem.h"
+#include "ZodiacLogChannels.h"
 #include "Abilities/ZodiacGameplayAbility.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilitySystemComponent)
+
+UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_AbilityInputBlocked, "Gameplay.AbilityInputBlocked");
 
 UZodiacAbilitySystemComponent::UZodiacAbilitySystemComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -12,6 +17,125 @@ UZodiacAbilitySystemComponent::UZodiacAbilitySystemComponent(const FObjectInitia
 	InputPressedSpecHandles.Reset();
 	InputReleasedSpecHandles.Reset();
 	InputHeldSpecHandles.Reset();
+
+	FMemory::Memset(ActivationGroupCounts, 0, sizeof(ActivationGroupCounts));
+}
+
+void UZodiacAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UZodiacGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UZodiacGlobalAbilitySystem>(GetWorld()))
+	{
+		GlobalAbilitySystem->UnregisterASC(this);
+	}
+
+	Super::EndPlay(EndPlayReason);}
+
+void UZodiacAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
+{
+	FGameplayAbilityActorInfo* ActorInfo = AbilityActorInfo.Get();
+	check(ActorInfo);
+	check(InOwnerActor);
+
+	const bool bHasNewPawnAvatar = Cast<APawn>(InAvatarActor) && (InAvatarActor != ActorInfo->AvatarActor);
+
+	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
+
+	if (bHasNewPawnAvatar)
+	{
+		// Notify all abilities that a new pawn avatar has been set
+		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+		{
+			UZodiacGameplayAbility* ZodiacAbilityCDO = CastChecked<UZodiacGameplayAbility>(AbilitySpec.Ability);
+
+			if (ZodiacAbilityCDO->GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced)
+			{
+				TArray<UGameplayAbility*> Instances = AbilitySpec.GetAbilityInstances();
+				for (UGameplayAbility* AbilityInstance : Instances)
+				{
+					UZodiacGameplayAbility* ZodiacAbilityInstance = Cast<UZodiacGameplayAbility>(AbilityInstance);
+					if (ZodiacAbilityInstance)
+					{
+						// Ability instances may be missing for replays
+						//ZodiacAbilityInstance->OnPawnAvatarSet();
+					}
+				}
+			}
+			else
+			{
+				//ZodiacAbilityCDO->OnPawnAvatarSet();
+			}
+		}
+
+		// Register with the global system once we actually have a pawn avatar. We wait until this time since some globally-applied effects may require an avatar.
+		if (UZodiacGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UZodiacGlobalAbilitySystem>(GetWorld()))
+		{
+			GlobalAbilitySystem->RegisterASC(this);
+		}
+
+		// if (UZodiacAnimInstance* ZodiacAnimInst = Cast<UZodiacAnimInstance>(ActorInfo->GetAnimInstance()))
+		// {
+		// 	ZodiacAnimInst->InitializeWithAbilitySystem(this);
+		// }
+
+		//TryActivateAbilitiesOnSpawn();
+	}}
+
+void UZodiacAbilitySystemComponent::CancelAbilitiesByFunc(TShouldCancelAbilityFunc ShouldCancelFunc,
+                                                          bool bReplicateCancelAbility)
+{
+	ABILITYLIST_SCOPE_LOCK();
+	for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+	{
+		if (!AbilitySpec.IsActive())
+		{
+			continue;
+		}
+
+		UZodiacGameplayAbility* ZodiacAbilityCDO = CastChecked<UZodiacGameplayAbility>(AbilitySpec.Ability);
+
+		if (ZodiacAbilityCDO->GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced)
+		{
+			// Cancel all the spawned instances, not the CDO.
+			TArray<UGameplayAbility*> Instances = AbilitySpec.GetAbilityInstances();
+			for (UGameplayAbility* AbilityInstance : Instances)
+			{
+				UZodiacGameplayAbility* ZodiacAbilityInstance = CastChecked<UZodiacGameplayAbility>(AbilityInstance);
+
+				if (ShouldCancelFunc(ZodiacAbilityInstance, AbilitySpec.Handle))
+				{
+					if (ZodiacAbilityInstance->CanBeCanceled())
+					{
+						ZodiacAbilityInstance->CancelAbility(AbilitySpec.Handle, AbilityActorInfo.Get(), ZodiacAbilityInstance->GetCurrentActivationInfo(), bReplicateCancelAbility);
+					}
+					else
+					{
+						UE_LOG(LogZodiacAbilitySystem, Error, TEXT("CancelAbilitiesByFunc: Can't cancel ability [%s] because CanBeCanceled is false."), *ZodiacAbilityInstance->GetName());
+					}
+				}
+			}
+		}
+		else
+		{
+			// Cancel the non-instanced ability CDO.
+			if (ShouldCancelFunc(ZodiacAbilityCDO, AbilitySpec.Handle))
+			{
+				// Non-instanced abilities can always be canceled.
+				check(ZodiacAbilityCDO->CanBeCanceled());
+				ZodiacAbilityCDO->CancelAbility(AbilitySpec.Handle, AbilityActorInfo.Get(), FGameplayAbilityActivationInfo(), bReplicateCancelAbility);
+			}
+		}
+	}
+}
+
+void UZodiacAbilitySystemComponent::CancelInputActivatedAbilities(bool bReplicateCancelAbility)
+{
+	auto ShouldCancelFunc = [this](const UZodiacGameplayAbility* ZodiacAbility, FGameplayAbilitySpecHandle Handle)
+	{
+		const EZodiacAbilityActivationPolicy ActivationPolicy = ZodiacAbility->GetActivationPolicy();
+		return ((ActivationPolicy == EZodiacAbilityActivationPolicy::OnInputTriggered) || (ActivationPolicy == EZodiacAbilityActivationPolicy::WhileInputActive));
+	};
+
+	CancelAbilitiesByFunc(ShouldCancelFunc, bReplicateCancelAbility);
 }
 
 void UZodiacAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
@@ -46,11 +170,11 @@ void UZodiacAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& 
 
 void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGamePaused)
 {
-	// @TODO: if (HasMatchingGameplayTag(TAG_Gameplay_AbilityInputBlocked))
-	// {
-	// 	ClearAbilityInput();
-	// 	return;
-	// }
+	if (HasMatchingGameplayTag(TAG_Gameplay_AbilityInputBlocked))
+	{
+		ClearAbilityInput();
+		return;
+	}
 
 	static TArray<FGameplayAbilitySpecHandle> AbilitiesToActivate;
 	AbilitiesToActivate.Reset();
@@ -66,10 +190,10 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 
 				AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
 
-				// @TODO: if (ZodiacAbilityCDO->GetActivationPolicy() == EZodiacAbilityActivationPolicy::WhileInputActive)
-				// {
-				// 	AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
-				// }
+				if (ZodiacAbilityCDO->GetActivationPolicy() == EZodiacAbilityActivationPolicy::WhileInputActive)
+				{
+					AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
+				}
 			}
 		}
 	}
@@ -94,10 +218,9 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 
 					AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
 
-					// @TODO: if (ZodiacAbilityCDO->GetActivationPolicy() == EZodiacAbilityActivationPolicy::OnInputTriggered)
-					// {
-					// 	AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
-					// }
+					{
+					 	AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
+					}
 				}
 			}
 		}
@@ -136,9 +259,150 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 	InputReleasedSpecHandles.Reset();
 }
 
+void UZodiacAbilitySystemComponent::ClearAbilityInput()
+{
+	InputPressedSpecHandles.Reset();
+	InputReleasedSpecHandles.Reset();
+	InputHeldSpecHandles.Reset();
+}
+
+bool UZodiacAbilitySystemComponent::IsActivationGroupBlocked(EZodiacAbilityActivationGroup Group) const
+{
+	bool bBlocked = false;
+
+	switch (Group)
+	{
+	case EZodiacAbilityActivationGroup::Independent:
+		// Independent abilities are never blocked.
+			bBlocked = false;
+		break;
+
+	case EZodiacAbilityActivationGroup::Exclusive_Replaceable:
+	case EZodiacAbilityActivationGroup::Exclusive_Blocking:
+		// Exclusive abilities can activate if nothing is blocking.
+		bBlocked = (ActivationGroupCounts[(uint8)EZodiacAbilityActivationGroup::Exclusive_Blocking] > 0);
+		break;
+
+	default:
+		checkf(false, TEXT("IsActivationGroupBlocked: Invalid ActivationGroup [%d]\n"), (uint8)Group);
+		break;
+	}
+
+	return bBlocked;
+}
+
+void UZodiacAbilitySystemComponent::AddAbilityToActivationGroup(EZodiacAbilityActivationGroup Group,
+	UZodiacGameplayAbility* ZodiacAbility)
+{
+	check(ZodiacAbility);
+	check(ActivationGroupCounts[(uint8)Group] < INT32_MAX);
+
+	ActivationGroupCounts[(uint8)Group]++;
+
+	const bool bReplicateCancelAbility = false;
+
+	switch (Group)
+	{
+	case EZodiacAbilityActivationGroup::Independent:
+		// Independent abilities do not cancel any other abilities.
+			break;
+
+	case EZodiacAbilityActivationGroup::Exclusive_Replaceable:
+	case EZodiacAbilityActivationGroup::Exclusive_Blocking:
+		CancelActivationGroupAbilities(EZodiacAbilityActivationGroup::Exclusive_Replaceable, ZodiacAbility, bReplicateCancelAbility);
+		break;
+
+	default:
+		checkf(false, TEXT("AddAbilityToActivationGroup: Invalid ActivationGroup [%d]\n"), (uint8)Group);
+		break;
+	}
+
+	const int32 ExclusiveCount = ActivationGroupCounts[(uint8)EZodiacAbilityActivationGroup::Exclusive_Replaceable] + ActivationGroupCounts[(uint8)EZodiacAbilityActivationGroup::Exclusive_Blocking];
+	if (!ensure(ExclusiveCount <= 1))
+	{
+		UE_LOG(LogZodiacAbilitySystem, Error, TEXT("AddAbilityToActivationGroup: Multiple exclusive abilities are running."));
+	}
+}
+
+void UZodiacAbilitySystemComponent::RemoveAbilityFromActivationGroup(EZodiacAbilityActivationGroup Group,
+	UZodiacGameplayAbility* ZodiacAbility)
+{
+	check(ZodiacAbility);
+	check(ActivationGroupCounts[(uint8)Group] > 0);
+
+	ActivationGroupCounts[(uint8)Group]--;
+}
+
+void UZodiacAbilitySystemComponent::CancelActivationGroupAbilities(EZodiacAbilityActivationGroup Group,
+	UZodiacGameplayAbility* IgnoreZodiacAbility, bool bReplicateCancelAbility)
+{
+	auto ShouldCancelFunc = [this, Group, IgnoreZodiacAbility](const UZodiacGameplayAbility* ZodiacAbility, FGameplayAbilitySpecHandle Handle)
+	{
+		return ((ZodiacAbility->GetActivationGroup() == Group) && (ZodiacAbility != IgnoreZodiacAbility));
+	};
+
+	CancelAbilitiesByFunc(ShouldCancelFunc, bReplicateCancelAbility);
+}
+
+void UZodiacAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec& Spec)
+{
+	Super::AbilitySpecInputPressed(Spec);
+
+	// We don't support UGameplayAbility::bReplicateInputDirectly.
+	// Use replicated events instead so that the WaitInputPress ability task works.
+	if (Spec.IsActive())
+	{
+		// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
+		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
+	}
+}
+
+void UZodiacAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpec& Spec)
+{
+	Super::AbilitySpecInputReleased(Spec);
+
+	// We don't support UGameplayAbility::bReplicateInputDirectly.
+	// Use replicated events instead so that the WaitInputRelease ability task works.
+	if (Spec.IsActive())
+	{
+		// Invoke the InputReleased event. This is not replicated here. If someone is listening, they may replicate the InputReleased event to the server.
+		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
+	}
+}
+
 void UZodiacAbilitySystemComponent::NotifyAbilityActivated(const FGameplayAbilitySpecHandle Handle,
-	UGameplayAbility* Ability)
+                                                           UGameplayAbility* Ability)
 {
 	Super::NotifyAbilityActivated(Handle, Ability);
-	
+
+	UZodiacGameplayAbility* ZodiacAbility = CastChecked<UZodiacGameplayAbility>(Ability);
+
+	AddAbilityToActivationGroup(ZodiacAbility->GetActivationGroup(), ZodiacAbility);
+}
+
+void UZodiacAbilitySystemComponent::NotifyAbilityEnded(FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability,
+	bool bWasCancelled)
+{
+	Super::NotifyAbilityEnded(Handle, Ability, bWasCancelled);
+
+	UZodiacGameplayAbility* ZodiacAbility = CastChecked<UZodiacGameplayAbility>(Ability);
+
+	RemoveAbilityFromActivationGroup(ZodiacAbility->GetActivationGroup(), ZodiacAbility);
+}
+
+void UZodiacAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Ability,
+	const FGameplayTagContainer& FailureReason)
+{
+	UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("Ability %s failed to activate (tags: %s)"), *GetPathNameSafe(Ability), *FailureReason.ToString());
+
+	if (const UZodiacGameplayAbility* ZodiacAbility = Cast<const UZodiacGameplayAbility>(Ability))
+	{
+		ZodiacAbility->OnAbilityFailedToActivate(FailureReason);
+	}	
+}
+
+void UZodiacAbilitySystemComponent::ClientNotifyAbilityFailed_Implementation(const UGameplayAbility* Ability,
+                                                                             const FGameplayTagContainer& FailureReason)
+{
+	HandleAbilityFailed(Ability, FailureReason);
 }

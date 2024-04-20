@@ -37,3 +37,16 @@ void UZodiacInputComponent::RemoveBinds(TArray<uint32>& BindHandles)
 	}
 	BindHandles.Reset();
 }
+
+bool UZodiacInputComponent::IsPawnLocallyControlled()
+{
+	if (AActor* Owner = GetOwner())
+	{
+		if (APawn* Pawn = Cast<APawn>(Owner))
+		{
+			return Pawn->IsLocallyControlled();
+		}
+	}
+
+	return false;
+}
