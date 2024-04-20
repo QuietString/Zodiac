@@ -34,9 +34,9 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	CharacterChangeComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacCharacterChangeComponent>(this, TEXT("CharacterChangeComponent"));
 	CharacterChangeComponent->SetIsReplicated(true);
 	
-	RetargetedMeshComponent2 = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("RetargetedMeshComponent"));
-	RetargetedMeshComponent2->SetupAttachment(GetMesh(), NAME_None);
-	RetargetedMeshComponent2->SetIsReplicated(true);
+	RetargetedMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("RetargetedMeshComponent"));
+	RetargetedMeshComponent->SetupAttachment(GetMesh(), NAME_None);
+	RetargetedMeshComponent->SetIsReplicated(true);
 	//AddInstanceComponent(RetargetedMeshComponent);
 	
 	//CosmeticComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacCharacterCosmeticComponent>(this, TEXT("CosmeticComponent"));
@@ -179,7 +179,7 @@ void AZodiacCharacter::Input_ChangeCharacter(const int32 NewSlotIndex, const FGa
 
 USkeletalMeshComponent* AZodiacCharacter::GetRetargetedMeshComponent()
 {
-	return RetargetedMeshComponent2;
+	return RetargetedMeshComponent;
 }
 
 UZodiacCharacterChangeComponent* AZodiacCharacter::GetCharacterChangeComponent()
@@ -195,8 +195,8 @@ TArray<TSubclassOf<AZodiacTaggedActor>> AZodiacCharacter::GetTaggedActors()
 void AZodiacCharacter::Input_ChangeCharacter(int32 SlotIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("change character"));
-	RetargetedMeshComponent2->SetSkeletalMesh(Heroes[SlotIndex]->HeroMesh);
-	RetargetedMeshComponent2->SetAnimInstanceClass(Heroes[SlotIndex]->AnimInstance);
+	RetargetedMeshComponent->SetSkeletalMesh(Heroes[SlotIndex]->HeroMesh);
+	RetargetedMeshComponent->SetAnimInstanceClass(Heroes[SlotIndex]->AnimInstance);
 }
 
 void AZodiacCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

@@ -52,6 +52,8 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_RetargetedMesh)
 	USkeletalMesh* RetargetedMesh;
 
+	void ChangeMesh();
+
 	//UPROPERTY()
 	//UAnimInstance* AnimInstance;
 };

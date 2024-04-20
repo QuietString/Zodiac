@@ -45,39 +45,38 @@ USkeletalMeshComponent* UZodiacCharacterChangeComponent::GetRetargetedMeshCompon
 
 void UZodiacCharacterChangeComponent::ChangeCharacter(USkeletalMesh* NewMesh)
 {
-	UE_LOG(LogTemp, Warning, TEXT("character change"));
-
 	if (AActor* Owner = GetOwner())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("got owner"));
-
 		if (Owner->HasAuthority())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("has authority and mesh changed"));
-
 			RetargetedMesh = NewMesh;
+			OnRep_RetargetedMesh();
 		}
-	}
-	else
-	{
-		ServerChangeMesh(NewMesh);
+		else
+		{
+			ServerChangeMesh(NewMesh);
+		}
 	}
 }
 
 void UZodiacCharacterChangeComponent::OnRep_RetargetedMesh()
 {
-	UE_LOG(LogTemp, Warning, TEXT("onrep"));
 	if (USkeletalMeshComponent* RetargetedMeshComp = GetRetargetedMeshComponent())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("set skeletal mesh"));
+		RetargetedMeshComp->SetSkeletalMeshAsset(RetargetedMesh);
+	}
+}
 
+void UZodiacCharacterChangeComponent::ChangeMesh()
+{
+	if (USkeletalMeshComponent* RetargetedMeshComp = GetRetargetedMeshComponent())
+	{
 		RetargetedMeshComp->SetSkeletalMeshAsset(RetargetedMesh);
 	}
 }
 
 void UZodiacCharacterChangeComponent::ServerChangeMesh_Implementation(USkeletalMesh* NewMesh)
 {
-	UE_LOG(LogTemp, Warning, TEXT("server change mesh"));
-
 	RetargetedMesh = NewMesh;
+	OnRep_RetargetedMesh();
 }

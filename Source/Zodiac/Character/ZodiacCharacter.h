@@ -94,7 +94,6 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void Input_ChangeCharacter(const int32 NewSlotIndex, const FGameplayTag SlotActionTag);
 
-	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Input")
 	UZodiacPawnData* PawnData;
@@ -108,7 +107,7 @@ private:
 	UZodiacHealthComponent* HealthComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zodiac|Heroes", meta=(AllowPrivateAccess=true))
-	TObjectPtr<USkeletalMeshComponent> RetargetedMeshComponent2;
+	TObjectPtr<USkeletalMeshComponent> RetargetedMeshComponent;
 
 	UPROPERTY()
 	UZodiacCharacterChangeComponent* CharacterChangeComponent;

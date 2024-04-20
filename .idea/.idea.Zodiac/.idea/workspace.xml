@@ -11,30 +11,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacAbilitySimpleFailureMessage.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacGlobalAbilitySystem.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacGlobalAbilitySystem.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacRetargetedMeshComponent.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacRetargetedMeshComponent.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacReplicationGraph.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/System/ZodiacReplicationGraph.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Jump.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Jump.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Animation/ZodiacAnimInstance.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Animation/ZodiacAnimInstance.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Zodiac.uproject" beforeDir="false" afterPath="$PROJECT_DIR$/Zodiac.uproject" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -147,33 +125,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;C++ Project.Zodiac.executor&quot;: &quot;Debug&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "C++ Project.Zodiac.executor": "Debug",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "RetargetedMeshComponentNotWorking",
+    "ignore.virus.scanning.warn.message": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.keymap",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;GitIgnore&quot;
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "GitIgnore"
     ],
-    &quot;rider.external.source.directories&quot;: [
-      &quot;C:\\Users\\cgdon\\AppData\\Roaming\\JetBrains\\Rider2023.3\\resharper-host\\DecompilerCache&quot;,
-      &quot;C:\\Users\\cgdon\\AppData\\Roaming\\JetBrains\\Rider2023.3\\resharper-host\\SourcesCache&quot;,
-      &quot;C:\\Users\\cgdon\\AppData\\Local\\Symbols\\src&quot;
+    "rider.external.source.directories": [
+      "C:\\Users\\cgdon\\AppData\\Roaming\\JetBrains\\Rider2023.3\\resharper-host\\DecompilerCache",
+      "C:\\Users\\cgdon\\AppData\\Roaming\\JetBrains\\Rider2023.3\\resharper-host\\SourcesCache",
+      "C:\\Users\\cgdon\\AppData\\Local\\Symbols\\src"
     ]
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="C++ Project.Zodiac">
     <configuration name="Zodiac" type="CppProject" factoryName="C++ Project">
       <configuration_1>
