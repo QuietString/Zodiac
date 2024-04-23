@@ -43,34 +43,34 @@ void UZodiacAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 	if (bHasNewPawnAvatar)
 	{
 		// Notify all abilities that a new pawn avatar has been set
-		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
-		{
-			UZodiacGameplayAbility* ZodiacAbilityCDO = CastChecked<UZodiacGameplayAbility>(AbilitySpec.Ability);
-
-			if (ZodiacAbilityCDO->GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced)
-			{
-				TArray<UGameplayAbility*> Instances = AbilitySpec.GetAbilityInstances();
-				for (UGameplayAbility* AbilityInstance : Instances)
-				{
-					UZodiacGameplayAbility* ZodiacAbilityInstance = Cast<UZodiacGameplayAbility>(AbilityInstance);
-					if (ZodiacAbilityInstance)
-					{
-						// Ability instances may be missing for replays
-						//ZodiacAbilityInstance->OnPawnAvatarSet();
-					}
-				}
-			}
-			else
-			{
-				//ZodiacAbilityCDO->OnPawnAvatarSet();
-			}
-		}
+		// for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+		// {
+		// 	UZodiacGameplayAbility* ZodiacAbilityCDO = CastChecked<UZodiacGameplayAbility>(AbilitySpec.Ability);
+		//
+		// 	if (ZodiacAbilityCDO->GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced)
+		// 	{
+		// 		TArray<UGameplayAbility*> Instances = AbilitySpec.GetAbilityInstances();
+		// 		for (UGameplayAbility* AbilityInstance : Instances)
+		// 		{
+		// 			UZodiacGameplayAbility* ZodiacAbilityInstance = Cast<UZodiacGameplayAbility>(AbilityInstance);
+		// 			if (ZodiacAbilityInstance)
+		// 			{
+		// 				// Ability instances may be missing for replays
+		// 				//ZodiacAbilityInstance->OnPawnAvatarSet();
+		// 			}
+		// 		}
+		// 	}
+		// 	else
+		// 	{
+		// 		//ZodiacAbilityCDO->OnPawnAvatarSet();
+		// 	}
+		// }
 
 		// Register with the global system once we actually have a pawn avatar. We wait until this time since some globally-applied effects may require an avatar.
-		if (UZodiacGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UZodiacGlobalAbilitySystem>(GetWorld()))
-		{
-			GlobalAbilitySystem->RegisterASC(this);
-		}
+		// if (UZodiacGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UZodiacGlobalAbilitySystem>(GetWorld()))
+		// {
+		// 	GlobalAbilitySystem->RegisterASC(this);
+		// }
 
 		// if (UZodiacAnimInstance* ZodiacAnimInst = Cast<UZodiacAnimInstance>(ActorInfo->GetAnimInstance()))
 		// {
@@ -187,9 +187,7 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 			if (AbilitySpec->Ability && !AbilitySpec->IsActive())
 			{
 				const UZodiacGameplayAbility* ZodiacAbilityCDO = CastChecked<UZodiacGameplayAbility>(AbilitySpec->Ability);
-
-				AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
-
+				
 				if (ZodiacAbilityCDO->GetActivationPolicy() == EZodiacAbilityActivationPolicy::WhileInputActive)
 				{
 					AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
@@ -209,6 +207,8 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 
 				if (AbilitySpec->IsActive())
 				{
+					//UE_LOG(LogTemp, Warning, TEXT("active: %s"), *AbilitySpec->Ability.GetName());
+
 					// Ability is active so pass along the input event.
 					AbilitySpecInputPressed(*AbilitySpec);
 				}
@@ -216,10 +216,11 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 				{
 					const UZodiacGameplayAbility* ZodiacAbilityCDO = CastChecked<UZodiacGameplayAbility>(AbilitySpec->Ability);
 
-					AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
-
+					if (ZodiacAbilityCDO->GetActivationPolicy() == EZodiacAbilityActivationPolicy::OnInputTriggered)
 					{
-					 	AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
+						//UE_LOG(LogTemp, Warning, TEXT("add abilities to activate: %s"), *ZodiacAbilityCDO->GetName());
+
+						AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
 					}
 				}
 			}
@@ -344,6 +345,16 @@ void UZodiacAbilitySystemComponent::CancelActivationGroupAbilities(EZodiacAbilit
 	CancelAbilitiesByFunc(ShouldCancelFunc, bReplicateCancelAbility);
 }
 
+void UZodiacAbilitySystemComponent::TryActivateAbilitiesOnSpawn()
+{
+	ABILITYLIST_SCOPE_LOCK();
+	for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+	{
+		const UZodiacGameplayAbility* ZodiacAbilityCDO = CastChecked<UZodiacGameplayAbility>(AbilitySpec.Ability);
+		ZodiacAbilityCDO->TryActivateAbilityOnSpawn(AbilityActorInfo.Get(), AbilitySpec);
+	}
+}
+
 void UZodiacAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec& Spec)
 {
 	Super::AbilitySpecInputPressed(Spec);
@@ -352,6 +363,7 @@ void UZodiacAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec
 	// Use replicated events instead so that the WaitInputPress ability task works.
 	if (Spec.IsActive())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("input pressed: %s: "), *Spec.Ability.GetName());
 		// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
 		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
 	}
@@ -365,6 +377,7 @@ void UZodiacAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpe
 	// Use replicated events instead so that the WaitInputRelease ability task works.
 	if (Spec.IsActive())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("input releassed: %s: "), *Spec.Ability.GetName());
 		// Invoke the InputReleased event. This is not replicated here. If someone is listening, they may replicate the InputReleased event to the server.
 		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
 	}

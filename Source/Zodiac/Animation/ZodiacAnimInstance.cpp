@@ -172,8 +172,7 @@ void UZodiacAnimInstance::UpdateAccelerationData()
 	LocalAcceleration2D = WorldRotation.UnrotateVector(WorldAcceleration2D);
 
 	const float AccelerationSquared = UKismetMathLibrary::VSizeXYSquared(LocalAcceleration2D);
-	HasAcceleration = UKismetMathLibrary::NearlyEqual_FloatFloat(AccelerationSquared, 0.0, 0.000001) ? false : true;
-
+	HasAcceleration = !(UKismetMathLibrary::NearlyEqual_FloatFloat(AccelerationSquared, 0.0, 0.000001));
 	PivotDirection2D = UKismetMathLibrary::VLerp(PivotDirection2D, WorldAcceleration2D.GetSafeNormal(0.0001), 0.5);
 	PivotDirection2D.Normalize(0.0001);
 

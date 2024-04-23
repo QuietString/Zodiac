@@ -26,6 +26,8 @@ void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* Acto
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
+	TryActivateAbilityOnSpawn(ActorInfo, Spec);
+
 	UE_LOG(LogTemp, Warning, TEXT("ability given: %s"), *this->GetName());
 }
 
@@ -63,6 +65,34 @@ void UZodiacGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	//
 	// // End the ability immediately
 	// EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+}
+
+void UZodiacGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilitySpec& Spec) const
+{
+	const bool bIsPredicting = (Spec.ActivationInfo.ActivationMode == EGameplayAbilityActivationMode::Predicting);
+
+	// Try to activate if activation policy is on spawn.
+	if (ActorInfo && !Spec.IsActive() && !bIsPredicting && (ActivationPolicy == EZodiacAbilityActivationPolicy::OnSpawn))
+	{
+		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
+		const AActor* AvatarActor = ActorInfo->AvatarActor.Get();
+
+		// If avatar actor is torn off or about to die, don't try to activate until we get the new one.
+		if (ASC && AvatarActor && !AvatarActor->GetTearOff() && (AvatarActor->GetLifeSpan() <= 0.0f))
+		{
+			const bool bIsLocalExecution = (NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::LocalPredicted) || (NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::LocalOnly);
+			const bool bIsServerExecution = (NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::ServerOnly) || (NetExecutionPolicy == EGameplayAbilityNetExecutionPolicy::ServerInitiated);
+
+			const bool bClientShouldActivate = ActorInfo->IsLocallyControlled() && bIsLocalExecution;
+			const bool bServerShouldActivate = ActorInfo->IsNetAuthority() && bIsServerExecution;
+
+			if (bClientShouldActivate || bServerShouldActivate)
+			{
+				ASC->TryActivateAbility(Spec.Handle);
+			}
+		}
+	}
 }
 
 AZodiacCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const

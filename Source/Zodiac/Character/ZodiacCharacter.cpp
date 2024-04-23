@@ -171,6 +171,7 @@ bool AZodiacCharacter::CanJumpInternal_Implementation() const
 
 void AZodiacCharacter::Input_ChangeCharacter(const int32 NewSlotIndex, const FGameplayTag SlotActionTag)
 {
+	UE_LOG(LogTemp, Warning, TEXT("character change input"));
 	FGameplayEventData EventData;
 	EventData.EventMagnitude = NewSlotIndex;
 	
@@ -190,13 +191,6 @@ UZodiacCharacterChangeComponent* AZodiacCharacter::GetCharacterChangeComponent()
 TArray<TSubclassOf<AZodiacTaggedActor>> AZodiacCharacter::GetTaggedActors()
 {
 	return TaggedActors;
-}
-
-void AZodiacCharacter::Input_ChangeCharacter(int32 SlotIndex)
-{
-	UE_LOG(LogTemp, Warning, TEXT("change character"));
-	RetargetedMeshComponent->SetSkeletalMesh(Heroes[SlotIndex]->HeroMesh);
-	RetargetedMeshComponent->SetAnimInstanceClass(Heroes[SlotIndex]->AnimInstance);
 }
 
 void AZodiacCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

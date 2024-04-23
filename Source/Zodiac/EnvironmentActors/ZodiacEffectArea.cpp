@@ -37,7 +37,7 @@ void AZodiacEffectArea::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 			if (SpecHandle.IsValid())
 			{
 				FActiveGameplayEffectHandle GEHandle = ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-				UE_LOG(LogTemp, Warning, TEXT("GE applied"));
+				//UE_LOG(LogTemp, Warning, TEXT("GE applied"));
 			}
 		}
 	}

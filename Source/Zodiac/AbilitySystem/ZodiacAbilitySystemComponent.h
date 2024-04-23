@@ -49,6 +49,8 @@ public:
 	
 protected:
 
+	void TryActivateAbilitiesOnSpawn();
+	
 	virtual void AbilitySpecInputPressed(FGameplayAbilitySpec& Spec) override;
 	virtual void AbilitySpecInputReleased(FGameplayAbilitySpec& Spec) override;
 

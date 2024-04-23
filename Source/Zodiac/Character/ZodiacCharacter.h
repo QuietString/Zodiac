@@ -47,7 +47,8 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	//~End of AActor interface
-	
+
+	UFUNCTION(BlueprintCallable)
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -68,8 +69,6 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	TArray<TSubclassOf<AZodiacTaggedActor>> GetTaggedActors();
-	
-	void Input_ChangeCharacter(int32 SlotIndex);
 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

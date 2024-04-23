@@ -84,6 +84,8 @@ public:
 	EZodiacAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 	EZodiacAbilityActivationGroup GetActivationGroup() const { return ActivationGroup; }
 
+	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
+	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AZodiacCharacter* GetZodiacCharacterFromActorInfo() const;
 
