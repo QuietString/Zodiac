@@ -10,6 +10,7 @@
 #include "InputActionValue.h"
 #include "ZodiacCharacter.generated.h"
 
+class UZodiacAbilitySet;
 class UZodiacCharacterChangeComponent;
 class AZodiacTaggedActor;
 class UZodiacHeroData;
@@ -76,7 +77,7 @@ protected:
 	void InitializeAbilitySystemComponent();
 	void InitializePlayerInput();
 
-	void AddDefaultAbilities();
+	void AddStartingAbilities();
 	void OnManaChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 	
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
@@ -94,15 +95,18 @@ protected:
 	void Input_ChangeCharacter(const int32 NewSlotIndex, const FGameplayTag SlotActionTag);
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
 	UZodiacPawnData* PawnData;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Ability")
+	TArray<TObjectPtr<UZodiacAbilitySet>> StartingAbilities;
+	
 private:
 
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 	
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Character", meta = (AllowPrivateAccess = true))
 	UZodiacHealthComponent* HealthComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zodiac|Heroes", meta=(AllowPrivateAccess=true))

@@ -14,7 +14,6 @@
 #include "ZodiacRetargetedMeshComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "Cosmetics/ZodiacCharacterCosmeticComponent.h"
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "Input/ZodiacInputComponent.h"
@@ -171,7 +170,6 @@ bool AZodiacCharacter::CanJumpInternal_Implementation() const
 
 void AZodiacCharacter::Input_ChangeCharacter(const int32 NewSlotIndex, const FGameplayTag SlotActionTag)
 {
-	UE_LOG(LogTemp, Warning, TEXT("character change input"));
 	FGameplayEventData EventData;
 	EventData.EventMagnitude = NewSlotIndex;
 	
@@ -297,11 +295,11 @@ TArray<UZodiacHeroData*> AZodiacCharacter::GetHeroes()
 	return Heroes;
 }
 
-void AZodiacCharacter::AddDefaultAbilities()
+void AZodiacCharacter::AddStartingAbilities()
 {
-	if (PawnData && PawnData->DefaultAbilities.Num() > 0)
+	if (StartingAbilities.Num() > 0)
 	{
-		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : PawnData->DefaultAbilities)
+		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : StartingAbilities)
 		{
 			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 		}
@@ -319,7 +317,7 @@ void AZodiacCharacter::OnManaChanged(const FOnAttributeChangeData& OnAttributeCh
 void AZodiacCharacter::InitializeAbilitySystemComponent()
 {
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	AddDefaultAbilities();
+	AddStartingAbilities();
 	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 	

@@ -170,13 +170,13 @@ private:
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Acceleration_Data)
-		FVector LocalAcceleration2D;
+	FVector LocalAcceleration2D;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Acceleration_Data)
-		bool HasAcceleration;
+	bool HasAcceleration;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Acceleration_Data)
-		FVector PivotDirection2D;
+	FVector PivotDirection2D;
 
 private:
 	EAnimEnum_CardinalDirection GetOppositeCardinalDirection(EAnimEnum_CardinalDirection CurrentDirection);

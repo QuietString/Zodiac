@@ -28,7 +28,4 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Input")
 	TArray<TObjectPtr<UInputMappingContext>> InputMappingContexts;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Ability")
-	TArray<TObjectPtr<UZodiacAbilitySet>> DefaultAbilities;
 };

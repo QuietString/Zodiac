@@ -122,6 +122,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
 	TMap<FGameplayTag, TObjectPtr<UAnimMontage>> FailureTagToAnimMontage;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UGameplayEffect> DamageEffect;
 };
