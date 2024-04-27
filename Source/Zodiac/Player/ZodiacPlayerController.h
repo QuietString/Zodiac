@@ -8,6 +8,7 @@
 
 class UZodiacAbilitySystemComponent;
 class AZodiacPlayerState;
+
 /**
  * AZodiacPlayerController
  *
@@ -23,10 +24,7 @@ public:
 
 	AZodiacPlayerState* GetZodiacPlayerState() const;
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
-
 	
-	virtual void OnPossess(APawn* InPawn) override;
-
 	//~APlayerController interface
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 	//~End of APlayerController interface

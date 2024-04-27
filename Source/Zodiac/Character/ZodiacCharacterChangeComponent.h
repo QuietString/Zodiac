@@ -45,8 +45,6 @@ protected:
 	UFUNCTION()
 	void OnRep_RetargetedMesh();
 
-	UFUNCTION(Server, Reliable)
-	void ServerChangeMesh(USkeletalMesh* NewMesh);
 protected:
 
 	UPROPERTY(ReplicatedUsing=OnRep_RetargetedMesh)

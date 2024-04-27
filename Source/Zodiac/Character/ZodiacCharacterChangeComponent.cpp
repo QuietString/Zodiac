@@ -52,10 +52,6 @@ void UZodiacCharacterChangeComponent::ChangeCharacter(USkeletalMesh* NewMesh)
 			RetargetedMesh = NewMesh;
 			OnRep_RetargetedMesh();
 		}
-		else
-		{
-			ServerChangeMesh(NewMesh);
-		}
 	}
 }
 
@@ -73,10 +69,4 @@ void UZodiacCharacterChangeComponent::ChangeMesh()
 	{
 		RetargetedMeshComp->SetSkeletalMeshAsset(RetargetedMesh);
 	}
-}
-
-void UZodiacCharacterChangeComponent::ServerChangeMesh_Implementation(USkeletalMesh* NewMesh)
-{
-	RetargetedMesh = NewMesh;
-	OnRep_RetargetedMesh();
 }

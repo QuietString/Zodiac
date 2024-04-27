@@ -29,14 +29,6 @@ float UZodiacAnimInstance::GetGroundDistance() const
 void UZodiacAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-
-	if (AActor* OwningActor = GetOwningActor())
-	{
-		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(OwningActor))
-		{
-			InitializeWithAbilitySystem(ASC);
-		}
-	}
 }
 
 void UZodiacAnimInstance::NativeUpdateAnimation(float DeltaSeconds)

@@ -4,21 +4,18 @@
 
 #include "Engine/DataAsset.h"
 
-#include "ZodiacPawnData.generated.h"
+#include "ZodiacInputData.generated.h"
 
 class UZodiacAbilitySet;
 class UInputMappingContext;
 class UZodiacInputConfig;
 
-/**
- *	Non-mutable data asset that contains properties used to define a pawn.
- */
-UCLASS(BlueprintType, Const, meta = (DisplayName = "Zodiac Pawn Data", ShortToolTip = "Data asset used to define a Pawn."))
-class ZODIAC_API UZodiacPawnData : public UPrimaryDataAsset
+UCLASS(BlueprintType, Const, meta = (DisplayName = "Zodiac Input Data", ShortToolTip = "Data asset used to define a Pawn."))
+class ZODIAC_API UZodiacInputData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 
-	UZodiacPawnData(const FObjectInitializer& ObjectInitializer);
+	UZodiacInputData(const FObjectInitializer& ObjectInitializer);
 
 public:
 	

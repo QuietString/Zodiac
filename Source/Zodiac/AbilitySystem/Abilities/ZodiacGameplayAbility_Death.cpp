@@ -50,7 +50,6 @@ void UZodiacGameplayAbility_Death::ActivateAbility(const FGameplayAbilitySpecHan
 	{
 		StartDeath();
 	}
-	UE_LOG(LogTemp, Warning,TEXT("death ability"));
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }

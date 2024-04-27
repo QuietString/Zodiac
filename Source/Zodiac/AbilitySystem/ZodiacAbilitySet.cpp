@@ -21,6 +21,7 @@ void FZodiacAbilitySet_GrantedHandles::AddAttributeSet(UAttributeSet* Set)
 }
 
 UZodiacAbilitySet::UZodiacAbilitySet(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 }
 
@@ -53,7 +54,7 @@ void UZodiacAbilitySet::GiveToAbilitySystem(UZodiacAbilitySystemComponent* Zodia
 		AbilitySpec.DynamicAbilityTags.AddTag(AbilityToGrant.InputTag);
 
 		const FGameplayAbilitySpecHandle AbilitySpecHandle = ZodiacASC->GiveAbility(AbilitySpec);
-		UE_LOG(LogTemp, Warning, TEXT("ability given: %s"), *AbilityCDO->GetName());
+		UE_LOG(LogTemp, Warning, TEXT("ability given: %s to: %s"), *AbilityCDO->GetName(), *ZodiacASC->GetAvatarActor()->GetName());
 		if (OutGrantedHandles)
 		{
 			OutGrantedHandles->AddAbilitySpecHandle(AbilitySpecHandle);

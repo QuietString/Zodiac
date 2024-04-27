@@ -6,6 +6,7 @@
 #include "ZodiacGlobalAbilitySystem.h"
 #include "ZodiacLogChannels.h"
 #include "Abilities/ZodiacGameplayAbility.h"
+#include "Animation/ZodiacAnimInstance.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilitySystemComponent)
 
@@ -78,7 +79,13 @@ void UZodiacAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 		// }
 
 		//TryActivateAbilitiesOnSpawn();
-	}}
+
+		if (UZodiacAnimInstance* ZodiacAnimInst = Cast<UZodiacAnimInstance>(ActorInfo->GetAnimInstance()))
+		{
+			ZodiacAnimInst->InitializeWithAbilitySystem(this);
+		}
+	}
+}
 
 void UZodiacAbilitySystemComponent::CancelAbilitiesByFunc(TShouldCancelAbilityFunc ShouldCancelFunc,
                                                           bool bReplicateCancelAbility)
@@ -207,8 +214,6 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 
 				if (AbilitySpec->IsActive())
 				{
-					//UE_LOG(LogTemp, Warning, TEXT("active: %s"), *AbilitySpec->Ability.GetName());
-
 					// Ability is active so pass along the input event.
 					AbilitySpecInputPressed(*AbilitySpec);
 				}
@@ -218,8 +223,6 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 
 					if (ZodiacAbilityCDO->GetActivationPolicy() == EZodiacAbilityActivationPolicy::OnInputTriggered)
 					{
-						//UE_LOG(LogTemp, Warning, TEXT("add abilities to activate: %s"), *ZodiacAbilityCDO->GetName());
-
 						AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
 					}
 				}

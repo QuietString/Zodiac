@@ -3,88 +3,70 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
+#include "GameplayTagAssetInterface.h"
 #include "Components/PawnComponent.h"
 #include "ZodiacHeroComponent.generated.h"
 
-class AZodiacPlayerState;
 
-/**
- * UZodiacHeroComponent
- *
- *	A component used to create a player controlled pawns (characters, vehicles, etc..).
- */
+class AZodiacPlayerCharacter;
+class UZodiacAbilitySystemComponent;
+class UZodiacAbilitySet;
+
 UCLASS()
-class ZODIAC_API UZodiacHeroComponent : public UPawnComponent
+class ZODIAC_API UZodiacHeroComponent : public UPawnComponent, public IAbilitySystemInterface, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer);
 
-	// Returns the hero component if one exists on the specified actor.
-	UFUNCTION(BlueprintPure, Category = "Zodiac|Hero")
-	static UZodiacHeroComponent* FindHeroComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UZodiacHeroComponent>() : nullptr); }
+	UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	// void SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
-	// void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
-	//
-	// void AddAdditionalInputConfig(const UZodiacInputConfig* InputConfig);
-	// void RemoveAdditionalInputConfig(const UZodiacInputConfig* InputConfig);
+	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent();
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	/** True if this has completed OnPawnReadyToInitialize so is prepared for late-added features */
-	bool HasPawnInitialized() const;
-
-	/** True if this player has sent the BindInputsNow event and is prepared for bindings */
-	bool IsReadyToBindInputs() const;
-
-	static const FName NAME_BindInputsNow;
-
-protected:
-
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+	
 	virtual void OnRegister() override;
 
-	virtual bool IsPawnComponentReadyToInitialize() const;
-	void OnPawnReadyToInitialize();
+	UZodiacAbilitySystemComponent* InitializeAbilitySystemComponent();
 
-	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	void ActivateHero();
+	void DeactivateHero();
+protected:
+	
 
-	// virtual void InitializePlayerInput(UInputComponent* PlayerInputComponent);
-	//
-	// void Input_AbilityInputTagPressed(FGameplayTag InputTag);
-	// void Input_AbilityInputTagReleased(FGameplayTag InputTag);
-	//
-	// void Input_Move(const FInputActionValue& InputActionValue);
-	// void Input_LookMouse(const FInputActionValue& InputActionValue);
-	// void Input_LookStick(const FInputActionValue& InputActionValue);
-	// void Input_Crouch(const FInputActionValue& InputActionValue);
-	// void Input_AutoRun(const FInputActionValue& InputActionValue);
-
-	// TSubclassOf<UZodiacCameraMode> DetermineCameraMode() const;
-	//
-	// void OnInputConfigActivated(const FLoadedMappableConfigPair& ConfigPair);
-	// void OnInputConfigDeactivated(const FLoadedMappableConfigPair& ConfigPair);
-
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FName HeroName = TEXT("Default");
+	
 protected:
 
-	/**
-	 * Input Configs that should be added to this player when initalizing the input.
-	 * 
-	 * NOTE: You should only add to this if you do not have a game feature plugin accessible to you.
-	 * If you do, then use the GameFeatureAction_AddInputConfig instead. 
-	 */
-	// UPROPERTY(EditAnywhere)
-	// TArray<FMappableConfigPair> DefaultInputConfigs;
-	//
-	// // Camera mode set by an ability.
-	// TSubclassOf<UZodiacCameraMode> AbilityCameraMode;
-	//
-	// // Spec handle for the last ability to set a camera mode.
-	// FGameplayAbilitySpecHandle AbilityCameraModeOwningSpecHandle;
+	UPROPERTY()
+	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 
-	// True when the pawn has fully finished initialization
-	bool bPawnHasInitialized;
+	UPROPERTY()
+	TObjectPtr<AZodiacPlayerCharacter> PlayerCharacter;
+	
+	UPROPERTY()
+	TObjectPtr<const class UZodiacHealthSet> HealthSet;
 
-	// True when player input bindings have been applyed, will never be true for non-players
-	bool bReadyToBindInputs;
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
+	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	TObjectPtr<USkeletalMesh> HeroMesh;
+	
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	TObjectPtr<USkeletalMesh> InvisibleMesh;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	TSubclassOf<UAnimInstance> HeroAnimInstance;
+	
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	TSubclassOf<UAnimInstance> CopyPoseAnimInstance;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FGameplayTagContainer HeroTags;
 };
+

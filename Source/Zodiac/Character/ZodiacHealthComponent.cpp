@@ -50,8 +50,6 @@ void UZodiacHealthComponent::InitializeWithAbilitySystem(UZodiacAbilitySystemCom
 
 void UZodiacHealthComponent::StartDeath()
 {
-	UE_LOG(LogTemp, Warning, TEXT("start death"));
-
 	if (DeathState != EZodiacDeathState::NotDead)
 	{
 		return;

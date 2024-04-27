@@ -9,9 +9,8 @@
 #include "ZodiacHeroData.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "ZodiacCharacterChangeComponent.h"
+#include "ZodiacInputData.h"
 #include "ZodiacLogChannels.h"
-#include "ZodiacPawnData.h"
-#include "ZodiacRetargetedMeshComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
@@ -36,9 +35,6 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	RetargetedMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("RetargetedMeshComponent"));
 	RetargetedMeshComponent->SetupAttachment(GetMesh(), NAME_None);
 	RetargetedMeshComponent->SetIsReplicated(true);
-	//AddInstanceComponent(RetargetedMeshComponent);
-	
-	//CosmeticComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacCharacterCosmeticComponent>(this, TEXT("CosmeticComponent"));
 	
 	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
 	ZodiacMoveComp->GravityScale = 1.0f;
@@ -186,10 +182,6 @@ UZodiacCharacterChangeComponent* AZodiacCharacter::GetCharacterChangeComponent()
 	return CharacterChangeComponent;
 }
 
-TArray<TSubclassOf<AZodiacTaggedActor>> AZodiacCharacter::GetTaggedActors()
-{
-	return TaggedActors;
-}
 
 void AZodiacCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -212,12 +204,12 @@ void AZodiacCharacter::InitializePlayerInput()
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
 	check(Subsystem);
 	
-	if (PawnData)
+	if (InputData)
 	{
 		// Add input mapping context (player input to input action)
-		if (PawnData->InputMappingContexts.Num() > 0)
+		if (InputData->InputMappingContexts.Num() > 0)
 		{
-			for (UInputMappingContext* IMC : PawnData->InputMappingContexts)
+			for (UInputMappingContext* IMC : InputData->InputMappingContexts)
 			{
 				FModifyContextOptions Options = {};
 				Options.bIgnoreAllPressedKeysUntilRelease = true;
@@ -225,7 +217,7 @@ void AZodiacCharacter::InitializePlayerInput()
 			}
 		}
 		
-		if (const UZodiacInputConfig* InputConfig = PawnData->InputConfig)
+		if (const UZodiacInputConfig* InputConfig = InputData->InputConfig)
 		{
 			// The Zodiac Input Component has some additional functions to map Gameplay Tags to an Input Action.
 			// If you want this functionality but still want to change your input component class, make it a subclass

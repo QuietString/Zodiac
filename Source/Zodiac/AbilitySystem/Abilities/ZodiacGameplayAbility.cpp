@@ -28,7 +28,6 @@ void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* Acto
 
 	TryActivateAbilityOnSpawn(ActorInfo, Spec);
 
-	UE_LOG(LogTemp, Warning, TEXT("ability given: %s"), *this->GetName());
 }
 
 void UZodiacGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,

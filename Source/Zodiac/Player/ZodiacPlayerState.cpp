@@ -3,6 +3,7 @@
 
 #include "ZodiacPlayerState.h"
 
+#include "Character/ZodiacPlayerCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 AZodiacPlayerState::AZodiacPlayerState(const FObjectInitializer& ObjectInitializer)
@@ -10,6 +11,16 @@ AZodiacPlayerState::AZodiacPlayerState(const FObjectInitializer& ObjectInitializ
 	, MyPlayerConnectionType(EZodiacPlayerConnectionType::Player)
 {
 
+}
+
+UAbilitySystemComponent* AZodiacPlayerState::GetAbilitySystemComponent() const
+{
+	if (AZodiacPlayerCharacter* PlayerCharacter = Cast<AZodiacPlayerCharacter>(GetPawn()))
+	{
+		return PlayerCharacter->GetAbilitySystemComponent();
+	}
+
+	return nullptr;
 }
 
 void AZodiacPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

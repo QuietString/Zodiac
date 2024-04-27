@@ -6,6 +6,7 @@
 #include "ZodiacPlayerState.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Character/ZodiacCharacter.h"
+#include "Character/ZodiacPlayerCharacter.h"
 
 AZodiacPlayerController::AZodiacPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -14,23 +15,38 @@ AZodiacPlayerController::AZodiacPlayerController(const FObjectInitializer& Objec
 
 AZodiacPlayerState* AZodiacPlayerController::GetZodiacPlayerState() const
 {
-	return CastChecked<AZodiacPlayerState>(PlayerState, ECastCheckedType::NullAllowed);
+	return CastChecked<AZodiacPlayerState>(PlayerState);
 }
 
 UZodiacAbilitySystemComponent* AZodiacPlayerController::GetZodiacAbilitySystemComponent() const
 {
-	const AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetCharacter());
-	return ZodiacCharacter->GetZodiacAbilitySystemComponent();
-}
+	if (const AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetCharacter()))
+	{
+		return ZodiacCharacter->GetZodiacAbilitySystemComponent();
+	}
+	
+	if (const AZodiacPlayerCharacter* ZodiacPlayerCharacter = Cast<AZodiacPlayerCharacter>(GetCharacter()))
+	{
+		return ZodiacPlayerCharacter->GetZodiacAbilitySystemComponent();
+	}
 
-void AZodiacPlayerController::OnPossess(APawn* InPawn)
-{
-	Super::OnPossess(InPawn);
+	return nullptr;
 }
 
 void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
 	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetCharacter()))
+	{
+		if (IsLocalPlayerController())
+		{
+			if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+			{
+				ZodiacASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+			}
+		}
+	}
+
+	if (AZodiacPlayerCharacter* ZodiacPlayerCharacter = Cast<AZodiacPlayerCharacter>(GetCharacter()))
 	{
 		if (IsLocalPlayerController())
 		{

@@ -16,9 +16,9 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_Networking, "Ability.ActivateFail.Networking", "Ability failed to activate because it did not pass the network checks.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_ActivationGroup, "Ability.ActivateFail.ActivationGroup", "Ability failed to activate because of its activation group.");
 
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Jump, "Ability.Action.Type.Jump");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_WeaponFire, "Ability.Action.Type.WeaponFire");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Test, "Ability.Action.Type.Test");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Jump, "Ability.Type.Action.Jump");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_WeaponFire, "Ability.Type.Action.WeaponFire");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Test, "Ability.Type.Action.Test");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
 

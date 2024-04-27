@@ -6,6 +6,8 @@
 #include "Engine/DataAsset.h"
 #include "ZodiacHeroData.generated.h"
 
+class UZodiacAbilitySet;
+
 /**
  * 
  */
@@ -21,4 +23,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Hero")
 	TSubclassOf<UAnimInstance> AnimInstance;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UZodiacAbilitySet> AbilitySet;
 };

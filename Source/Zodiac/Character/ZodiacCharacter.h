@@ -10,12 +10,12 @@
 #include "InputActionValue.h"
 #include "ZodiacCharacter.generated.h"
 
+class UZodiacInputData;
 class UZodiacAbilitySet;
 class UZodiacCharacterChangeComponent;
 class AZodiacTaggedActor;
 class UZodiacHeroData;
 struct FInputActionValue;
-class UZodiacPawnData;
 class UInputMappingContext;
 class UZodiacHeroComponent;
 class UZodiacPawnExtensionComponent;
@@ -67,9 +67,6 @@ public:
 	//~End of IGameplayTagAssetInterface interface
 
 	TArray<UZodiacHeroData*> GetHeroes();
-	
-	UFUNCTION(BlueprintCallable)
-	TArray<TSubclassOf<AZodiacTaggedActor>> GetTaggedActors();
 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -96,7 +93,7 @@ protected:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
-	UZodiacPawnData* PawnData;
+	UZodiacInputData* InputData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Ability")
 	TArray<TObjectPtr<UZodiacAbilitySet>> StartingAbilities;
@@ -105,7 +102,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Character", meta = (AllowPrivateAccess = true))
 	UZodiacHealthComponent* HealthComponent;
 	
@@ -125,8 +122,4 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zodiac|Heroes", meta = (AllowPrivateAccess = true))
 	TArray<UZodiacHeroData*> Heroes;
-
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Heroes")
-	TArray<TSubclassOf<AZodiacTaggedActor>> TaggedActors;
-	
 };
