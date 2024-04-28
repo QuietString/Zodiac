@@ -4,7 +4,6 @@
 #include "ZodiacCharacterChangeComponent.h"
 
 #include "ZodiacCharacter.h"
-#include "ZodiacHeroData.h"
 #include "Net/UnrealNetwork.h"
 
 

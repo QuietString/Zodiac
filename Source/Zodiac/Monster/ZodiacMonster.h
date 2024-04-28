@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayEffect.h"
 #include "GameplayTagAssetInterface.h"
 #include "GameFramework/Character.h"
 #include "ZodiacMonster.generated.h"
@@ -17,8 +18,8 @@ class ZODIAC_API AZodiacMonster : public ACharacter, public IAbilitySystemInterf
 	GENERATED_BODY()
 
 public:
-	AZodiacMonster();
-
+	AZodiacMonster(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
 	//~AActor interface
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
@@ -37,15 +38,22 @@ public:
 	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
 	//~End of IGameplayTagAssetInterface interface
 
+
 protected:
 	void InitializeAbilitySystemComponent();
 
 	void AddAbilities();
 
-private:
-	UPROPERTY()
-    TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
-
+	void HandleHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
+	void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
+	
+protected:
+	UPROPERTY(VisibleDefaultsOnly)
+	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
+	
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
 	TArray<UZodiacAbilitySet*> Abilities;
+
+	UPROPERTY()
+	TObjectPtr<const class UZodiacHealthSet> HealthSet;
 };

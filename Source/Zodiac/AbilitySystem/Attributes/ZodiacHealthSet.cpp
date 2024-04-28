@@ -8,7 +8,9 @@
 
 UZodiacHealthSet::UZodiacHealthSet()
 	: Health(100.0f)
+	, MaxHealth(100.0f)
 {
+	bOutOfHealth = false;
 }
 
 void UZodiacHealthSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -31,6 +33,10 @@ void UZodiacHealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
 	}
 	
 	bOutOfHealth = (CurrentHealth <= 0.0f);
+}
+
+void UZodiacHealthSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
+{
 }
 
 bool UZodiacHealthSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)

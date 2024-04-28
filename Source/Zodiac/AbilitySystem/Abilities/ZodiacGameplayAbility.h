@@ -6,7 +6,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "ZodiacGameplayAbility.generated.h"
 
-class AZodiacCharacter;
+class AZodiacPlayerCharacter;
 
 /**
  * EZodiacAbilityActivationPolicy
@@ -87,7 +87,7 @@ public:
 	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
 	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
-	AZodiacCharacter* GetZodiacCharacterFromActorInfo() const;
+	AZodiacPlayerCharacter* GetZodiacCharacterFromActorInfo() const;
 
 	void OnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const
 	{

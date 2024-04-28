@@ -4,11 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayEffectTypes.h"
 #include "GameplayTagAssetInterface.h"
 #include "Components/PawnComponent.h"
 #include "ZodiacHeroComponent.generated.h"
 
 
+struct FAttributeDefaults;
+class UZodiacHealthSet;
 class AZodiacPlayerCharacter;
 class UZodiacAbilitySystemComponent;
 class UZodiacAbilitySet;
@@ -25,6 +28,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
 	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Attribute")
+	TArray<FAttributeDefaults> Attributes;
 
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
 	TObjectPtr<USkeletalMesh> HeroMesh;
@@ -52,14 +58,18 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
-	
+
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
-	
+
 	UZodiacAbilitySystemComponent* InitializeAbilitySystemComponent();
 
 	void ActivateHero();
 	void DeactivateHero();
+
+protected:
+
+	void OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 
 public:
 	

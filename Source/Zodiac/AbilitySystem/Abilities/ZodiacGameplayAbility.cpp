@@ -4,8 +4,8 @@
 #include "ZodiacGameplayAbility.h"
 
 #include "AbilitySystemComponent.h"
-#include "Character/ZodiacCharacter.h"
 #include "ZodiacAbilitySimpleFailureMessage.h"
+#include "Character/ZodiacPlayerCharacter.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE, "Ability.UserFacingSimpleActivateFail.Message");
@@ -65,9 +65,9 @@ void UZodiacGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityAct
 	}
 }
 
-AZodiacCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
+AZodiacPlayerCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
 {
-	return (CurrentActorInfo ? Cast<AZodiacCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
+	return (CurrentActorInfo ? Cast<AZodiacPlayerCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 }
 
 void UZodiacGameplayAbility::NativeOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const

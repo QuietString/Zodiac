@@ -4,7 +4,7 @@
 #include "Abilities/Tasks/AbilityTask_StartAbilityState.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
-#include "Character/ZodiacCharacter.h"
+#include "Character/ZodiacPlayerCharacter.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility_Jump)
 
@@ -43,8 +43,8 @@ bool UZodiacGameplayAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecH
 		return false;
 	}
 
-	const AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(ActorInfo->AvatarActor.Get());
-	if (!ZodiacCharacter || !ZodiacCharacter->CanJump())
+	const AZodiacPlayerCharacter* PlayerCharacter = Cast<AZodiacPlayerCharacter>(ActorInfo->AvatarActor.Get());
+	if (!PlayerCharacter || !PlayerCharacter->CanJump())
 	{
 		return false;
 	}
@@ -72,23 +72,23 @@ void UZodiacGameplayAbility_Jump::OnInputRelease(float TimeHeld)
 
 void UZodiacGameplayAbility_Jump::CharacterJumpStart()
 {
-	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
+	if (AZodiacPlayerCharacter* PlayerCharacter = GetZodiacCharacterFromActorInfo())
 	{
-		if (ZodiacCharacter->IsLocallyControlled() && !ZodiacCharacter->bPressedJump)
+		if (PlayerCharacter->IsLocallyControlled() && !PlayerCharacter->bPressedJump)
 		{
-			ZodiacCharacter->UnCrouch();
-			ZodiacCharacter->Jump();
+			PlayerCharacter->UnCrouch();
+			PlayerCharacter->Jump();
 		}
 	}
 }
 
 void UZodiacGameplayAbility_Jump::CharacterJumpStop()
 {
-	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
+	if (AZodiacPlayerCharacter* PlayerCharacter = GetZodiacCharacterFromActorInfo())
 	{
-		if (ZodiacCharacter->IsLocallyControlled() && ZodiacCharacter->bPressedJump)
+		if (PlayerCharacter->IsLocallyControlled() && PlayerCharacter->bPressedJump)
 		{
-			ZodiacCharacter->StopJumping();
+			PlayerCharacter->StopJumping();
 		}
 	}
 }

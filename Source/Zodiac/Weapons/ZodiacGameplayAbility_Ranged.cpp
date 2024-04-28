@@ -1,11 +1,10 @@
 // the.quiet.string@gmail.com
 
-
 #include "Weapons/ZodiacGameplayAbility_Ranged.h"
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
-#include "Character/ZodiacCharacter.h"
+#include "Character/ZodiacPlayerCharacter.h"
 
 void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                                     const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -13,15 +12,15 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacPlayerCharacter* PlayerCharacter = Cast<AZodiacPlayerCharacter>(GetCurrentActorInfo()->AvatarActor);
 	
-	FVector StartPoint = ZodiacCharacter->GetPawnViewLocation();
-	FVector ForwardVector = ZodiacCharacter->GetBaseAimRotation().Vector();
+	FVector StartPoint = PlayerCharacter->GetPawnViewLocation();
+	FVector ForwardVector = PlayerCharacter->GetBaseAimRotation().Vector();
 	FVector EndPoint = StartPoint + ForwardVector * 10000.0f; // Set your desired range
 
 	FHitResult HitResult;
 	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(ZodiacCharacter);
+	Params.AddIgnoredActor(PlayerCharacter);
 	Params.bTraceComplex = true;
 
 	bool bHit = GetWorld()->LineTraceSingleByChannel(

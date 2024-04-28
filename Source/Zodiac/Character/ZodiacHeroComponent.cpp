@@ -14,8 +14,6 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
-	HealthSet = CreateDefaultSubobject<UZodiacHealthSet>(TEXT("HealthSet"));
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -38,9 +36,14 @@ void UZodiacHeroComponent::GetOwnedGameplayTags(FGameplayTagContainer& TagContai
 
 void UZodiacHeroComponent::OnRegister()
 {
-	Super::OnRegister();
+	if (HeroData)
+	{
+		AbilitySystemComponent->DefaultStartingData = HeroData->Attributes;
+	}
 
 	PlayerCharacter = GetPawnChecked<AZodiacPlayerCharacter>();
+
+	Super::OnRegister();
 }
 
 void UZodiacHeroComponent::BeginPlay()
@@ -48,6 +51,9 @@ void UZodiacHeroComponent::BeginPlay()
 	Super::BeginPlay();
 
 	ensureMsgf(HeroData, TEXT("Must have HeroData"));
+
+	HealthSet = AbilitySystemComponent->GetSet<UZodiacHealthSet>();
+	
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystemComponent()
@@ -61,9 +67,14 @@ UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystemComp
 				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 			}
 		}
-
+		
 		AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
 
+		if (AbilitySystemComponent->GetAttributeSet(UZodiacHealthSet::StaticClass()))
+		{
+			AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UZodiacHealthSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
+		}
+		
 		return AbilitySystemComponent;
 	}
 
@@ -81,4 +92,12 @@ void UZodiacHeroComponent::ActivateHero()
 void UZodiacHeroComponent::DeactivateHero()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Deactivate %s"), *HeroData->HeroName.ToString());
+}
+
+void UZodiacHeroComponent::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	float NewValue = OnAttributeChangeData.NewValue;
+	float OldValue = OnAttributeChangeData.OldValue;
+
+	UE_LOG(LogTemp, Warning, TEXT("Health changed from %.1f to %.1f"), OldValue, NewValue);
 }

@@ -89,13 +89,14 @@ void AZodiacPlayerCharacter::BeginPlay()
 
 	UE_LOG(LogTemp, Warning,TEXT("Begin Play"));
 	
-	InitializeHeroComponents();
 	SelectFirstHero();
 }
 
 void AZodiacPlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	InitializeHeroComponents();
 
 	UE_LOG(LogTemp, Warning,TEXT("PostInitializeComponents"));
 }

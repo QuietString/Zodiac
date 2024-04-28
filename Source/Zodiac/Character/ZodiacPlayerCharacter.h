@@ -90,8 +90,6 @@ protected:
 
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveHeroIndex, BlueprintReadOnly)
 	int32 ActiveHeroIndex;
-
-	
 	TArray<TObjectPtr<UZodiacAbilitySystemComponent>> AbilitySystemComponents;
 	
 	UPROPERTY()

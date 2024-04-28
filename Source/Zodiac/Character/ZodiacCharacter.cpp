@@ -6,7 +6,6 @@
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHealthComponent.h"
-#include "ZodiacHeroData.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "ZodiacCharacterChangeComponent.h"
 #include "ZodiacInputData.h"
@@ -279,12 +278,6 @@ bool AZodiacCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& T
 	}
 
 	return false;
-}
-
-
-TArray<UZodiacHeroData*> AZodiacCharacter::GetHeroes()
-{
-	return Heroes;
 }
 
 void AZodiacCharacter::AddStartingAbilities()

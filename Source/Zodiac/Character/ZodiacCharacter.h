@@ -13,8 +13,6 @@
 class UZodiacInputData;
 class UZodiacAbilitySet;
 class UZodiacCharacterChangeComponent;
-class AZodiacTaggedActor;
-class UZodiacHeroData;
 struct FInputActionValue;
 class UInputMappingContext;
 class UZodiacHeroComponent;
@@ -66,7 +64,6 @@ public:
 	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
 	//~End of IGameplayTagAssetInterface interface
 
-	TArray<UZodiacHeroData*> GetHeroes();
 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -119,7 +116,4 @@ private:
 	// Combat attribute set used by this actor.
 	UPROPERTY()
 	TObjectPtr<const class UZodiacCombatSet> CombatSet;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zodiac|Heroes", meta = (AllowPrivateAccess = true))
-	TArray<UZodiacHeroData*> Heroes;
 };

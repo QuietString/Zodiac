@@ -3,11 +3,18 @@
 
 #include "Monster/ZodiacMonster.h"
 
+#include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 
-AZodiacMonster::AZodiacMonster()
+
+AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 }
 
@@ -15,15 +22,12 @@ void AZodiacMonster::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	check(AbilitySystemComponent);
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	AddAbilities();
+	InitializeAbilitySystemComponent();
 }
 
 void AZodiacMonster::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 UZodiacAbilitySystemComponent* AZodiacMonster::GetZodiacAbilitySystemComponent() const
@@ -60,7 +64,10 @@ void AZodiacMonster::InitializeAbilitySystemComponent()
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	AddAbilities();
 
-	
+	HealthSet = AbilitySystemComponent->GetSet<UZodiacHealthSet>();
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UZodiacHealthSet::GetHealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
+
+	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
 }
 
 void AZodiacMonster::AddAbilities()
@@ -69,4 +76,38 @@ void AZodiacMonster::AddAbilities()
 	{
 		AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 	}
+}
+
+void AZodiacMonster::HandleHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	float NewValue = OnAttributeChangeData.NewValue;
+	float OldValue = OnAttributeChangeData.OldValue;
+	
+	UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);
+}
+
+void AZodiacMonster::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser,
+                                       const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+{
+#if WITH_SERVER_CODE
+	if (AbilitySystemComponent && DamageEffectSpec)
+	{
+		// Send the "GameplayEvent.Death" gameplay event through the owner's ability system.  This can be used to trigger a death gameplay ability.
+		{
+			FGameplayEventData Payload;
+			Payload.EventTag = ZodiacGameplayTags::GameplayEvent_Death;
+			Payload.Instigator = DamageInstigator;
+			Payload.Target = AbilitySystemComponent->GetAvatarActor();
+			Payload.OptionalObject = DamageEffectSpec->Def;
+			Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
+			Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+			Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+			Payload.EventMagnitude = DamageMagnitude;
+			
+			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
+			int32 Num = AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
+			UE_LOG(LogTemp, Warning, TEXT("out of health event sent: %d "), Num);
+		}
+	}
+#endif
 }
