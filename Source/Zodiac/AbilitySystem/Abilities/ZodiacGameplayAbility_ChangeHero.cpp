@@ -17,14 +17,12 @@ void UZodiacGameplayAbility_ChangeHero::ActivateAbility(const FGameplayAbilitySp
                                                         const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	UE_LOG(LogTemp, Warning, TEXT("change hero: %d on NetMode: %d"), SlotIndex, GetAvatarActorFromActorInfo()->GetNetMode());
-
+	
 	if (SlotIndex != INDEX_NONE)
 	{
 		if (AZodiacPlayerCharacter* PlayerCharacter = Cast<AZodiacPlayerCharacter>(GetOwningActorFromActorInfo()))
 		{
-			PlayerCharacter->SetActiveHeroIndex(SlotIndex);
+			PlayerCharacter->ChangeHero(SlotIndex);
 		}
 	}
 	

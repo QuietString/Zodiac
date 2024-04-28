@@ -36,23 +36,22 @@ public:
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	//void InitializeHeroes();
-	
-	void ChangeMesh(USkeletalMesh* NewMesh, TSubclassOf<UAnimInstance> NewAnimInstance);
-	
-	UFUNCTION(BlueprintCallable)
-	void ChangeHero(int32 NewHeroIndex);
 
-	UFUNCTION(BlueprintCallable)
-	void SetActiveHeroIndex(int32 NewIndex);
+	void ChangeHero(int32 NewIndex);
+	void ChangeCharacterMesh(USkeletalMesh* NewMesh, TSubclassOf<UAnimInstance> NewAnimInstance);
+	void ChangeHeroMesh(USkeletalMesh* NewMesh, TSubclassOf<UAnimInstance> NewAnimInstance);
+
+	void CheckReady();
 	
 protected:
-
+	
 	void InitializeHeroComponents();
 	void SelectFirstHero();
 	
@@ -83,17 +82,21 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<UZodiacHeroComponent>> HeroComponents;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Heroes")
+	TObjectPtr<USkeletalMeshComponent> HeroMeshComponent;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
 	UZodiacInputData* InputData;
 
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveHeroIndex, BlueprintReadOnly)
 	int32 ActiveHeroIndex;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Heroes")
-	TObjectPtr<USkeletalMeshComponent> HeroMeshComponent;
-
+	
 	TArray<TObjectPtr<UZodiacAbilitySystemComponent>> AbilitySystemComponents;
 	
 	UPROPERTY()
-	bool bInitialized = false;
+	bool bHeroesInitialized = false;
+
+	UPROPERTY()
+	bool bReady = false;
 };

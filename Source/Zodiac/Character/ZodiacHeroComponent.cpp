@@ -11,7 +11,7 @@
 UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, HeroName);
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
@@ -43,27 +43,42 @@ void UZodiacHeroComponent::OnRegister()
 	PlayerCharacter = GetPawnChecked<AZodiacPlayerCharacter>();
 }
 
+void UZodiacHeroComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ensureMsgf(HeroData, TEXT("Must have HeroData"));
+}
+
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystemComponent()
 {
-	if (AbilitySets.Num() > 0)
+	if (HeroData)
 	{
-		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : AbilitySets)
+		if (HeroData->AbilitySets.Num() > 0)
 		{
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+			for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
+			{
+				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+			}
 		}
+
+		AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
+
+		return AbilitySystemComponent;
 	}
 
-	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
-
-	return AbilitySystemComponent;
+	return nullptr;
 }
 
 void UZodiacHeroComponent::ActivateHero()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Activate %s"), *HeroName.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("Activate %s"), *HeroData->HeroName.ToString());
+
+	PlayerCharacter->ChangeHeroMesh(HeroData->HeroMesh, HeroData->HeroAnimInstance);
+	PlayerCharacter->ChangeCharacterMesh(HeroData->InvisibleMesh, HeroData->CopyPoseAnimInstance);
 }
 
 void UZodiacHeroComponent::DeactivateHero()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Deactivate %s"), *HeroName.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("Deactivate %s"), *HeroData->HeroName.ToString());
 }

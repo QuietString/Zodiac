@@ -13,6 +13,32 @@ class AZodiacPlayerCharacter;
 class UZodiacAbilitySystemComponent;
 class UZodiacAbilitySet;
 
+UCLASS(BlueprintType)
+class UZodiacHeroDataAsset : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	
+	UPROPERTY(EditAnywhere, Category = "Zodiac")
+	FName HeroName = TEXT("Default");
+	
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
+	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	TObjectPtr<USkeletalMesh> HeroMesh;
+	
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	TObjectPtr<USkeletalMesh> InvisibleMesh;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	TSubclassOf<UAnimInstance> HeroAnimInstance;
+	
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	TSubclassOf<UAnimInstance> CopyPoseAnimInstance;
+};
+
 UCLASS()
 class ZODIAC_API UZodiacHeroComponent : public UPawnComponent, public IAbilitySystemInterface, public IGameplayTagAssetInterface
 {
@@ -28,45 +54,36 @@ public:
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	
 	virtual void OnRegister() override;
-
+	virtual void BeginPlay() override;
+	
 	UZodiacAbilitySystemComponent* InitializeAbilitySystemComponent();
 
 	void ActivateHero();
 	void DeactivateHero();
-protected:
-	
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName HeroName = TEXT("Default");
+	
+	UPROPERTY()
+	FName HeroName;
 	
 protected:
 
+	UPROPERTY(EditAnywhere, Category = "Zodiac")
+	UZodiacHeroDataAsset* HeroData;
+	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
-
+	
 	UPROPERTY()
 	TObjectPtr<AZodiacPlayerCharacter> PlayerCharacter;
 	
 	UPROPERTY()
 	TObjectPtr<const class UZodiacHealthSet> HealthSet;
-
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
-	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
-
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
-	TObjectPtr<USkeletalMesh> HeroMesh;
-	
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
-	TObjectPtr<USkeletalMesh> InvisibleMesh;
-
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
-	TSubclassOf<UAnimInstance> HeroAnimInstance;
-	
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
-	TSubclassOf<UAnimInstance> CopyPoseAnimInstance;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTagContainer HeroTags;
+
+private:
+
 };
 

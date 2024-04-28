@@ -23,6 +23,16 @@ UAbilitySystemComponent* AZodiacPlayerState::GetAbilitySystemComponent() const
 	return nullptr;
 }
 
+void AZodiacPlayerState::ClientInitialize(AController* C)
+{
+	Super::ClientInitialize(C);
+
+	if (AZodiacPlayerCharacter* PlayerCharacter = Cast<AZodiacPlayerCharacter>(GetPawn()))
+	{
+		PlayerCharacter->CheckReady();
+	}
+}
+
 void AZodiacPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

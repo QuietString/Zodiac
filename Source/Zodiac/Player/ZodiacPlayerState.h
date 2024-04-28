@@ -41,7 +41,7 @@ public:
 	AZodiacPlayerState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	
+	virtual void ClientInitialize(AController* C) override;	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&) const override;
 
 private:
