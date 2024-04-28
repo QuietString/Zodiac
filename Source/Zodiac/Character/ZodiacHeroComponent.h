@@ -10,6 +10,7 @@
 #include "ZodiacHeroComponent.generated.h"
 
 
+class UZodiacHealthComponent;
 struct FAttributeDefaults;
 class UZodiacHealthSet;
 class AZodiacPlayerCharacter;
@@ -62,15 +63,15 @@ public:
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
 
-	UZodiacAbilitySystemComponent* InitializeAbilitySystemComponent();
+	UZodiacAbilitySystemComponent* InitializeAbilitySystem();
 
 	void ActivateHero();
 	void DeactivateHero();
 
 protected:
 
-	void OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
-
+	void AddAbilities();
+	
 public:
 	
 	UPROPERTY()
@@ -83,13 +84,13 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY()
+	TObjectPtr<UZodiacHealthComponent> HealthComponent;
 	
 	UPROPERTY()
 	TObjectPtr<AZodiacPlayerCharacter> PlayerCharacter;
-	
-	UPROPERTY()
-	TObjectPtr<const class UZodiacHealthSet> HealthSet;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTagContainer HeroTags;
 

@@ -63,7 +63,16 @@ void UZodiacGameplayAbility_Death::EndAbility(const FGameplayAbilitySpecHandle H
 
 void UZodiacGameplayAbility_Death::StartDeath()
 {
-	if (UZodiacHealthComponent* HealthComponent = UZodiacHealthComponent::FindHealthComponent(GetAvatarActorFromActorInfo()))
+	// if (UZodiacHealthComponent* HealthComponent = UZodiacHealthComponent::FindHealthComponent(GetAvatarActorFromActorInfo()))
+	// {
+	// 	if (HealthComponent->GetDeathState() == EZodiacDeathState::NotDead)
+	// 	{
+	// 		HealthComponent->StartDeath();
+	// 	}
+	// }
+	
+	UZodiacHealthComponent* HealthComponent = UZodiacHealthComponent::FindMatchingHealthComponent(GetAvatarActorFromActorInfo(), GetAbilitySystemComponentFromActorInfo());
+	if (HealthComponent)
 	{
 		if (HealthComponent->GetDeathState() == EZodiacDeathState::NotDead)
 		{

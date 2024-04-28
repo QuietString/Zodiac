@@ -19,7 +19,8 @@ UZodiacHealthComponent::UZodiacHealthComponent(const FObjectInitializer& ObjectI
 
 	AbilitySystemComponent = nullptr;
 	HealthSet = nullptr;
-	DeathState = EZodiacDeathState::NotDead;}
+	DeathState = EZodiacDeathState::NotDead;
+}
 
 void UZodiacHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -105,7 +106,6 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 			
 			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
 			int32 Num = AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
-			UE_LOG(LogTemp, Warning, TEXT("out of health event sent: %d "), Num);
 		}
 		
 		// Send a standardized verb message that other systems can observe

@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
+#include "ZodiacHealthComponent.h"
 #include "ZodiacHeroComponent.h"
 #include "ZodiacInputData.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
@@ -90,6 +91,9 @@ void AZodiacPlayerCharacter::BeginPlay()
 	UE_LOG(LogTemp, Warning,TEXT("Begin Play"));
 	
 	SelectFirstHero();
+
+	TInlineComponentArray<UZodiacHealthComponent*> HealthComponents;
+	GetComponents<UZodiacHealthComponent>(HealthComponents);
 }
 
 void AZodiacPlayerCharacter::PostInitializeComponents()
@@ -168,12 +172,12 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	AbilitySystemComponents.Reset(2);
 
 	HeroComponents.Add(HeroComponent1);
-	UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystemComponent();
+	UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystem();
 	check(HeroASC1);
 	AbilitySystemComponents.Add(HeroASC1);
 	
 	HeroComponents.Add(HeroComponent2);
-	UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystemComponent();
+	UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystem();
 	check(HeroASC2);
 	AbilitySystemComponents.Add(HeroASC2);
 	

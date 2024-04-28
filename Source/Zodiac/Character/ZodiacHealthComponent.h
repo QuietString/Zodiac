@@ -42,6 +42,28 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Zodiac|Health")
 	static UZodiacHealthComponent* FindHealthComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UZodiacHealthComponent>() : nullptr); }
 
+	UFUNCTION(BlueprintPure, Category = "Zodiac|Health")
+	static UZodiacHealthComponent* FindMatchingHealthComponent(const AActor* Actor, const UAbilitySystemComponent* ASC)
+	{
+		TInlineComponentArray<UZodiacHealthComponent*> HealthComponents;
+		if (Actor)
+		{
+			Actor->GetComponents<UZodiacHealthComponent>(HealthComponents);
+			if (HealthComponents.Num() > 0)
+			{
+				for (auto& HealthComponent : HealthComponents)
+				{
+					if (HealthComponent->AbilitySystemComponent == ASC)
+					{
+						return HealthComponent;
+					}
+				}
+			}
+		}
+
+		return nullptr;
+	}
+	
 	void InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InASC);
 
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Health")
@@ -75,8 +97,7 @@ protected:
 	virtual void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
 
 	void ClearGameplayTags();
-
-
+	
 	UFUNCTION()
 	virtual void OnRep_DeathState(EZodiacDeathState OldDeathState);
 

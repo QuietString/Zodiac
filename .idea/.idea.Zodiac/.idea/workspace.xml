@@ -10,30 +10,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="Merge remote-tracking branch 'origin/master'">
+    <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Attributes/ZodiacHealthSet.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Attributes/ZodiacHealthSet.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Attributes/ZodiacHealthSet.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Attributes/ZodiacHealthSet.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacTaggedActor.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacTaggedActor.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Death.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Death.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHealthComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHealthComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHealthComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHealthComponent.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroComponent.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroData.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroData.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPlayerCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPlayerCharacter.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPlayerCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPlayerCharacter.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacRetargetedMeshComponent.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacRetargetedMeshComponent.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Cosmetics/ZodiacCharacterCosmeticComponent.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Cosmetics/ZodiacCharacterCosmeticComponent.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Monster/ZodiacMonster.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Monster/ZodiacMonster.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Monster/ZodiacMonster.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Monster/ZodiacMonster.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Weapons/ZodiacGameplayAbility_Ranged.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Weapons/ZodiacGameplayAbility_Ranged.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -286,7 +272,7 @@
       <workItem from="1714013144372" duration="21033000" />
       <workItem from="1714106498463" duration="24978000" />
       <workItem from="1714207367579" duration="27944000" />
-      <workItem from="1714278121473" duration="20946000" />
+      <workItem from="1714278121473" duration="25776000" />
     </task>
     <task id="LOCAL-00001" summary="Player input binding">
       <option name="closed" value="true" />
@@ -384,7 +370,15 @@
       <option name="project" value="LOCAL" />
       <updated>1714288277557</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Ability and Attribute change with Hero Change">
+      <option name="closed" value="true" />
+      <created>1714307028986</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1714307028986</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -418,7 +412,8 @@
     <MESSAGE value="PlayerCharacter: basic changing hero functionality implemented" />
     <MESSAGE value="PlayerCharacter Character/ASC Change implemented with HeroComponent" />
     <MESSAGE value="Merge remote-tracking branch 'origin/master'" />
-    <option name="LAST_COMMIT_MESSAGE" value="Merge remote-tracking branch 'origin/master'" />
+    <MESSAGE value="Ability and Attribute change with Hero Change" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ability and Attribute change with Hero Change" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

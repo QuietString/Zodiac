@@ -5,6 +5,7 @@
 #include "ZodiacPlayerCharacter.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "ZodiacHealthComponent.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 
 
@@ -14,6 +15,8 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -51,30 +54,17 @@ void UZodiacHeroComponent::BeginPlay()
 	Super::BeginPlay();
 
 	ensureMsgf(HeroData, TEXT("Must have HeroData"));
-
-	HealthSet = AbilitySystemComponent->GetSet<UZodiacHealthSet>();
-	
 }
 
-UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystemComponent()
+UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 {
 	if (HeroData)
 	{
-		if (HeroData->AbilitySets.Num() > 0)
-		{
-			for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
-			{
-				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
-			}
-		}
-		
+		AddAbilities();
 		AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
-
-		if (AbilitySystemComponent->GetAttributeSet(UZodiacHealthSet::StaticClass()))
-		{
-			AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UZodiacHealthSet::GetHealthAttribute()).AddUObject(this, &ThisClass::OnHealthChanged);
-		}
 		
+		HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+
 		return AbilitySystemComponent;
 	}
 
@@ -94,10 +84,13 @@ void UZodiacHeroComponent::DeactivateHero()
 	//UE_LOG(LogTemp, Warning, TEXT("Deactivate %s"), *HeroData->HeroName.ToString());
 }
 
-void UZodiacHeroComponent::OnHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+void UZodiacHeroComponent::AddAbilities()
 {
-	float NewValue = OnAttributeChangeData.NewValue;
-	float OldValue = OnAttributeChangeData.OldValue;
-
-	UE_LOG(LogTemp, Warning, TEXT("Health changed from %.1f to %.1f"), OldValue, NewValue);
+	if (HeroData->AbilitySets.Num() > 0)
+	{
+		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
+		{
+			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+		}
+	}
 }

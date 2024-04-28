@@ -9,6 +9,7 @@
 #include "GameFramework/Character.h"
 #include "ZodiacMonster.generated.h"
 
+class UZodiacHealthComponent;
 class UZodiacAbilitySet;
 class UZodiacAbilitySystemComponent;
 
@@ -44,16 +45,13 @@ protected:
 
 	void AddAbilities();
 
-	void HandleHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
-	void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
-	
 protected:
 	UPROPERTY(VisibleDefaultsOnly)
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UZodiacHealthComponent> HealthComponent;
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
 	TArray<UZodiacAbilitySet*> Abilities;
-
-	UPROPERTY()
-	TObjectPtr<const class UZodiacHealthSet> HealthSet;
 };
