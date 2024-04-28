@@ -21,6 +21,24 @@ AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectI
 
 	HeroComponent1 = ObjectInitializer.CreateDefaultSubobject<UZodiacHeroComponent>(this, TEXT("HeroComponent1"));
 	HeroComponent2 = ObjectInitializer.CreateDefaultSubobject<UZodiacHeroComponent>(this, TEXT("HeroComponent2"));
+
+	HeroMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("HeroMeshComponent"));
+	HeroMeshComponent->SetupAttachment(GetMesh(), NAME_None);
+
+	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
+	ZodiacMoveComp->GravityScale = 1.0f;
+	ZodiacMoveComp->MaxAcceleration = 2400.0f;
+	ZodiacMoveComp->BrakingFrictionFactor = 1.0f;
+	ZodiacMoveComp->BrakingFriction = 6.0f;
+	ZodiacMoveComp->GroundFriction = 8.0f;
+	ZodiacMoveComp->BrakingDecelerationWalking = 1400.0f;
+	ZodiacMoveComp->bUseControllerDesiredRotation = false;
+	ZodiacMoveComp->bOrientRotationToMovement = false;
+	ZodiacMoveComp->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	ZodiacMoveComp->bAllowPhysicsRotationDuringAnimRootMotion = false;
+	ZodiacMoveComp->GetNavAgentPropertiesRef().bCanCrouch = true;
+	ZodiacMoveComp->bCanWalkOffLedgesWhenCrouching = true;
+	ZodiacMoveComp->SetCrouchedHalfHeight(65.0f);
 }
 
 void AZodiacPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -40,7 +58,7 @@ void AZodiacPlayerCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagCont
 
 UZodiacAbilitySystemComponent* AZodiacPlayerCharacter::GetZodiacAbilitySystemComponent() const
 {
-	if (AbilitySystemComponents.IsValidIndex(ActiveHeroIndex) && bInitialized)
+	if (AbilitySystemComponents.IsValidIndex(ActiveHeroIndex) && bHeroesInitialized)
 	{
 		return AbilitySystemComponents[ActiveHeroIndex];
 	}
@@ -50,7 +68,7 @@ UZodiacAbilitySystemComponent* AZodiacPlayerCharacter::GetZodiacAbilitySystemCom
 
 UAbilitySystemComponent* AZodiacPlayerCharacter::GetAbilitySystemComponent() const
 {
-	if (AbilitySystemComponents.IsValidIndex(ActiveHeroIndex) && bInitialized)
+	if (AbilitySystemComponents.IsValidIndex(ActiveHeroIndex) && bHeroesInitialized)
 	{
 		return AbilitySystemComponents[ActiveHeroIndex];
 	}
@@ -58,12 +76,19 @@ UAbilitySystemComponent* AZodiacPlayerCharacter::GetAbilitySystemComponent() con
 	return nullptr;
 }
 
+void AZodiacPlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	
+}
+
 void AZodiacPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
 	UE_LOG(LogTemp, Warning,TEXT("Begin Play"));
-
+	
 	InitializeHeroComponents();
 	SelectFirstHero();
 }
@@ -85,38 +110,54 @@ void AZodiacPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	}
 }
 
-void AZodiacPlayerCharacter::ChangeMesh(USkeletalMesh* NewMesh, const TSubclassOf<UAnimInstance> NewAnimInstance)
+void AZodiacPlayerCharacter::ChangeHero(int32 NewIndex)
+{
+	if (HeroComponents.IsValidIndex(NewIndex))
+	{
+		if (HasAuthority())
+		{
+			int32 OldIndex = ActiveHeroIndex;
+			ActiveHeroIndex = NewIndex;
+			OnRep_ActiveHeroIndex(OldIndex);
+		}
+	}
+}
+
+void AZodiacPlayerCharacter::ChangeCharacterMesh(USkeletalMesh* NewMesh, TSubclassOf<UAnimInstance> NewAnimInstance)
 {
 	if (USkeletalMeshComponent* MeshComponent = GetMesh())
 	{
 		MeshComponent->SetSkeletalMeshAsset(NewMesh);
-		MeshComponent->SetAnimInstanceClass(NewAnimInstance);	
+		MeshComponent->SetAnimInstanceClass(NewAnimInstance);
 	}
 }
 
-void AZodiacPlayerCharacter::ChangeHero(int32 NewHeroIndex)
+void AZodiacPlayerCharacter::ChangeHeroMesh(USkeletalMesh* NewMesh, const TSubclassOf<UAnimInstance> NewAnimInstance)
 {
-	if (HeroComponents.IsValidIndex(NewHeroIndex))
-	{
-		if (ActiveHeroIndex != NewHeroIndex)
-		{
-			HeroComponents[ActiveHeroIndex]->DeactivateHero();
-			HeroComponents[NewHeroIndex]->ActivateHero();
-
-			ActiveHeroIndex = NewHeroIndex;
-		}	
-	}
+	HeroMeshComponent->SetSkeletalMeshAsset(NewMesh);
+	HeroMeshComponent->SetAnimInstanceClass(NewAnimInstance);
 }
 
-void AZodiacPlayerCharacter::SetActiveHeroIndex(int32 NewIndex)
+void AZodiacPlayerCharacter::CheckReady()
 {
-	UE_LOG(LogTemp, Warning, TEXT("set active index as %d"), NewIndex);
-	int32 OldIndex = ActiveHeroIndex;
-	ActiveHeroIndex = NewIndex;
-
+	// check player connected
+	bool bServerConnected = false;
 	if (HasAuthority())
 	{
-		OnRep_ActiveHeroIndex(OldIndex);
+		bServerConnected = true;
+	}
+	else
+	{
+		if (APlayerState* PS = GetPlayerState())
+		{
+			bServerConnected = true;
+		}
+	}
+
+	if (bServerConnected && bHeroesInitialized)
+	{
+		SelectFirstHero();
+		bReady = true;
 	}
 }
 
@@ -129,17 +170,14 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystemComponent();
 	check(HeroASC1);
 	AbilitySystemComponents.Add(HeroASC1);
-
-	UE_LOG(LogTemp, Warning, TEXT("hero actor components added for %s"), *HeroComponent1->HeroName.ToString());
 	
 	HeroComponents.Add(HeroComponent2);
 	UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystemComponent();
 	check(HeroASC2);
 	AbilitySystemComponents.Add(HeroASC2);
-
-	UE_LOG(LogTemp, Warning, TEXT("hero actor components added for %s"), *HeroComponent2->HeroName.ToString());
-
-	bInitialized = true;
+	
+	bHeroesInitialized = true;
+	CheckReady();
 }
 
 void AZodiacPlayerCharacter::SelectFirstHero()
@@ -147,11 +185,8 @@ void AZodiacPlayerCharacter::SelectFirstHero()
 	HeroComponent1->DeactivateHero();
 	HeroComponent2->DeactivateHero();
 	
-	if (HasAuthority())
-	{
-		ActiveHeroIndex = 0;
-		OnRep_ActiveHeroIndex(INDEX_NONE);
-	}
+	ActiveHeroIndex = 0;
+	OnRep_ActiveHeroIndex(INDEX_NONE);
 }
 
 void AZodiacPlayerCharacter::InitializePlayerInput()
@@ -296,18 +331,13 @@ bool AZodiacPlayerCharacter::CanJumpInternal_Implementation() const
 
 void AZodiacPlayerCharacter::OnRep_ActiveHeroIndex(int32 OldIndex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnRep NewIndex: %d, OldIndex: %d on NetMode: %d"), ActiveHeroIndex, OldIndex, GetNetMode());
-	
-	if (ActiveHeroIndex != OldIndex)
+	if (HeroComponents.IsValidIndex(OldIndex))
 	{
-		if (HeroComponents.IsValidIndex(OldIndex))
-		{
-			HeroComponents[OldIndex]->DeactivateHero();
-		}
+		HeroComponents[OldIndex]->DeactivateHero();
+	}
 
-		if(HeroComponents.IsValidIndex(ActiveHeroIndex))
-		{
-			HeroComponents[ActiveHeroIndex]->ActivateHero();
-		}
+	if (HeroComponents.IsValidIndex(ActiveHeroIndex))
+	{
+		HeroComponents[ActiveHeroIndex]->ActivateHero();
 	}
 }
