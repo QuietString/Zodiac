@@ -6,11 +6,10 @@
 #include "Abilities/GameplayAbility.h"
 #include "ZodiacGameplayAbility.generated.h"
 
+class UZodiacCameraMode;
 class AZodiacPlayerCharacter;
 
 /**
- * EZodiacAbilityActivationPolicy
- *
  *	Defines how an ability is meant to activate.
  */
 UENUM(BlueprintType)
@@ -28,8 +27,6 @@ enum class EZodiacAbilityActivationPolicy : uint8
 
 
 /**
- * EZodiacAbilityActivationGroup
- *
  *	Defines how an ability activates in relation to other abilities.
  */
 UENUM(BlueprintType)
@@ -89,6 +86,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AZodiacPlayerCharacter* GetZodiacCharacterFromActorInfo() const;
 
+	// Sets the ability's camera mode.
+	UFUNCTION(BlueprintCallable, Category = "Lyra|Ability")
+	void SetCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode);
+
+	// Clears the ability's camera mode.  Automatically called if needed when the ability ends.
+	UFUNCTION(BlueprintCallable, Category = "Lyra|Ability")
+	void ClearCameraMode();
+	
 	void OnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const
 	{
 		NativeOnAbilityFailedToActivate(FailedReason);
@@ -124,4 +129,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UGameplayEffect> DamageEffect;
+
+	// Current camera mode set by the ability.
+	TSubclassOf<UZodiacCameraMode> ActiveCameraMode;
 };

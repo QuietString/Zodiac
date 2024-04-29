@@ -5,7 +5,7 @@
 #include "Engine/DataAsset.h"
 #include "GameplayTagContainer.h"
 
-#include "ZodiacInputConfig.generated.h"
+#include "ZodiacInputTagMapping.generated.h"
 
 class UInputAction;
 class UObject;
@@ -31,13 +31,13 @@ public:
  *	Non-mutable data asset that contains input configuration properties.
  */
 UCLASS(BlueprintType, Const)
-class UZodiacInputConfig : public UDataAsset
+class UZodiacInputTagMapping : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
 
-	UZodiacInputConfig(const FObjectInitializer& ObjectInitializer);
+	UZodiacInputTagMapping(const FObjectInitializer& ObjectInitializer);
 
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Pawn")
 	const UInputAction* FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;

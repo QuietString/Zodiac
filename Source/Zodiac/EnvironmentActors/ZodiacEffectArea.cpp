@@ -4,7 +4,7 @@
 #include "ZodiacEffectArea.h"
 
 #include "AbilitySystemComponent.h"
-#include "Character/ZodiacCharacter.h"
+#include "Character/ZodiacPlayerCharacter.h"
 
 
 AZodiacEffectArea::AZodiacEffectArea()
@@ -24,7 +24,7 @@ void AZodiacEffectArea::BeginPlay()
 void AZodiacEffectArea::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AZodiacCharacter* Character = Cast<AZodiacCharacter>(OtherActor);
+	AZodiacPlayerCharacter* Character = Cast<AZodiacPlayerCharacter>(OtherActor);
 	if (Character)
 	{
 		UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent();

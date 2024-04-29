@@ -7,13 +7,13 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacInputComponent)
 
-class UZodiacInputConfig;
+class UZodiacInputTagMapping;
 
 UZodiacInputComponent::UZodiacInputComponent(const FObjectInitializer& ObjectInitializer)
 {
 }
 
-void UZodiacInputComponent::AddInputMappings(const UZodiacInputConfig* InputConfig, UEnhancedInputLocalPlayerSubsystem* InputSubsystem) const
+void UZodiacInputComponent::AddInputMappings(const UZodiacInputTagMapping* InputConfig, UEnhancedInputLocalPlayerSubsystem* InputSubsystem) const
 {
 	check(InputConfig);
 	check(InputSubsystem);
@@ -21,7 +21,7 @@ void UZodiacInputComponent::AddInputMappings(const UZodiacInputConfig* InputConf
 	// Here you can handle any custom logic to add something from your input config if required
 }
 
-void UZodiacInputComponent::RemoveInputMappings(const UZodiacInputConfig* InputConfig, UEnhancedInputLocalPlayerSubsystem* InputSubsystem) const
+void UZodiacInputComponent::RemoveInputMappings(const UZodiacInputTagMapping* InputConfig, UEnhancedInputLocalPlayerSubsystem* InputSubsystem) const
 {
 	check(InputConfig);
 	check(InputSubsystem);

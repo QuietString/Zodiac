@@ -1,13 +1,13 @@
 ﻿// the.quiet.string@gmail.com
 
 #include "ZodiacAnimInstance.h"
-#include "Character/ZodiacCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AnimationStateMachineLibrary.h"
 #include "KismetAnimationLibrary.h"
+#include "Character/ZodiacPlayerCharacter.h"
 
 UZodiacAnimInstance::UZodiacAnimInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -35,7 +35,7 @@ void UZodiacAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	const AZodiacCharacter* Character = Cast<AZodiacCharacter>(GetOwningActor());
+	const AZodiacPlayerCharacter* Character = Cast<AZodiacPlayerCharacter>(GetOwningActor());
 	if (!Character)
 	{
 		return;

@@ -18,7 +18,7 @@ class UZodiacAbilitySystemComponent;
 class UZodiacAbilitySet;
 
 UCLASS(BlueprintType)
-class UZodiacHeroDataAsset : public UDataAsset
+class UZodiacHeroData : public UDataAsset
 {
 	GENERATED_BODY()
 
@@ -80,7 +80,7 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "Zodiac")
-	UZodiacHeroDataAsset* HeroData;
+	UZodiacHeroData* HeroData;
 	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
@@ -93,8 +93,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTagContainer HeroTags;
-
-private:
 
 };
 

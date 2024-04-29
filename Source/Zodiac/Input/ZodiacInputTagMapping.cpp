@@ -1,17 +1,16 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "ZodiacInputConfig.h"
+#include "ZodiacInputTagMapping.h"
 
 #include "ZodiacLogChannels.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacInputConfig)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacInputTagMapping)
 
-
-UZodiacInputConfig::UZodiacInputConfig(const FObjectInitializer& ObjectInitializer)
+UZodiacInputTagMapping::UZodiacInputTagMapping(const FObjectInitializer& ObjectInitializer)
 {
 }
 
-const UInputAction* UZodiacInputConfig::FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
+const UInputAction* UZodiacInputTagMapping::FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {
 	for (const FZodiacInputAction& Action : NativeInputActions)
 	{
@@ -29,7 +28,7 @@ const UInputAction* UZodiacInputConfig::FindNativeInputActionForTag(const FGamep
 	return nullptr;
 }
 
-const UInputAction* UZodiacInputConfig::FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
+const UInputAction* UZodiacInputTagMapping::FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {
 	for (const FZodiacInputAction& Action : AbilityInputActions)
 	{

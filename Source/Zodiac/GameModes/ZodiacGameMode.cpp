@@ -4,7 +4,7 @@
 #include "GameModes/ZodiacGameMode.h"
 
 #include "ZodiacGameState.h"
-#include "Character/ZodiacCharacter.h"
+#include "Character/ZodiacPlayerCharacter.h"
 #include "Player/ZodiacPlayerController.h"
 #include "Player/ZodiacPlayerState.h"
 #include "System/ZodiacGameSession.h"
@@ -17,6 +17,6 @@ AZodiacGameMode::AZodiacGameMode(const FObjectInitializer& ObjectInitializer)
 	GameSessionClass = AZodiacGameSession::StaticClass();
 	PlayerControllerClass = AZodiacPlayerController::StaticClass();
 	PlayerStateClass = AZodiacPlayerState::StaticClass();
-	DefaultPawnClass = AZodiacCharacter::StaticClass();
+	DefaultPawnClass = AZodiacPlayerCharacter::StaticClass();
 	HUDClass = AZodiacHUD::StaticClass();
 }

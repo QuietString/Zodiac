@@ -9,8 +9,9 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHeroComponent.h"
-#include "ZodiacInputData.h"
+#include "Input/ZodiacInputData.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Camera/ZodiacCameraComponent.h"
 #include "Input/ZodiacInputComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -25,6 +26,9 @@ AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectI
 
 	HeroMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("HeroMeshComponent"));
 	HeroMeshComponent->SetupAttachment(GetMesh(), NAME_None);
+
+	CameraComponent = CreateDefaultSubobject<UZodiacCameraComponent>(TEXT("CameraComponent"));
+	CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
 
 	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
 	ZodiacMoveComp->GravityScale = 1.0f;
@@ -100,6 +104,7 @@ void AZodiacPlayerCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
 	InitializeHeroComponents();
 
 	UE_LOG(LogTemp, Warning,TEXT("PostInitializeComponents"));
@@ -112,6 +117,25 @@ void AZodiacPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	if (IsLocallyControlled())
 	{
 		InitializePlayerInput();
+	}
+}
+
+void AZodiacPlayerCharacter::SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode,
+	const FGameplayAbilitySpecHandle& OwningSpecHandle)
+{
+	if (CameraMode)
+	{
+		ActiveAbilityCameraMode = CameraMode;
+		AbilityCameraModeOwningSpecHandle = OwningSpecHandle;
+	}
+}
+
+void AZodiacPlayerCharacter::ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle)
+{
+	if (AbilityCameraModeOwningSpecHandle == OwningSpecHandle)
+	{
+		ActiveAbilityCameraMode = nullptr;
+		AbilityCameraModeOwningSpecHandle = FGameplayAbilitySpecHandle();
 	}
 }
 
@@ -194,6 +218,16 @@ void AZodiacPlayerCharacter::SelectFirstHero()
 	OnRep_ActiveHeroIndex(INDEX_NONE);
 }
 
+TSubclassOf<UZodiacCameraMode> AZodiacPlayerCharacter::DetermineCameraMode()
+{
+	if (ActiveAbilityCameraMode)
+	{
+		return ActiveAbilityCameraMode;
+	}
+
+	return DefaultAbilityCameraMode;
+}
+
 void AZodiacPlayerCharacter::InitializePlayerInput()
 {
 	const APlayerController* PC = GetController<APlayerController>();
@@ -218,17 +252,11 @@ void AZodiacPlayerCharacter::InitializePlayerInput()
 			}
 		}
 		
-		if (const UZodiacInputConfig* InputConfig = InputData->InputConfig)
+		if (const UZodiacInputTagMapping* InputConfig = InputData->InputConfig)
 		{
-			// The Zodiac Input Component has some additional functions to map Gameplay Tags to an Input Action.
-			// If you want this functionality but still want to change your input component class, make it a subclass
-			// of the UZodiacInputComponent or modify this component accordingly.
 			UZodiacInputComponent* ZodiacIC = Cast<UZodiacInputComponent>(InputComponent);
 			if (ensureMsgf(ZodiacIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UZodiacInputComponent or a subclass of it.")))
 			{
-				// Add the key mappings that may have been set by the player
-				ZodiacIC->AddInputMappings(InputConfig, Subsystem);
-
 				// This is where we actually bind and input action to a gameplay tag, which means that Gameplay Ability Blueprints will
 				// be triggered directly by these input actions Triggered events. 
 				TArray<uint32> BindHandles;

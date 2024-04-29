@@ -3,7 +3,7 @@
 #pragma once
 
 #include "EnhancedInputComponent.h"
-#include "ZodiacInputConfig.h"
+#include "ZodiacInputTagMapping.h"
 
 #include "ZodiacInputComponent.generated.h"
 
@@ -24,14 +24,14 @@ public:
 
 	UZodiacInputComponent(const FObjectInitializer& ObjectInitializer);
 
-	void AddInputMappings(const UZodiacInputConfig* InputConfig, UEnhancedInputLocalPlayerSubsystem* InputSubsystem) const;
-	void RemoveInputMappings(const UZodiacInputConfig* InputConfig, UEnhancedInputLocalPlayerSubsystem* InputSubsystem) const;
+	void AddInputMappings(const UZodiacInputTagMapping* InputConfig, UEnhancedInputLocalPlayerSubsystem* InputSubsystem) const;
+	void RemoveInputMappings(const UZodiacInputTagMapping* InputConfig, UEnhancedInputLocalPlayerSubsystem* InputSubsystem) const;
 
 	template<class UserClass, typename FuncType>
-	void BindNativeAction(const UZodiacInputConfig* InputConfig, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound);
+	void BindNativeAction(const UZodiacInputTagMapping* InputConfig, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound);
 
 	template<class UserClass, typename PressedFuncType, typename ReleasedFuncType>
-	void BindAbilityActions(const UZodiacInputConfig* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, TArray<uint32>& BindHandles);
+	void BindAbilityActions(const UZodiacInputTagMapping* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, TArray<uint32>& BindHandles);
 
 	void RemoveBinds(TArray<uint32>& BindHandles);
 
@@ -42,7 +42,7 @@ protected:
 
 
 template<class UserClass, typename FuncType>
-void UZodiacInputComponent::BindNativeAction(const UZodiacInputConfig* InputConfig, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound)
+void UZodiacInputComponent::BindNativeAction(const UZodiacInputTagMapping* InputConfig, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound)
 {
 	if (IsPawnLocallyControlled())
 	{
@@ -55,7 +55,7 @@ void UZodiacInputComponent::BindNativeAction(const UZodiacInputConfig* InputConf
 }
 
 template<class UserClass, typename PressedFuncType, typename ReleasedFuncType>
-void UZodiacInputComponent::BindAbilityActions(const UZodiacInputConfig* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, TArray<uint32>& BindHandles)
+void UZodiacInputComponent::BindAbilityActions(const UZodiacInputTagMapping* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc, TArray<uint32>& BindHandles)
 {
 	if (IsPawnLocallyControlled())
 	{

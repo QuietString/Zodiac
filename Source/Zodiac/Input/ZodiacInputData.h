@@ -8,7 +8,7 @@
 
 class UZodiacAbilitySet;
 class UInputMappingContext;
-class UZodiacInputConfig;
+class UZodiacInputTagMapping;
 
 UCLASS(BlueprintType, Const, meta = (DisplayName = "Zodiac Input Data", ShortToolTip = "Data asset used to define a Pawn."))
 class ZODIAC_API UZodiacInputData : public UPrimaryDataAsset
@@ -21,7 +21,7 @@ public:
 	
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Input")
-	TObjectPtr<UZodiacInputConfig> InputConfig;
+	TObjectPtr<UZodiacInputTagMapping> InputConfig;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Input")
 	TArray<TObjectPtr<UInputMappingContext>> InputMappingContexts;

@@ -4,9 +4,21 @@
 #include "ZodiacGameplayAbility.h"
 
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemLog.h"
 #include "ZodiacAbilitySimpleFailureMessage.h"
 #include "Character/ZodiacPlayerCharacter.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility)
+
+#define ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(FunctionName, ReturnValue)																				\
+{																																						\
+	if (!ensure(IsInstantiated()))																														\
+	{																																					\
+		ABILITY_LOG(Error, TEXT("%s: " #FunctionName " cannot be called on a non-instanced ability. Check the instancing policy."), *GetPathName());	\
+		return ReturnValue;																																\
+	}																																					\
+}
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_SIMPLE_FAILURE_MESSAGE, "Ability.UserFacingSimpleActivateFail.Message");
 UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_PLAY_MONTAGE_FAILURE_MESSAGE, "Ability.PlayMontageOnActivateFail.Message");
@@ -68,6 +80,32 @@ void UZodiacGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityAct
 AZodiacPlayerCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
 {
 	return (CurrentActorInfo ? Cast<AZodiacPlayerCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
+}
+
+void UZodiacGameplayAbility::SetCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode)
+{
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(SetCameraMode, );
+
+	if (AZodiacPlayerCharacter* PlayerCharacter = GetZodiacCharacterFromActorInfo())
+	{
+		PlayerCharacter->SetAbilityCameraMode(CameraMode, CurrentSpecHandle);
+		ActiveCameraMode = CameraMode;
+	}
+}
+
+void UZodiacGameplayAbility::ClearCameraMode()
+{
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(ClearCameraMode, );
+
+	if (ActiveCameraMode)
+	{
+		if (AZodiacPlayerCharacter* PlayerCharacter = GetZodiacCharacterFromActorInfo())
+		{
+			PlayerCharacter->ClearAbilityCameraMode(CurrentSpecHandle);
+		}
+
+		ActiveCameraMode = nullptr;
+	}
 }
 
 void UZodiacGameplayAbility::NativeOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const
