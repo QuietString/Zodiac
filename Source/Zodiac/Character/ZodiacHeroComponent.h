@@ -17,6 +17,8 @@ class AZodiacPlayerCharacter;
 class UZodiacAbilitySystemComponent;
 class UZodiacAbilitySet;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHeroChanged, const TArray<FName>&);
+
 UCLASS(BlueprintType)
 class UZodiacHeroData : public UDataAsset
 {
@@ -44,6 +46,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
 	TSubclassOf<UAnimInstance> CopyPoseAnimInstance;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Socket")
+	TArray<FName> MuzzleSocketNames;
 };
 
 UCLASS()
@@ -68,19 +73,29 @@ public:
 	void ActivateHero();
 	void DeactivateHero();
 
+public:
+
+	FOnHeroChanged OnHeroChanged;
+	
 protected:
 
 	void AddAbilities();
-	
-public:
-	
+
+protected:
+
 	UPROPERTY()
 	FName HeroName;
 	
-protected:
-
 	UPROPERTY(EditAnywhere, Category = "Zodiac")
 	UZodiacHeroData* HeroData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FGameplayTagContainer HeroTags;
+
+	UPROPERTY()
+	uint8 SlotIndex;
+	
+private:
 	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
@@ -90,9 +105,5 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<AZodiacPlayerCharacter> PlayerCharacter;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FGameplayTagContainer HeroTags;
-
 };
 

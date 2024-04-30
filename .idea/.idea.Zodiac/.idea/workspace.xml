@@ -11,38 +11,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3bece634-7d9e-4932-85fc-5c2d5a717b18" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacCameraAssistInterface.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacCameraComponent.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacCameraComponent.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacCameraMode.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacCameraMode.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacCameraMode_ThirdPerson.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacCameraMode_ThirdPerson.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacPenetrationAvoidanceFeeler.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacPlayerCameraManager.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacPlayerCameraManager.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacUICameraManagerComponent.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Camera/ZodiacUICameraManagerComponent.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Physics/PhysicalMaterialWithTags.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Physics/ZodiacCollisionChannels.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Weapons/ZodiacWeaponFireComponent.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Source/Zodiac/Weapons/ZodiacWeaponFireComponent.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Zodiac/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Config/DefaultEngine.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultEngine.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/DefaultGameplayTags.ini" beforeDir="false" afterPath="$PROJECT_DIR$/Config/DefaultGameplayTags.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Death.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/Abilities/ZodiacGameplayAbility_Death.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySet.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySet.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacter.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacCharacterChangeComponent.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/AbilitySystem/ZodiacAbilitySystemComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroComponent.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacHeroComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacInputData.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputData.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacInputData.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputData.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPlayerCharacter.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPlayerCharacter.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPlayerCharacter.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Character/ZodiacPlayerCharacter.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputComponent.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputConfig.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputTagMapping.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputConfig.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Input/ZodiacInputTagMapping.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Player/ZodiacPlayerController.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Weapons/ZodiacGameplayAbility_Ranged.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Weapons/ZodiacGameplayAbility_Ranged.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/Weapons/ZodiacGameplayAbility_Ranged.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/Weapons/ZodiacGameplayAbility_Ranged.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/Zodiac/ZodiacGameplayTags.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,7 +49,18 @@
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../../Program Files/Epic Games/UE_5.3/Engine/Plugins/Runtime/GameplayAbilities/Intermediate/Build/Win64/UnrealEditor/Inc/GameplayAbilities/UHT/GameplayAbilitySpec.generated.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Character/ZodiacHeroComponent.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Weapons/ZodiacGameplayAbility_Ranged.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Weapons/ZodiacGameplayAbility_Ranged.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/Weapons/ZodiacGameplayAbility_Ranged.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://C:/Users/cgdon/Documents/Unreal Projects/Zodiac/Source/Zodiac/ZodiacGameplayTags.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://diff.h" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProjectColorInfo">{
@@ -260,7 +256,8 @@
       <workItem from="1714106498463" duration="24978000" />
       <workItem from="1714207367579" duration="27944000" />
       <workItem from="1714278121473" duration="27763000" />
-      <workItem from="1714357695370" duration="5382000" />
+      <workItem from="1714357695370" duration="22759000" />
+      <workItem from="1714443924056" duration="10593000" />
     </task>
     <task id="LOCAL-00001" summary="Player input binding">
       <option name="closed" value="true" />
@@ -374,7 +371,15 @@
       <option name="project" value="LOCAL" />
       <updated>1714322739297</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="*PlayerCameraManager&#10;*CameraComponent&#10;Change CameraMode for a GameplayAbility">
+      <option name="closed" value="true" />
+      <created>1714363745829</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1714363745829</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -410,7 +415,9 @@
     <MESSAGE value="Merge remote-tracking branch 'origin/master'" />
     <MESSAGE value="Ability and Attribute change with Hero Change" />
     <MESSAGE value="HealthComponent for each Hero implemented" />
-    <option name="LAST_COMMIT_MESSAGE" value="HealthComponent for each Hero implemented" />
+    <MESSAGE value="*PlayerCameraManager&#10;*CameraComponent&#10;Change CameraMode for a GameplayAbility" />
+    <MESSAGE value="GameplayAbility_Ranged trace not working." />
+    <option name="LAST_COMMIT_MESSAGE" value="GameplayAbility_Ranged trace not working." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

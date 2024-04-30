@@ -195,17 +195,32 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	HeroComponents.Reset(2);
 	AbilitySystemComponents.Reset(2);
 
-	HeroComponents.Add(HeroComponent1);
-	UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystem();
-	check(HeroASC1);
-	AbilitySystemComponents.Add(HeroASC1);
+	bool bComponent1Ready = false;
+	bool bComponent2Ready = false;
 	
-	HeroComponents.Add(HeroComponent2);
-	UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystem();
-	check(HeroASC2);
-	AbilitySystemComponents.Add(HeroASC2);
-	
-	bHeroesInitialized = true;
+	if (HeroComponent1)
+	{
+		HeroComponents.Add(HeroComponent1);
+		UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystem();
+		check(HeroASC1);
+		AbilitySystemComponents.Add(HeroASC1);
+		bComponent1Ready = true;	
+	}
+
+	if (HeroComponent2)
+	{
+		HeroComponents.Add(HeroComponent2);
+		UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystem();
+		check(HeroASC2);
+		AbilitySystemComponents.Add(HeroASC2);
+		bComponent2Ready = true;
+	}
+
+	if (bComponent1Ready & bComponent2Ready)
+	{
+		bHeroesInitialized = true;
+	}
+
 	CheckReady();
 }
 
@@ -372,5 +387,6 @@ void AZodiacPlayerCharacter::OnRep_ActiveHeroIndex(int32 OldIndex)
 	if (HeroComponents.IsValidIndex(ActiveHeroIndex))
 	{
 		HeroComponents[ActiveHeroIndex]->ActivateHero();
+		
 	}
 }

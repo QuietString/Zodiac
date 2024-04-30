@@ -8,6 +8,11 @@ namespace ZodiacGameplayTags
 {
 	ZODIAC_API	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
 
+	// Heroes
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hero_Twinblast);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hero_Murdock);
+
+	
 	// Declare all of the custom native tags that Zodiac will use
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_IsDead);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cooldown);
@@ -54,6 +59,11 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dying);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dead);
 
+	// Tags for GameplayCue
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Weapon_Rifle_Fire);
+
+	
 	// These are mappings from MovementMode enums to GameplayTags associated with those enums (below)
 	ZODIAC_API	extern const TMap<uint8, FGameplayTag> MovementModeTagMap;
 	ZODIAC_API	extern const TMap<uint8, FGameplayTag> CustomMovementModeTagMap;

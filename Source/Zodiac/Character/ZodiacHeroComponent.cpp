@@ -17,6 +17,8 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+
+	SlotIndex = INDEX_NONE;
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -45,7 +47,7 @@ void UZodiacHeroComponent::OnRegister()
 	}
 
 	PlayerCharacter = GetPawnChecked<AZodiacPlayerCharacter>();
-
+	
 	Super::OnRegister();
 }
 
@@ -73,15 +75,15 @@ UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 
 void UZodiacHeroComponent::ActivateHero()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Activate %s"), *HeroData->HeroName.ToString());
-
+	UE_LOG(LogTemp, Warning, TEXT("Activate"));
 	PlayerCharacter->ChangeHeroMesh(HeroData->HeroMesh, HeroData->HeroAnimInstance);
 	PlayerCharacter->ChangeCharacterMesh(HeroData->InvisibleMesh, HeroData->CopyPoseAnimInstance);
+	
+	OnHeroChanged.Broadcast(HeroData->MuzzleSocketNames);
 }
 
 void UZodiacHeroComponent::DeactivateHero()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Deactivate %s"), *HeroData->HeroName.ToString());
 }
 
 void UZodiacHeroComponent::AddAbilities()

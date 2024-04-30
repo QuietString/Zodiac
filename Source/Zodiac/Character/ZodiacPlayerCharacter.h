@@ -17,7 +17,7 @@ struct FInputActionValue;
 class UZodiacInputData;
 class AZodiacHero;
 class UZodiacAbilitySystemComponent;
-	
+
 /**
  * Invisible player controlled character that drives Hero Character
  */
@@ -57,6 +57,10 @@ public:
 	void ChangeHeroMesh(USkeletalMesh* NewMesh, TSubclassOf<UAnimInstance> NewAnimInstance);
 
 	void CheckReady();
+
+public:
+
+	
 	
 protected:
 	

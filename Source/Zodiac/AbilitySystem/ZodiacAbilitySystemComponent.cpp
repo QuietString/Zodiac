@@ -366,7 +366,6 @@ void UZodiacAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec
 	// Use replicated events instead so that the WaitInputPress ability task works.
 	if (Spec.IsActive())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("input pressed: %s: "), *Spec.Ability.GetName());
 		// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
 		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
 	}
@@ -380,7 +379,6 @@ void UZodiacAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpe
 	// Use replicated events instead so that the WaitInputRelease ability task works.
 	if (Spec.IsActive())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("input releassed: %s: "), *Spec.Ability.GetName());
 		// Invoke the InputReleased event. This is not replicated here. If someone is listening, they may replicate the InputReleased event to the server.
 		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
 	}

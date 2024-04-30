@@ -4,6 +4,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "GameplayCueFunctionLibrary.h"
 #include "Character/ZodiacPlayerCharacter.h"
 
 void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -27,57 +28,33 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 		HitResult,
 		StartPoint,
 		EndPoint,
-		ECC_Pawn, // Or your custom collision channel
+		ECC_Pawn,
 		Params
 	);
 
+	GCNParameter = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(HitResult);
+	K2_ExecuteGameplayCueWithParams(GameplayCueTag_Firing, GCNParameter);
+	
 	if (bHit)
 	{
 		// Draw a red line if there is a hit
-		DrawDebugLine(
-			GetWorld(),
-			StartPoint,
-			HitResult.Location,
-			FColor::Red,
-			false, // Persistent lines
-			5.0f, // Duration the line should last
-			0,    // Depth priority
-			5.0f  // Thickness of the line
-		);
+		DrawDebugLine(GetWorld(), StartPoint, HitResult.Location, FColor::Red, false, 2.5f, 0, 2.5f);
 	}
 	else
 	{
 		// Draw a green line if there is no hit
-		DrawDebugLine(
-			GetWorld(),
-			StartPoint,
-			EndPoint,
-			FColor::Green,
-			false, // Persistent lines
-			5.0f, // Duration the line should last
-			0,    // Depth priority
-			5.0f  // Thickness of the line
-		);
+		DrawDebugLine(GetWorld(), StartPoint, HitResult.Location, FColor::Green, false, 2.5f, 0, 2.5f);
+
 	}
 	
 	if (bHit && HitResult.GetActor())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("actor name: %s"), *HitResult.GetActor()->GetName());
 		// Apply damage or a gameplay effect to the hit actor
 		UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitResult.GetActor());
 		if (ASC)
 		{
-			UE_LOG(LogTemp, Warning, TEXT(" have asc"));
 			ASC->ApplyGameplayEffectToSelf(DamageEffect.GetDefaultObject(), 1, ASC->MakeEffectContext());
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT(" no asc"));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT(" hit but no actor"));
 	}
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);

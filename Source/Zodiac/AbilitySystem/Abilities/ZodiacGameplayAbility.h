@@ -127,9 +127,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
 	TMap<FGameplayTag, TObjectPtr<UAnimMontage>> FailureTagToAnimMontage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TSubclassOf<UGameplayEffect> DamageEffect;
-
 	// Current camera mode set by the ability.
 	TSubclassOf<UZodiacCameraMode> ActiveCameraMode;
 };
