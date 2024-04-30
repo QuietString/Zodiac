@@ -2,6 +2,9 @@
 # Visual Studio 2015 user specific files
 .vs/
 
+# Jetbrains
+.idea/
+
 # Game Contents
 Content/
 
