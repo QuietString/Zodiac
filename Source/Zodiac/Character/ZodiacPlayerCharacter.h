@@ -54,7 +54,7 @@ public:
 	
 	void ChangeHero(int32 NewIndex);
 	void ChangeCharacterMesh(USkeletalMesh* NewMesh, TSubclassOf<UAnimInstance> NewAnimInstance);
-	void ChangeHeroMesh(USkeletalMesh* NewMesh, TSubclassOf<UAnimInstance> NewAnimInstance);
+	void ChangeHeroMesh(USkeletalMesh* NewMesh);
 
 	void CheckReady();
 

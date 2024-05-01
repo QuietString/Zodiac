@@ -117,7 +117,7 @@ void UZodiacAnimInstance::UpdateRotationData(const float DeltaSeconds)
 
 void UZodiacAnimInstance::UpdateVelocityData()
 {
-	const bool WasMovingLastUpdate = (LocalVelocity2D.IsZero()) ? false : true;
+	const bool WasMovingLastUpdate = !(LocalVelocity2D.IsZero());
 
 	WorldVelocity = TryGetPawnOwner()->GetVelocity();
 	const FVector WorldVelocity2D = FVector(WorldVelocity.X, WorldVelocity.Y, 0.f);
@@ -132,7 +132,7 @@ void UZodiacAnimInstance::UpdateVelocityData()
 		LocalVelocityDirectionAngleWithOffset, CardinalDirectionDeadZone, LocalVelocityDirection, WasMovingLastUpdate);
 
 	const float VelocitySquared = UKismetMathLibrary::VSizeXYSquared(LocalVelocity2D);
-	HasVelocity = UKismetMathLibrary::NearlyEqual_FloatFloat(VelocitySquared, 0.f, 0.000001) ? false : true;
+	HasVelocity = !(UKismetMathLibrary::NearlyEqual_FloatFloat(VelocitySquared, 0.f, 0.000001));
 }
 
 EAnimEnum_CardinalDirection UZodiacAnimInstance::GetOppositeCardinalDirection(

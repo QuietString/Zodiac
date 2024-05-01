@@ -7,6 +7,7 @@
 #include "GameplayCueFunctionLibrary.h"
 #include "Character/ZodiacPlayerCharacter.h"
 #include "Engine/StaticMeshActor.h"
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Physics/ZodiacCollisionChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility_Ranged)
@@ -41,6 +42,18 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	PlayAbilityMontage();
+
+	CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
+	if (UGameplayEffect* Cooldown = GetCooldownGameplayEffect())
+	{
+		//ApplyCooldown(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
+		bool OnCooldown = !CheckCooldown(CurrentSpecHandle, CurrentActorInfo);
+		if (OnCooldown)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("On cool down. we have to wait."));
+		}
+	}
 	AZodiacPlayerCharacter* PlayerCharacter = Cast<AZodiacPlayerCharacter>(GetCurrentActorInfo()->AvatarActor);
 	
 	FVector StartPoint = PlayerCharacter->GetPawnViewLocation();
@@ -85,5 +98,19 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 		}
 	}
 
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UZodiacGameplayAbility_Ranged::PlayAbilityMontage()
+{
+	UAbilityTask_PlayMontageAndWait* Task_PlayMontageAndWait = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, MontageToPlay, 1.0f);
+	Task_PlayMontageAndWait->OnCompleted.AddDynamic(this, &ThisClass::OnMontageEnd);
+	Task_PlayMontageAndWait->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageEnd);
+	Task_PlayMontageAndWait->OnCancelled.AddDynamic(this, &ThisClass::OnMontageEnd);
+
+	Task_PlayMontageAndWait->Activate();
+}
+
+void UZodiacGameplayAbility_Ranged::OnMontageEnd()
+{
 }

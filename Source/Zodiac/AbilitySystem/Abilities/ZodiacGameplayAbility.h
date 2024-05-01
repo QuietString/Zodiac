@@ -78,6 +78,9 @@ public:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
+	virtual const FGameplayTagContainer* GetCooldownTags() const override;
+	virtual  void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
+
 	EZodiacAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 	EZodiacAbilityActivationGroup GetActivationGroup() const { return ActivationGroup; }
 
@@ -119,6 +122,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Ability Activation")
 	EZodiacAbilityActivationGroup ActivationGroup;
 
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Zodiac|Cooldown")
+	FScalableFloat CooldownDuration;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Zodiac|Cooldown")
+	FGameplayTagContainer CooldownTags;
+
+	// Temp container that we will return the pointer to in GetCooldownTags().
+	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.
+	UPROPERTY(Transient)
+	FGameplayTagContainer TempCooldownTags;
+	
 	// Map of failure tags to simple error messages
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
 	TMap<FGameplayTag, FText> FailureTagToUserFacingMessages;

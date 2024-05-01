@@ -89,7 +89,7 @@ void UZodiacAnimLayersAnimInstance::SetUpIdleBreakAnim(const FAnimUpdateContext&
 {
 	EAnimNodeReferenceConversionResult Result;
 	const FSequencePlayerReference SequencePlayerRef = USequencePlayerLibrary::ConvertToSequencePlayer(Node, Result);
-
+	
 	USequencePlayerLibrary::SetSequence(SequencePlayerRef, IdleBreaks[CurrentIdleBreakIndex]);
 	if (++CurrentIdleBreakIndex >= IdleBreaks.Num()) CurrentIdleBreakIndex = 0;
 }

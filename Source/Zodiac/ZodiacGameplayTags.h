@@ -49,6 +49,7 @@ namespace ZodiacGameplayTags
 
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Heal);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cooldown);
 
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_GodMode);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_UnlimitedHealth);
@@ -63,6 +64,8 @@ namespace ZodiacGameplayTags
 	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Weapon_Rifle_Fire);
 
+	// Hero Ability Cooldown
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cooldown);
 	
 	// These are mappings from MovementMode enums to GameplayTags associated with those enums (below)
 	ZODIAC_API	extern const TMap<uint8, FGameplayTag> MovementModeTagMap;

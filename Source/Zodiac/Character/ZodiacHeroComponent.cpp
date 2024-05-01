@@ -75,9 +75,8 @@ UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 
 void UZodiacHeroComponent::ActivateHero()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Activate"));
-	PlayerCharacter->ChangeHeroMesh(HeroData->HeroMesh, HeroData->HeroAnimInstance);
-	PlayerCharacter->ChangeCharacterMesh(HeroData->InvisibleMesh, HeroData->CopyPoseAnimInstance);
+	PlayerCharacter->ChangeHeroMesh(HeroData->HeroMesh);
+	PlayerCharacter->ChangeCharacterMesh(HeroData->InvisibleMesh, HeroData->HeroAnimInstance);
 	
 	OnHeroChanged.Broadcast(HeroData->MuzzleSocketNames);
 }

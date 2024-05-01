@@ -43,9 +43,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
 	TSubclassOf<UAnimInstance> HeroAnimInstance;
-	
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
-	TSubclassOf<UAnimInstance> CopyPoseAnimInstance;
 
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Socket")
 	TArray<FName> MuzzleSocketNames;

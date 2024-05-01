@@ -161,10 +161,9 @@ void AZodiacPlayerCharacter::ChangeCharacterMesh(USkeletalMesh* NewMesh, TSubcla
 	}
 }
 
-void AZodiacPlayerCharacter::ChangeHeroMesh(USkeletalMesh* NewMesh, const TSubclassOf<UAnimInstance> NewAnimInstance)
+void AZodiacPlayerCharacter::ChangeHeroMesh(USkeletalMesh* NewMesh)
 {
 	HeroMeshComponent->SetSkeletalMeshAsset(NewMesh);
-	HeroMeshComponent->SetAnimInstanceClass(NewAnimInstance);
 }
 
 void AZodiacPlayerCharacter::CheckReady()

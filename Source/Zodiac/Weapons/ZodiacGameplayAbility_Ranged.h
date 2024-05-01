@@ -20,6 +20,10 @@ public:
 
 protected:
 
+	void PlayAbilityMontage();
+
+	UFUNCTION()
+	void OnMontageEnd();
 	
 protected:
 	
@@ -32,6 +36,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Cues")
 	FGameplayTag GameplayCueTag_Impact;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Animation")
+	UAnimMontage* MontageToPlay;
 private:
 	
 	UPROPERTY()
