@@ -14,6 +14,7 @@
 #include "Camera/ZodiacCameraComponent.h"
 #include "Input/ZodiacInputComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/ZodiacPlayerState.h"
 
 AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -77,7 +78,7 @@ UAbilitySystemComponent* AZodiacPlayerCharacter::GetAbilitySystemComponent() con
 	{
 		return AbilitySystemComponents[ActiveHeroIndex];
 	}
-
+	
 	return nullptr;
 }
 
@@ -85,19 +86,24 @@ void AZodiacPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	
+	if (AZodiacPlayerState* ZodiacPS = Cast<AZodiacPlayerState>( GetPlayerState()))
+	{
+		MyTeam = GenericTeamToZodiacTeam(ZodiacPS->GetGenericTeamId());
+	}
+	else
+	{
+		MyTeam = EZodiacTeam::Neutral;
+	}
 }
 
 void AZodiacPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UE_LOG(LogTemp, Warning,TEXT("Begin Play"));
 	
 	SelectFirstHero();
 
-	TInlineComponentArray<UZodiacHealthComponent*> HealthComponents;
-	GetComponents<UZodiacHealthComponent>(HealthComponents);
+	// TInlineComponentArray<UZodiacHealthComponent*> HealthComponents;
+	// GetComponents<UZodiacHealthComponent>(HealthComponents);
 }
 
 void AZodiacPlayerCharacter::PostInitializeComponents()

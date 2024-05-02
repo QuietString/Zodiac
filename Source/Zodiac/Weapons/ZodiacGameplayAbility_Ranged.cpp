@@ -6,9 +6,9 @@
 #include "AbilitySystemGlobals.h"
 #include "GameplayCueFunctionLibrary.h"
 #include "Character/ZodiacPlayerCharacter.h"
-#include "Engine/StaticMeshActor.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Physics/ZodiacCollisionChannels.h"
+#include "Teams/ZodiacTeamSubsystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility_Ranged)
 
@@ -21,19 +21,19 @@ namespace ZodiacConsoleVariables
 		TEXT("Should we do debug drawing for bullet traces (if above zero, sets how long (in seconds))"),
 		ECVF_Default);
 
-	// static float DrawBulletHitDuration = 0.0f;
-	// static FAutoConsoleVariableRef CVarDrawBulletHits(
-	// 	TEXT("zodiac.Weapon.DrawBulletHitDuration"),
-	// 	DrawBulletHitDuration,
-	// 	TEXT("Should we do debug drawing for bullet impacts (if above zero, sets how long (in seconds))"),
-	// 	ECVF_Default);
-	//
-	// static float DrawBulletHitRadius = 3.0f;
-	// static FAutoConsoleVariableRef CVarDrawBulletHitRadius(
-	// 	TEXT("zodiac.Weapon.DrawBulletHitRadius"),
-	// 	DrawBulletHitRadius,
-	// 	TEXT("When bullet hit debug drawing is enabled (see DrawBulletHitDuration), how big should the hit radius be? (in uu)"),
-	// 	ECVF_Default);
+	static float DrawBulletHitDuration = 0.0f;
+	static FAutoConsoleVariableRef CVarDrawBulletHits(
+		TEXT("zodiac.Weapon.DrawBulletHitDuration"),
+		DrawBulletHitDuration,
+		TEXT("Should we do debug drawing for bullet impacts (if above zero, sets how long (in seconds))"),
+		ECVF_Default);
+	
+	static float DrawBulletHitRadius = 3.0f;
+	static FAutoConsoleVariableRef CVarDrawBulletHitRadius(
+		TEXT("zodiac.Weapon.DrawBulletHitRadius"),
+		DrawBulletHitRadius,
+		TEXT("When bullet hit debug drawing is enabled (see DrawBulletHitDuration), how big should the hit radius be? (in uu)"),
+		ECVF_Default);
 }
 
 void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -45,15 +45,7 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 	PlayAbilityMontage();
 
 	CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
-	if (UGameplayEffect* Cooldown = GetCooldownGameplayEffect())
-	{
-		//ApplyCooldown(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
-		bool OnCooldown = !CheckCooldown(CurrentSpecHandle, CurrentActorInfo);
-		if (OnCooldown)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("On cool down. we have to wait."));
-		}
-	}
+
 	AZodiacPlayerCharacter* PlayerCharacter = Cast<AZodiacPlayerCharacter>(GetCurrentActorInfo()->AvatarActor);
 	
 	FVector StartPoint = PlayerCharacter->GetPawnViewLocation();
@@ -68,33 +60,44 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 
 	const ECollisionChannel TraceChannel = ZODIAC_TRACE_CHANNEL_WEAPON;
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(
-		HitResult,
-		StartPoint,
-		EndPoint,
-		TraceChannel,
-		Params
-	);
-	
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, TraceChannel, Params);
+
+	// Execute a gameplay cue
 	GCNParameter = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(HitResult);
 	K2_ExecuteGameplayCueWithParams(GameplayCueTag_Firing, GCNParameter);
 
 #if ENABLE_DRAW_DEBUG
+
+	const FColor DebugColor = bHit ? FColor::Red : FColor::Green;
+	const FVector EndLocation = bHit ? HitResult.Location : EndPoint;
+	
 	if (ZodiacConsoleVariables::DrawBulletTracesDuration > 0.0f)
 	{
-		const FColor DebugColor = bHit ? FColor::Red : FColor::Green;
-		const FVector EndLocation = bHit ? HitResult.Location : EndPoint;
 		DrawDebugLine(GetWorld(), StartPoint, EndLocation, DebugColor, false, ZodiacConsoleVariables::DrawBulletTracesDuration, 0, 1.5f);	
 	}
+	
+	if (ZodiacConsoleVariables::DrawBulletHitDuration > 0.0f)
+	{
+		DrawDebugPoint(GetWorld(), EndLocation, ZodiacConsoleVariables::DrawBulletHitRadius, DebugColor, false, ZodiacConsoleVariables::DrawBulletHitRadius);
+	}
+	
 #endif
 	
 	if (bHit && HitResult.GetActor())
 	{
-		// Apply damage or a gameplay effect to the hit actor
 		UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitResult.GetActor());
-		if (ASC)
+		
+		UZodiacTeamSubsystem* TeamSubsystem = GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
+		if (ensure(TeamSubsystem))
 		{
-			ASC->ApplyGameplayEffectToSelf(DamageEffect.GetDefaultObject(), 1, ASC->MakeEffectContext());
+			if (TeamSubsystem->CanCauseDamage(PlayerCharacter, HitResult.GetActor()))
+			{
+				if (ASC)
+				{
+					// Apply damage or a gameplay effect to the hit actor
+					ASC->ApplyGameplayEffectToSelf(DamageEffect.GetDefaultObject(), 1, ASC->MakeEffectContext());
+				}
+			}
 		}
 	}
 

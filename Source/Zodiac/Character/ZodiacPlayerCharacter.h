@@ -8,8 +8,11 @@
 #include "GameplayTagAssetInterface.h"
 #include "Camera/ZodiacCameraMode.h"
 #include "GameFramework/Character.h"
+#include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacPlayerCharacter.generated.h"
 
+class AZodiacPlayerState;
+struct FGenericTeamId;
 class UZodiacCameraComponent;
 class UZodiacHeroComponent;
 class UHeroCopyPoseMeshData;
@@ -22,11 +25,12 @@ class UZodiacAbilitySystemComponent;
  * Invisible player controlled character that drives Hero Character
  */
 UCLASS()
-class ZODIAC_API AZodiacPlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface
+class ZODIAC_API AZodiacPlayerCharacter : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IZodiacTeamAgentInterface
 {
 	GENERATED_BODY()
 
 public:
+	
 	AZodiacPlayerCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -45,6 +49,10 @@ public:
 	virtual void PostInitializeComponents() override;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	//~IZodiacTeamAgentInterface interface
+	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
+	//~End of IZodiacTeamAgentInterface interface
 	
 	/** Overrides the camera from an active gameplay ability */
 	void SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
@@ -57,10 +65,6 @@ public:
 	void ChangeHeroMesh(USkeletalMesh* NewMesh);
 
 	void CheckReady();
-
-public:
-
-	
 	
 protected:
 	
@@ -82,6 +86,8 @@ protected:
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual bool CanJumpInternal_Implementation() const override;
 
+protected:
+	
 	UFUNCTION()
 	void OnRep_ActiveHeroIndex(int32 OldIndex);
 
@@ -119,6 +125,11 @@ protected:
 
 	/** Spec handle for the last ability to set a camera mode. */
 	FGameplayAbilitySpecHandle AbilityCameraModeOwningSpecHandle;
+
+	UPROPERTY()
+	EZodiacTeam MyTeam;
+	
+private:
 	
 	bool bHeroesInitialized = false;
 

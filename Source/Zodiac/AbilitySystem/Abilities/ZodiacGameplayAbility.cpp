@@ -54,12 +54,14 @@ const FGameplayTagContainer* UZodiacGameplayAbility::GetCooldownTags() const
 {
 	FGameplayTagContainer* MutableTags = const_cast<FGameplayTagContainer*>(&TempCooldownTags);
 	MutableTags->Reset();
+	
 	const FGameplayTagContainer* ParentTags = Super::GetCooldownTags();
 	if (ParentTags)
 	{
 		MutableTags->AppendTags(*ParentTags);
 	}
 	MutableTags->AppendTags(CooldownTags);
+	
 	return MutableTags;
 }
 

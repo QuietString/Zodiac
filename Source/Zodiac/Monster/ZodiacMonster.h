@@ -7,6 +7,7 @@
 #include "GameplayEffect.h"
 #include "GameplayTagAssetInterface.h"
 #include "GameFramework/Character.h"
+#include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacMonster.generated.h"
 
 class UZodiacHealthComponent;
@@ -14,7 +15,7 @@ class UZodiacAbilitySet;
 class UZodiacAbilitySystemComponent;
 
 UCLASS()
-class ZODIAC_API AZodiacMonster : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface
+class ZODIAC_API AZodiacMonster : public ACharacter, public IAbilitySystemInterface, public IGameplayTagAssetInterface, public IZodiacTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -32,6 +33,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	//~IZodiacTeamAgentInterface interface
+	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
+	//~End of IZodiacTeamAgentInterface interface
+	
 	//~IGameplayTagAssetInterface interface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
@@ -54,4 +59,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
 	TArray<UZodiacAbilitySet*> Abilities;
+
+private:
+	UPROPERTY()
+	EZodiacTeam MyTeam = EZodiacTeam::Monster;
 };
