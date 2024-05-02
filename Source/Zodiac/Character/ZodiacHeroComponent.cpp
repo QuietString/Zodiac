@@ -6,6 +6,7 @@
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "ZodiacHealthComponent.h"
+#include "AbilitySystem/Attributes/ZodiacCombatSet.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 
 
@@ -15,6 +16,9 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	//HealthSet = CreateDefaultSubobject<UZodiacHealthSet>(TEXT("HealthSet"));
+	//CombatSet = CreateDefaultSubobject<UZodiacCombatSet>(TEXT("CombatSet"));
 
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
 
@@ -44,6 +48,7 @@ void UZodiacHeroComponent::OnRegister()
 	if (HeroData)
 	{
 		AbilitySystemComponent->DefaultStartingData = HeroData->Attributes;
+		HeroName = HeroData->HeroName;
 	}
 
 	PlayerCharacter = GetPawnChecked<AZodiacPlayerCharacter>();
@@ -54,6 +59,9 @@ void UZodiacHeroComponent::OnRegister()
 void UZodiacHeroComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	//UE_LOG(LogTemp, Warning, TEXT("default health of %s: %.1f"), *HeroName.ToString(), HealthSet->GetHealth());
+	//UE_LOG(LogTemp, Warning, TEXT("default damage of %s: %.1f"), *HeroName.ToString(), CombatSet->GetBaseDamage());	
 
 	ensureMsgf(HeroData, TEXT("Must have HeroData"));
 }

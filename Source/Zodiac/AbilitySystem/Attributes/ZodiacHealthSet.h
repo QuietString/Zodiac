@@ -38,19 +38,23 @@ protected:
 
 private:
 	
-	UPROPERTY(ReplicatedUsing=OnRep_Health, EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = true))
+	UPROPERTY(ReplicatedUsing=OnRep_Health, BlueprintReadOnly, meta=(AllowPrivateAccess = true))
 	FGameplayAttributeData Health;
 
-	UPROPERTY(ReplicatedUsing = OnRep_MaxHealth, EditAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))
+	UPROPERTY(ReplicatedUsing = OnRep_MaxHealth, BlueprintReadOnly, Meta = (AllowPrivateAccess = true))
 	FGameplayAttributeData MaxHealth;
 	
 	bool bOutOfHealth;
 
+	// Store the health before any changes 
+	float MaxHealthBeforeAttributeChange;
+	float HealthBeforeAttributeChange;
+
 	// Incoming healing. This is mapped directly to +Health
-	UPROPERTY(BlueprintReadOnly, Category="Lyra|Health", Meta=(AllowPrivateAccess=true))
+	UPROPERTY(BlueprintReadOnly, Category="Zodiac|Health", Meta=(AllowPrivateAccess=true))
 	FGameplayAttributeData Healing;
 
 	// Incoming damage. This is mapped directly to -Health
-	UPROPERTY(BlueprintReadOnly, Category="Lyra|Health", Meta=(HideFromModifiers, AllowPrivateAccess=true))
+	UPROPERTY(BlueprintReadOnly, Category="Zodiac|Health", Meta=(HideFromModifiers, AllowPrivateAccess=true))
 	FGameplayAttributeData Damage;
 };

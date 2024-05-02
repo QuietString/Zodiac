@@ -13,6 +13,7 @@
 class UZodiacHealthComponent;
 struct FAttributeDefaults;
 class UZodiacHealthSet;
+class UZodiacCombatSet;
 class AZodiacPlayerCharacter;
 class UZodiacAbilitySystemComponent;
 class UZodiacAbilitySet;
@@ -27,7 +28,7 @@ class UZodiacHeroData : public UDataAsset
 public:
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac")
-	FName HeroName = TEXT("Default");
+	FName HeroName = TEXT("NoHeroName");
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
 	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
@@ -97,6 +98,12 @@ private:
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 
+	UPROPERTY()
+	TObjectPtr<const UZodiacHealthSet> HealthSet;
+
+	UPROPERTY()
+	TObjectPtr<const UZodiacCombatSet> CombatSet;
+	
 	UPROPERTY()
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
 	

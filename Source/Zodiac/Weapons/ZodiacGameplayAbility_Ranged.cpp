@@ -28,7 +28,7 @@ namespace ZodiacConsoleVariables
 		TEXT("Should we do debug drawing for bullet impacts (if above zero, sets how long (in seconds))"),
 		ECVF_Default);
 	
-	static float DrawBulletHitRadius = 3.0f;
+	static float DrawBulletHitRadius = 7.0f;
 	static FAutoConsoleVariableRef CVarDrawBulletHitRadius(
 		TEXT("zodiac.Weapon.DrawBulletHitRadius"),
 		DrawBulletHitRadius,
@@ -95,7 +95,17 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 				if (ASC)
 				{
 					// Apply damage or a gameplay effect to the hit actor
-					ASC->ApplyGameplayEffectToSelf(DamageEffect.GetDefaultObject(), 1, ASC->MakeEffectContext());
+					//ASC->ApplyGameplayEffectToSelf(DamageEffect.GetDefaultObject(), 1, ASC->MakeEffectContext());
+
+					//ASC->ApplyGameplayEffectToSelf(ExecutionEffect.GetDefaultObject(), 1, ASC->MakeEffectContext());
+
+					FGameplayAbilityTargetData_SingleTargetHit* SingleTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
+					SingleTargetData->HitResult = HitResult;
+
+					FGameplayAbilityTargetDataHandle TargetData;
+					TargetData.Add(SingleTargetData);
+					
+					ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, TargetData, ExecutionEffect, 1);
 				}
 			}
 		}

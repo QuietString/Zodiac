@@ -1,13 +1,25 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// the.quiet.string@gmail.com
 
 #include "ZodiacDamageExecution.h"
+
+#include "ZodiacLogChannels.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
 #include "AbilitySystem/ZodiacGameplayEffectContext.h"
-#include "AbilitySystem/ZodiacAbilitySourceInterface.h"
 #include "Engine/World.h"
+#include "Teams/ZodiacTeamSubsystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacDamageExecution)
+
+namespace ZodiacConsoleVariables
+{
+	static bool EnableLogDamageExecution = false;
+	static FAutoConsoleVariableRef CVarEnableLogDamageExecution(
+		TEXT("zodiac.LogChannel.DamageExecution"),
+		EnableLogDamageExecution,
+		TEXT("Should we log debug information of DamageExecution"),
+		ECVF_Default);
+}
 
 struct FDamageStatics
 {
@@ -15,7 +27,7 @@ struct FDamageStatics
 
 	FDamageStatics()
 	{
-		//BaseDamageDef = FGameplayEffectAttributeCaptureDefinition(UZodiacCombatSet::GetBaseDamageAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
+		BaseDamageDef = FGameplayEffectAttributeCaptureDefinition(UZodiacCombatSet::GetBaseDamageAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
 	}
 };
 
@@ -35,7 +47,9 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 {
 #if WITH_SERVER_CODE
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
-	FZodiacGameplayEffectContext* TypedContext = FZodiacGameplayEffectContext::ExtractEffectContext(Spec.GetContext());
+	
+	//FZodiacGameplayEffectContext* TypedContext = FZodiacGameplayEffectContext::ExtractEffectContext(Spec.GetContext());
+	FGameplayEffectContext* TypedContext = Spec.GetContext().Get();
 	check(TypedContext);
 
 	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
@@ -47,7 +61,7 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 
 	float BaseDamage = 0.0f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BaseDamageDef, EvaluateParameters, BaseDamage);
-
+	
 	const AActor* EffectCauser = TypedContext->GetEffectCauser();
 	const FHitResult* HitActorResult = TypedContext->GetHitResult();
 
@@ -88,41 +102,44 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	float DamageInteractionAllowedMultiplier = 0.0f;
 	if (HitActor)
 	{
-		// UZodiacTeamSubsystem* TeamSubsystem = HitActor->GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
-		// if (ensure(TeamSubsystem))
-		// {
-		// 	DamageInteractionAllowedMultiplier = TeamSubsystem->CanCauseDamage(EffectCauser, HitActor) ? 1.0 : 0.0;
-		// }
+		UZodiacTeamSubsystem* TeamSubsystem = HitActor->GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
+		if (ensure(TeamSubsystem))
+		{
+			DamageInteractionAllowedMultiplier = TeamSubsystem->CanCauseDamage(EffectCauser, HitActor) ? 1.0 : 0.0;
+		}
 	}
 
+	{
+		
+	}
 	// Determine distance
-	double Distance = WORLD_MAX;
-
-	if (TypedContext->HasOrigin())
-	{
-		Distance = FVector::Dist(TypedContext->GetOrigin(), ImpactLocation);
-	}
-	else if (EffectCauser)
-	{
-		Distance = FVector::Dist(EffectCauser->GetActorLocation(), ImpactLocation);
-	}
-	else
-	{
-		ensureMsgf(false, TEXT("Damage Calculation cannot deduce a source location for damage coming from %s; Falling back to WORLD_MAX dist!"), *GetPathNameSafe(Spec.Def));
-	}
+	// double Distance = WORLD_MAX;
+	//
+	// if (TypedContext->HasOrigin())
+	// {
+	// 	Distance = FVector::Dist(TypedContext->GetOrigin(), ImpactLocation);
+	// }
+	// else if (EffectCauser)
+	// {
+	// 	Distance = FVector::Dist(EffectCauser->GetActorLocation(), ImpactLocation);
+	// }
+	// else
+	// {
+	// 	ensureMsgf(false, TEXT("Damage Calculation cannot deduce a source location for damage coming from %s; Falling back to WORLD_MAX dist!"), *GetPathNameSafe(Spec.Def));
+	// }
 
 	// Apply ability source modifiers
 	float PhysicalMaterialAttenuation = 1.0f;
 	float DistanceAttenuation = 1.0f;
-	if (const IZodiacAbilitySourceInterface* AbilitySource = TypedContext->GetAbilitySource())
-	{
-		if (const UPhysicalMaterial* PhysMat = TypedContext->GetPhysicalMaterial())
-		{
-			PhysicalMaterialAttenuation = AbilitySource->GetPhysicalMaterialAttenuation(PhysMat, SourceTags, TargetTags);
-		}
-
-		DistanceAttenuation = AbilitySource->GetDistanceAttenuation(Distance, SourceTags, TargetTags);
-	}
+	// if (const IZodiacAbilitySourceInterface* AbilitySource = TypedContext->GetAbilitySource())
+	// {
+	// 	if (const UPhysicalMaterial* PhysMat = TypedContext->GetPhysicalMaterial())
+	// 	{
+	// 		PhysicalMaterialAttenuation = AbilitySource->GetPhysicalMaterialAttenuation(PhysMat, SourceTags, TargetTags);
+	// 	}
+	//
+	// 	DistanceAttenuation = AbilitySource->GetDistanceAttenuation(Distance, SourceTags, TargetTags);
+	// }
 	DistanceAttenuation = FMath::Max(DistanceAttenuation, 0.0f);
 
 	// Clamping is done when damage is converted to -health
@@ -132,7 +149,13 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	{
 		// Apply a damage modifier, this gets turned into - health on the target
 		OutExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(UZodiacHealthSet::GetDamageAttribute(), EGameplayModOp::Additive, DamageDone));
+#if WITH_EDITOR
+		if (ZodiacConsoleVariables::EnableLogDamageExecution)
+		{
+			UE_LOG(LogZodiacAbilitySystem, Display, TEXT("Damage execution: Base Damage: %1.f, Final Damage: %.1f"), BaseDamage, DamageDone);
+		}
+#endif
 	}
-#endif // #if WITH_SERVER_CODE
+#endif
 }
 

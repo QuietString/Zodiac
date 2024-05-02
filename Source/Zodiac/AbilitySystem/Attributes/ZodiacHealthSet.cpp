@@ -11,6 +11,8 @@ UZodiacHealthSet::UZodiacHealthSet()
 	, MaxHealth(100.0f)
 {
 	bOutOfHealth = false;
+	MaxHealthBeforeAttributeChange = 0.0f;
+	HealthBeforeAttributeChange = 0.0f;
 }
 
 void UZodiacHealthSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -18,6 +20,7 @@ void UZodiacHealthSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UZodiacHealthSet, Health, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UZodiacHealthSet, MaxHealth, COND_None, REPNOTIFY_Always);
 }
 
 void UZodiacHealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
@@ -41,6 +44,15 @@ void UZodiacHealthSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
 
 bool UZodiacHealthSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
 {
+	// if (!Super::PreGameplayEffectExecute(Data))
+	// {
+	// 	return false;
+	// }
+	//
+	// // Save the current health
+	// HealthBeforeAttributeChange = GetHealth();
+	// MaxHealthBeforeAttributeChange = GetMaxHealth();
+	
 	return Super::PreGameplayEffectExecute(Data);
 }
 
@@ -48,9 +60,23 @@ void UZodiacHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 {
 	Super::PostGameplayEffectExecute(Data);
 
+	float MinimumHealth = 0.0f;
+
 	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
 	AActor* Instigator = EffectContext.GetOriginalInstigator();
 	AActor* Causer = EffectContext.GetEffectCauser();
+	
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		SetHealth(FMath::Clamp(GetHealth() - GetDamage(), MinimumHealth, GetMaxHealth()));
+		SetDamage(0.0f);
+	}
+	
+	// else if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	// {
+	// 	// Clamp and fall into out of health handling below
+	// 	SetHealth(FMath::Clamp(GetHealth(), MinimumHealth, GetMaxHealth()));
+	// }
 
 	if (GetHealth() <= 0.0f && !bOutOfHealth)
 	{

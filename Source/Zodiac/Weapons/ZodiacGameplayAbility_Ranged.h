@@ -27,8 +27,11 @@ protected:
 	
 protected:
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Damage")
 	TSubclassOf<UGameplayEffect> DamageEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Damage")
+	TSubclassOf<UGameplayEffect> ExecutionEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Cues")
 	FGameplayTag GameplayCueTag_Firing;

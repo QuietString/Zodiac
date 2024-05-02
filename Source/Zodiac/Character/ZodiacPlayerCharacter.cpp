@@ -101,9 +101,6 @@ void AZodiacPlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	SelectFirstHero();
-
-	// TInlineComponentArray<UZodiacHealthComponent*> HealthComponents;
-	// GetComponents<UZodiacHealthComponent>(HealthComponents);
 }
 
 void AZodiacPlayerCharacter::PostInitializeComponents()

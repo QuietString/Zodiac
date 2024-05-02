@@ -80,8 +80,8 @@ void UZodiacHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& O
 {
 	float NewValue = OnAttributeChangeData.NewValue;
 	float OldValue = OnAttributeChangeData.OldValue;
-	
-	UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);
+
+	UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);	
 
 	OnHealthChanged.Broadcast(this, OldValue, NewValue, nullptr);
 }
