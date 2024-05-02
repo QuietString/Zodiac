@@ -48,7 +48,6 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 #if WITH_SERVER_CODE
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 	
-	//FZodiacGameplayEffectContext* TypedContext = FZodiacGameplayEffectContext::ExtractEffectContext(Spec.GetContext());
 	FGameplayEffectContext* TypedContext = Spec.GetContext().Get();
 	check(TypedContext);
 

@@ -44,7 +44,6 @@ public:
 	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
 	//~End of IGameplayTagAssetInterface interface
 
-
 protected:
 	void InitializeAbilitySystemComponent();
 

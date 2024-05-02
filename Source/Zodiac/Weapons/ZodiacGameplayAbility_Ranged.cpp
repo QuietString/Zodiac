@@ -94,18 +94,13 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 			{
 				if (ASC)
 				{
-					// Apply damage or a gameplay effect to the hit actor
-					//ASC->ApplyGameplayEffectToSelf(DamageEffect.GetDefaultObject(), 1, ASC->MakeEffectContext());
-
-					//ASC->ApplyGameplayEffectToSelf(ExecutionEffect.GetDefaultObject(), 1, ASC->MakeEffectContext());
-
 					FGameplayAbilityTargetData_SingleTargetHit* SingleTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
 					SingleTargetData->HitResult = HitResult;
 
 					FGameplayAbilityTargetDataHandle TargetData;
 					TargetData.Add(SingleTargetData);
 					
-					ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, TargetData, ExecutionEffect, 1);
+					ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, TargetData, DamageEffect, 1);
 				}
 			}
 		}

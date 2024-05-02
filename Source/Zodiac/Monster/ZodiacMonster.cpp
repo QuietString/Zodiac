@@ -44,21 +44,40 @@ UAbilitySystemComponent* AZodiacMonster::GetAbilitySystemComponent() const
 
 void AZodiacMonster::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->GetOwnedGameplayTags(TagContainer);
+	}
 }
 
 bool AZodiacMonster::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
 {
-	return IGameplayTagAssetInterface::HasMatchingGameplayTag(TagToCheck);
+	if (AbilitySystemComponent)
+	{
+		return AbilitySystemComponent->HasMatchingGameplayTag(TagToCheck);
+	}
+
+	return false;
 }
 
 bool AZodiacMonster::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
 {
-	return IGameplayTagAssetInterface::HasAllMatchingGameplayTags(TagContainer);
+	if (AbilitySystemComponent)
+	{
+		return AbilitySystemComponent->HasAllMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
 }
 
 bool AZodiacMonster::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
 {
-	return IGameplayTagAssetInterface::HasAnyMatchingGameplayTags(TagContainer);
+	if (AbilitySystemComponent)
+	{
+		return AbilitySystemComponent->HasAnyMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
 }
 
 void AZodiacMonster::InitializeAbilitySystemComponent()
