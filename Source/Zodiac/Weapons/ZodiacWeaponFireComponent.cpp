@@ -34,12 +34,23 @@ void UZodiacWeaponFireComponent::BeginPlay()
 	{
 		for (auto& HeroComponent : HeroComponents)
 		{
-			HeroComponent->OnHeroChanged.AddUObject(this, &ThisClass::UpdateMuzzleSockets);
+			HeroComponent->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
 		}
+	}
+}
+
+void UZodiacWeaponFireComponent::OnHeroChanged(UZodiacHeroComponent* NewHeroComponent)
+{
+	if (NewHeroComponent)
+	{
+		UpdateMuzzleSockets(NewHeroComponent->GetHeroData()->MuzzleSocketNames);	
 	}
 }
 
 void UZodiacWeaponFireComponent::UpdateMuzzleSockets(const TArray<FName>& InSocketNames)
 {
-	MuzzleSocketNames = InSocketNames;
+	if (!InSocketNames.IsEmpty())
+	{
+		MuzzleSocketNames = InSocketNames;	
+	}
 }

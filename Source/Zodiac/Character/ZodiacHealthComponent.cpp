@@ -43,10 +43,19 @@ void UZodiacHealthComponent::InitializeWithAbilitySystem(UZodiacAbilitySystemCom
 		return;
 	}
 
-	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
+	InASC->GetGameplayAttributeValueChangeDelegate(UZodiacHealthSet::GetMaxHealthAttribute()).AddUObject(this, &ThisClass::HandleMaxHealthChanged);
 	InASC->GetGameplayAttributeValueChangeDelegate(UZodiacHealthSet::GetHealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
-
+	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
+	
 	ClearGameplayTags();
+
+	CheckReady();
+}
+
+void UZodiacHealthComponent::GetCurrentHealth(float& CurrentHealth, float& CurrentMaxHealth)
+{
+	CurrentHealth = HealthSet->GetHealth();
+	CurrentMaxHealth = HealthSet->GetMaxHealth();
 }
 
 void UZodiacHealthComponent::StartDeath()
@@ -82,12 +91,20 @@ void UZodiacHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& O
 	float OldValue = OnAttributeChangeData.OldValue;
 
 	UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);	
-
+	//CurrentHealth = NewValue;
+	
 	OnHealthChanged.Broadcast(this, OldValue, NewValue, nullptr);
 }
 
+void UZodiacHealthComponent::HandleMaxHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	//MaxHealth = OnAttributeChangeData.NewValue;
+
+	UE_LOG(LogTemp, Warning, TEXT("max health changed to %.1f"), OnAttributeChangeData.NewValue);
+}
+
 void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser,
-	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+                                               const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
 {
 #if WITH_SERVER_CODE
 	if (AbilitySystemComponent && DamageEffectSpec)
@@ -181,4 +198,12 @@ void UZodiacHealthComponent::OnRep_DeathState(EZodiacDeathState OldDeathState)
 	}
 
 	ensureMsgf((DeathState == NewDeathState), TEXT("ZodiacHealthComponent: Death transition failed [%d] -> [%d] for owner [%s]."), (uint8)OldDeathState, (uint8)NewDeathState, *GetNameSafe(GetOwner()));
+}
+
+void UZodiacHealthComponent::CheckReady()
+{
+	// if (GetOwner() && CurrentHealth > 0 && MaxHealth > 0 && AbilitySystemComponent && HealthSet)
+	// {
+	// 	OnComponentReady.Broadcast();
+	// }
 }

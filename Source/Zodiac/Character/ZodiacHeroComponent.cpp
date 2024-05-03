@@ -9,7 +9,6 @@
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 
-
 UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -17,12 +16,7 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	//HealthSet = CreateDefaultSubobject<UZodiacHealthSet>(TEXT("HealthSet"));
-	//CombatSet = CreateDefaultSubobject<UZodiacCombatSet>(TEXT("CombatSet"));
-
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
-
-	SlotIndex = INDEX_NONE;
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -47,11 +41,10 @@ void UZodiacHeroComponent::OnRegister()
 {
 	if (HeroData)
 	{
+		// DefaultStartingData is added to ASC on OnRegister()
 		AbilitySystemComponent->DefaultStartingData = HeroData->Attributes;
 		HeroName = HeroData->HeroName;
 	}
-
-	PlayerCharacter = GetPawnChecked<AZodiacPlayerCharacter>();
 	
 	Super::OnRegister();
 }
@@ -59,43 +52,43 @@ void UZodiacHeroComponent::OnRegister()
 void UZodiacHeroComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//UE_LOG(LogTemp, Warning, TEXT("default health of %s: %.1f"), *HeroName.ToString(), HealthSet->GetHealth());
-	//UE_LOG(LogTemp, Warning, TEXT("default damage of %s: %.1f"), *HeroName.ToString(), CombatSet->GetBaseDamage());	
-
+	
 	ensureMsgf(HeroData, TEXT("Must have HeroData"));
+	
+	OnHeroChanged.Broadcast(this);
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 {
-	if (HeroData)
-	{
-		AddAbilities();
-		AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
-		
-		HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+	AddAbilities();
+	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
 
-		return AbilitySystemComponent;
-	}
+	const UAttributeSet* HealthSet_ASC = AbilitySystemComponent->GetAttributeSet(UZodiacHealthSet::StaticClass());
+	HealthSet = Cast<UZodiacHealthSet>(HealthSet_ASC);
+	check(HealthSet);
+	
+	const UAttributeSet* CombatSet_ASC = AbilitySystemComponent->GetAttributeSet(UZodiacCombatSet::StaticClass());
+	CombatSet = Cast<UZodiacCombatSet>(CombatSet_ASC);
+	check(CombatSet);
+	
+	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 
-	return nullptr;
+	return AbilitySystemComponent;
 }
 
 void UZodiacHeroComponent::ActivateHero()
 {
-	PlayerCharacter->ChangeHeroMesh(HeroData->HeroMesh);
-	PlayerCharacter->ChangeCharacterMesh(HeroData->InvisibleMesh, HeroData->HeroAnimInstance);
-	
-	OnHeroChanged.Broadcast(HeroData->MuzzleSocketNames);
+	OnHeroChanged.Broadcast(this);
 }
 
 void UZodiacHeroComponent::DeactivateHero()
 {
+	
 }
 
 void UZodiacHeroComponent::AddAbilities()
 {
-	if (HeroData->AbilitySets.Num() > 0)
+	if (HeroData && HeroData->AbilitySets.Num() > 0)
 	{
 		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
 		{

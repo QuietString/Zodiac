@@ -99,6 +99,8 @@ void AZodiacPlayerCharacter::PossessedBy(AController* NewController)
 void AZodiacPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	OnPlayReady.Broadcast();
 	
 	SelectFirstHero();
 }
@@ -169,6 +171,15 @@ void AZodiacPlayerCharacter::ChangeHeroMesh(USkeletalMesh* NewMesh)
 	HeroMeshComponent->SetSkeletalMeshAsset(NewMesh);
 }
 
+void AZodiacPlayerCharacter::OnHeroChanged(UZodiacHeroComponent* NewHeroComponent)
+{
+	if (const UZodiacHeroData* HeroData = NewHeroComponent->GetHeroData())
+	{
+		ChangeHeroMesh(HeroData->HeroMesh);
+		ChangeCharacterMesh(HeroData->InvisibleMesh, HeroData->HeroAnimInstance);
+	}
+}
+
 void AZodiacPlayerCharacter::CheckReady()
 {
 	// check player connected
@@ -203,18 +214,24 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	if (HeroComponent1)
 	{
 		HeroComponents.Add(HeroComponent1);
+		HeroComponent1->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
+		
 		UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystem();
 		check(HeroASC1);
 		AbilitySystemComponents.Add(HeroASC1);
+
 		bComponent1Ready = true;	
 	}
 
 	if (HeroComponent2)
 	{
 		HeroComponents.Add(HeroComponent2);
+		HeroComponent2->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
+
 		UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystem();
 		check(HeroASC2);
 		AbilitySystemComponents.Add(HeroASC2);
+
 		bComponent2Ready = true;
 	}
 
@@ -389,6 +406,5 @@ void AZodiacPlayerCharacter::OnRep_ActiveHeroIndex(int32 OldIndex)
 	if (HeroComponents.IsValidIndex(ActiveHeroIndex))
 	{
 		HeroComponents[ActiveHeroIndex]->ActivateHero();
-		
 	}
 }

@@ -6,11 +6,13 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "GameplayTagAssetInterface.h"
+#include "ZodiacHeroComponent.h"
 #include "Camera/ZodiacCameraMode.h"
 #include "GameFramework/Character.h"
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacPlayerCharacter.generated.h"
 
+class UZodiacHealthComponent;
 class AZodiacPlayerState;
 struct FGenericTeamId;
 class UZodiacCameraComponent;
@@ -43,10 +45,17 @@ public:
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UFUNCTION(BlueprintCallable)
+	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents[ActiveHeroIndex]; };
+
+	UFUNCTION(BlueprintCallable)
+	UZodiacHealthComponent* GetCurrentHealthComponent() { return HeroComponents[ActiveHeroIndex]->GetHealthComponent(); }
+
+	//~AActor interface
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void BeginPlay() override;
-	
 	virtual void PostInitializeComponents() override;
+	//~End of AActor Interface
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -64,7 +73,13 @@ public:
 	void ChangeCharacterMesh(USkeletalMesh* NewMesh, TSubclassOf<UAnimInstance> NewAnimInstance);
 	void ChangeHeroMesh(USkeletalMesh* NewMesh);
 
+	void OnHeroChanged(UZodiacHeroComponent* NewHeroComponent);
+	
 	void CheckReady();
+
+public:
+
+	FSimpleMulticastDelegate OnPlayReady;
 	
 protected:
 	
@@ -130,6 +145,9 @@ protected:
 	EZodiacTeam MyTeam;
 	
 private:
+	
+	UPROPERTY()
+	UZodiacHealthComponent* CurrentHealthComponent;
 	
 	bool bHeroesInitialized = false;
 

@@ -10,8 +10,6 @@ class UZodiacAbilitySystemComponent;
 class AZodiacPlayerState;
 
 /**
- * AZodiacPlayerController
- *
  * The base controller class used by this project.
  */
 UCLASS(Config = Game, meta = (ShortToolTip = "The base player controller class used by this project."))
