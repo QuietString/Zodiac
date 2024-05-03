@@ -36,17 +36,30 @@ void UZodiacHealthComponent::InitializeWithAbilitySystem(UZodiacAbilitySystemCom
 	
 	AbilitySystemComponent = InASC;
 	
-	HealthSet = InASC->GetSet<UZodiacHealthSet>();
-	if (!HealthSet)
-	{
-		UE_LOG(LogZodiac, Error, TEXT("ZodiacHealthComponent: Cannot initialize health component for owner [%s] with NULL health set on the ability system."), *GetNameSafe(Owner));
-		return;
-	}
-
-	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
+	HealthSet = CastChecked<UZodiacHealthSet>(InASC->GetAttributeSet(UZodiacHealthSet::StaticClass()));
+	
+	InASC->GetGameplayAttributeValueChangeDelegate(UZodiacHealthSet::GetMaxHealthAttribute()).AddUObject(this, &ThisClass::HandleMaxHealthChanged);
 	InASC->GetGameplayAttributeValueChangeDelegate(UZodiacHealthSet::GetHealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
-
+	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
+	
 	ClearGameplayTags();
+
+	CheckReady();
+}
+
+void UZodiacHealthComponent::GetCurrentHealth(float& CurrentHealth, float& CurrentMaxHealth)
+{
+	// @TODO: getting health through this variable is not working.
+	//CurrentHealth = HealthSet->GetHealth();
+	//CurrentMaxHealth = HealthSet->GetMaxHealth();
+	//UE_LOG(LogTemp, Warning, TEXT("original health: %1.f"), HealthSet->GetHealth());
+
+	if (const UZodiacHealthSet* TestHealthSet = Cast<UZodiacHealthSet>(AbilitySystemComponent->GetAttributeSet(UZodiacHealthSet::StaticClass())))
+	{
+		CurrentHealth = TestHealthSet->GetHealth();
+		CurrentMaxHealth = TestHealthSet->GetMaxHealth();
+		//UE_LOG(LogTemp,Warning, TEXT("is same set: %s"), (HealthSet == TestHealthSet) ? TEXT("true") : TEXT("false"));
+	}
 }
 
 void UZodiacHealthComponent::StartDeath()
@@ -81,13 +94,21 @@ void UZodiacHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& O
 	float NewValue = OnAttributeChangeData.NewValue;
 	float OldValue = OnAttributeChangeData.OldValue;
 
-	UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);	
-
+	if (HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);	
+	}
+	
 	OnHealthChanged.Broadcast(this, OldValue, NewValue, nullptr);
 }
 
+void UZodiacHealthComponent::HandleMaxHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+
+}
+
 void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser,
-	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+                                               const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
 {
 #if WITH_SERVER_CODE
 	if (AbilitySystemComponent && DamageEffectSpec)
@@ -181,4 +202,12 @@ void UZodiacHealthComponent::OnRep_DeathState(EZodiacDeathState OldDeathState)
 	}
 
 	ensureMsgf((DeathState == NewDeathState), TEXT("ZodiacHealthComponent: Death transition failed [%d] -> [%d] for owner [%s]."), (uint8)OldDeathState, (uint8)NewDeathState, *GetNameSafe(GetOwner()));
+}
+
+void UZodiacHealthComponent::CheckReady()
+{
+	// if (GetOwner() && CurrentHealth > 0 && MaxHealth > 0 && AbilitySystemComponent && HealthSet)
+	// {
+	// 	OnComponentReady.Broadcast();
+	// }
 }

@@ -63,7 +63,7 @@ public:
 
 		return nullptr;
 	}
-	
+
 	void InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InASC);
 
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Health")
@@ -72,6 +72,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Zodiac|Health", Meta = (ExpandBoolAsExecs = "ReturnValue"))
 	bool IsDeadOrDying() const { return (DeathState > EZodiacDeathState::NotDead); }
 
+	void GetCurrentHealth(float& CurrentHealth, float& CurrentMaxHealth);
+	
 	// Begins the death sequence for the owner.
 	virtual void StartDeath();
 
@@ -92,24 +94,44 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FZodiacHealth_DeathEvent OnDeathFinished;
 
+	FSimpleMulticastDelegate OnComponentReady;
+	
 protected:
+	
 	void HandleHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
-	virtual void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
+	void HandleMaxHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
+	void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
 
 	void ClearGameplayTags();
 	
 	UFUNCTION()
 	virtual void OnRep_DeathState(EZodiacDeathState OldDeathState);
 
+private:
+
+	void CheckReady();
+	
+public:
+	
+	// // Just for health visualization.
+	// UPROPERTY(BlueprintReadOnly)
+	// float MaxHealth = -1;
+	//
+	// UPROPERTY(BlueprintReadOnly)
+	// float CurrentHealth = -1;
+	
 protected:
 
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY()
-	const UZodiacHealthSet* HealthSet;
+	TObjectPtr<const UZodiacHealthSet> HealthSet;
 
 	// Replicated state used to handle dying.
 	UPROPERTY(ReplicatedUsing = OnRep_DeathState)
 	EZodiacDeathState DeathState;
+
+private:
+	
 };

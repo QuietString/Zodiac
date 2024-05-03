@@ -21,6 +21,8 @@ protected:
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 
+	void OnHeroChanged(UZodiacHeroComponent* NewHeroComponent);
+	
 	void UpdateMuzzleSockets(const TArray<FName>& InSocketNames);
 
 protected:

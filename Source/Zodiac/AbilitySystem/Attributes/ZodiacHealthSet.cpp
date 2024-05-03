@@ -40,6 +40,9 @@ void UZodiacHealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
 
 void UZodiacHealthSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
 {
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UZodiacHealthSet, MaxHealth, OldValue);
+	
+	OnMaxHealthChanged.Broadcast(nullptr, nullptr, nullptr, GetMaxHealth() - OldValue.GetCurrentValue(), OldValue.GetCurrentValue(), GetMaxHealth());
 }
 
 bool UZodiacHealthSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)

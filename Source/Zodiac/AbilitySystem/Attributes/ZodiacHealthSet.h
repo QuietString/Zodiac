@@ -23,6 +23,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UZodiacHealthSet, MaxHealth);
 	ATTRIBUTE_ACCESSORS(UZodiacHealthSet, Healing);
 	ATTRIBUTE_ACCESSORS(UZodiacHealthSet, Damage);
+
+	mutable FZodiacAttributeEvent OnMaxHealthChanged;
 	
 	mutable FZodiacAttributeEvent OnOutOfHealth;
 	

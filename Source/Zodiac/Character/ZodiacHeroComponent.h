@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "GameplayEffectTypes.h"
 #include "GameplayTagAssetInterface.h"
 #include "Components/PawnComponent.h"
 #include "ZodiacHeroComponent.generated.h"
@@ -18,7 +17,7 @@ class AZodiacPlayerCharacter;
 class UZodiacAbilitySystemComponent;
 class UZodiacAbilitySet;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHeroChanged, const TArray<FName>&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHeroChanged, UZodiacHeroComponent*);
 
 UCLASS(BlueprintType)
 class UZodiacHeroData : public UDataAsset
@@ -61,8 +60,12 @@ public:
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	TObjectPtr<UZodiacHealthComponent> GetHealthComponent() { return HealthComponent; }
+	
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 
+	const UZodiacHeroData* GetHeroData() { return HeroData; }
+	
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;
 
@@ -85,29 +88,17 @@ protected:
 	FName HeroName;
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac")
-	UZodiacHeroData* HeroData;
+	const UZodiacHeroData* HeroData;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTagContainer HeroTags;
-
-	UPROPERTY()
-	uint8 SlotIndex;
 	
 private:
 	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
-
-	UPROPERTY()
-	TObjectPtr<const UZodiacHealthSet> HealthSet;
-
-	UPROPERTY()
-	TObjectPtr<const UZodiacCombatSet> CombatSet;
 	
 	UPROPERTY()
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
-	
-	UPROPERTY()
-	TObjectPtr<AZodiacPlayerCharacter> PlayerCharacter;
 };
 
