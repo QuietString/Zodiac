@@ -7,34 +7,16 @@
 #include "Character/ZodiacHeroComponent.h"
 #include "Character/ZodiacPlayerCharacter.h"
 
-void UZodiacHealthBarWidget::NativeOnInitialized()
-{
-	Super::NativeOnInitialized();
-	
-	if (APlayerController* PC = GetOwningPlayer())
-	{
-		PC->OnPossessedPawnChanged.AddDynamic(this, &ThisClass::OnPossessedPawnChanged);
-	}
-}
+
 
 void UZodiacHealthBarWidget::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn)
 {
-	if (AZodiacPlayerCharacter* ZodiacCharacter = Cast<AZodiacPlayerCharacter>(NewPawn))
+	Super::OnPossessedPawnChanged(OldPawn, NewPawn);
+	
+	if (PlayerCharacter)
 	{
-		PlayerCharacter = ZodiacCharacter;
-
-		TArray<UZodiacHeroComponent*> HeroComponents;
-		ZodiacCharacter->GetComponents(UZodiacHeroComponent::StaticClass(), HeroComponents);
-		if (HeroComponents.Num() > 0)
-		{
-			for (UZodiacHeroComponent* HeroComponent : HeroComponents)
-			{
-				HeroComponent->OnHeroChanged.AddUObject(this, &ThisClass::HandleHeroChanged);
-			}
-		}
-		
 		TArray<UZodiacHealthComponent*> HealthComponents;
-		ZodiacCharacter->GetComponents(UZodiacHealthComponent::StaticClass(), HealthComponents);
+		PlayerCharacter->GetComponents(UZodiacHealthComponent::StaticClass(), HealthComponents);
 		if (HealthComponents.Num() > 0)
 		{
 			for (auto& HealthComponent : HealthComponents)
@@ -65,10 +47,6 @@ void UZodiacHealthBarWidget::HandleHeroChanged(UZodiacHeroComponent* HeroCompone
 	}
 }
 
-void UZodiacHealthBarWidget::OnHeroChanged_Implementation(float NewValue, float MaxHealth)
-{
-}
-
 void UZodiacHealthBarWidget::HandleHealthChanged(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue,
                                                  AActor* Instigator)
 {
@@ -77,9 +55,4 @@ void UZodiacHealthBarWidget::HandleHealthChanged(UZodiacHealthComponent* HealthC
 	{
 		OnHealthChanged(OldValue, NewValue, CurrentMaxHealth);
 	}
-}
-
-void UZodiacHealthBarWidget::OnHealthChanged_Implementation(float OldValue, float NewValue, float MaxHealth)
-{
-	
 }

@@ -3,45 +3,34 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
-#include "Character/ZodiacHeroComponent.h"
+#include "ZodiacHeroWidgetBase.h"
 #include "ZodiacHealthBarWidget.generated.h"
 
 class AZodiacPlayerCharacter;
 class UZodiacHealthComponent;
-/**
- * 
- */
+
 UCLASS()
-class ZODIAC_API UZodiacHealthBarWidget : public UUserWidget
+class ZODIAC_API UZodiacHealthBarWidget : public UZodiacHeroWidgetBase
 {
 	GENERATED_BODY()
 
-public:
-	
-	virtual void NativeOnInitialized() override;
-
 protected:
+
+	virtual void OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn) override;
 	
-	UFUNCTION()
-	void OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPawn);
+	virtual void HandleHeroChanged(UZodiacHeroComponent* HeroComponent) override;
 
-	UFUNCTION()
-	void HandleHeroChanged(UZodiacHeroComponent* HeroComponent);
-
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintImplementableEvent)
 	void OnHeroChanged(float NewValue, float MaxHealth);
 	
 	UFUNCTION()
 	void HandleHealthChanged(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
 
-	UFUNCTION(BlueprintNativeEvent)
+	UFUNCTION(BlueprintImplementableEvent)
 	void OnHealthChanged(float OldValue, float NewValue, float MaxHealth);
 
-	float CurrentMaxHealth;
-	
 protected:
+	
+	float CurrentMaxHealth;
 
-	UPROPERTY(BlueprintReadOnly)
-	AZodiacPlayerCharacter* PlayerCharacter;
 };

@@ -6,6 +6,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagAssetInterface.h"
 #include "Components/PawnComponent.h"
+#include "UI/Weapons/ZodiacReticleWidgetBase.h"
 #include "ZodiacHeroComponent.generated.h"
 
 
@@ -26,26 +27,29 @@ class UZodiacHeroData : public UDataAsset
 
 public:
 	
-	UPROPERTY(EditAnywhere, Category = "Zodiac")
+	UPROPERTY(EditAnywhere, Category = "Display")
 	FName HeroName = TEXT("NoHeroName");
 	
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
+	UPROPERTY(EditAnywhere, Category = "Ability")
 	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
 
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Attribute")
+	UPROPERTY(EditAnywhere, Category = "Attribute")
 	TArray<FAttributeDefaults> Attributes;
-
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	
+	UPROPERTY(EditAnywhere, Category = "Mesh")
 	TObjectPtr<USkeletalMesh> HeroMesh;
 	
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	UPROPERTY(EditAnywhere, Category = "Mesh")
 	TObjectPtr<USkeletalMesh> InvisibleMesh;
 
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Mesh")
+	UPROPERTY(EditAnywhere, Category = "Mesh")
 	TSubclassOf<UAnimInstance> HeroAnimInstance;
 
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Socket")
+	UPROPERTY(EditAnywhere, Category = "Socket")
 	TArray<FName> MuzzleSocketNames;
+
+	UPROPERTY(EditAnywhere, Category = "Display")
+	TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;
 };
 
 UCLASS()

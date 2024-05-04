@@ -40,8 +40,6 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
                                                     const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                                     const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	PlayAbilityMontage();
 
 	CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
@@ -105,7 +103,8 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 			}
 		}
 	}
-
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
