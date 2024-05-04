@@ -13,8 +13,10 @@ void UZodiacHealthBarWidget::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPa
 {
 	Super::OnPossessedPawnChanged(OldPawn, NewPawn);
 	
-	if (PlayerCharacter)
+	if (AZodiacPlayerCharacter* ZodiacCharacter = Cast<AZodiacPlayerCharacter>(NewPawn))
 	{
+		PlayerCharacter = ZodiacCharacter;
+
 		TArray<UZodiacHealthComponent*> HealthComponents;
 		PlayerCharacter->GetComponents(UZodiacHealthComponent::StaticClass(), HealthComponents);
 		if (HealthComponents.Num() > 0)

@@ -4,7 +4,9 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "AIController.h"
 #include "GameplayCueFunctionLibrary.h"
+#include "ZodiacLogChannels.h"
 #include "Character/ZodiacPlayerCharacter.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Physics/ZodiacCollisionChannels.h"
@@ -36,77 +38,286 @@ namespace ZodiacConsoleVariables
 		ECVF_Default);
 }
 
+bool UZodiacGameplayAbility_Ranged::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
+	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags); 
+}
+
 void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                                     const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                                     const FGameplayEventData* TriggerEventData)
 {
+	// Bind target data callback
+	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
+	check(MyASC);
+
+	OnTargetDataReadyCallbackDelegateHandle = MyASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).AddUObject(this, &ThisClass::OnTargetDataReadyCallback);
+
 	PlayAbilityMontage();
-
-	CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
-
-	AZodiacPlayerCharacter* PlayerCharacter = Cast<AZodiacPlayerCharacter>(GetCurrentActorInfo()->AvatarActor);
 	
-	FVector StartPoint = PlayerCharacter->GetPawnViewLocation();
-	FVector ForwardVector = PlayerCharacter->GetBaseAimRotation().Vector();
-	FVector EndPoint = StartPoint + ForwardVector * 10000.0f;
+	if (IsLocallyControlled())
+	{
+		StartRangedWeaponTargeting();	
+	}
+}
 
+void UZodiacGameplayAbility_Ranged::EndAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (IsEndAbilityValid(Handle, ActorInfo))
+	{
+		UAbilitySystemComponent* MyAbilityComponent = CurrentActorInfo->AbilitySystemComponent.Get();
+		check(MyAbilityComponent);
+
+		// When ability ends, consume target data and remove delegate
+		MyAbilityComponent->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).Remove(OnTargetDataReadyCallbackDelegateHandle);
+		MyAbilityComponent->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+
+		Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	}
+}
+
+void UZodiacGameplayAbility_Ranged::StartRangedWeaponTargeting()
+{
+	check(CurrentActorInfo);
+
+	AActor* AvatarActor = CurrentActorInfo->AvatarActor.Get();
+	check(AvatarActor);
+
+	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
+	check(MyASC);
+	
+	//FScopedPredictionWindow ScopedPrediction(MyASC, CurrentActivationInfo.GetActivationPredictionKey());
+
+	TArray<FHitResult> FoundHits;
+	PerformLocalTargeting(OUT FoundHits);
+
+	// Fill out the target data from the hit results
+	FGameplayAbilityTargetDataHandle TargetData;
+
+	if (FoundHits.Num() > 0)
+	{
+		for (const FHitResult& FoundHit : FoundHits)
+		{
+			FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
+			NewTargetData->HitResult = FoundHit;
+
+			TargetData.Add(NewTargetData);
+		}
+	}
+	
+	// Process the target data immediately
+	OnTargetDataReadyCallback(TargetData, FGameplayTag());	
+}
+
+void UZodiacGameplayAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData,
+	FGameplayTag ApplicationTag)
+{
+	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
+	check(MyASC);
+
+	if (const FGameplayAbilitySpec* AbilitySpec = MyASC->FindAbilitySpecFromHandle(CurrentSpecHandle))
+	{
+		//FScopedPredictionWindow	ScopedPrediction(MyASC);
+
+		// Take ownership of the target data to make sure no callbacks into game code invalidate it out from under us
+		FGameplayAbilityTargetDataHandle LocalTargetDataHandle(MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
+
+		const bool bShouldNotifyServer = CurrentActorInfo->IsLocallyControlled() && !CurrentActorInfo->IsNetAuthority();
+		if (bShouldNotifyServer)
+		{
+			MyASC->CallServerSetReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey(), LocalTargetDataHandle, ApplicationTag, MyASC->ScopedPredictionKey);
+		}
+		
+		bool bProjectileWeapon = false;
+
+#if WITH_SERVER_CODE
+		if (!bProjectileWeapon)
+		{
+			if (AController* Controller = GetControllerFromActorInfo())
+			{
+				if (Controller->GetLocalRole() == ROLE_Authority)
+				{
+					// Confirm hit markers
+				}
+			}
+		}
+#endif
+		
+		// See if we still have ammo
+		if (CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo))
+		{
+			// Apply effects to the targets
+			OnRangedWeaponTargetDataReady(LocalTargetDataHandle);
+		}
+	}
+	
+	// We've processed the data
+	MyASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
+}
+
+void UZodiacGameplayAbility_Ranged::OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData)
+{
+	for (auto& SingleTargetData : TargetData.Data)
+	{
+		const FHitResult* HitResult = SingleTargetData->GetHitResult();
+		
+		// Execute a gameplay cue
+		FGameplayCueParameters GCNParameter = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
+		K2_ExecuteGameplayCueWithParams(GameplayCueTag_Firing, GCNParameter);
+
+		ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, TargetData, DamageEffect, 1);
+	}
+}
+
+void UZodiacGameplayAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHits)
+{
+	AZodiacPlayerCharacter* AvatarActor = Cast<AZodiacPlayerCharacter>(GetCurrentActorInfo()->AvatarActor);
+	
+	FRangedWeaponFiringInput InputData;
+	InputData.bCanPlayBulletFX = (AvatarActor->GetNetMode() != NM_DedicatedServer);
+
+	const FTransform TargetTransform = GetTargetingTransform(AvatarActor, EZodiacAbilityTargetingSource::CameraTowardsFocus);
+	InputData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
+	InputData.StartTrace = TargetTransform.GetTranslation();
+	const FVector EndTrace = InputData.StartTrace + InputData.AimDir * 100000.f;
+	
 	FHitResult HitResult;
 	FCollisionQueryParams Params;
 	Params.bReturnPhysicalMaterial = true;
-	Params.AddIgnoredActor(PlayerCharacter);
+	Params.AddIgnoredActor(AvatarActor);
 	Params.bTraceComplex = true;
 
 	const ECollisionChannel TraceChannel = ZODIAC_TRACE_CHANNEL_WEAPON;
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartPoint, EndPoint, TraceChannel, Params);
-
-	// Execute a gameplay cue
-	GCNParameter = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(HitResult);
-	K2_ExecuteGameplayCueWithParams(GameplayCueTag_Firing, GCNParameter);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, InputData.StartTrace, EndTrace, TraceChannel, Params);
 
 #if ENABLE_DRAW_DEBUG
 
 	const FColor DebugColor = bHit ? FColor::Red : FColor::Green;
-	const FVector EndLocation = bHit ? HitResult.Location : EndPoint;
+	const FVector EndLocation = bHit ? HitResult.Location : EndTrace;
 	
 	if (ZodiacConsoleVariables::DrawBulletTracesDuration > 0.0f)
 	{
-		DrawDebugLine(GetWorld(), StartPoint, EndLocation, DebugColor, false, ZodiacConsoleVariables::DrawBulletTracesDuration, 0, 1.5f);	
+		DrawDebugLine(GetWorld(), InputData.StartTrace, EndLocation, DebugColor, false, ZodiacConsoleVariables::DrawBulletTracesDuration, 0, 1.5f);	
 	}
 	
 	if (ZodiacConsoleVariables::DrawBulletHitDuration > 0.0f)
 	{
-		DrawDebugPoint(GetWorld(), EndLocation, ZodiacConsoleVariables::DrawBulletHitRadius, DebugColor, false, ZodiacConsoleVariables::DrawBulletHitRadius);
+		DrawDebugPoint(GetWorld(), EndLocation, ZodiacConsoleVariables::DrawBulletHitRadius, DebugColor, false, ZodiacConsoleVariables::DrawBulletHitDuration);
 	}
 	
 #endif
-	
-	if (bHit && HitResult.GetActor())
-	{
-		UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitResult.GetActor());
-		
-		UZodiacTeamSubsystem* TeamSubsystem = GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
-		if (ensure(TeamSubsystem))
-		{
-			if (TeamSubsystem->CanCauseDamage(PlayerCharacter, HitResult.GetActor()))
-			{
-				if (ASC)
-				{
-					FGameplayAbilityTargetData_SingleTargetHit* SingleTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
-					SingleTargetData->HitResult = HitResult;
 
-					FGameplayAbilityTargetDataHandle TargetData;
-					TargetData.Add(SingleTargetData);
-					
-					ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, TargetData, DamageEffect, 1);
-				}
-			}
+	if (!HitResult.bBlockingHit)
+	{
+		HitResult.Location = EndTrace;
+		HitResult.ImpactPoint = EndTrace;
+	}
+
+	OutHits.Add(HitResult);
+}
+
+FVector UZodiacGameplayAbility_Ranged::GetWeaponTargetingSourceLocation() const
+{
+	// Use Pawn's location as a base
+	APawn* const AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
+	check(AvatarPawn);
+
+	const FVector SourceLoc = AvatarPawn->GetActorLocation();
+	const FQuat SourceRot = AvatarPawn->GetActorQuat();
+
+	FVector TargetingSourceLocation = SourceLoc;
+
+	return TargetingSourceLocation;
+}
+
+FTransform UZodiacGameplayAbility_Ranged::GetTargetingTransform(APawn* SourcePawn,
+	EZodiacAbilityTargetingSource Source) const
+{
+	check(SourcePawn);
+	AController* SourcePawnController = SourcePawn->GetController(); 
+
+	// The caller should determine the transform without calling this if the mode is custom!
+	check(Source != EZodiacAbilityTargetingSource::Custom);
+	
+	const FVector ActorLoc = SourcePawn->GetActorLocation();
+	FQuat AimQuat = SourcePawn->GetActorQuat();
+	AController* Controller = SourcePawn->Controller;
+	FVector SourceLoc;
+
+	double FocalDistance = 1024.0f;
+	FVector FocalLoc;
+
+	FVector CamLoc;
+	FRotator CamRot;
+	bool bFoundFocus = false;
+	
+	if (Controller && ((Source == EZodiacAbilityTargetingSource::CameraTowardsFocus) || (Source == EZodiacAbilityTargetingSource::PawnTowardsFocus) || (Source == EZodiacAbilityTargetingSource::WeaponTowardsFocus)))
+	{
+		// Get camera position for later
+		bFoundFocus = true;
+
+		APlayerController* PC = Cast<APlayerController>(Controller);
+		if (PC)
+		{
+			PC->GetPlayerViewPoint(OUT CamLoc, OUT CamRot);
+		}
+		else // for AI controlled Pawn
+		{
+			SourceLoc = GetWeaponTargetingSourceLocation();
+			CamLoc = SourceLoc;
+			CamRot = Controller->GetControlRotation();
+		}
+
+		// Determine initial focal point to 
+		FVector AimDir = CamRot.Vector().GetSafeNormal();
+		FocalLoc = CamLoc + (AimDir * FocalDistance);
+
+		// Move the start and focal point up in front of pawn
+		if (PC)
+		{
+			const FVector WeaponLoc = GetWeaponTargetingSourceLocation();
+			CamLoc = FocalLoc + (((WeaponLoc - FocalLoc) | AimDir) * AimDir);
+			FocalLoc = CamLoc + (AimDir * FocalDistance);
+		}
+		
+		//Move the start to be the HeadPosition of the AI
+		else if (AAIController* AIController = Cast<AAIController>(Controller))
+		{
+			CamLoc = SourcePawn->GetActorLocation() + FVector(0, 0, SourcePawn->BaseEyeHeight);
+		}
+
+		if (Source == EZodiacAbilityTargetingSource::CameraTowardsFocus)
+		{
+			// If we're camera -> focus then we're done
+			return FTransform(CamRot, CamLoc);
 		}
 	}
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+
+	if ((Source == EZodiacAbilityTargetingSource::WeaponForward) || (Source == EZodiacAbilityTargetingSource::WeaponTowardsFocus))
+	{
+		SourceLoc = GetWeaponTargetingSourceLocation();
+	}
+	else
+	{
+		// Either we want the pawn's location, or we failed to find a camera
+		SourceLoc = ActorLoc;
+	}
+
+	if (bFoundFocus && ((Source == EZodiacAbilityTargetingSource::PawnTowardsFocus) || (Source == EZodiacAbilityTargetingSource::WeaponTowardsFocus)))
+	{
+		// Return a rotator pointing at the focal point from the source
+		return FTransform((FocalLoc - SourceLoc).Rotation(), SourceLoc);
+	}
+
+	// If we got here, either we don't have a camera or we don't want to use it, either way go forward
+	return FTransform(AimQuat, SourceLoc);
 }
+
 
 void UZodiacGameplayAbility_Ranged::PlayAbilityMontage()
 {
@@ -120,4 +331,34 @@ void UZodiacGameplayAbility_Ranged::PlayAbilityMontage()
 
 void UZodiacGameplayAbility_Ranged::OnMontageEnd()
 {
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
+
+#if WITH_EDITOR
+void UZodiacGameplayAbility_Ranged::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.Property->GetName() == GET_MEMBER_NAME_CHECKED(UZodiacGameplayAbility_Ranged, RateOfFire))
+	{
+		InvertValue(FireInterval, RateOfFire);
+	}
+
+	if (PropertyChangedEvent.Property->GetName() == GET_MEMBER_NAME_CHECKED(UZodiacGameplayAbility_Ranged, FireInterval))
+	{
+		InvertValue(RateOfFire, FireInterval);
+	}
+}
+
+void UZodiacGameplayAbility_Ranged::InvertValue(float& A, float& B)
+{
+	if (B > 0)
+	{
+		A = 1.0f / B;
+	}
+	else
+	{
+		A = BIG_NUMBER;
+	}
+}
+#endif
