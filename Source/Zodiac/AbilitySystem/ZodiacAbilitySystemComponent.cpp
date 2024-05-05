@@ -79,11 +79,6 @@ void UZodiacAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 		// }
 
 		//TryActivateAbilitiesOnSpawn();
-
-		if (UZodiacAnimInstance* ZodiacAnimInst = Cast<UZodiacAnimInstance>(ActorInfo->GetAnimInstance()))
-		{
-			ZodiacAnimInst->InitializeWithAbilitySystem(this);
-		}
 	}
 }
 

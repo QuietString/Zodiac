@@ -44,16 +44,16 @@ public:
 
 	UZodiacAnimInstance(const FObjectInitializer& ObjectInitializer);
 
-	virtual void InitializeWithAbilitySystem(UAbilitySystemComponent* ASC);
+	virtual void InitializePropertyMap();
 
 	float GetGroundDistance() const;
 
 protected:
-
+	
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
-
+	
 	UCharacterMovementComponent* GetMovementComponent();
 
 	// Gameplay tags that can be mapped to blueprint variables. The variables will automatically update as the tags are added or removed.

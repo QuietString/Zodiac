@@ -38,7 +38,6 @@ void UZodiacHealthBarWidget::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPa
 
 void UZodiacHealthBarWidget::HandleHeroChanged(UZodiacHeroComponent* HeroComponent)
 {
-	UE_LOG(LogTemp, Warning, TEXT("handle hero change is called on %s"), PlayerCharacter->HasAuthority() ? TEXT("server") : TEXT("client"));
 	if (UZodiacHealthComponent* HealthComponent = HeroComponent->GetHealthComponent())
 	{
 		float InCurrentHealth;

@@ -11,6 +11,7 @@
 #include "ZodiacHeroComponent.h"
 #include "Input/ZodiacInputData.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Animation/ZodiacAnimInstance.h"
 #include "Camera/ZodiacCameraComponent.h"
 #include "Input/ZodiacInputComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -111,8 +112,6 @@ void AZodiacPlayerCharacter::PostInitializeComponents()
 
 	CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
 	InitializeHeroComponents();
-
-	UE_LOG(LogTemp, Warning,TEXT("PostInitializeComponents"));
 }
 
 void AZodiacPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -163,6 +162,10 @@ void AZodiacPlayerCharacter::ChangeCharacterMesh(USkeletalMesh* NewMesh, TSubcla
 	{
 		MeshComponent->SetSkeletalMeshAsset(NewMesh);
 		MeshComponent->SetAnimInstanceClass(NewAnimInstance);
+		if (UZodiacAnimInstance* ZodiacAnimInstance = Cast<UZodiacAnimInstance>(MeshComponent->GetAnimInstance()))
+		{
+			ZodiacAnimInstance->InitializePropertyMap();
+		}
 	}
 }
 

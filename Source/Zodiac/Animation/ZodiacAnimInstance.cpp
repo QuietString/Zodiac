@@ -14,11 +14,30 @@ UZodiacAnimInstance::UZodiacAnimInstance(const FObjectInitializer& ObjectInitial
 {
 }
 
-void UZodiacAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* ASC)
+void UZodiacAnimInstance::InitializePropertyMap()
 {
-	check(ASC);
-
-	GameplayTagPropertyMap.Initialize(this, ASC);
+	if (APawn* Pawn = TryGetPawnOwner())
+	{
+		if (AZodiacPlayerCharacter* Character = CastChecked<AZodiacPlayerCharacter>(Pawn))
+		{
+			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
+			{
+				GameplayTagPropertyMap.Initialize(this, ASC);			
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("no ASC"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("no character"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("no pawn"));
+	}
 }
 
 float UZodiacAnimInstance::GetGroundDistance() const
@@ -48,7 +67,7 @@ void UZodiacAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 void UZodiacAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
-	if (!TryGetPawnOwner())
+	if (!TryGetPawnOwner() || !GetMovementComponent())
 	{
 		return;
 	}
