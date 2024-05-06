@@ -5,52 +5,17 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagAssetInterface.h"
+#include "ZodiacHeroData.h"
 #include "Components/PawnComponent.h"
 #include "UI/Weapons/ZodiacReticleWidgetBase.h"
 #include "ZodiacHeroComponent.generated.h"
 
 
 class UZodiacHealthComponent;
-struct FAttributeDefaults;
-class UZodiacHealthSet;
-class UZodiacCombatSet;
 class AZodiacPlayerCharacter;
 class UZodiacAbilitySystemComponent;
-class UZodiacAbilitySet;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHeroChanged, UZodiacHeroComponent*);
-
-UCLASS(BlueprintType)
-class UZodiacHeroData : public UDataAsset
-{
-	GENERATED_BODY()
-
-public:
-	
-	UPROPERTY(EditAnywhere, Category = "Display")
-	FName HeroName = TEXT("NoHeroName");
-	
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
-
-	UPROPERTY(EditAnywhere, Category = "Attribute")
-	TArray<FAttributeDefaults> Attributes;
-	
-	UPROPERTY(EditAnywhere, Category = "Mesh")
-	TObjectPtr<USkeletalMesh> HeroMesh;
-	
-	UPROPERTY(EditAnywhere, Category = "Mesh")
-	TObjectPtr<USkeletalMesh> InvisibleMesh;
-
-	UPROPERTY(EditAnywhere, Category = "Mesh")
-	TSubclassOf<UAnimInstance> HeroAnimInstance;
-
-	UPROPERTY(EditAnywhere, Category = "Socket")
-	TArray<FName> MuzzleSocketNames;
-
-	UPROPERTY(EditAnywhere, Category = "Display")
-	TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;
-};
 
 UCLASS()
 class ZODIAC_API UZodiacHeroComponent : public UPawnComponent, public IAbilitySystemInterface, public IGameplayTagAssetInterface
@@ -64,6 +29,8 @@ public:
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	TArray<FName> GetCurrentAbilitySockets(const FGameplayTag AbilityTag);
+	
 	TObjectPtr<UZodiacHealthComponent> GetHealthComponent() { return HealthComponent; }
 	
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;

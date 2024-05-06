@@ -6,6 +6,7 @@
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "ZodiacHealthComponent.h"
+#include "ZodiacHeroData.h"
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 
@@ -27,6 +28,19 @@ UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemCompo
 UAbilitySystemComponent* UZodiacHeroComponent::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+TArray<FName> UZodiacHeroComponent::GetCurrentAbilitySockets(const FGameplayTag AbilityTag)
+{
+	for (auto& SocketSet : HeroData->SkillSockets)
+	{
+		if (SocketSet->SkillTag == AbilityTag)
+		{
+			return SocketSet->Sockets;
+		}
+	}
+	
+	return TArray<FName>();
 }
 
 void UZodiacHeroComponent::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -53,16 +67,19 @@ void UZodiacHeroComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	ensureMsgf(HeroData, TEXT("Must have HeroData"));
+	check(HeroData && "Hust have HeroData");
 	
 	OnHeroChanged.Broadcast(this);
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 {
+	AActor* Owner = GetOwner();
+	check(Owner && "No Owner Actor");
+
 	AddAbilities();
-	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
 	
+	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 
 	return AbilitySystemComponent;

@@ -49,6 +49,9 @@ public:
 	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents[ActiveHeroIndex]; };
 
 	UFUNCTION(BlueprintCallable)
+	TArray<FName> GetCurrentAbilitySockets(FGameplayTag AbilityTag);
+	
+	UFUNCTION(BlueprintCallable)
 	UZodiacHealthComponent* GetCurrentHealthComponent() { return HeroComponents[ActiveHeroIndex]->GetHealthComponent(); }
 
 	//~AActor interface

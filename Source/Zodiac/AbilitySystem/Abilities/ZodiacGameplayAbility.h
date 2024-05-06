@@ -6,6 +6,8 @@
 #include "Abilities/GameplayAbility.h"
 #include "ZodiacGameplayAbility.generated.h"
 
+class UZodiacHeroComponent;
+class AZodiacPlayerController;
 class UZodiacCameraMode;
 class AZodiacPlayerCharacter;
 
@@ -74,8 +76,21 @@ class ZODIAC_API UZodiacGameplayAbility : public UGameplayAbility
 public:
 
 	UZodiacGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
+	AZodiacPlayerController* GetZodiacPlayerControllerFromActorInfo() const;
 	
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AController* GetControllerFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
+	AZodiacPlayerCharacter* GetZodiacCharacterFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
+	UZodiacHeroComponent* GetCurrentHeroComponent() const;
+
+	UFUNCTION(BlueprintNativeEvent)
+	FName GetCurrentAbilitySocket(const uint8 ComboIndex);
 	
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -88,9 +103,6 @@ public:
 
 	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
 	
-	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
-	AZodiacPlayerCharacter* GetZodiacCharacterFromActorInfo() const;
-
 	// Sets the ability's camera mode.
 	UFUNCTION(BlueprintCallable, Category = "Lyra|Ability")
 	void SetCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode);
@@ -106,7 +118,7 @@ public:
 	}
 
 protected:
-
+	
 	// Called when the ability fails to activate
 	virtual void NativeOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
 
@@ -115,6 +127,10 @@ protected:
 	void ScriptOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
 
 protected:
+
+	// Skill identifier tag for effects
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Ability")
+	FGameplayTag SkillTag;
 	
 	// Defines how this ability is meant to activate.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Ability Activation")
@@ -145,4 +161,9 @@ protected:
 
 	// Current camera mode set by the ability.
 	TSubclassOf<UZodiacCameraMode> ActiveCameraMode;
+
+private:
+
+	UPROPERTY()
+	FName AbilitySocket;
 };

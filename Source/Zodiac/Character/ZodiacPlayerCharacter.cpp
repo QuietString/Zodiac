@@ -83,6 +83,11 @@ UAbilitySystemComponent* AZodiacPlayerCharacter::GetAbilitySystemComponent() con
 	return nullptr;
 }
 
+TArray<FName> AZodiacPlayerCharacter::GetCurrentAbilitySockets(FGameplayTag AbilityTag)
+{
+	return HeroComponents[ActiveHeroIndex]->GetCurrentAbilitySockets(AbilityTag);
+}
+
 void AZodiacPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

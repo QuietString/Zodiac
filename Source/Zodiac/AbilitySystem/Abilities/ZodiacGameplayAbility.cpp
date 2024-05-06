@@ -9,6 +9,7 @@
 #include "ZodiacGameplayTags.h"
 #include "Character/ZodiacPlayerCharacter.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Player/ZodiacPlayerController.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility)
 
@@ -33,6 +34,11 @@ UZodiacGameplayAbility::UZodiacGameplayAbility(const FObjectInitializer& ObjectI
 
 	ActivationPolicy = EZodiacAbilityActivationPolicy::OnInputTriggered;
 	ActivationGroup = EZodiacAbilityActivationGroup::Independent;
+}
+
+AZodiacPlayerController* UZodiacGameplayAbility::GetZodiacPlayerControllerFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<AZodiacPlayerController>(CurrentActorInfo->PlayerController.Get()) : nullptr);
 }
 
 AController* UZodiacGameplayAbility::GetControllerFromActorInfo() const
@@ -61,8 +67,37 @@ AController* UZodiacGameplayAbility::GetControllerFromActorInfo() const
 			TestActor = TestActor->GetOwner();
 		}
 	}
+	
+	return nullptr;
+}
+
+AZodiacPlayerCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<AZodiacPlayerCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
+}
+
+UZodiacHeroComponent* UZodiacGameplayAbility::GetCurrentHeroComponent() const
+{
+	if (AZodiacPlayerCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
+	{
+		return ZodiacCharacter->GetCurrentHeroComponent();
+	}
 
 	return nullptr;
+}
+
+FName UZodiacGameplayAbility::GetCurrentAbilitySocket_Implementation(const uint8 ComboIndex)
+{
+	if (AZodiacPlayerCharacter* PlayerCharacter = GetZodiacCharacterFromActorInfo())
+	{
+		TArray<FName> Sockets = PlayerCharacter->GetCurrentAbilitySockets(SkillTag);
+		if (Sockets.IsValidIndex(ComboIndex))
+		{
+			return Sockets[ComboIndex];
+		}
+	}
+	
+	return FName();
 }
 
 void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -135,11 +170,6 @@ void UZodiacGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityAct
 			}
 		}
 	}
-}
-
-AZodiacPlayerCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
-{
-	return (CurrentActorInfo ? Cast<AZodiacPlayerCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 }
 
 void UZodiacGameplayAbility::SetCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode)

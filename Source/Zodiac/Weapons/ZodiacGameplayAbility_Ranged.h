@@ -8,7 +8,7 @@
 
 /** Defines where an ability starts its trace from and where it should face */
 UENUM(BlueprintType)
-enum class EZodiacAbilityTargetingSource : uint8
+enum class EZodiacAbilityTargetingRule : uint8
 {
 	// From the player's camera towards camera focus
 	CameraTowardsFocus,
@@ -30,14 +30,15 @@ class ZODIAC_API UZodiacGameplayAbility_Ranged : public UZodiacGameplayAbility
 	GENERATED_BODY()
 
 public:
-
+	UZodiacGameplayAbility_Ranged(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
 	//~UGameplayAbility interface
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
-	struct FRangedWeaponFiringInput
+	struct FRangedSkillTraceData
 	{
 		// Start of the trace
 		FVector StartTrace;
@@ -51,39 +52,46 @@ protected:
 		// Can we play bullet FX for hits during this trace
 		bool bCanPlayBulletFX = false;
 
-		FRangedWeaponFiringInput()
+		FRangedSkillTraceData()
 			: StartTrace(ForceInitToZero)
 			, EndAim(ForceInitToZero)
 			, AimDir(ForceInitToZero)
 		{
 		}
 	};
-	
+
+	UFUNCTION(BlueprintCallable)
 	void StartRangedWeaponTargeting();
 
 	void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
 
+	UFUNCTION(BlueprintNativeEvent)
 	void OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 	
 	void PerformLocalTargeting(OUT TArray<FHitResult>& OutHits);
 
-	FVector GetWeaponTargetingSourceLocation() const;
-	FTransform GetTargetingTransform(APawn* SourcePawn, EZodiacAbilityTargetingSource Source) const;
-
-	void PlayAbilityMontage();
-
-	UFUNCTION()
-	void OnMontageEnd();
+	FVector GetSkillTargetingSourceLocation() const;
 	
+	UFUNCTION(BlueprintCallable)
+	FTransform GetTargetingTransform() const;
+
+	FTransform GetTargetingTransform(APawn* SourcePawn, EZodiacAbilityTargetingRule Source) const;
+
 protected:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Zodiac|Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Zodiac|Skill")
 	float RateOfFire;
 
-	UPROPERTY(EditDefaultsOnly, meta=(ForceUnits=s), Category = "Zodiac|Weapon")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits=s), Category = "Zodiac|Skill")
 	float FireInterval;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Skill")
+	EZodiacAbilityTargetingRule TargetingSourceRule;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Zodiac|Skill")
+	uint8 ComboIndex;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Damage")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Skill")
 	TSubclassOf<UGameplayEffect> DamageEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Cues")
@@ -92,12 +100,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Cues")
 	FGameplayTag GameplayCueTag_Impact;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Animation")
-	UAnimMontage* MontageToPlay;
-
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
 
+	UPROPERTY(Transient)
+	FName CurrentSkillSocket;
+	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
