@@ -6,16 +6,16 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayTagAssetInterface.h"
 #include "ZodiacHeroData.h"
+#include "AbilitySystem/ZodiacAbilitySet.h"
 #include "Components/PawnComponent.h"
-#include "UI/Weapons/ZodiacReticleWidgetBase.h"
 #include "ZodiacHeroComponent.generated.h"
 
 
 class UZodiacHealthComponent;
-class AZodiacPlayerCharacter;
 class UZodiacAbilitySystemComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHeroChanged, UZodiacHeroComponent*);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSkillChanged, UAbilitySystemComponent*, const TArray<FGameplayAbilitySpecHandle>&);
 
 UCLASS()
 class ZODIAC_API UZodiacHeroComponent : public UPawnComponent, public IAbilitySystemInterface, public IGameplayTagAssetInterface
@@ -26,6 +26,9 @@ public:
 
 	UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	static int32 AssignNewID(UZodiacHeroComponent* HeroComponent); 
+	int32 GetUniqueID() { return UniqueID; }
+	
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -48,6 +51,8 @@ public:
 public:
 
 	FOnHeroChanged OnHeroChanged;
+
+	FOnSkillChanged OnSkillChanged;
 	
 protected:
 
@@ -63,7 +68,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTagContainer HeroTags;
-	
+
+	// Handles to hero abilities.
+	FZodiacAbilitySet_GrantedHandles AbilityHandles;
+
+	FZodiacSkillSetWithHandle SkillData;
 private:
 	
 	UPROPERTY()
@@ -71,5 +80,8 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
+
+	UPROPERTY()
+	int32 UniqueID;
 };
 

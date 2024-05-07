@@ -92,6 +92,6 @@ void AZodiacMonster::AddAbilities()
 {
 	for (TObjectPtr<UZodiacAbilitySet> AbilitySet : Abilities)
 	{
-		AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+		AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, nullptr);
 	}
 }

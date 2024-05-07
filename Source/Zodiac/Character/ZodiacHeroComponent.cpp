@@ -2,22 +2,33 @@
 
 #include "ZodiacHeroComponent.h"
 
-#include "ZodiacPlayerCharacter.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
+#include "Skills/ZodiacSkillManagerComponent.h"
 
 UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	UniqueID = INDEX_NONE;
+	
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+}
+
+int32 UZodiacHeroComponent::AssignNewID(UZodiacHeroComponent* HeroComponent)
+{
+	// Must be in C++ to avoid duplicate statics across execution units
+	static int32 GHandle = 1;
+	HeroComponent->UniqueID = GHandle++;
+
+	return HeroComponent->UniqueID;
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -39,7 +50,6 @@ TArray<FName> UZodiacHeroComponent::GetCurrentAbilitySockets(const FGameplayTag 
 			return SocketSet->Sockets;
 		}
 	}
-	
 	return TArray<FName>();
 }
 
@@ -81,13 +91,16 @@ UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 	
 	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
-
+	
+	
 	return AbilitySystemComponent;
 }
 
 void UZodiacHeroComponent::ActivateHero()
 {
 	OnHeroChanged.Broadcast(this);
+	OnSkillChanged.Broadcast(AbilitySystemComponent, AbilityHandles.GetSkillHandles());
+	// broad cast abilityspechandle
 }
 
 void UZodiacHeroComponent::DeactivateHero()
@@ -101,7 +114,13 @@ void UZodiacHeroComponent::AddAbilities()
 	{
 		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
 		{
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, OUT &AbilityHandles, OUT &SkillData);
 		}
+	}
+	
+	if (APawn* Pawn = GetPawn<APawn>())
+	{
+		UZodiacSkillManagerComponent* SkillManager = Pawn->FindComponentByClass<UZodiacSkillManagerComponent>();
+		SkillManager->RegisterSkillDisplayData(SkillData);
 	}
 }

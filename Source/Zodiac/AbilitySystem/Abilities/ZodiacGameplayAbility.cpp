@@ -125,7 +125,13 @@ const FGameplayTagContainer* UZodiacGameplayAbility::GetCooldownTags() const
 		MutableTags->AppendTags(*ParentTags);
 	}
 	MutableTags->AppendTags(CooldownTags);
-	
+
+	UE_LOG(LogTemp, Warning, TEXT("get cooldown tags"));
+	for (FGameplayTag Tag : MutableTags->GetGameplayTagArray())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("cooldown Tag: %s"), *Tag.GetTagName().ToString());		
+	}
+
 	return MutableTags;
 }
 

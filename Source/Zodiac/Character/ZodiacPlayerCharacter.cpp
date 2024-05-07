@@ -16,6 +16,7 @@
 #include "Input/ZodiacInputComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/ZodiacPlayerState.h"
+#include "..\Skills\ZodiacSkillManagerComponent.h"
 
 AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -32,6 +33,8 @@ AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectI
 	CameraComponent = CreateDefaultSubobject<UZodiacCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
 
+	SkillManager = CreateDefaultSubobject<UZodiacSkillManagerComponent>(TEXT("SkillManager"));
+	
 	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
 	ZodiacMoveComp->GravityScale = 1.0f;
 	ZodiacMoveComp->MaxAcceleration = 2400.0f;
@@ -221,8 +224,10 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	
 	if (HeroComponent1)
 	{
+		UZodiacHeroComponent::AssignNewID(HeroComponent1);
 		HeroComponents.Add(HeroComponent1);
 		HeroComponent1->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
+		HeroComponent1->OnSkillChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleSkillChanged);
 		
 		UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystem();
 		check(HeroASC1);
@@ -233,6 +238,7 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 
 	if (HeroComponent2)
 	{
+		UZodiacHeroComponent::AssignNewID(HeroComponent2);
 		HeroComponents.Add(HeroComponent2);
 		HeroComponent2->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
 

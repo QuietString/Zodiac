@@ -12,6 +12,7 @@
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacPlayerCharacter.generated.h"
 
+class UZodiacSkillManagerComponent;
 class UZodiacHealthComponent;
 class AZodiacPlayerState;
 struct FGenericTeamId;
@@ -46,8 +47,11 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION(BlueprintCallable)
-	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents[ActiveHeroIndex]; };
+	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents[ActiveHeroIndex]; }
 
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentHeroID() { return HeroComponents[ActiveHeroIndex]->GetUniqueID(); }
+	
 	UFUNCTION(BlueprintCallable)
 	TArray<FName> GetCurrentAbilitySockets(FGameplayTag AbilityTag);
 	
@@ -123,6 +127,9 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<UZodiacAbilitySystemComponent>> AbilitySystemComponents;
 
+	UPROPERTY()
+	TObjectPtr<UZodiacSkillManagerComponent> SkillManager;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac")
 	TObjectPtr<UZodiacCameraComponent> CameraComponent;
 	

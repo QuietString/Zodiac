@@ -28,6 +28,9 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Action_WeaponFire);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Action_Test);
 
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Primary);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Secondary);
+	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Message_Character_Changed);
 
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Test);
@@ -60,6 +63,9 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dying);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dead);
 
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Slot_HeroChanged_Message);
+
+	
 	// Tags for GameplayCue
 	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayCue_Weapon_Rifle_Fire);

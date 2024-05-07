@@ -23,6 +23,9 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Jump, "Ability.Type.Action.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_WeaponFire, "Ability.Type.Action.WeaponFire");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Test, "Ability.Type.Action.Test");
+
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Primary, "Ability.Type.Skill.Primary");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Secondary, "Ability.Type.Skill.Secondary");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
 
@@ -58,8 +61,9 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dying, "Status.Death.Dying", "Target has begun the death process.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dead, "Status.Death.Dead", "Target has finished the death process.");
 
-	// Tags for GameplayCue
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Slot_HeroChanged_Message, "HUD.Slot.HeroChanged.Message");
 	
+	// Tags for GameplayCue
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_Rifle_Fire, "GameplayCue.Weapon.Rifle.Fire");
 
 	// These are mapped to the movement modes inside GetMovementModeTagMap()

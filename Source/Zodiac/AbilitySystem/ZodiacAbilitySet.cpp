@@ -15,18 +15,25 @@ void FZodiacAbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbili
 	}
 }
 
+void FZodiacAbilitySet_GrantedHandles::AddSkillHandle(const FGameplayAbilitySpecHandle& Handle)
+{
+	if (Handle.IsValid())
+	{
+		SkillHandles.Add(Handle);
+	}
+}
+
 void FZodiacAbilitySet_GrantedHandles::AddAttributeSet(UAttributeSet* Set)
 {
 	GrantedAttributeSets.Add(Set);
 }
 
 UZodiacAbilitySet::UZodiacAbilitySet(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
 {
 }
 
 void UZodiacAbilitySet::GiveToAbilitySystem(UZodiacAbilitySystemComponent* ZodiacASC,
-                                            FZodiacAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
+                                            FZodiacAbilitySet_GrantedHandles* OutGrantedHandles, FZodiacSkillSetWithHandle* OutSkillData, UObject* SourceObject) const
 {
 	check(ZodiacASC);
 
@@ -57,6 +64,43 @@ void UZodiacAbilitySet::GiveToAbilitySystem(UZodiacAbilitySystemComponent* Zodia
 		if (OutGrantedHandles)
 		{
 			OutGrantedHandles->AddAbilitySpecHandle(AbilitySpecHandle);
+		}
+	}
+	
+	// Grant the skill abilities.
+	for (int32 SkillIndex = 0; SkillIndex < GrantedSkillAbilities.Num(); ++SkillIndex)
+	{
+		const FZodiacSkillSet& SkillToGrant = GrantedSkillAbilities[SkillIndex];
+
+		if (!IsValid(SkillToGrant.Ability))
+		{
+			UE_LOG(LogZodiacAbilitySystem, Error, TEXT("GrantedSkillAbilities[%d] on ability set [%s] is not valid."), SkillIndex, *GetNameSafe(this));
+			continue;
+		}
+
+		if (!SkillToGrant.SkillType.IsValid())
+		{
+			UE_LOG(LogZodiacAbilitySystem, Error, TEXT("GrantedSkillAbilities[%d] on ability set [%s] has no skill type."), SkillIndex, *GetNameSafe(this));
+			continue;;
+		}
+		
+		UZodiacGameplayAbility* AbilityCDO = SkillToGrant.Ability->GetDefaultObject<UZodiacGameplayAbility>();
+		AbilityCDO->AbilityTags.AddTag(SkillToGrant.SkillType);
+		
+		FGameplayAbilitySpec AbilitySpec(AbilityCDO, SkillToGrant.AbilityLevel);
+		AbilitySpec.SourceObject = SourceObject;
+		AbilitySpec.DynamicAbilityTags.AddTag(SkillToGrant.InputTag);
+		
+		const FGameplayAbilitySpecHandle AbilitySpecHandle = ZodiacASC->GiveAbility(AbilitySpec);
+
+		if (OutSkillData)
+		{
+			OutSkillData->Map.Add(AbilitySpecHandle, &GrantedSkillAbilities[SkillIndex]);	
+		}
+
+		if (OutGrantedHandles)
+		{
+			OutGrantedHandles->AddSkillHandle(AbilitySpecHandle);
 		}
 	}
 	
