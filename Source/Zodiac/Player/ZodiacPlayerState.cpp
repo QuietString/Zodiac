@@ -29,7 +29,7 @@ void AZodiacPlayerState::ClientInitialize(AController* C)
 
 	if (AZodiacPlayerCharacter* PlayerCharacter = Cast<AZodiacPlayerCharacter>(GetPawn()))
 	{
-		PlayerCharacter->CheckReady();
+		PlayerCharacter->CheckReadyAndPlay();
 	}
 }
 

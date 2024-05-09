@@ -47,7 +47,7 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION(BlueprintCallable)
-	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents[ActiveHeroIndex]; }
+	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex] : nullptr; }
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetCurrentHeroID() { return HeroComponents[ActiveHeroIndex]->GetUniqueID(); }
@@ -56,7 +56,7 @@ public:
 	TArray<FName> GetCurrentAbilitySockets(FGameplayTag AbilityTag);
 	
 	UFUNCTION(BlueprintCallable)
-	UZodiacHealthComponent* GetCurrentHealthComponent() { return HeroComponents[ActiveHeroIndex]->GetHealthComponent(); }
+	UZodiacHealthComponent* GetCurrentHealthComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex]->GetHealthComponent() : nullptr; }
 
 	//~AActor interface
 	virtual void PossessedBy(AController* NewController) override;
@@ -82,12 +82,10 @@ public:
 
 	void OnHeroChanged(UZodiacHeroComponent* NewHeroComponent);
 	
-	void CheckReady();
+	void CheckReadyAndPlay();
 
 public:
 
-	FSimpleMulticastDelegate OnPlayReady;
-	
 protected:
 	
 	void InitializeHeroComponents();

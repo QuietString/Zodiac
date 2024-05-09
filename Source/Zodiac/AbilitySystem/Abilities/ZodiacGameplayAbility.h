@@ -89,13 +89,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	UZodiacHeroComponent* GetCurrentHeroComponent() const;
 
+	const FGameplayTag* GetSkillTag() { return &SkillTag; }
+
 	UFUNCTION(BlueprintNativeEvent)
 	FName GetCurrentAbilitySocket(const uint8 ComboIndex);
 	
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual void CommitExecute(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-
-	const FGameplayTag* GetSkillTag() { return &SkillTag; }
+	
+	UFUNCTION(BlueprintCallable)
+	float GetCooldownDuration() const { return CooldownDuration.GetValueAtLevel(GetAbilityLevel()); }
 	virtual const FGameplayTagContainer* GetCooldownTags() const override;
 	virtual  void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
@@ -127,10 +131,11 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ScriptOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
 
+	void SendCooldownMessage();
 protected:
 
-	// Skill identifier tag for effects
-	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Ability")
+	// Skill identifier tag for effects (sockets and etc)
+	UPROPERTY(BlueprintReadOnly, Category = "Zodiac|Ability")
 	FGameplayTag SkillTag;
 	
 	// Defines how this ability is meant to activate.

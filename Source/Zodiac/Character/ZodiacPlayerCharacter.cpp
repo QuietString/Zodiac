@@ -7,7 +7,6 @@
 #include "InputActionValue.h"
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
-#include "ZodiacHealthComponent.h"
 #include "ZodiacHeroComponent.h"
 #include "Input/ZodiacInputData.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
@@ -16,7 +15,7 @@
 #include "Input/ZodiacInputComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/ZodiacPlayerState.h"
-#include "..\Skills\ZodiacSkillManagerComponent.h"
+#include "Skills/ZodiacSkillManagerComponent.h"
 
 AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -108,10 +107,8 @@ void AZodiacPlayerCharacter::PossessedBy(AController* NewController)
 void AZodiacPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	OnPlayReady.Broadcast();
 	
-	SelectFirstHero();
+	CheckReadyAndPlay();
 }
 
 void AZodiacPlayerCharacter::PostInitializeComponents()
@@ -159,7 +156,10 @@ void AZodiacPlayerCharacter::ChangeHero(int32 NewIndex)
 		{
 			int32 OldIndex = ActiveHeroIndex;
 			ActiveHeroIndex = NewIndex;
-			OnRep_ActiveHeroIndex(OldIndex);
+			if (OldIndex != NewIndex)
+			{
+				OnRep_ActiveHeroIndex(OldIndex);	
+			}
 		}
 	}
 }
@@ -191,7 +191,7 @@ void AZodiacPlayerCharacter::OnHeroChanged(UZodiacHeroComponent* NewHeroComponen
 	}
 }
 
-void AZodiacPlayerCharacter::CheckReady()
+void AZodiacPlayerCharacter::CheckReadyAndPlay()
 {
 	// check player connected
 	bool bServerConnected = false;
@@ -207,7 +207,7 @@ void AZodiacPlayerCharacter::CheckReady()
 		}
 	}
 
-	if (bServerConnected && bHeroesInitialized)
+	if (bServerConnected && bHeroesInitialized && HasActorBegunPlay())
 	{
 		SelectFirstHero();
 		bReady = true;
@@ -241,6 +241,7 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 		UZodiacHeroComponent::AssignNewID(HeroComponent2);
 		HeroComponents.Add(HeroComponent2);
 		HeroComponent2->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
+		HeroComponent2->OnSkillChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleSkillChanged);
 
 		UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystem();
 		check(HeroASC2);
@@ -254,7 +255,7 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 		bHeroesInitialized = true;
 	}
 
-	CheckReady();
+	CheckReadyAndPlay();
 }
 
 void AZodiacPlayerCharacter::SelectFirstHero()

@@ -55,7 +55,7 @@ public:
 	FSlateBrush Brush;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Appearance)
-	FText DisplayNameWhenEquipped;
+	FText DisplayName;
 };
 
 USTRUCT()

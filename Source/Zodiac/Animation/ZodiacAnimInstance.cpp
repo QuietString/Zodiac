@@ -24,19 +24,7 @@ void UZodiacAnimInstance::InitializePropertyMap()
 			{
 				GameplayTagPropertyMap.Initialize(this, ASC);			
 			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("no ASC"));
-			}
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("no character"));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("no pawn"));
 	}
 }
 

@@ -23,9 +23,14 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Jump, "Ability.Type.Action.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_WeaponFire, "Ability.Type.Action.WeaponFire");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Test, "Ability.Type.Action.Test");
-
+	
+	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_PrimarySkill_Message , "Ability.HeroChanged.PrimarySkill.Message")
+	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_SecondarySkill_Message , "Ability.HeroChanged.SecondarySkill.Message")
+	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_UltimateSkill_Message , "Ability.HeroChanged.Ultimate.Message")
+	
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Primary, "Ability.Type.Skill.Primary");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Secondary, "Ability.Type.Skill.Secondary");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Ultimate, "Ability.Type.Skill.Ultimate");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
 

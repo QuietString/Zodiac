@@ -4,16 +4,9 @@
 #include "ZodiacSkillManagerComponent.h"
 
 #include "AbilitySystemComponent.h"
-#include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
-#include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
-
-
-void UZodiacSkillManagerComponent::InitializeWithHeroComponent(UZodiacHeroComponent* HeroComponent)
-{
-	
-}
+#include "Messages/ZodiacMessageLibrary.h"
 
 void UZodiacSkillManagerComponent::RegisterSkillDisplayData(const FZodiacSkillSetWithHandle& SkillData)
 {
@@ -23,10 +16,12 @@ void UZodiacSkillManagerComponent::RegisterSkillDisplayData(const FZodiacSkillSe
 		const FZodiacSkillSet* SkillSet = Elem.Value;
 		USkillFragment_Display* Fragment_Display = SkillSet->GetFragmentByClass<USkillFragment_Display>();
 
-		FSkillDisplayData SkillDisplayData;
-		SkillDisplayData.Handle = SpecHandle;
-		SkillDisplayData.Brush = Fragment_Display->Brush;
-		SkillDisplayDataList.Add(SkillDisplayData);
+		FSkillDataForDisplay Data;
+		Data.SkillName = Fragment_Display->DisplayName;
+		Data.Brush = Fragment_Display->Brush;
+		Data.SkillTag = SkillSet->SkillType;
+		Data.CooldownTag = GetCooldownExtendedTag(SkillSet->SkillType);
+		DisplayDataMap.Add(SpecHandle, Data);
 	}
 }
 
@@ -35,62 +30,71 @@ void UZodiacSkillManagerComponent::HandleSkillChanged(UAbilitySystemComponent* I
 {
 	for (auto& Handle : Handles)
 	{
-		OnSkillChanged(InASC, Handle);
+		if (FSkillDataForDisplay* Data = DisplayDataMap.Find(Handle))
+		{
+			OnSkillChanged(InASC, Handle, Data->SkillTag);
+		}
 	}
 }
 
-void UZodiacSkillManagerComponent::OnSkillChanged(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle& SpecHandle)
-{
-	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+void UZodiacSkillManagerComponent::OnSkillChanged(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle& SpecHandle, const FGameplayTag& SkillType)
+{	
+	const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetSkillChangeChannelByTag(SkillType);
 
 	float OutCooldownRemaining;
 	float OutCooldownDuration;
 	bool bCooldownFound = GetCooldown(InASC, SpecHandle, OutCooldownRemaining, OutCooldownDuration);
 	
 	FHeroChangedMessage_SkillSlot Message_SkillSlot;
-	Message_SkillSlot.PlayerPawn = GetPawn<APawn>();
-	Message_SkillSlot.Brush = SkillDisplayDataList.FindByPredicate([SpecHandle](const FSkillDisplayData& DisplayData)
-	{
-		return DisplayData==SpecHandle;
-	})->Brush;
+	Message_SkillSlot.Instigator = GetPawn<APawn>();
+	Message_SkillSlot.HeroName = DisplayDataMap.Find(SpecHandle)->SkillName;
+	Message_SkillSlot.Brush = DisplayDataMap.Find(SpecHandle)->Brush;
+	Message_SkillSlot.HaveCooldown = bCooldownFound;
 	Message_SkillSlot.Cooldown_Duration = OutCooldownDuration;
-	Message_SkillSlot.Cooldown_Remaining = OutCooldownRemaining;
-
+	Message_SkillSlot.Cooldown_Remaining =  OutCooldownRemaining ;
+	
 	UE_LOG(LogTemp, Warning, TEXT("cool down: %.1f, remaining: %.1f"), OutCooldownDuration, OutCooldownRemaining);
 
-	MessageSubsystem.BroadcastMessage(ZodiacGameplayTags::HUD_Slot_HeroChanged_Message, Message_SkillSlot);
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(MessageChannel, Message_SkillSlot);
 }
 
 bool UZodiacSkillManagerComponent::GetCooldown(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle Handle, float& CooldownRemaining,
                                                float& CooldownDuration)
 {
-	FGameplayAbilitySpec* AbilitySpec = InASC->FindAbilitySpecFromHandle(Handle);
-	if (UZodiacGameplayAbility* ZodiacAbility = Cast<UZodiacGameplayAbility>(AbilitySpec->Ability))
+	check(InASC);
+	
+	CooldownRemaining = 0.0f;
+	CooldownDuration = BIG_NUMBER;
+	
+	FGameplayTagContainer QueryContainer;
+	QueryContainer.AddTag(DisplayDataMap.Find(Handle)->CooldownTag);
+	
+	FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(QueryContainer);
+	TArray< TPair<float,float> > DurationAndTimeRemaining = InASC->GetActiveEffectsTimeRemainingAndDuration(Query);
+	if (DurationAndTimeRemaining.Num() > 0)
 	{
-		FGameplayTagContainer QueryContainer;
-		QueryContainer.AppendTags(*ZodiacAbility->GetCooldownTags());
-		//QueryContainer.AddTag(*ZodiacAbility->GetSkillTag());
-		
-		FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAllOwningTags(QueryContainer);
-		TArray< TPair<float, float> > DurationAndTimeRemaining = InASC->GetActiveEffectsTimeRemainingAndDuration(Query);
-		if (DurationAndTimeRemaining.Num() > 0)
+		int32 BestIdx = 0;
+		float LongestTime = DurationAndTimeRemaining[0].Key;
+		for (int32 Idx = 1; Idx < DurationAndTimeRemaining.Num(); ++Idx)
 		{
-			int32 BestIdx = 0;
-			float LongestTime = DurationAndTimeRemaining[0].Key;
-			for (int32 Idx = 1; Idx < DurationAndTimeRemaining.Num(); ++Idx)
+			if (DurationAndTimeRemaining[Idx].Key > LongestTime)
 			{
-				if (DurationAndTimeRemaining[Idx].Key > LongestTime)
-				{
-					LongestTime = DurationAndTimeRemaining[Idx].Key;
-					BestIdx = Idx;
-				}
+				LongestTime = DurationAndTimeRemaining[Idx].Key;
+				BestIdx = Idx;
 			}
-			CooldownRemaining = DurationAndTimeRemaining[BestIdx].Key;
-			CooldownDuration = DurationAndTimeRemaining[BestIdx].Value;
-			
-			return true;
 		}
+		CooldownRemaining = DurationAndTimeRemaining[BestIdx].Key;
+		CooldownDuration = DurationAndTimeRemaining[BestIdx].Value;
+
+		return true;
 	}
 	
 	return false;
+}
+
+FGameplayTag UZodiacSkillManagerComponent::GetCooldownExtendedTag(const FGameplayTag& SkillTag)
+{
+	FString CooldownTagString = SkillTag.ToString() + TEXT(".") + TEXT("Cooldown");
+	return FGameplayTag::RequestGameplayTag(*CooldownTagString);
 }

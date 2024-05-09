@@ -27,9 +27,14 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Action_Jump);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Action_WeaponFire);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Action_Test);
-
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_PrimarySkill_Message);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_SecondarySkill_Message);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_UltimateSkill_Message);
+	
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Primary);
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Secondary);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Ultimate);
 	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Message_Character_Changed);
 

@@ -75,9 +75,9 @@ void UZodiacHeroComponent::OnRegister()
 
 void UZodiacHeroComponent::BeginPlay()
 {
-	Super::BeginPlay();
-	
 	check(HeroData && "Hust have HeroData");
+
+	Super::BeginPlay();
 	
 	OnHeroChanged.Broadcast(this);
 }
@@ -100,7 +100,6 @@ void UZodiacHeroComponent::ActivateHero()
 {
 	OnHeroChanged.Broadcast(this);
 	OnSkillChanged.Broadcast(AbilitySystemComponent, AbilityHandles.GetSkillHandles());
-	// broad cast abilityspechandle
 }
 
 void UZodiacHeroComponent::DeactivateHero()

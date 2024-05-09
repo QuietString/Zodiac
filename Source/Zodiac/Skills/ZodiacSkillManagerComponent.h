@@ -4,40 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameplayAbilitySpecHandle.h"
+#include "GameplayTagContainer.h"
 #include "Components/PawnComponent.h"
 
 #include "ZodiacSkillManagerComponent.generated.h"
 
 struct FZodiacSkillSetWithHandle;
-class UZodiacHeroComponent;
 class UAbilitySystemComponent;
 struct FGameplayTag;
 struct FGameplayAbilitySpecHandle;
 
-// Data struct for storing skill display data.
-USTRUCT()
-struct FSkillDisplayData
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY()
-	FGameplayAbilitySpecHandle Handle;
-	
-	UPROPERTY()
-	FSlateBrush Brush;
-
-	bool operator==(const FSkillDisplayData& Other) const
-	{
-		return Handle == Other.Handle;
-	}
-
-	bool operator==(const FGameplayAbilitySpecHandle& Other) const
-	{
-		return Handle == Other;
-	}
-};
 
 USTRUCT(BlueprintType)
 struct FHeroChangedMessage_SkillSlot
@@ -47,16 +23,42 @@ struct FHeroChangedMessage_SkillSlot
 public:
 	
 	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<APawn> PlayerPawn = nullptr;
+	TObjectPtr<APawn> Instigator = nullptr;
+
+	UPROPERTY(BlueprintReadOnly)
+	FText HeroName = FText();
 	
 	UPROPERTY(BlueprintReadWrite)
 	FSlateBrush Brush;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool HaveCooldown;
 	
 	UPROPERTY(BlueprintReadWrite)
 	float Cooldown_Duration = 0;
 	
 	UPROPERTY(BlueprintReadWrite)
 	float Cooldown_Remaining = 0;
+};
+
+// Data struct for storing skill display data.
+USTRUCT()
+struct FSkillDataForDisplay
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	FText SkillName = FText();
+	
+	UPROPERTY()
+	FSlateBrush Brush;
+
+	UPROPERTY()
+	FGameplayTag SkillTag;
+	
+	UPROPERTY()
+	FGameplayTag CooldownTag;
 };
 
 UCLASS()
@@ -66,22 +68,20 @@ class ZODIAC_API UZodiacSkillManagerComponent : public UPawnComponent
 
 public:
 	
-	void InitializeWithHeroComponent(UZodiacHeroComponent* HeroComponent);
-
 	void RegisterSkillDisplayData(const FZodiacSkillSetWithHandle& SkillData);
 	
 	void HandleSkillChanged(UAbilitySystemComponent* InASC, const TArray<FGameplayAbilitySpecHandle>& Handles);
 	
-	void OnSkillChanged(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle& SpecHandle);
+	void OnSkillChanged(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle& SpecHandle, const FGameplayTag& SkillType);
 
-	
 protected:
 
 	bool GetCooldown(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle Handle, OUT float& CooldownRemaining, OUT float& CooldownDuration);
-public:
 
+	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag);
+	
 protected:
 
 	UPROPERTY()
-	TArray<FSkillDisplayData> SkillDisplayDataList;
+	TMap<FGameplayAbilitySpecHandle, FSkillDataForDisplay> DisplayDataMap;
 };

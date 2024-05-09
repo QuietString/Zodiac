@@ -9,6 +9,8 @@
 #include "ZodiacGameplayTags.h"
 #include "Character/ZodiacPlayerCharacter.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Messages/ZodiacMessageLibrary.h"
+#include "Messages/ZodiacMessageTypes.h"
 #include "Player/ZodiacPlayerController.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility)
@@ -107,6 +109,17 @@ void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* Acto
 	TryActivateAbilityOnSpawn(ActorInfo, Spec);
 }
 
+void UZodiacGameplayAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	Super::CommitExecute(Handle, ActorInfo, ActivationInfo);
+
+	if (!CheckCooldown(Handle, CurrentActorInfo))
+	{
+		SendCooldownMessage();	
+	}
+}
+
 void UZodiacGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                              const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                              const FGameplayEventData* TriggerEventData)
@@ -125,12 +138,6 @@ const FGameplayTagContainer* UZodiacGameplayAbility::GetCooldownTags() const
 		MutableTags->AppendTags(*ParentTags);
 	}
 	MutableTags->AppendTags(CooldownTags);
-
-	UE_LOG(LogTemp, Warning, TEXT("get cooldown tags"));
-	for (FGameplayTag Tag : MutableTags->GetGameplayTagArray())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("cooldown Tag: %s"), *Tag.GetTagName().ToString());		
-	}
 
 	return MutableTags;
 }
@@ -235,4 +242,16 @@ void UZodiacGameplayAbility::NativeOnAbilityFailedToActivate(const FGameplayTagC
 			MessageSystem.BroadcastMessage(TAG_ABILITY_PLAY_MONTAGE_FAILURE_MESSAGE, Message);
 		}
 	}
+}
+
+void UZodiacGameplayAbility::SendCooldownMessage()
+{
+	const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetCooldownChannelByTags(CooldownTags);
+
+	FSkillDurationMessage Message;
+	Message.Instigator = CurrentActorInfo->OwnerActor.Get();
+	Message.Cooldown_Duration = GetCooldownDuration();
+	
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(MessageChannel, Message);
 }
