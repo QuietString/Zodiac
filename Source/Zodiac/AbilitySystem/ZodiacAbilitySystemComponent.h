@@ -46,7 +46,9 @@ public:
 	void RemoveAbilityFromActivationGroup(EZodiacAbilityActivationGroup Group, UZodiacGameplayAbility* ZodiacAbility);
 	void CancelActivationGroupAbilities(EZodiacAbilityActivationGroup Group, UZodiacGameplayAbility* IgnoreZodiacAbility, bool bReplicateCancelAbility);
 
-	
+	/** Gets the ability target data associated with the given ability handle and activation info */
+	void GetAbilityTargetData(const FGameplayAbilitySpecHandle AbilityHandle, const FGameplayAbilityActivationInfo& ActivationInfo, FGameplayAbilityTargetDataHandle& OutTargetDataHandle);
+
 protected:
 
 	void TryActivateAbilitiesOnSpawn();

@@ -19,7 +19,7 @@ class UZodiacSkillSocketSet : public UObject
 
 public:
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "Ability.Skill.Type"))
 	FGameplayTag SkillTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

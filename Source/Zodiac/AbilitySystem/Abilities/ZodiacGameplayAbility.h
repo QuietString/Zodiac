@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "System/GameplayTagStack.h"
 #include "ZodiacGameplayAbility.generated.h"
 
+class UZodiacAbilityCost;
 class UZodiacHeroComponent;
 class AZodiacPlayerController;
 class UZodiacCameraMode;
@@ -77,6 +79,8 @@ public:
 
 	UZodiacGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AZodiacPlayerController* GetZodiacPlayerControllerFromActorInfo() const;
 	
@@ -89,12 +93,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	UZodiacHeroComponent* GetCurrentHeroComponent() const;
 
-	const FGameplayTag* GetSkillTag() { return &SkillTag; }
-
 	UFUNCTION(BlueprintNativeEvent)
 	FName GetCurrentAbilitySocket(const uint8 ComboIndex);
+
+	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="TagStack")
+	void AddStatTagStack(FGameplayTag Tag, int32 StackCount);
+
+	// Removes a specified number of stacks from the tag (does nothing if StackCount is below 1)
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category= "TagStack")
+	void RemoveStatTagStack(FGameplayTag Tag, int32 StackCount);
+	
+	// Returns the stack count of the specified tag (or 0 if the tag is not present)
+	UFUNCTION(BlueprintCallable, Category= "TagStack")
+	int32 GetStatTagStackCount(FGameplayTag Tag) const;
 	
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
+	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void CommitExecute(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	
@@ -131,6 +147,7 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ScriptOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
 
+	// Called on CommitExecute.
 	void SendCooldownMessage();
 protected:
 
@@ -139,23 +156,26 @@ protected:
 	FGameplayTag SkillTag;
 	
 	// Defines how this ability is meant to activate.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Ability Activation")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Activation")
 	EZodiacAbilityActivationPolicy ActivationPolicy;
 
 	// Defines the relationship between this ability activating and other abilities activating.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Ability Activation")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Activation")
 	EZodiacAbilityActivationGroup ActivationGroup;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Zodiac|Cooldown")
+	// Additional costs that must be paid to activate this ability
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Costs")
+	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;
+
+	// initial amount of tag stack to give. e.g, ammo
+	UPROPERTY(EditDefaultsOnly, Category = "Costs")
+	TMap<FGameplayTag, int32> InitialTagStack;
+	
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Costs")
 	FScalableFloat CooldownDuration;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Zodiac|Cooldown")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Costs")
 	FGameplayTagContainer CooldownTags;
-
-	// Temp container that we will return the pointer to in GetCooldownTags().
-	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.
-	UPROPERTY(Transient)
-	FGameplayTagContainer TempCooldownTags;
 	
 	// Map of failure tags to simple error messages
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
@@ -170,6 +190,12 @@ protected:
 
 private:
 
-	UPROPERTY()
-	FName AbilitySocket;
+	// Tag container for additional costs. e.g, ammo
+	UPROPERTY(Replicated)
+	FGameplayTagStackContainer StatTags;
+	
+	// Temp container that we will return the pointer to in GetCooldownTags().
+	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.
+	UPROPERTY(Transient)
+	FGameplayTagContainer TempCooldownTags;
 };

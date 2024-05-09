@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayEffectTypes.h"
+#include "GameplayTags.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "Engine/DataAsset.h"
 #include "ZodiacAbilitySet.generated.h"
