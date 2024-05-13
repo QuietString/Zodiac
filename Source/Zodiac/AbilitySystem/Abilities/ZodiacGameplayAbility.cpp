@@ -365,3 +365,11 @@ void UZodiacGameplayAbility::SendCooldownMessage()
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 	MessageSubsystem.BroadcastMessage(MessageChannel, Message);
 }
+
+void UZodiacGameplayAbility::ChargeUltimate()
+{
+	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ChargeUltimateEffect, GetAbilityLevel());
+	EffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_UltimateGauge, UltimateChargeAmount.GetValueAtLevel(GetAbilityLevel()));
+
+	ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
+}

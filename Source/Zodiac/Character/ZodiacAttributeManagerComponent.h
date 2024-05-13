@@ -6,10 +6,10 @@
 #include "GameplayEffectTypes.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Components/GameFrameworkComponent.h"
-#include "ZodiacHealthComponent.generated.h"
+#include "ZodiacAttributeManagerComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FZodiacHealth_DeathEvent, AActor*, OwningActor);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FZodiacHealth_AttributeChanged, UZodiacHealthComponent*, HealthComponent, float, OldValue, float, NewValue, AActor*, Instigator);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FZodiacHealth_AttributeChanged, UZodiacAttributeManagerComponent*, HealthComponent, float, OldValue, float, NewValue, AActor*, Instigator);
 
 class UZodiacHealthSet;
 class UAbilitySystemComponent;
@@ -29,26 +29,26 @@ enum class EZodiacDeathState : uint8
  *	An actor component used to handle anything related to health.
  */
 UCLASS()
-class ZODIAC_API UZodiacHealthComponent : public UGameFrameworkComponent
+class ZODIAC_API UZodiacAttributeManagerComponent : public UGameFrameworkComponent
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacHealthComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UZodiacAttributeManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	// Returns the health component if one exists on the specified actor.
 	UFUNCTION(BlueprintPure, Category = "Zodiac|Health")
-	static UZodiacHealthComponent* FindHealthComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UZodiacHealthComponent>() : nullptr); }
+	static UZodiacAttributeManagerComponent* FindHealthComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UZodiacAttributeManagerComponent>() : nullptr); }
 
 	UFUNCTION(BlueprintPure, Category = "Zodiac|Health")
-	static UZodiacHealthComponent* FindMatchingHealthComponent(const AActor* Actor, const UAbilitySystemComponent* ASC)
+	static UZodiacAttributeManagerComponent* FindMatchingHealthComponent(const AActor* Actor, const UAbilitySystemComponent* ASC)
 	{
-		TInlineComponentArray<UZodiacHealthComponent*> HealthComponents;
+		TInlineComponentArray<UZodiacAttributeManagerComponent*> HealthComponents;
 		if (Actor)
 		{
-			Actor->GetComponents<UZodiacHealthComponent>(HealthComponents);
+			Actor->GetComponents<UZodiacAttributeManagerComponent>(HealthComponents);
 			if (HealthComponents.Num() > 0)
 			{
 				for (auto& HealthComponent : HealthComponents)
@@ -102,6 +102,10 @@ protected:
 	void HandleMaxHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 	void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
 
+	void HandleUltimateGaugeChanged(const FOnAttributeChangeData& OnAttributeChangeData);
+
+	void SendUltimateChargeMessage(float NewUltimateGauge);
+	
 	void ClearGameplayTags();
 	
 	UFUNCTION()

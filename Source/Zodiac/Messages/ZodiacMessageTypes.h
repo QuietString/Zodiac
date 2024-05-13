@@ -18,3 +18,17 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	float Cooldown_Duration = 0;
 };
+
+USTRUCT(BlueprintType)
+struct FUltimateChargeMessage
+{
+	GENERATED_BODY()
+
+public:
+	
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AActor> Instigator = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	float ChargeAmount = 0;
+};

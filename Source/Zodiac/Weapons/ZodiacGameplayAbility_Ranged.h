@@ -79,25 +79,25 @@ protected:
 
 protected:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Zodiac|Skill")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Skill")
 	float RateOfFire;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits=s), Category = "Zodiac|Skill")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits=s), Category = "Skill")
 	float FireInterval;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Skill")
+	UPROPERTY(EditDefaultsOnly, Category = "Skill")
 	EZodiacAbilityTargetingRule TargetingSourceRule;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Zodiac|Skill")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Skill|Combo")
 	uint8 ComboIndex;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Skill")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
 	TSubclassOf<UGameplayEffect> DamageEffect;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Cues")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues")
 	FGameplayTag GameplayCueTag_Firing;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Zodiac|Cues")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues")
 	FGameplayTag GameplayCueTag_Impact;
 
 private:

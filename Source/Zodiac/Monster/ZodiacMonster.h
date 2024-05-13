@@ -10,7 +10,7 @@
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacMonster.generated.h"
 
-class UZodiacHealthComponent;
+class UZodiacAttributeManagerComponent;
 class UZodiacAbilitySet;
 class UZodiacAbilitySystemComponent;
 
@@ -54,7 +54,7 @@ protected:
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UZodiacHealthComponent> HealthComponent;
+	TObjectPtr<UZodiacAttributeManagerComponent> AttributeManagerComponent;
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Ability")
 	TArray<UZodiacAbilitySet*> Abilities;

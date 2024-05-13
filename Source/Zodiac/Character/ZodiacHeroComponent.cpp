@@ -4,10 +4,8 @@
 
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "ZodiacHealthComponent.h"
+#include "ZodiacAttributeManagerComponent.h"
 #include "ZodiacHeroData.h"
-#include "AbilitySystem/Attributes/ZodiacCombatSet.h"
-#include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "Skills/ZodiacSkillManagerComponent.h"
 
 UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer)
@@ -19,7 +17,7 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+	AttributeManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAttributeManagerComponent>(this, TEXT("AttributeManagerComponent"));
 }
 
 int32 UZodiacHeroComponent::AssignNewID(UZodiacHeroComponent* HeroComponent)
@@ -75,7 +73,7 @@ void UZodiacHeroComponent::OnRegister()
 
 void UZodiacHeroComponent::BeginPlay()
 {
-	check(HeroData && "Hust have HeroData");
+	check(HeroData && "Must have HeroData");
 
 	Super::BeginPlay();
 	
@@ -90,7 +88,7 @@ UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 	AddAbilities();
 	
 	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
-	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+	AttributeManagerComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 	
 	
 	return AbilitySystemComponent;

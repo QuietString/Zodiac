@@ -3,7 +3,7 @@
 
 #include "ZodiacHealthBarWidget.h"
 
-#include "Character/ZodiacHealthComponent.h"
+#include "Character/ZodiacAttributeManagerComponent.h"
 #include "Character/ZodiacHeroComponent.h"
 #include "Character/ZodiacPlayerCharacter.h"
 
@@ -17,8 +17,8 @@ void UZodiacHealthBarWidget::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPa
 	{
 		PlayerCharacter = ZodiacCharacter;
 
-		TArray<UZodiacHealthComponent*> HealthComponents;
-		PlayerCharacter->GetComponents(UZodiacHealthComponent::StaticClass(), HealthComponents);
+		TArray<UZodiacAttributeManagerComponent*> HealthComponents;
+		PlayerCharacter->GetComponents(UZodiacAttributeManagerComponent::StaticClass(), HealthComponents);
 		if (HealthComponents.Num() > 0)
 		{
 			for (auto& HealthComponent : HealthComponents)
@@ -38,7 +38,7 @@ void UZodiacHealthBarWidget::OnPossessedPawnChanged(APawn* OldPawn, APawn* NewPa
 
 void UZodiacHealthBarWidget::HandleHeroChanged(UZodiacHeroComponent* HeroComponent)
 {
-	if (UZodiacHealthComponent* HealthComponent = HeroComponent->GetHealthComponent())
+	if (UZodiacAttributeManagerComponent* HealthComponent = HeroComponent->GetHealthComponent())
 	{
 		float InCurrentHealth;
 		float InCurrentMaxHealth;
@@ -48,7 +48,7 @@ void UZodiacHealthBarWidget::HandleHeroChanged(UZodiacHeroComponent* HeroCompone
 	}
 }
 
-void UZodiacHealthBarWidget::HandleHealthChanged(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue,
+void UZodiacHealthBarWidget::HandleHealthChanged(UZodiacAttributeManagerComponent* HealthComponent, float OldValue, float NewValue,
                                                  AActor* Instigator)
 {
 	// Apply health change to this UI only when the change is happened on the current Hero.

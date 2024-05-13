@@ -24,6 +24,9 @@ public:
 	static FGameplayTag GetCooldownChannelByTags(const FGameplayTagContainer& TagContainer);
 
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Message")
+	static FGameplayTag GetUltimateChargeChannel();
+	
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Message")
 	static FGameplayTag GetSkillChangeChannelByTag(const FGameplayTag Tag);
 	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Message")

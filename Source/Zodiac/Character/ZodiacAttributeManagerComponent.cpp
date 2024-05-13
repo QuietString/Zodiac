@@ -1,15 +1,19 @@
 // the.quiet.string@gmail.com
 
 
-#include "Character/ZodiacHealthComponent.h"
+#include "Character/ZodiacAttributeManagerComponent.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
+#include "AbilitySystem/Attributes/ZodiacUltimateSet.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "Messages/ZodiacMessageLibrary.h"
+#include "Messages/ZodiacMessageTypes.h"
 #include "Net/UnrealNetwork.h"
 
-UZodiacHealthComponent::UZodiacHealthComponent(const FObjectInitializer& ObjectInitializer)
+UZodiacAttributeManagerComponent::UZodiacAttributeManagerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)	
 {
 	PrimaryComponentTick.bStartWithTickEnabled = false;
@@ -22,14 +26,14 @@ UZodiacHealthComponent::UZodiacHealthComponent(const FObjectInitializer& ObjectI
 	DeathState = EZodiacDeathState::NotDead;
 }
 
-void UZodiacHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UZodiacAttributeManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UZodiacHealthComponent, DeathState);
+	DOREPLIFETIME(UZodiacAttributeManagerComponent, DeathState);
 }
 
-void UZodiacHealthComponent::InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InASC)
+void UZodiacAttributeManagerComponent::InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InASC)
 {
 	AActor* Owner = GetOwner();
 	check(Owner);
@@ -42,12 +46,13 @@ void UZodiacHealthComponent::InitializeWithAbilitySystem(UZodiacAbilitySystemCom
 	InASC->GetGameplayAttributeValueChangeDelegate(UZodiacHealthSet::GetHealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
 	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
 	
+	InASC->GetGameplayAttributeValueChangeDelegate(UZodiacUltimateSet::GetUltimateGaugeAttribute()).AddUObject(this, &UZodiacAttributeManagerComponent::HandleUltimateGaugeChanged);
 	ClearGameplayTags();
 
 	CheckReady();
 }
 
-void UZodiacHealthComponent::GetCurrentHealth(float& CurrentHealth, float& CurrentMaxHealth)
+void UZodiacAttributeManagerComponent::GetCurrentHealth(float& CurrentHealth, float& CurrentMaxHealth)
 {
 	// @TODO: getting health through this variable is not working.
 	//CurrentHealth = HealthSet->GetHealth();
@@ -62,7 +67,7 @@ void UZodiacHealthComponent::GetCurrentHealth(float& CurrentHealth, float& Curre
 	}
 }
 
-void UZodiacHealthComponent::StartDeath()
+void UZodiacAttributeManagerComponent::StartDeath()
 {
 	if (DeathState != EZodiacDeathState::NotDead)
 	{
@@ -84,12 +89,12 @@ void UZodiacHealthComponent::StartDeath()
 	Owner->ForceNetUpdate();
 }
 
-void UZodiacHealthComponent::FinishDeath()
+void UZodiacAttributeManagerComponent::FinishDeath()
 {
 	
 }
 
-void UZodiacHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+void UZodiacAttributeManagerComponent::HandleHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
 {
 	float NewValue = OnAttributeChangeData.NewValue;
 	float OldValue = OnAttributeChangeData.OldValue;
@@ -102,12 +107,12 @@ void UZodiacHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& O
 	OnHealthChanged.Broadcast(this, OldValue, NewValue, nullptr);
 }
 
-void UZodiacHealthComponent::HandleMaxHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+void UZodiacAttributeManagerComponent::HandleMaxHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
 {
 
 }
 
-void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser,
+void UZodiacAttributeManagerComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser,
                                                const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
 {
 #if WITH_SERVER_CODE
@@ -150,7 +155,29 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 #endif
 }
 
-void UZodiacHealthComponent::ClearGameplayTags()
+void UZodiacAttributeManagerComponent::HandleUltimateGaugeChanged(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	float NewValue = OnAttributeChangeData.NewValue;
+	float OldValue = OnAttributeChangeData.OldValue;
+
+	UE_LOG(LogTemp, Warning, TEXT("charged ultimate: %.1f"), NewValue);
+
+	SendUltimateChargeMessage(NewValue);
+}
+
+void UZodiacAttributeManagerComponent::SendUltimateChargeMessage(float NewUltimateGauge)
+{
+	const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetUltimateChargeChannel();
+
+	FUltimateChargeMessage Message;
+	Message.Instigator = GetOwner();
+	Message.ChargeAmount = NewUltimateGauge;
+	
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(MessageChannel, Message);
+}
+
+void UZodiacAttributeManagerComponent::ClearGameplayTags()
 {
 	if (AbilitySystemComponent)
 	{
@@ -159,7 +186,7 @@ void UZodiacHealthComponent::ClearGameplayTags()
 	}
 }
 
-void UZodiacHealthComponent::OnRep_DeathState(EZodiacDeathState OldDeathState)
+void UZodiacAttributeManagerComponent::OnRep_DeathState(EZodiacDeathState OldDeathState)
 {
 	const EZodiacDeathState NewDeathState = DeathState;
 
@@ -204,7 +231,7 @@ void UZodiacHealthComponent::OnRep_DeathState(EZodiacDeathState OldDeathState)
 	ensureMsgf((DeathState == NewDeathState), TEXT("ZodiacHealthComponent: Death transition failed [%d] -> [%d] for owner [%s]."), (uint8)OldDeathState, (uint8)NewDeathState, *GetNameSafe(GetOwner()));
 }
 
-void UZodiacHealthComponent::CheckReady()
+void UZodiacAttributeManagerComponent::CheckReady()
 {
 	// if (GetOwner() && CurrentHealth > 0 && MaxHealth > 0 && AbilitySystemComponent && HealthSet)
 	// {

@@ -125,11 +125,11 @@ public:
 	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
 	
 	// Sets the ability's camera mode.
-	UFUNCTION(BlueprintCallable, Category = "Lyra|Ability")
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	void SetCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode);
 
 	// Clears the ability's camera mode.  Automatically called if needed when the ability ends.
-	UFUNCTION(BlueprintCallable, Category = "Lyra|Ability")
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	void ClearCameraMode();
 	
 	void OnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const
@@ -149,6 +149,9 @@ protected:
 
 	// Called on CommitExecute.
 	void SendCooldownMessage();
+	
+	void ChargeUltimate();
+
 protected:
 
 	// Skill identifier tag for effects (sockets and etc)
@@ -164,18 +167,24 @@ protected:
 	EZodiacAbilityActivationGroup ActivationGroup;
 
 	// Additional costs that must be paid to activate this ability
-	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Costs")
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Skill|Cost")
 	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;
 
 	// initial amount of tag stack to give. e.g, ammo
-	UPROPERTY(EditDefaultsOnly, Category = "Costs")
+	UPROPERTY(EditDefaultsOnly, Category = "Skill|Cost")
 	TMap<FGameplayTag, int32> InitialTagStack;
 	
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Costs")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Skill|Cost")
 	FScalableFloat CooldownDuration;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Costs")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "SKill|Cost")
 	FGameplayTagContainer CooldownTags;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Ultimate")
+	TSubclassOf<UGameplayEffect> ChargeUltimateEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Ultimate")
+	FScalableFloat UltimateChargeAmount;
 	
 	// Map of failure tags to simple error messages
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")

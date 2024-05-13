@@ -13,7 +13,7 @@
 #include "ZodiacPlayerCharacter.generated.h"
 
 class UZodiacSkillManagerComponent;
-class UZodiacHealthComponent;
+class UZodiacAttributeManagerComponent;
 class AZodiacPlayerState;
 struct FGenericTeamId;
 class UZodiacCameraComponent;
@@ -56,7 +56,7 @@ public:
 	TArray<FName> GetCurrentAbilitySockets(FGameplayTag AbilityTag);
 	
 	UFUNCTION(BlueprintCallable)
-	UZodiacHealthComponent* GetCurrentHealthComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex]->GetHealthComponent() : nullptr; }
+	UZodiacAttributeManagerComponent* GetCurrentHealthComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex]->GetHealthComponent() : nullptr; }
 
 	//~AActor interface
 	virtual void PossessedBy(AController* NewController) override;
@@ -155,7 +155,7 @@ protected:
 private:
 	
 	UPROPERTY()
-	UZodiacHealthComponent* CurrentHealthComponent;
+	UZodiacAttributeManagerComponent* CurrentHealthComponent;
 	
 	bool bHeroesInitialized = false;
 

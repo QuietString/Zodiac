@@ -11,6 +11,7 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_ULTIMATE, "Ability.Type.Ski
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_PRIMARY_COOLDOWN_MESSAGE, "Ability.Type.Skill.Primary.Cooldown.Message");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_SECONDARY_COOLDOWN_MESSAGE, "Ability.Type.Skill.Secondary.Cooldown.Message");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_ULTIMATE_COOLDOWN_MESSAGE, "Ability.Type.Skill.Ultimate.Cooldown.Message");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_ULTIMATE_CHARGE_MESSAGE, "Ability.Type.Skill.Ultimate.Charge.Message");
 
 FGameplayTag UZodiacMessageLibrary::GetCooldownChannelByTag(const FGameplayTag Tag)
 {
@@ -50,6 +51,11 @@ FGameplayTag UZodiacMessageLibrary::GetCooldownChannelByTags(const FGameplayTagC
 	}
 
 	return  MessageChannel;
+}
+
+FGameplayTag UZodiacMessageLibrary::GetUltimateChargeChannel()
+{
+	return TAG_ABILITY_TYPE_SKILL_ULTIMATE_CHARGE_MESSAGE;
 }
 
 FGameplayTag UZodiacMessageLibrary::GetSkillChangeChannelByTag(const FGameplayTag Tag)

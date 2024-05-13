@@ -11,7 +11,7 @@
 #include "ZodiacHeroComponent.generated.h"
 
 
-class UZodiacHealthComponent;
+class UZodiacAttributeManagerComponent;
 class UZodiacAbilitySystemComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHeroChanged, UZodiacHeroComponent*);
@@ -34,7 +34,7 @@ public:
 
 	TArray<FName> GetCurrentAbilitySockets(const FGameplayTag AbilityTag);
 	
-	TObjectPtr<UZodiacHealthComponent> GetHealthComponent() { return HealthComponent; }
+	TObjectPtr<UZodiacAttributeManagerComponent> GetHealthComponent() { return AttributeManagerComponent; }
 	
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 
@@ -79,7 +79,7 @@ private:
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY()
-	TObjectPtr<UZodiacHealthComponent> HealthComponent;
+	TObjectPtr<UZodiacAttributeManagerComponent> AttributeManagerComponent;
 
 	UPROPERTY()
 	int32 UniqueID;

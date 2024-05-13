@@ -9,6 +9,7 @@
 #include "ZodiacLogChannels.h"
 #include "Character/ZodiacPlayerCharacter.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Monster/ZodiacMonster.h"
 #include "Physics/ZodiacCollisionChannels.h"
 #include "Teams/ZodiacTeamSubsystem.h"
 
@@ -172,8 +173,21 @@ void UZodiacGameplayAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation
 		FGameplayCueParameters GCNParameter = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
 		K2_ExecuteGameplayCueWithParams(GameplayCueTag_Firing, GCNParameter);
 
-		ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, TargetData, DamageEffect, 1);
+		if (ChargeUltimateEffect)
+		{
+			for (auto& Actor : SingleTargetData->GetActors())
+			{
+				if (Cast<AZodiacMonster>(Actor))
+				{
+					// charge ultimate when any enemies is hit
+					ChargeUltimate();
+					break;
+				}
+			}
+		}
 	}
+	
+	ApplyGameplayEffectToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, TargetData, DamageEffect, 1);
 }
 
 void UZodiacGameplayAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHits)
