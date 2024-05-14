@@ -78,14 +78,14 @@ void UZodiacAbilitySet::GiveToAbilitySystem(UZodiacAbilitySystemComponent* Zodia
 			continue;
 		}
 
-		if (!SkillToGrant.SkillType.IsValid())
+		if (!SkillToGrant.SlotType.IsValid())
 		{
 			UE_LOG(LogZodiacAbilitySystem, Error, TEXT("GrantedSkillAbilities[%d] on ability set [%s] has no skill type."), SkillIndex, *GetNameSafe(this));
 			continue;;
 		}
 		
 		UZodiacGameplayAbility* AbilityCDO = SkillToGrant.Ability->GetDefaultObject<UZodiacGameplayAbility>();
-		AbilityCDO->AbilityTags.AddTag(SkillToGrant.SkillType);
+		AbilityCDO->AbilityTags.AddTag(SkillToGrant.SlotType);
 		
 		FGameplayAbilitySpec AbilitySpec(AbilityCDO, SkillToGrant.AbilityLevel);
 		AbilitySpec.SourceObject = SourceObject;

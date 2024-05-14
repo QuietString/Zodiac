@@ -66,9 +66,12 @@ struct FZodiacSkillSet : public FZodiacAbilitySet_GameplayAbility
 public:
 	
 	// Tag for identifying skill type.
-	UPROPERTY(EditDefaultsOnly, Meta = (Categories = "Ability.Type.Skill"))
-	FGameplayTag SkillType;
+	UPROPERTY(EditDefaultsOnly, Meta = (Categories = "Ability.Type.Skill.Slot"))
+	FGameplayTag SlotType;
 
+	UPROPERTY(EditDefaultsOnly, meta = (Categories = "Ability.Type.Skill.Cost"))
+	FGameplayTag CostType;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced)
 	TArray<TObjectPtr<UZodiacSkillFragment>> Fragments;
 

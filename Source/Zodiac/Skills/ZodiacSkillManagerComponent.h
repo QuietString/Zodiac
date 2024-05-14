@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "GameplayTagContainer.h"
+#include "AbilitySystem/ZodiacAbilitySet.h"
 #include "Components/PawnComponent.h"
+#include "UI/HUD/ZodiacHealthBarWidget.h"
 
 #include "ZodiacSkillManagerComponent.generated.h"
 
@@ -13,7 +16,6 @@ struct FZodiacSkillSetWithHandle;
 class UAbilitySystemComponent;
 struct FGameplayTag;
 struct FGameplayAbilitySpecHandle;
-
 
 USTRUCT(BlueprintType)
 struct FHeroChangedMessage_SkillSlot
@@ -32,13 +34,16 @@ public:
 	FSlateBrush Brush;
 
 	UPROPERTY(BlueprintReadOnly)
-	bool HaveCooldown;
-	
+	bool bIsReady;
+
 	UPROPERTY(BlueprintReadWrite)
-	float Cooldown_Duration = 0;
-	
+	float CurrentValue;
+
 	UPROPERTY(BlueprintReadWrite)
-	float Cooldown_Remaining = 0;
+	float MaxValue;
+
+	UPROPERTY(BlueprintReadWrite)
+	float OptionalValue;
 };
 
 // Data struct for storing skill display data.
@@ -69,19 +74,22 @@ class ZODIAC_API UZodiacSkillManagerComponent : public UPawnComponent
 public:
 	
 	void RegisterSkillDisplayData(const FZodiacSkillSetWithHandle& SkillData);
-	
+
+	//void HandleHeroChanged(UZodiacHeroComponent* ZodiacHeroComponent);
 	void HandleSkillChanged(UAbilitySystemComponent* InASC, const TArray<FGameplayAbilitySpecHandle>& Handles);
 	
-	void OnSkillChanged(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle& SpecHandle, const FGameplayTag& SkillType);
-
 protected:
-
-	bool GetCooldown(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle Handle, OUT float& CooldownRemaining, OUT float& CooldownDuration);
-
-	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag);
 	
+	void GetUltimateGauge(FHeroChangedMessage_SkillSlot& OutMessage, UAbilitySystemComponent* InASC, FZodiacSkillSet* Skill);
+	void GetCooldown(FHeroChangedMessage_SkillSlot& OutMessage, UAbilitySystemComponent* InASC, FZodiacSkillSet* Skill);
+	
+	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag);
+
 protected:
 
 	UPROPERTY()
 	TMap<FGameplayAbilitySpecHandle, FSkillDataForDisplay> DisplayDataMap;
+
+	UPROPERTY()
+	TMap<FGameplayAbilitySpecHandle, FZodiacSkillSet> SkillMap;
 };

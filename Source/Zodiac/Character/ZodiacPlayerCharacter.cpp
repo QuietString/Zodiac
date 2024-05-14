@@ -204,8 +204,10 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	{
 		HeroComponents.Add(HeroComponent1);
 		HeroComponent1->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
+		//HeroComponent1->OnHeroChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleHeroChanged);
 		HeroComponent1->OnSkillChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleSkillChanged);
 		
+
 		UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystem();
 		check(HeroASC1);
 		AbilitySystemComponents.Add(HeroASC1);
@@ -217,6 +219,7 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	{
 		HeroComponents.Add(HeroComponent2);
 		HeroComponent2->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
+		//HeroComponent2->OnHeroChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleHeroChanged);
 		HeroComponent2->OnSkillChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleSkillChanged);
 
 		UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystem();

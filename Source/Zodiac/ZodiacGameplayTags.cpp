@@ -21,22 +21,21 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_ActivationGroup, "Ability.ActivateFail.ActivationGroup", "Ability failed to activate because of its activation group.");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Jump, "Ability.Type.Action.Jump");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_WeaponFire, "Ability.Type.Action.WeaponFire");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Test, "Ability.Type.Action.Test");
 	
-	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_PrimarySkill_Message , "Ability.HeroChanged.PrimarySkill.Message")
-	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_SecondarySkill_Message , "Ability.HeroChanged.SecondarySkill.Message")
-	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_UltimateSkill_Message , "Ability.HeroChanged.Ultimate.Message")
-	
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Primary, "Ability.Type.Skill.Primary");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Secondary, "Ability.Type.Skill.Secondary");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Ultimate, "Ability.Type.Skill.Ultimate");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Slot_Primary, "Ability.Type.Skill.Slot.Primary");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Slot_Secondary, "Ability.Type.Skill.Slot.Secondary");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Slot_Ultimate, "Ability.Type.Skill.Slot.Ultimate");
+
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_None, "Ability.Type.Skill.Cost.None", "A skill that can be used without any cost");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Bullet, "Ability.Type.Skill.Cost.Bullet", "A skill that need to consume some number of items");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Cooldown, "Ability.Type.Skill.Cost.Cooldown", "A skill that has to wait certain time after activation");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Gauge, "Ability.Type.Skill.Cost.Gauge", "A skill that need fully charged gauage to activate");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
 
-	UE_DEFINE_GAMEPLAY_TAG(Message_Character_Changed, "Zodiac.Message.CharacterChanged");
-
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Test, "InputTag.Test");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_PrimarySkill_Message , "Ability.HeroChanged.PrimarySkill.Message")
+	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_SecondarySkill_Message , "Ability.HeroChanged.SecondarySkill.Message")
+	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_UltimateSkill_Message , "Ability.HeroChanged.Ultimate.Message")
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Move, "InputTag.Move", "Move input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Look_Mouse, "InputTag.Look.Mouse", "Look (mouse) input.");

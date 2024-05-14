@@ -4,7 +4,9 @@
 #include "ZodiacSkillManagerComponent.h"
 
 #include "AbilitySystemComponent.h"
+#include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
+#include "AbilitySystem/Attributes/ZodiacUltimateSet.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Messages/ZodiacMessageLibrary.h"
 
@@ -14,61 +16,58 @@ void UZodiacSkillManagerComponent::RegisterSkillDisplayData(const FZodiacSkillSe
 	{
 		FGameplayAbilitySpecHandle SpecHandle = Elem.Key;
 		const FZodiacSkillSet* SkillSet = Elem.Value;
-		USkillFragment_Display* Fragment_Display = SkillSet->GetFragmentByClass<USkillFragment_Display>();
-
-		FSkillDataForDisplay Data;
-		Data.SkillName = Fragment_Display->DisplayName;
-		Data.Brush = Fragment_Display->Brush;
-		Data.SkillTag = SkillSet->SkillType;
-		Data.CooldownTag = GetCooldownExtendedTag(SkillSet->SkillType);
-		DisplayDataMap.Add(SpecHandle, Data);
+		SkillMap.Add(SpecHandle, *SkillSet);
 	}
 }
 
 void UZodiacSkillManagerComponent::HandleSkillChanged(UAbilitySystemComponent* InASC,
-                                                     const TArray<FGameplayAbilitySpecHandle>& Handles)
+                                                      const TArray<FGameplayAbilitySpecHandle>& Handles)
 {
 	for (auto& Handle : Handles)
 	{
-		if (FSkillDataForDisplay* Data = DisplayDataMap.Find(Handle))
+		if (FZodiacSkillSet* Skill = SkillMap.Find(Handle))
 		{
-			OnSkillChanged(InASC, Handle, Data->SkillTag);
+			FHeroChangedMessage_SkillSlot Message;
+			Message.Instigator = GetPawn<APawn>();
+			Message.Brush = Skill->GetFragmentByClass<USkillFragment_Display>()->Brush;
+			
+			if (Skill->SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Primary)
+			{
+				
+			}
+			else if (Skill->SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Secondary)
+			{
+				GetCooldown(Message, InASC, Skill);
+			}
+			else if (Skill->SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Ultimate)
+			{
+				GetUltimateGauge(Message, InASC, Skill);
+			}
+			
+			const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetSkillChangeChannelByTag(Skill->SlotType);
+			UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+			MessageSubsystem.BroadcastMessage(MessageChannel, Message);
 		}
 	}
 }
 
-void UZodiacSkillManagerComponent::OnSkillChanged(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle& SpecHandle, const FGameplayTag& SkillType)
-{	
-	const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetSkillChangeChannelByTag(SkillType);
-
-	float OutCooldownRemaining;
-	float OutCooldownDuration;
-	bool bCooldownFound = GetCooldown(InASC, SpecHandle, OutCooldownRemaining, OutCooldownDuration);
-	
-	FHeroChangedMessage_SkillSlot Message_SkillSlot;
-	Message_SkillSlot.Instigator = GetPawn<APawn>();
-	Message_SkillSlot.HeroName = DisplayDataMap.Find(SpecHandle)->SkillName;
-	Message_SkillSlot.Brush = DisplayDataMap.Find(SpecHandle)->Brush;
-	Message_SkillSlot.HaveCooldown = bCooldownFound;
-	Message_SkillSlot.Cooldown_Duration = OutCooldownDuration;
-	Message_SkillSlot.Cooldown_Remaining =  OutCooldownRemaining ;
-	
-	UE_LOG(LogTemp, Warning, TEXT("cool down: %.1f, remaining: %.1f"), OutCooldownDuration, OutCooldownRemaining);
-
-	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSubsystem.BroadcastMessage(MessageChannel, Message_SkillSlot);
+void UZodiacSkillManagerComponent::GetUltimateGauge(FHeroChangedMessage_SkillSlot& OutMessage,
+                                                  UAbilitySystemComponent* InASC, FZodiacSkillSet* Skill)
+{
+	const UZodiacUltimateSet* UltimateSet = CastChecked<UZodiacUltimateSet>(InASC->GetAttributeSet(UZodiacUltimateSet::StaticClass()));
+	UE_LOG(LogTemp, Warning, TEXT("ult gauge current: %.1f: , max: %.1f"), UltimateSet->GetUltimateGauge(), UltimateSet->GetMaxUltimateGauge());
+	OutMessage.CurrentValue = UltimateSet->GetUltimateGauge();
+	OutMessage.MaxValue = UltimateSet->GetMaxUltimateGauge();
 }
 
-bool UZodiacSkillManagerComponent::GetCooldown(UAbilitySystemComponent* InASC, const FGameplayAbilitySpecHandle Handle, float& CooldownRemaining,
-                                               float& CooldownDuration)
+void UZodiacSkillManagerComponent::GetCooldown(FHeroChangedMessage_SkillSlot& OutMessage,
+                                               UAbilitySystemComponent* InASC,
+                                               FZodiacSkillSet* Skill)
 {
 	check(InASC);
-	
-	CooldownRemaining = 0.0f;
-	CooldownDuration = BIG_NUMBER;
-	
+
 	FGameplayTagContainer QueryContainer;
-	QueryContainer.AddTag(DisplayDataMap.Find(Handle)->CooldownTag);
+	QueryContainer.AddTag(GetCooldownExtendedTag(Skill->SlotType));
 	
 	FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(QueryContainer);
 	TArray< TPair<float,float> > DurationAndTimeRemaining = InASC->GetActiveEffectsTimeRemainingAndDuration(Query);
@@ -84,13 +83,18 @@ bool UZodiacSkillManagerComponent::GetCooldown(UAbilitySystemComponent* InASC, c
 				BestIdx = Idx;
 			}
 		}
-		CooldownRemaining = DurationAndTimeRemaining[BestIdx].Key;
-		CooldownDuration = DurationAndTimeRemaining[BestIdx].Value;
+		OutMessage.CurrentValue = DurationAndTimeRemaining[BestIdx].Key;
+		OutMessage.MaxValue = DurationAndTimeRemaining[BestIdx].Value;
+		OutMessage.bIsReady = false;
 
-		return true;
+		UE_LOG(LogTemp, Warning, TEXT("cool down: %.1f, remaining: %.1f"), OutMessage.MaxValue, OutMessage.CurrentValue );
 	}
-	
-	return false;
+	else
+	{
+		OutMessage.CurrentValue = 0;
+		OutMessage.MaxValue = BIG_NUMBER;
+		OutMessage.bIsReady = true;
+	}
 }
 
 FGameplayTag UZodiacSkillManagerComponent::GetCooldownExtendedTag(const FGameplayTag& SkillTag)

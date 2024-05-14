@@ -4,10 +4,6 @@
 
 #include "ZodiacGameplayTags.h"
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_PRIMARY, "Ability.Type.Skill.Primary");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_SECONDARY, "Ability.Type.Skill.Secondary");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_ULTIMATE, "Ability.Type.Skill.Ultimate");
-
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_PRIMARY_COOLDOWN_MESSAGE, "Ability.Type.Skill.Primary.Cooldown.Message");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_SECONDARY_COOLDOWN_MESSAGE, "Ability.Type.Skill.Secondary.Cooldown.Message");
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_ABILITY_TYPE_SKILL_ULTIMATE_COOLDOWN_MESSAGE, "Ability.Type.Skill.Ultimate.Cooldown.Message");
@@ -17,15 +13,15 @@ FGameplayTag UZodiacMessageLibrary::GetCooldownChannelByTag(const FGameplayTag T
 {
 	FGameplayTag MessageChannel;
 	
-	if (Tag.MatchesTag(TAG_ABILITY_TYPE_SKILL_PRIMARY))
+	if (Tag.MatchesTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Primary))
 	{
 		MessageChannel = TAG_ABILITY_TYPE_SKILL_PRIMARY_COOLDOWN_MESSAGE;
 	}
-	else if (Tag.MatchesTag(TAG_ABILITY_TYPE_SKILL_SECONDARY))
+	else if (Tag.MatchesTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Secondary))
 	{
 		MessageChannel = TAG_ABILITY_TYPE_SKILL_SECONDARY_COOLDOWN_MESSAGE;
 	}
-	else if (Tag.MatchesTag(TAG_ABILITY_TYPE_SKILL_ULTIMATE))
+	else if (Tag.MatchesTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Ultimate))
 	{
 		MessageChannel = TAG_ABILITY_TYPE_SKILL_ULTIMATE_COOLDOWN_MESSAGE;
 	}
@@ -37,15 +33,15 @@ FGameplayTag UZodiacMessageLibrary::GetCooldownChannelByTags(const FGameplayTagC
 {
 	FGameplayTag MessageChannel;
 
-	if (TagContainer.HasTag(TAG_ABILITY_TYPE_SKILL_PRIMARY))
+	if (TagContainer.HasTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Primary))
 	{
 		MessageChannel = TAG_ABILITY_TYPE_SKILL_PRIMARY_COOLDOWN_MESSAGE;
 	}
-	else if (TagContainer.HasTag(TAG_ABILITY_TYPE_SKILL_SECONDARY))
+	else if (TagContainer.HasTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Secondary))
 	{
 		MessageChannel = TAG_ABILITY_TYPE_SKILL_SECONDARY_COOLDOWN_MESSAGE;
 	}
-	else if (TagContainer.HasTag(TAG_ABILITY_TYPE_SKILL_ULTIMATE))
+	else if (TagContainer.HasTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Ultimate))
 	{
 		MessageChannel = TAG_ABILITY_TYPE_SKILL_ULTIMATE_COOLDOWN_MESSAGE;
 	}
@@ -62,15 +58,15 @@ FGameplayTag UZodiacMessageLibrary::GetSkillChangeChannelByTag(const FGameplayTa
 {
 	FGameplayTag MessageChannel;
 	
-	if (Tag.MatchesTag(ZodiacGameplayTags::Ability_Type_Skill_Primary))
+	if (Tag.MatchesTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Primary))
 	{
 		MessageChannel = ZodiacGameplayTags::Ability_HeroChanged_PrimarySkill_Message;
 	}
-	else if (Tag.MatchesTag(ZodiacGameplayTags::Ability_Type_Skill_Secondary))
+	else if (Tag.MatchesTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Secondary))
 	{
 		MessageChannel = ZodiacGameplayTags::Ability_HeroChanged_SecondarySkill_Message;
 	}
-	else if (Tag.MatchesTag(ZodiacGameplayTags::Ability_Type_Skill_Ultimate))
+	else if (Tag.MatchesTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Ultimate))
 	{
 		MessageChannel = ZodiacGameplayTags::Ability_HeroChanged_UltimateSkill_Message;
 	}
@@ -82,15 +78,15 @@ FGameplayTag UZodiacMessageLibrary::GetSkillChangeChannelByTags(const FGameplayT
 {
 	FGameplayTag MessageChannel;
 
-	if (TagContainer.HasTag(TAG_ABILITY_TYPE_SKILL_PRIMARY))
+	if (TagContainer.HasTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Primary))
 	{
 		MessageChannel = ZodiacGameplayTags::Ability_HeroChanged_PrimarySkill_Message;
 	}
-	else if (TagContainer.HasTag(TAG_ABILITY_TYPE_SKILL_SECONDARY))
+	else if (TagContainer.HasTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Secondary))
 	{
 		MessageChannel = ZodiacGameplayTags::Ability_HeroChanged_SecondarySkill_Message;
 	}
-	else if (TagContainer.HasTag(TAG_ABILITY_TYPE_SKILL_ULTIMATE))
+	else if (TagContainer.HasTag(ZodiacGameplayTags::Ability_Type_Skill_Slot_Ultimate))
 	{
 		MessageChannel = ZodiacGameplayTags::Ability_HeroChanged_UltimateSkill_Message;
 	}
