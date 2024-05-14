@@ -6,6 +6,7 @@
 #include "AbilitySystemGlobals.h"
 #include "AIController.h"
 #include "GameplayCueFunctionLibrary.h"
+#include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
 #include "Character/ZodiacPlayerCharacter.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
@@ -177,11 +178,14 @@ void UZodiacGameplayAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation
 		{
 			for (auto& Actor : SingleTargetData->GetActors())
 			{
-				if (Cast<AZodiacMonster>(Actor))
+				if (AZodiacMonster* Monster = Cast<AZodiacMonster>(Actor))
 				{
-					// charge ultimate when any enemies is hit
-					ChargeUltimate();
-					break;
+					if (!Monster->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Death_Dying))
+					{
+						// charge ultimate when any enemies is hit
+						ChargeUltimate();
+						break;
+					}
 				}
 			}
 		}
