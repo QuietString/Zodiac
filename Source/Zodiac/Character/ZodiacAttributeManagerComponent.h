@@ -113,8 +113,6 @@ protected:
 
 private:
 
-	void CheckReady();
-	
 public:
 	
 	// // Just for health visualization.

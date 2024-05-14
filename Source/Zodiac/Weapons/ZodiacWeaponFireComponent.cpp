@@ -7,17 +7,16 @@
 #include "Character/ZodiacPlayerCharacter.h"
 
 
+UZodiacWeaponFireComponent::UZodiacWeaponFireComponent(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	bWantsInitializeComponent = true;
+}
+
 void UZodiacWeaponFireComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	
-	UE_LOG(LogTemp, Warning, TEXT("weapon component init"));
-}
-
-void UZodiacWeaponFireComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
 	if (AZodiacPlayerCharacter* Character = GetPawn<AZodiacPlayerCharacter>())
 	{
 		TInlineComponentArray<UZodiacHeroComponent*> HeroComponents_Inline;
