@@ -48,8 +48,6 @@ void UZodiacAttributeManagerComponent::InitializeWithAbilitySystem(UZodiacAbilit
 	
 	InASC->GetGameplayAttributeValueChangeDelegate(UZodiacUltimateSet::GetUltimateGaugeAttribute()).AddUObject(this, &UZodiacAttributeManagerComponent::HandleUltimateGaugeChanged);
 	ClearGameplayTags();
-
-	CheckReady();
 }
 
 void UZodiacAttributeManagerComponent::GetCurrentHealth(float& CurrentHealth, float& CurrentMaxHealth)
@@ -229,12 +227,4 @@ void UZodiacAttributeManagerComponent::OnRep_DeathState(EZodiacDeathState OldDea
 	}
 
 	ensureMsgf((DeathState == NewDeathState), TEXT("ZodiacHealthComponent: Death transition failed [%d] -> [%d] for owner [%s]."), (uint8)OldDeathState, (uint8)NewDeathState, *GetNameSafe(GetOwner()));
-}
-
-void UZodiacAttributeManagerComponent::CheckReady()
-{
-	// if (GetOwner() && CurrentHealth > 0 && MaxHealth > 0 && AbilitySystemComponent && HealthSet)
-	// {
-	// 	OnComponentReady.Broadcast();
-	// }
 }

@@ -26,9 +26,6 @@ public:
 
 	UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	static int32 AssignNewID(UZodiacHeroComponent* HeroComponent); 
-	int32 GetUniqueID() { return UniqueID; }
-	
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -81,7 +78,5 @@ private:
 	UPROPERTY()
 	TObjectPtr<UZodiacAttributeManagerComponent> AttributeManagerComponent;
 
-	UPROPERTY()
-	int32 UniqueID;
 };
 

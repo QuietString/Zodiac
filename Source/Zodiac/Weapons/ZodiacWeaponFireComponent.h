@@ -15,11 +15,10 @@ class ZODIAC_API UZodiacWeaponFireComponent : public UPawnComponent
 	GENERATED_BODY()
 
 public:	
+	UZodiacWeaponFireComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 protected:
-
 	virtual void InitializeComponent() override;
-	virtual void BeginPlay() override;
 
 	void OnHeroChanged(UZodiacHeroComponent* NewHeroComponent);
 	

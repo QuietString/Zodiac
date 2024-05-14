@@ -11,22 +11,11 @@
 UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	UniqueID = INDEX_NONE;
-	
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAttributeManagerComponent>(this, TEXT("AttributeManagerComponent"));
-}
-
-int32 UZodiacHeroComponent::AssignNewID(UZodiacHeroComponent* HeroComponent)
-{
-	// Must be in C++ to avoid duplicate statics across execution units
-	static int32 GHandle = 1;
-	HeroComponent->UniqueID = GHandle++;
-
-	return HeroComponent->UniqueID;
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -76,8 +65,6 @@ void UZodiacHeroComponent::BeginPlay()
 	check(HeroData && "Must have HeroData");
 
 	Super::BeginPlay();
-	
-	OnHeroChanged.Broadcast(this);
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()

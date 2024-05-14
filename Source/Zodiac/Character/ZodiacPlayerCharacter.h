@@ -76,13 +76,11 @@ public:
 	/** Clears the camera override if it is set */
 	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
 	
-	void ChangeHero(int32 NewIndex);
+	void ChangeHero(const int32 NewIndex, const bool bForced = false);
 	void ChangeCharacterMesh(USkeletalMesh* NewMesh, TSubclassOf<UAnimInstance> NewAnimInstance);
 	void ChangeHeroMesh(USkeletalMesh* NewMesh);
 
 	void OnHeroChanged(UZodiacHeroComponent* NewHeroComponent);
-	
-	void CheckReadyAndPlay();
 
 public:
 
@@ -158,6 +156,4 @@ private:
 	UZodiacAttributeManagerComponent* CurrentHealthComponent;
 	
 	bool bHeroesInitialized = false;
-
-	bool bReady = false;
 };

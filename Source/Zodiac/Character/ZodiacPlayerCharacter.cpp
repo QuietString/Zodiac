@@ -108,7 +108,8 @@ void AZodiacPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	CheckReadyAndPlay();
+	//CheckReadyAndPlay();
+	ChangeHero(0, true);
 }
 
 void AZodiacPlayerCharacter::PostInitializeComponents()
@@ -148,7 +149,7 @@ void AZodiacPlayerCharacter::ClearAbilityCameraMode(const FGameplayAbilitySpecHa
 	}
 }
 
-void AZodiacPlayerCharacter::ChangeHero(int32 NewIndex)
+void AZodiacPlayerCharacter::ChangeHero(const int32 NewIndex, const bool bForced)
 {
 	if (HeroComponents.IsValidIndex(NewIndex))
 	{
@@ -156,9 +157,9 @@ void AZodiacPlayerCharacter::ChangeHero(int32 NewIndex)
 		{
 			int32 OldIndex = ActiveHeroIndex;
 			ActiveHeroIndex = NewIndex;
-			if (OldIndex != NewIndex)
+			if ((OldIndex != NewIndex) || bForced)
 			{
-				OnRep_ActiveHeroIndex(OldIndex);	
+				OnRep_ActiveHeroIndex(OldIndex);
 			}
 		}
 	}
@@ -191,29 +192,6 @@ void AZodiacPlayerCharacter::OnHeroChanged(UZodiacHeroComponent* NewHeroComponen
 	}
 }
 
-void AZodiacPlayerCharacter::CheckReadyAndPlay()
-{
-	// check player connected
-	bool bServerConnected = false;
-	if (HasAuthority())
-	{
-		bServerConnected = true;
-	}
-	else
-	{
-		if (APlayerState* PS = GetPlayerState())
-		{
-			bServerConnected = true;
-		}
-	}
-
-	if (bServerConnected && bHeroesInitialized && HasActorBegunPlay())
-	{
-		SelectFirstHero();
-		bReady = true;
-	}
-}
-
 void AZodiacPlayerCharacter::InitializeHeroComponents()
 {
 	HeroComponents.Reset(2);
@@ -224,7 +202,6 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	
 	if (HeroComponent1)
 	{
-		UZodiacHeroComponent::AssignNewID(HeroComponent1);
 		HeroComponents.Add(HeroComponent1);
 		HeroComponent1->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
 		HeroComponent1->OnSkillChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleSkillChanged);
@@ -238,7 +215,6 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 
 	if (HeroComponent2)
 	{
-		UZodiacHeroComponent::AssignNewID(HeroComponent2);
 		HeroComponents.Add(HeroComponent2);
 		HeroComponent2->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
 		HeroComponent2->OnSkillChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleSkillChanged);
@@ -254,8 +230,6 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	{
 		bHeroesInitialized = true;
 	}
-
-	CheckReadyAndPlay();
 }
 
 void AZodiacPlayerCharacter::SelectFirstHero()
