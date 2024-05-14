@@ -108,7 +108,7 @@ void AZodiacPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//CheckReadyAndPlay();
+	// Select first hero
 	ChangeHero(0, true);
 }
 
