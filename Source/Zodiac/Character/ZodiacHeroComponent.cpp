@@ -2,9 +2,10 @@
 
 #include "ZodiacHeroComponent.h"
 
+#include "HeroDisplayManagerComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "ZodiacAttributeManagerComponent.h"
+#include "ZodiacHealthComponent.h"
 #include "ZodiacHeroData.h"
 #include "Skills/ZodiacSkillManagerComponent.h"
 
@@ -14,8 +15,9 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
-	AttributeManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAttributeManagerComponent>(this, TEXT("AttributeManagerComponent"));
+	
+	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+	DisplayManager = CreateDefaultSubobject<UHeroDisplayManagerComponent>(TEXT("HeroDisplayManagerComponent"));
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -48,6 +50,34 @@ void UZodiacHeroComponent::GetOwnedGameplayTags(FGameplayTagContainer& TagContai
 	}
 }
 
+bool UZodiacHeroComponent::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
+{
+	if (AbilitySystemComponent)
+	{
+		return AbilitySystemComponent->HasMatchingGameplayTag(TagToCheck);
+	}
+	return IGameplayTagAssetInterface::HasMatchingGameplayTag(TagToCheck);
+}
+
+bool UZodiacHeroComponent::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (AbilitySystemComponent)
+	{
+		return AbilitySystemComponent->HasAllMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
+bool UZodiacHeroComponent::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (AbilitySystemComponent)
+	{
+		return AbilitySystemComponent->HasAnyMatchingGameplayTags(TagContainer);
+	}
+
+	return false;}
+
 void UZodiacHeroComponent::OnRegister()
 {
 	if (HeroData)
@@ -75,36 +105,36 @@ UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 	AddAbilities();
 	
 	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
-	AttributeManagerComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
-	
-	
+	HealthComponent->InitializeWithAbilitySystem(SlotIndex, AbilitySystemComponent);
+	DisplayManager->InitializeHeroData(SlotIndex, AbilitySystemComponent);
+	OnHeroChanged_Simple.AddUObject(DisplayManager, &UHeroDisplayManagerComponent::OnHeroChanged);
 	return AbilitySystemComponent;
 }
 
 void UZodiacHeroComponent::ActivateHero()
 {
 	OnHeroChanged.Broadcast(this);
-	OnSkillChanged.Broadcast(AbilitySystemComponent, AbilityHandles.GetSkillHandles());
+	OnHeroChanged_Simple.Broadcast();
 }
 
 void UZodiacHeroComponent::DeactivateHero()
 {
-	
 }
 
 void UZodiacHeroComponent::AddAbilities()
 {
+	UE_LOG(LogTemp, Warning, TEXT("add abilities"));
 	if (HeroData && HeroData->AbilitySets.Num() > 0)
 	{
 		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
 		{
+			// @TODO: can't get SKillData since it give abilities only on the server. 
 			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, OUT &AbilityHandles, OUT &SkillData);
 		}
 	}
 	
 	if (APawn* Pawn = GetPawn<APawn>())
 	{
-		UZodiacSkillManagerComponent* SkillManager = Pawn->FindComponentByClass<UZodiacSkillManagerComponent>();
-		SkillManager->RegisterSkillDisplayData(SkillData);
+		DisplayManager->RegisterSkillDisplayData(SkillData);
 	}
 }

@@ -10,9 +10,21 @@
 #include "Components/PawnComponent.h"
 #include "ZodiacHeroComponent.generated.h"
 
+class UHeroDisplayManagerComponent;
 
-class UZodiacAttributeManagerComponent;
+UCLASS()
+class UHeroSlotDisplayData : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	FSlateBrush Brush;
+	
+};
+
+class UZodiacHealthComponent;
 class UZodiacAbilitySystemComponent;
+class UZodiacHeroComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHeroChanged, UZodiacHeroComponent*);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSkillChanged, UAbilitySystemComponent*, const TArray<FGameplayAbilitySpecHandle>&);
@@ -25,16 +37,24 @@ class ZODIAC_API UZodiacHeroComponent : public UPawnComponent, public IAbilitySy
 public:
 
 	UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
+	
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	TObjectPtr<UZodiacHealthComponent> GetHealthComponent() { return HealthComponent; }
+	
+	int32 GetSlotIndex() { return SlotIndex; }
+	void SetSlotIndex(const int32 NewIndex) { SlotIndex = NewIndex; }
+	
 	TArray<FName> GetCurrentAbilitySockets(const FGameplayTag AbilityTag);
 	
-	TObjectPtr<UZodiacAttributeManagerComponent> GetHealthComponent() { return AttributeManagerComponent; }
-	
+	//~IGameplayTagAssetInterface interface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
-
+	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
+	virtual bool HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
+	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
+	//~End of IGameplayTagAssetInterface interface
+	
 	const UZodiacHeroData* GetHeroData() { return HeroData; }
 	
 	virtual void OnRegister() override;
@@ -48,17 +68,20 @@ public:
 public:
 
 	FOnHeroChanged OnHeroChanged;
-
 	FOnSkillChanged OnSkillChanged;
+	FSimpleMulticastDelegate OnHeroChanged_Simple;
 	
 protected:
 
 	void AddAbilities();
-
+	
 protected:
 
 	UPROPERTY()
 	FName HeroName;
+
+	UPROPERTY()
+	int32 SlotIndex = INDEX_NONE;
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac")
 	const UZodiacHeroData* HeroData;
@@ -70,13 +93,17 @@ protected:
 	FZodiacAbilitySet_GrantedHandles AbilityHandles;
 
 	FZodiacSkillSetWithHandle SkillData;
+
 private:
 	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY()
-	TObjectPtr<UZodiacAttributeManagerComponent> AttributeManagerComponent;
+	TObjectPtr<UZodiacHealthComponent> HealthComponent;
+
+	UPROPERTY()
+	TObjectPtr<UHeroDisplayManagerComponent> DisplayManager;
 
 };
 

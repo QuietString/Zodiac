@@ -6,7 +6,7 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "Character/ZodiacAttributeManagerComponent.h"
+#include "Character/ZodiacHealthComponent.h"
 
 UZodiacGameplayAbility_Death::UZodiacGameplayAbility_Death(const FObjectInitializer& ObjectInitializer)
 {
@@ -63,7 +63,7 @@ void UZodiacGameplayAbility_Death::EndAbility(const FGameplayAbilitySpecHandle H
 
 void UZodiacGameplayAbility_Death::StartDeath()
 {
-	UZodiacAttributeManagerComponent* HealthComponent = UZodiacAttributeManagerComponent::FindMatchingHealthComponent(GetAvatarActorFromActorInfo(), GetAbilitySystemComponentFromActorInfo());
+	UZodiacHealthComponent* HealthComponent = UZodiacHealthComponent::FindMatchingHealthComponent(GetAvatarActorFromActorInfo(), GetAbilitySystemComponentFromActorInfo());
 	if (HealthComponent)
 	{
 		if (HealthComponent->GetDeathState() == EZodiacDeathState::NotDead)

@@ -9,6 +9,7 @@
 #include "AbilitySystem/Attributes/ZodiacUltimateSet.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Messages/ZodiacMessageLibrary.h"
+#include "Messages/ZodiacMessageTypes.h"
 
 void UZodiacSkillManagerComponent::RegisterSkillDisplayData(const FZodiacSkillSetWithHandle& SkillData)
 {

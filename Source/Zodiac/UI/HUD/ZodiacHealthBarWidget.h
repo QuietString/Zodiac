@@ -7,7 +7,7 @@
 #include "ZodiacHealthBarWidget.generated.h"
 
 class AZodiacPlayerCharacter;
-class UZodiacAttributeManagerComponent;
+class UZodiacHealthComponent;
 
 UCLASS()
 class ZODIAC_API UZodiacHealthBarWidget : public UZodiacHeroWidgetBase
@@ -24,7 +24,7 @@ protected:
 	void OnHeroChanged(float NewValue, float MaxHealth);
 	
 	UFUNCTION()
-	void HandleHealthChanged(UZodiacAttributeManagerComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
+	void HandleHealthChanged(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnHealthChanged(float OldValue, float NewValue, float MaxHealth);

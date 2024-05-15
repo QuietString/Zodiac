@@ -9,8 +9,11 @@
 namespace ZodiacGameplayTags
 {
 	// Heroes
-	UE_DEFINE_GAMEPLAY_TAG(Hero_Twinblast, "Hero.Twinblast")
-	UE_DEFINE_GAMEPLAY_TAG(Hero_Murdock, "Hero.Murdock")
+	UE_DEFINE_GAMEPLAY_TAG(Hero_Name_Twinblast, "Hero.Name.Twinblast");
+	UE_DEFINE_GAMEPLAY_TAG(Hero_Name_Murdock, "Hero.Name.Murdock");
+	UE_DEFINE_GAMEPLAY_TAG(Hero_Slot_Slot1, "Hero.Slot.Slot1");
+	UE_DEFINE_GAMEPLAY_TAG(Hero_Slot_Slot2, "Hero.Slot.Slot2");
+	UE_DEFINE_GAMEPLAY_TAG(Hero_Changed_HealthBar_Message, "Hero.Changed.HealthBar.Message");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_IsDead, "Ability.ActivateFail.IsDead", "Ability failed to activate because its owner is dead.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_Cooldown, "Ability.ActivateFail.Cooldown", "Ability failed to activate because it is on cool down.");
@@ -48,6 +51,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_DataInitialized, "InitState.DataInitialized", "3: The available data has been initialized for this actor/component, but it is not ready for full gameplay");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_GameplayReady, "InitState.GameplayReady", "4: The actor/component is fully ready for active gameplay");
 
+	UE_DEFINE_GAMEPLAY_TAG(GameplayEvent_Damaged_Message, "GameplayEvent.Damaged.Message");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayEvent_Death, "GameplayEvent.Death", "Event that fires on death. This event only fires on the server.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayEvent_Reset, "GameplayEvent.Reset", "Event that fires once a player reset is executed.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayEvent_RequestReset, "GameplayEvent.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
@@ -120,6 +124,12 @@ namespace ZodiacGameplayTags
 		}
 
 		return Tag;
+	}
+
+	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag)
+	{
+		FString CooldownTagString = SkillTag.ToString() + TEXT(".") + TEXT("Cooldown");
+		return FGameplayTag::RequestGameplayTag(*CooldownTagString);
 	}
 }
 

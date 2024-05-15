@@ -7,7 +7,7 @@
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
-#include "Character/ZodiacAttributeManagerComponent.h"
+#include "Character/ZodiacHealthComponent.h"
 
 
 AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
@@ -17,7 +17,7 @@ AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	AttributeManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAttributeManagerComponent>(this, TEXT("AttributeManagerComponent"));
+	AttributeManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("AttributeManagerComponent"));
 }
 
 void AZodiacMonster::PostInitializeComponents()
@@ -85,7 +85,7 @@ void AZodiacMonster::InitializeAbilitySystemComponent()
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	AddAbilities();
 
-	AttributeManagerComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+	AttributeManagerComponent->InitializeWithAbilitySystem(0, AbilitySystemComponent);
 }
 
 void AZodiacMonster::AddAbilities()

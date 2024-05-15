@@ -13,7 +13,7 @@
 #include "ZodiacPlayerCharacter.generated.h"
 
 class UZodiacSkillManagerComponent;
-class UZodiacAttributeManagerComponent;
+class UZodiacHealthComponent;
 class AZodiacPlayerState;
 struct FGenericTeamId;
 class UZodiacCameraComponent;
@@ -47,18 +47,19 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION(BlueprintCallable)
-	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex] : nullptr; }
+	TArray<UZodiacHeroComponent*> GetHeroComponents() { return HeroComponents ; }
 
 	UFUNCTION(BlueprintCallable)
-	int32 GetCurrentHeroID() { return HeroComponents[ActiveHeroIndex]->GetUniqueID(); }
-	
+	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex] : nullptr; }
+
 	UFUNCTION(BlueprintCallable)
 	TArray<FName> GetCurrentAbilitySockets(FGameplayTag AbilityTag);
 	
 	UFUNCTION(BlueprintCallable)
-	UZodiacAttributeManagerComponent* GetCurrentHealthComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex]->GetHealthComponent() : nullptr; }
+	UZodiacHealthComponent* GetCurrentHealthComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex]->GetHealthComponent() : nullptr; }
 
 	//~AActor interface
+	virtual void PostRegisterAllComponents() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
@@ -122,9 +123,6 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<UZodiacAbilitySystemComponent>> AbilitySystemComponents;
 
-	UPROPERTY()
-	TObjectPtr<UZodiacSkillManagerComponent> SkillManager;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac")
 	TObjectPtr<UZodiacCameraComponent> CameraComponent;
 	
@@ -152,7 +150,7 @@ protected:
 private:
 	
 	UPROPERTY()
-	UZodiacAttributeManagerComponent* CurrentHealthComponent;
-	
+	UZodiacHealthComponent* CurrentHealthComponent;
+
 	bool bHeroesInitialized = false;
 };

@@ -8,11 +8,15 @@ namespace ZodiacGameplayTags
 {
 	ZODIAC_API	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
 
-	// Heroes
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hero_Twinblast);
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hero_Murdock);
+	ZODIAC_API	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag);
 
-	
+	// Heroes
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hero_Name_Twinblast);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hero_Name_Murdock);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hero_Slot_Slot1);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hero_Slot_Slot2);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Hero_Changed_HealthBar_Message);
+
 	// Declare all of the custom native tags that Zodiac will use
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_IsDead);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cooldown);
@@ -38,7 +42,7 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_PrimarySkill_Message);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_SecondarySkill_Message);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_UltimateSkill_Message);
-	
+
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Mouse);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Stick);
@@ -49,7 +53,8 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataAvailable);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataInitialized);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_GameplayReady);
-
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_Damaged_Message);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_Death);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_Reset);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_RequestReset);

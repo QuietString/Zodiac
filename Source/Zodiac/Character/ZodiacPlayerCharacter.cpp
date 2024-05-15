@@ -15,7 +15,6 @@
 #include "Input/ZodiacInputComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/ZodiacPlayerState.h"
-#include "Skills/ZodiacSkillManagerComponent.h"
 
 AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -31,8 +30,6 @@ AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectI
 
 	CameraComponent = CreateDefaultSubobject<UZodiacCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
-
-	SkillManager = CreateDefaultSubobject<UZodiacSkillManagerComponent>(TEXT("SkillManager"));
 	
 	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
 	ZodiacMoveComp->GravityScale = 1.0f;
@@ -88,6 +85,11 @@ UAbilitySystemComponent* AZodiacPlayerCharacter::GetAbilitySystemComponent() con
 TArray<FName> AZodiacPlayerCharacter::GetCurrentAbilitySockets(FGameplayTag AbilityTag)
 {
 	return HeroComponents[ActiveHeroIndex]->GetCurrentAbilitySockets(AbilityTag);
+}
+
+void AZodiacPlayerCharacter::PostRegisterAllComponents()
+{
+	Super::PostRegisterAllComponents();
 }
 
 void AZodiacPlayerCharacter::PossessedBy(AController* NewController)
@@ -197,42 +199,48 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	HeroComponents.Reset(2);
 	AbilitySystemComponents.Reset(2);
 
-	bool bComponent1Ready = false;
-	bool bComponent2Ready = false;
-	
+	// HeroComponents.Add(HeroComponent1);
+	// HeroComponents.Add(HeroComponent2);
+	//
+	// int32 Index = 0;
+	// for (auto& HeroComponent : HeroComponents)
+	// {
+	// 	if (HeroComponent)
+	// 	{
+	// 		HeroComponent->SetSlotIndex(Index);
+	// 		HeroComponent->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
+	// 	
+	// 		UZodiacAbilitySystemComponent* HeroASC = HeroComponent->InitializeAbilitySystem();
+	// 		check(HeroASC);
+	// 		AbilitySystemComponents.Add(HeroASC);
+	// 		Index++;
+	// 	}
+	// }
+
 	if (HeroComponent1)
 	{
 		HeroComponents.Add(HeroComponent1);
+		HeroComponent1->SetSlotIndex(0);
 		HeroComponent1->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
-		//HeroComponent1->OnHeroChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleHeroChanged);
-		HeroComponent1->OnSkillChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleSkillChanged);
 		
-
 		UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystem();
 		check(HeroASC1);
 		AbilitySystemComponents.Add(HeroASC1);
-
-		bComponent1Ready = true;	
+	
 	}
-
+	
 	if (HeroComponent2)
 	{
 		HeroComponents.Add(HeroComponent2);
+		HeroComponent2->SetSlotIndex(1);
 		HeroComponent2->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
-		//HeroComponent2->OnHeroChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleHeroChanged);
-		HeroComponent2->OnSkillChanged.AddUObject(SkillManager, &UZodiacSkillManagerComponent::HandleSkillChanged);
-
+	
 		UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystem();
 		check(HeroASC2);
 		AbilitySystemComponents.Add(HeroASC2);
-
-		bComponent2Ready = true;
 	}
-
-	if (bComponent1Ready & bComponent2Ready)
-	{
-		bHeroesInitialized = true;
-	}
+	
+	bHeroesInitialized = true;
 }
 
 TSubclassOf<UZodiacCameraMode> AZodiacPlayerCharacter::DetermineCameraMode()
