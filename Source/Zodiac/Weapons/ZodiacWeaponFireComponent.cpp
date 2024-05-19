@@ -19,37 +19,9 @@ void UZodiacWeaponFireComponent::InitializeComponent()
 	
 	if (AZodiacPlayerCharacter* Character = GetPawn<AZodiacPlayerCharacter>())
 	{
-		TInlineComponentArray<UZodiacHeroComponent*> HeroComponents_Inline;
-		Character->GetComponents<UZodiacHeroComponent>(HeroComponents_Inline);
-		HeroComponents = HeroComponents_Inline;
-		
 		if (UActorComponent* Component = Character->FindComponentByTag(USkeletalMeshComponent::StaticClass(), TEXT("Hero")))
 		{
 			HeroMeshComponent = CastChecked<USkeletalMeshComponent>(Component);
 		}
-	}
-	
-	if (HeroComponents.Num() > 0)
-	{
-		for (auto& HeroComponent : HeroComponents)
-		{
-			HeroComponent->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
-		}
-	}
-}
-
-void UZodiacWeaponFireComponent::OnHeroChanged(UZodiacHeroComponent* NewHeroComponent)
-{
-	if (NewHeroComponent)
-	{
-		UpdateMuzzleSockets(NewHeroComponent->GetHeroData()->MuzzleSocketNames);	
-	}
-}
-
-void UZodiacWeaponFireComponent::UpdateMuzzleSockets(const TArray<FName>& InSocketNames)
-{
-	if (!InSocketNames.IsEmpty())
-	{
-		MuzzleSocketNames = InSocketNames;	
 	}
 }

@@ -41,7 +41,7 @@ public:
 	//~IGameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	//~End of IGameplayTagAssetInterface
-
+	
 	UFUNCTION(BlueprintCallable)
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -52,9 +52,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex] : nullptr; }
 
-	UFUNCTION(BlueprintCallable)
-	TArray<FName> GetCurrentAbilitySockets(FGameplayTag AbilityTag);
-	
 	UFUNCTION(BlueprintCallable)
 	UZodiacHealthComponent* GetCurrentHealthComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex]->GetHealthComponent() : nullptr; }
 
@@ -82,8 +79,6 @@ public:
 	void ChangeHeroMesh(USkeletalMesh* NewMesh);
 
 	void OnHeroChanged(UZodiacHeroComponent* NewHeroComponent);
-
-public:
 
 protected:
 	
@@ -146,11 +141,10 @@ protected:
 
 	UPROPERTY()
 	EZodiacTeam MyTeam;
-	
-private:
-	
+
 	UPROPERTY()
 	UZodiacHealthComponent* CurrentHealthComponent;
 
+private:
 	bool bHeroesInitialized = false;
 };

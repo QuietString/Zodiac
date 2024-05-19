@@ -36,59 +36,6 @@ public:
 	FGameplayTag InputTag;
 };
 
-// Represents a fragment of an skill definition
-UCLASS(DefaultToInstanced, EditInlineNew, Abstract)
-class ZODIAC_API UZodiacSkillFragment : public UObject
-{
-	GENERATED_BODY()
-
-public:
-};
-
-UCLASS()
-class USkillFragment_Display : public UZodiacSkillFragment
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Appearance)
-	FSlateBrush Brush;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Appearance)
-	FText DisplayName;
-};
-
-USTRUCT()
-struct FZodiacSkillSet : public FZodiacAbilitySet_GameplayAbility
-{
-	GENERATED_BODY()
-
-public:
-	
-	// Tag for identifying skill type.
-	UPROPERTY(EditDefaultsOnly, Meta = (Categories = "Ability.Type.Skill.Slot"))
-	FGameplayTag SlotType;
-
-	UPROPERTY(EditDefaultsOnly, meta = (Categories = "Ability.Type.Skill.Cost"))
-	FGameplayTag CostType;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced)
-	TArray<TObjectPtr<UZodiacSkillFragment>> Fragments;
-
-	template <typename FragmentType>
-	FragmentType* GetFragmentByClass() const
-	{
-		for (const TObjectPtr<UZodiacSkillFragment>& Fragment : Fragments)
-		{
-			if (FragmentType* CastedFragment = Cast<FragmentType>(Fragment.Get()))
-			{
-				return CastedFragment;
-			}
-		}
-		return nullptr;
-	}
-};
-
 /**
  *	Data used by the ability set to grant attribute sets.
  */
@@ -114,20 +61,15 @@ struct FZodiacAbilitySet_GrantedHandles
 public:
 
 	void AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle);
-	void AddSkillHandle(const FGameplayAbilitySpecHandle& Handle);
 	//void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddAttributeSet(UAttributeSet* Set);
 
-	TArray<FGameplayAbilitySpecHandle> GetSkillHandles() { return SkillHandles; }
 protected:
 
 	// Handles to the granted abilities.
 	UPROPERTY()
 	TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
 
-	// Handles to the granted skill abilities.
-	TArray<FGameplayAbilitySpecHandle> SkillHandles;
-	
 	// Handles to the granted gameplay effects.
 	//UPROPERTY()
 	//TArray<FActiveGameplayEffectHandle> GameplayEffectHandles;
@@ -135,16 +77,6 @@ protected:
 	// Pointers to the granted attribute sets
 	UPROPERTY()
 	TArray<TObjectPtr<UAttributeSet>> GrantedAttributeSets;
-};
-
-
-USTRUCT()
-struct FZodiacSkillSetWithHandle
-{
-	GENERATED_BODY()
-
-public:
-	TMap<const FGameplayAbilitySpecHandle, const FZodiacSkillSet*> Map;
 };
 
 /**
@@ -158,7 +90,7 @@ class ZODIAC_API UZodiacAbilitySet : public UPrimaryDataAsset
 public:
 	UZodiacAbilitySet(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	void GiveToAbilitySystem(UZodiacAbilitySystemComponent* ZodiacASC, FZodiacAbilitySet_GrantedHandles* OutGrantedHandles, FZodiacSkillSetWithHandle* OutSkillData, UObject* SourceObject = nullptr) const;
+	void GiveToAbilitySystem(UZodiacAbilitySystemComponent* ZodiacASC, FZodiacAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
 
 protected:
 
@@ -166,10 +98,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities", meta=(TitleProperty=Ability))
 	TArray<FZodiacAbilitySet_GameplayAbility> GrantedGameplayAbilities;
 
-	// Gameplay skill abilities to grant when this ability set is granted.
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
-	TArray<FZodiacSkillSet> GrantedSkillAbilities;
-	
 	// Attribute sets to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, Category = "Attribute Sets", meta=(TitleProperty=AttributeSet))
 	TArray<FZodiacAbilitySet_AttributeSet> GrantedAttributes;

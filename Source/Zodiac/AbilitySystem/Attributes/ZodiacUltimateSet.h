@@ -32,5 +32,4 @@ private:
 
 	UPROPERTY(Replicated, BlueprintReadOnly, meta=(AllowPrivateAccess = true))
 	FGameplayAttributeData MaxUltimateGauge;
-	
 };

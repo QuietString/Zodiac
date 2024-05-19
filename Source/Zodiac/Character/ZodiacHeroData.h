@@ -3,28 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 
 #include "ZodiacHeroData.generated.h"
 
-
+class UZodiacSkillDefinition;
 class UZodiacAbilitySet;
 struct FAttributeDefaults;
 class UZodiacReticleWidgetBase;
-
-UCLASS(DefaultToInstanced, EditInlineNew)
-class UZodiacSkillSocketSet : public UObject
-{
-	GENERATED_BODY()
-
-public:
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "Ability.Skill.Type"))
-	FGameplayTag SkillTag;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<FName> Sockets;
-};
 
 UCLASS(BlueprintType, Const)
 class UZodiacHeroData : public UDataAsset
@@ -51,12 +36,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	TSubclassOf<UAnimInstance> HeroAnimInstance;
 
-	UPROPERTY(EditAnywhere, Category = "Socket")
-	TArray<FName> MuzzleSocketNames;
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TObjectPtr<UZodiacSkillDefinition>> SkillDefinitions;
 
-	UPROPERTY(EditAnywhere, Instanced, Category = "Sockets")
-	TArray<UZodiacSkillSocketSet*> SkillSockets;
-	
 	UPROPERTY(EditAnywhere, Category = "Display")
 	TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;
 };

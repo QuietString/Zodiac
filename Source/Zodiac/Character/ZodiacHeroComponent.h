@@ -12,22 +12,12 @@
 
 class UHeroDisplayManagerComponent;
 
-UCLASS()
-class UHeroSlotDisplayData : public UObject
-{
-	GENERATED_BODY()
-
-public:
-	FSlateBrush Brush;
-	
-};
 
 class UZodiacHealthComponent;
 class UZodiacAbilitySystemComponent;
 class UZodiacHeroComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHeroChanged, UZodiacHeroComponent*);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSkillChanged, UAbilitySystemComponent*, const TArray<FGameplayAbilitySpecHandle>&);
 
 UCLASS()
 class ZODIAC_API UZodiacHeroComponent : public UPawnComponent, public IAbilitySystemInterface, public IGameplayTagAssetInterface
@@ -46,7 +36,7 @@ public:
 	int32 GetSlotIndex() { return SlotIndex; }
 	void SetSlotIndex(const int32 NewIndex) { SlotIndex = NewIndex; }
 	
-	TArray<FName> GetCurrentAbilitySockets(const FGameplayTag AbilityTag);
+	//TArray<FName> GetCurrentSkillSockets(const FGameplayTag InSkillID);
 	
 	//~IGameplayTagAssetInterface interface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
@@ -58,6 +48,7 @@ public:
 	const UZodiacHeroData* GetHeroData() { return HeroData; }
 	
 	virtual void OnRegister() override;
+	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 
 	UZodiacAbilitySystemComponent* InitializeAbilitySystem();
@@ -68,7 +59,6 @@ public:
 public:
 
 	FOnHeroChanged OnHeroChanged;
-	FOnSkillChanged OnSkillChanged;
 	FSimpleMulticastDelegate OnHeroChanged_Simple;
 	
 protected:
@@ -88,11 +78,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTagContainer HeroTags;
-
-	// Handles to hero abilities.
-	FZodiacAbilitySet_GrantedHandles AbilityHandles;
-
-	FZodiacSkillSetWithHandle SkillData;
 
 private:
 	

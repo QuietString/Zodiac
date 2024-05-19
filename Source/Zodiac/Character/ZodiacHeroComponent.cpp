@@ -7,7 +7,7 @@
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHeroData.h"
-#include "Skills/ZodiacSkillManagerComponent.h"
+#include "AbilitySystem/Skills/ZodiacSkillDefinition.h"
 
 UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -28,18 +28,6 @@ UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemCompo
 UAbilitySystemComponent* UZodiacHeroComponent::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
-}
-
-TArray<FName> UZodiacHeroComponent::GetCurrentAbilitySockets(const FGameplayTag AbilityTag)
-{
-	for (auto& SocketSet : HeroData->SkillSockets)
-	{
-		if (SocketSet->SkillTag == AbilityTag)
-		{
-			return SocketSet->Sockets;
-		}
-	}
-	return TArray<FName>();
 }
 
 void UZodiacHeroComponent::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -90,6 +78,11 @@ void UZodiacHeroComponent::OnRegister()
 	Super::OnRegister();
 }
 
+void UZodiacHeroComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+}
+
 void UZodiacHeroComponent::BeginPlay()
 {
 	check(HeroData && "Must have HeroData");
@@ -106,7 +99,7 @@ UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 	
 	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
 	HealthComponent->InitializeWithAbilitySystem(SlotIndex, AbilitySystemComponent);
-	DisplayManager->InitializeHeroData(SlotIndex, AbilitySystemComponent);
+	DisplayManager->InitializeHeroData(SlotIndex, AbilitySystemComponent, HeroData->SkillDefinitions);
 	OnHeroChanged_Simple.AddUObject(DisplayManager, &UHeroDisplayManagerComponent::OnHeroChanged);
 	return AbilitySystemComponent;
 }
@@ -123,18 +116,22 @@ void UZodiacHeroComponent::DeactivateHero()
 
 void UZodiacHeroComponent::AddAbilities()
 {
-	UE_LOG(LogTemp, Warning, TEXT("add abilities"));
-	if (HeroData && HeroData->AbilitySets.Num() > 0)
+	if (HeroData)
 	{
-		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
+		if (HeroData->AbilitySets.Num() >0)
 		{
-			// @TODO: can't get SKillData since it give abilities only on the server. 
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, OUT &AbilityHandles, OUT &SkillData);
+			for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
+			{
+				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+			}
 		}
-	}
-	
-	if (APawn* Pawn = GetPawn<APawn>())
-	{
-		DisplayManager->RegisterSkillDisplayData(SkillData);
+		
+		if (HeroData->SkillDefinitions.Num() > 0)
+		{
+			for (auto& Skill : HeroData->SkillDefinitions)
+			{
+				Skill->GiveToAbilitySystemComponent(AbilitySystemComponent);
+			}
+		}
 	}
 }

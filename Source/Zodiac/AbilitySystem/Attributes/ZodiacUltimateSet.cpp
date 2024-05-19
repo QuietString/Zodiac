@@ -21,6 +21,5 @@ void UZodiacUltimateSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 void UZodiacUltimateSet::OnRep_UltimateGauge(const FGameplayAttributeData& OldValue)
 {
-	UE_LOG(LogTemp, Warning, TEXT("ult gauge changed: %.1f"), GetUltimateGauge());
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UZodiacUltimateSet, UltimateGauge, OldValue);
 }

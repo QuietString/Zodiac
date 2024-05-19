@@ -7,6 +7,7 @@
 #include "System/GameplayTagStack.h"
 #include "ZodiacGameplayAbility.generated.h"
 
+class UZodiacAbilitySystemComponent;
 class UZodiacAbilityCost;
 class UZodiacHeroComponent;
 class AZodiacPlayerController;
@@ -83,6 +84,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AZodiacPlayerController* GetZodiacPlayerControllerFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable)
+	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponentFromActorInfo() const;
 	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AController* GetControllerFromActorInfo() const;
@@ -92,9 +96,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	UZodiacHeroComponent* GetCurrentHeroComponent() const;
-
-	UFUNCTION(BlueprintNativeEvent)
-	FName GetCurrentAbilitySocket(const uint8 ComboIndex);
 
 	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="TagStack")
@@ -146,17 +147,13 @@ protected:
 	// Called when the ability fails to activate
 	UFUNCTION(BlueprintImplementableEvent)
 	void ScriptOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
-
+	
 	// Called on CommitExecute.
 	void SendCooldownMessage();
 	
 	void ChargeUltimate();
-
+	
 protected:
-
-	// Skill identifier tag for effects (sockets and etc)
-	UPROPERTY(BlueprintReadOnly, Category = "Zodiac|Ability")
-	FGameplayTag SkillTag;
 	
 	// Defines how this ability is meant to activate.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Activation")
@@ -166,6 +163,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Activation")
 	EZodiacAbilityActivationGroup ActivationGroup;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Tags", meta = (Categories = "Skill"))
+	FGameplayTag SkillID;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Tags", meta = (Categories = "Ability.Type.Skill.Slot"))
+	FGameplayTag SlotType;
+	
 	// Additional costs that must be paid to activate this ability
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Skill|Cost")
 	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;

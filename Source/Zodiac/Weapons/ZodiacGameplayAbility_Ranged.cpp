@@ -10,6 +10,7 @@
 #include "ZodiacLogChannels.h"
 #include "Character/ZodiacPlayerCharacter.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Monster/ZodiacMonster.h"
 #include "Physics/ZodiacCollisionChannels.h"
 #include "Teams/ZodiacTeamSubsystem.h"
@@ -61,8 +62,8 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 	// Bind target data callback
 	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
 	OnTargetDataReadyCallbackDelegateHandle = MyASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).AddUObject(this, &ThisClass::OnTargetDataReadyCallback);
-	
-	CurrentSkillSocket = GetCurrentAbilitySocket(ComboIndex);
+
+	//UpdateCurrentAbilitySockets();
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
@@ -169,10 +170,15 @@ void UZodiacGameplayAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation
 	for (auto& SingleTargetData : TargetData.Data)
 	{
 		const FHitResult* HitResult = SingleTargetData->GetHitResult();
+
+		GCNParameters = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
 		
-		// Execute a gameplay cue
-		FGameplayCueParameters GCNParameter = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
-		K2_ExecuteGameplayCueWithParams(GameplayCueTag_Firing, GCNParameter);
+		if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponentFromActorInfo())
+		{
+			ZodiacASC->GameplayCueReadyData.SetGameplayTagCue(GameplayCueTag_Firing);
+			ZodiacASC->GameplayCueReadyData.SetGCNParameters(GCNParameters);
+			ZodiacASC->CheckAndExecuteGameplayCue();
+		}
 
 		if (ChargeUltimateEffect)
 		{
@@ -247,7 +253,8 @@ FVector UZodiacGameplayAbility_Ranged::GetSkillTargetingSourceLocation() const
 	AZodiacPlayerCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo();
 	check(ZodiacCharacter);
 
-	return ZodiacCharacter->GetMesh()->GetSocketLocation(CurrentSkillSocket);
+	// @TODO: get trace socket location.
+	return ZodiacCharacter->GetMesh()->GetSocketLocation(FName());
 }
 
 FTransform UZodiacGameplayAbility_Ranged::GetTargetingTransform() const

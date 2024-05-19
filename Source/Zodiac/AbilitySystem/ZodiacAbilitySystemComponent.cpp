@@ -7,10 +7,12 @@
 #include "ZodiacLogChannels.h"
 #include "Abilities/ZodiacGameplayAbility.h"
 #include "Animation/ZodiacAnimInstance.h"
+#include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilitySystemComponent)
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_AbilityInputBlocked, "Gameplay.AbilityInputBlocked");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_SKILL, "Skill");
 
 UZodiacAbilitySystemComponent::UZodiacAbilitySystemComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -20,6 +22,15 @@ UZodiacAbilitySystemComponent::UZodiacAbilitySystemComponent(const FObjectInitia
 	InputHeldSpecHandles.Reset();
 
 	FMemory::Memset(ActivationGroupCounts, 0, sizeof(ActivationGroupCounts));
+
+	MuzzleSocketData = CreateDefaultSubobject<USkillMuzzleSocketData>(TEXT("MuzzleSocketData"));
+}
+
+void UZodiacAbilitySystemComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ThisClass, SkillHandles, COND_None);
 }
 
 void UZodiacAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -40,7 +51,7 @@ void UZodiacAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 	const bool bHasNewPawnAvatar = Cast<APawn>(InAvatarActor) && (InAvatarActor != ActorInfo->AvatarActor);
 
 	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
-
+	
 	if (bHasNewPawnAvatar)
 	{
 		// Notify all abilities that a new pawn avatar has been set
@@ -350,6 +361,21 @@ void UZodiacAbilitySystemComponent::GetAbilityTargetData(const FGameplayAbilityS
 	if (ReplicatedData.IsValid())
 	{
 		OutTargetDataHandle = ReplicatedData->TargetData;
+	}
+}
+
+void UZodiacAbilitySystemComponent::SetMuzzleSocketData(FName NewMuzzleSocketName)
+{
+	MuzzleSocketData->MuzzleSocket = NewMuzzleSocketName;
+	GameplayCueReadyData.SetMuzzleSocket(MuzzleSocketData);
+}
+
+void UZodiacAbilitySystemComponent::CheckAndExecuteGameplayCue()
+{
+	if (GameplayCueReadyData.IsReady())
+	{
+		ExecuteGameplayCue(GameplayCueReadyData.GameplayCueTag, GameplayCueReadyData.GCNParameters);
+		GameplayCueReadyData.Reset();
 	}
 }
 

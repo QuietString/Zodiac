@@ -82,11 +82,6 @@ UAbilitySystemComponent* AZodiacPlayerCharacter::GetAbilitySystemComponent() con
 	return nullptr;
 }
 
-TArray<FName> AZodiacPlayerCharacter::GetCurrentAbilitySockets(FGameplayTag AbilityTag)
-{
-	return HeroComponents[ActiveHeroIndex]->GetCurrentAbilitySockets(AbilityTag);
-}
-
 void AZodiacPlayerCharacter::PostRegisterAllComponents()
 {
 	Super::PostRegisterAllComponents();
@@ -226,7 +221,6 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 		UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystem();
 		check(HeroASC1);
 		AbilitySystemComponents.Add(HeroASC1);
-	
 	}
 	
 	if (HeroComponent2)

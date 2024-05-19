@@ -59,7 +59,7 @@ protected:
 		{
 		}
 	};
-
+	
 	UFUNCTION(BlueprintCallable)
 	void StartRangedWeaponTargeting();
 
@@ -100,11 +100,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues")
 	FGameplayTag GameplayCueTag_Impact;
 
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayCueParameters GCNParameters;
+	
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
 
-	UPROPERTY(Transient)
-	FName CurrentSkillSocket;
+	// UPROPERTY(Transient)
+	// FName CurrentSkillSocket;
 	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
