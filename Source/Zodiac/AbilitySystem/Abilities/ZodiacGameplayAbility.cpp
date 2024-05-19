@@ -218,54 +218,6 @@ void UZodiacGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle,
 	}
 }
 
-void UZodiacGameplayAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
-                                           const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
-{
-	Super::CommitExecute(Handle, ActorInfo, ActivationInfo);
-
-	if (!CheckCooldown(Handle, CurrentActorInfo))
-	{
-		SendCooldownMessage();	
-	}
-}
-
-void UZodiacGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                             const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-                                             const FGameplayEventData* TriggerEventData)
-{
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-}
-
-const FGameplayTagContainer* UZodiacGameplayAbility::GetCooldownTags() const
-{
-	FGameplayTagContainer* MutableTags = const_cast<FGameplayTagContainer*>(&TempCooldownTags);
-	MutableTags->Reset();
-	
-	const FGameplayTagContainer* ParentTags = Super::GetCooldownTags();
-	if (ParentTags)
-	{
-		MutableTags->AppendTags(*ParentTags);
-	}
-	MutableTags->AppendTags(CooldownTags);
-
-	return MutableTags;
-}
-
-void UZodiacGameplayAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
-	if (CooldownGE)
-	{
-		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(CooldownGE->GetClass(), GetAbilityLevel());
-		SpecHandle.Data.Get()->DynamicGrantedTags.AppendTags(CooldownTags);
-		SpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Cooldown, CooldownDuration.GetValueAtLevel(GetAbilityLevel()));
-		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-	}
-	
-	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
-}
-
 void UZodiacGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,
                                                        const FGameplayAbilitySpec& Spec) const
 {
@@ -351,24 +303,4 @@ void UZodiacGameplayAbility::NativeOnAbilityFailedToActivate(const FGameplayTagC
 			MessageSystem.BroadcastMessage(TAG_ABILITY_PLAY_MONTAGE_FAILURE_MESSAGE, Message);
 		}
 	}
-}
-
-void UZodiacGameplayAbility::SendCooldownMessage()
-{
-	const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetCooldownChannelByTags(CooldownTags);
-
-	FSkillDurationMessage Message;
-	Message.Instigator = CurrentActorInfo->OwnerActor.Get();
-	Message.Cooldown_Duration = GetCooldownDuration();
-	
-	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSubsystem.BroadcastMessage(MessageChannel, Message);
-}
-
-void UZodiacGameplayAbility::ChargeUltimate()
-{
-	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ChargeUltimateEffect, GetAbilityLevel());
-	EffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_UltimateGauge, UltimateChargeAmount.GetValueAtLevel(GetAbilityLevel()));
-
-	ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 }

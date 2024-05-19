@@ -29,6 +29,11 @@ UZodiacAbilitySystemComponent* AZodiacPlayerController::GetZodiacAbilitySystemCo
 	return nullptr;
 }
 
+void AZodiacPlayerController::AcknowledgePossession(APawn* P)
+{
+	Super::AcknowledgePossession(P);
+}
+
 void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
 	if (AZodiacPlayerCharacter* ZodiacPlayerCharacter = Cast<AZodiacPlayerCharacter>(GetCharacter()))

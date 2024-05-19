@@ -41,7 +41,8 @@ class ZODIAC_API UHeroDisplayManagerComponent : public UPawnComponent
 public:
 	UHeroDisplayManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	void InitializeHeroData(const int32 InSlotIndex, UZodiacAbilitySystemComponent* InZodiacASC, const TArray<UZodiacSkillDefinition*>& InSkillDefinitions);
+	void InitializeHeroData(const int32 InSlotIndex, UZodiacAbilitySystemComponent* InZodiacASC, const TArray<UZodiacSkillDefinition*>& InSkillDefinitions, FSimpleMulticastDelegate
+	                        & OnHeroChanged);
 	
 	void OnHeroChanged();
 	
@@ -49,10 +50,8 @@ public:
 	void HandleUltimateGaugeChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 	
 	virtual void BeginPlay() override;
-protected:
-
-	void SetAttributes();
 	
+protected:
 	void SendResetMessages();
 	
 	void SendHealthBarHeroChangedMessage();

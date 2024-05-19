@@ -3,6 +3,7 @@
 
 #include "ZodiacSkillDefinition.h"
 
+#include "ZodiacSkillAbility.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 
 void UZodiacSkillDefinition::GiveToAbilitySystemComponent(UZodiacAbilitySystemComponent* ZodiacASC)
@@ -15,7 +16,7 @@ void UZodiacSkillDefinition::GiveToAbilitySystemComponent(UZodiacAbilitySystemCo
 		return;
 	}
 
-	UZodiacGameplayAbility* AbilityCDO = AbilityToGrant.Ability->GetDefaultObject<UZodiacGameplayAbility>();
+	UZodiacSkillAbility* AbilityCDO = AbilityToGrant.Ability->GetDefaultObject<UZodiacSkillAbility>();
 	FGameplayAbilitySpec AbilitySpec(AbilityCDO, AbilityToGrant.AbilityLevel);
 	AbilitySpec.DynamicAbilityTags.AddTag(AbilityToGrant.InputTag);
 		

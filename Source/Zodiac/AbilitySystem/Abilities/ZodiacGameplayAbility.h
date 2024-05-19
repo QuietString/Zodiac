@@ -112,14 +112,7 @@ public:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
-	virtual void CommitExecute(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	
-	UFUNCTION(BlueprintCallable)
-	float GetCooldownDuration() const { return CooldownDuration.GetValueAtLevel(GetAbilityLevel()); }
-	virtual const FGameplayTagContainer* GetCooldownTags() const override;
-	virtual  void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
-
 	EZodiacAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 	EZodiacAbilityActivationGroup GetActivationGroup() const { return ActivationGroup; }
 
@@ -148,11 +141,6 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ScriptOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
 	
-	// Called on CommitExecute.
-	void SendCooldownMessage();
-	
-	void ChargeUltimate();
-	
 protected:
 	
 	// Defines how this ability is meant to activate.
@@ -163,12 +151,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Activation")
 	EZodiacAbilityActivationGroup ActivationGroup;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Tags", meta = (Categories = "Skill"))
-	FGameplayTag SkillID;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Tags", meta = (Categories = "Ability.Type.Skill.Slot"))
-	FGameplayTag SlotType;
-	
 	// Additional costs that must be paid to activate this ability
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Skill|Cost")
 	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;
@@ -176,18 +158,6 @@ protected:
 	// initial amount of tag stack to give. e.g, ammo
 	UPROPERTY(EditDefaultsOnly, Category = "Skill|Cost")
 	TMap<FGameplayTag, int32> InitialTagStack;
-	
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Skill|Cost")
-	FScalableFloat CooldownDuration;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "SKill|Cost")
-	FGameplayTagContainer CooldownTags;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Ultimate")
-	TSubclassOf<UGameplayEffect> ChargeUltimateEffect;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Ultimate")
-	FScalableFloat UltimateChargeAmount;
 	
 	// Map of failure tags to simple error messages
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
@@ -205,9 +175,4 @@ private:
 	// Tag container for additional costs. e.g, ammo
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTags;
-	
-	// Temp container that we will return the pointer to in GetCooldownTags().
-	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.
-	UPROPERTY(Transient)
-	FGameplayTagContainer TempCooldownTags;
 };

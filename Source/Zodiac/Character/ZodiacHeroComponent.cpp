@@ -17,7 +17,6 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
-	DisplayManager = CreateDefaultSubobject<UHeroDisplayManagerComponent>(TEXT("HeroDisplayManagerComponent"));
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -64,7 +63,8 @@ bool UZodiacHeroComponent::HasAnyMatchingGameplayTags(const FGameplayTagContaine
 		return AbilitySystemComponent->HasAnyMatchingGameplayTags(TagContainer);
 	}
 
-	return false;}
+	return false;
+}
 
 void UZodiacHeroComponent::OnRegister()
 {
@@ -85,22 +85,25 @@ void UZodiacHeroComponent::InitializeComponent()
 
 void UZodiacHeroComponent::BeginPlay()
 {
-	check(HeroData && "Must have HeroData");
-
 	Super::BeginPlay();
+}
+
+void UZodiacHeroComponent::InitializeDisplayManager()
+{
+	DisplayManager = NewObject<UHeroDisplayManagerComponent>(this);
+	DisplayManager->InitializeHeroData(SlotIndex, AbilitySystemComponent, HeroData->SkillDefinitions, OnHeroChanged_Simple);
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 {
-	AActor* Owner = GetOwner();
-	check(Owner && "No Owner Actor");
+	APawn* Pawn = GetPawn<APawn>();
+	check(Pawn && "No Owner Actor");
 
 	AddAbilities();
 	
 	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
 	HealthComponent->InitializeWithAbilitySystem(SlotIndex, AbilitySystemComponent);
-	DisplayManager->InitializeHeroData(SlotIndex, AbilitySystemComponent, HeroData->SkillDefinitions);
-	OnHeroChanged_Simple.AddUObject(DisplayManager, &UHeroDisplayManagerComponent::OnHeroChanged);
+	
 	return AbilitySystemComponent;
 }
 

@@ -24,6 +24,7 @@ public:
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	
 	//~APlayerController interface
+	virtual void AcknowledgePossession(APawn* P) override;
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 	//~End of APlayerController interface
 };

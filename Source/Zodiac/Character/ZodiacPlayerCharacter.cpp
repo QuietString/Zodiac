@@ -104,6 +104,14 @@ void AZodiacPlayerCharacter::PossessedBy(AController* NewController)
 void AZodiacPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (IsLocallyControlled())
+	{
+		for (auto& HeroComponent : HeroComponents)
+		{
+			HeroComponent->InitializeDisplayManager();
+		}	
+	}
 	
 	// Select first hero
 	ChangeHero(0, true);
@@ -128,7 +136,7 @@ void AZodiacPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 }
 
 void AZodiacPlayerCharacter::SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode,
-	const FGameplayAbilitySpecHandle& OwningSpecHandle)
+                                                  const FGameplayAbilitySpecHandle& OwningSpecHandle)
 {
 	if (CameraMode)
 	{

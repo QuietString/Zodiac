@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
+#include "AbilitySystem/Skills/ZodiacSkillAbility.h"
 #include "ZodiacGameplayAbility_Ranged.generated.h"
 
 /** Defines where an ability starts its trace from and where it should face */
@@ -25,7 +25,7 @@ enum class EZodiacAbilityTargetingRule : uint8
 };
 
 UCLASS()
-class ZODIAC_API UZodiacGameplayAbility_Ranged : public UZodiacGameplayAbility
+class ZODIAC_API UZodiacGameplayAbility_Ranged : public UZodiacSkillAbility
 {
 	GENERATED_BODY()
 

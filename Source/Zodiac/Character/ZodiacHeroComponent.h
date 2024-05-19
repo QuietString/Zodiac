@@ -11,8 +11,6 @@
 #include "ZodiacHeroComponent.generated.h"
 
 class UHeroDisplayManagerComponent;
-
-
 class UZodiacHealthComponent;
 class UZodiacAbilitySystemComponent;
 class UZodiacHeroComponent;
@@ -36,8 +34,6 @@ public:
 	int32 GetSlotIndex() { return SlotIndex; }
 	void SetSlotIndex(const int32 NewIndex) { SlotIndex = NewIndex; }
 	
-	//TArray<FName> GetCurrentSkillSockets(const FGameplayTag InSkillID);
-	
 	//~IGameplayTagAssetInterface interface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
@@ -51,8 +47,9 @@ public:
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 
+	void InitializeDisplayManager();
 	UZodiacAbilitySystemComponent* InitializeAbilitySystem();
-
+	
 	void ActivateHero();
 	void DeactivateHero();
 
@@ -89,6 +86,5 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UHeroDisplayManagerComponent> DisplayManager;
-
 };
 

@@ -23,18 +23,26 @@ UHeroDisplayManagerComponent::UHeroDisplayManagerComponent(const FObjectInitiali
 }
 
 void UHeroDisplayManagerComponent::InitializeHeroData(const int32 InSlotIndex, UZodiacAbilitySystemComponent* InZodiacASC, const TArray<UZodiacSkillDefinition*>
-                                                      & InSkillDefinitions)
+                                                      & InSkillDefinitions, FSimpleMulticastDelegate& OnHeroChanged)
 {
 	check(InZodiacASC);
 
 	SlotIndex = InSlotIndex;
 	AbilitySystemComponent = InZodiacASC;
 	SkillDefinitions = InSkillDefinitions;
+	OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
 	
-	SetAttributes();
+	HealthSet = CastChecked<UZodiacHealthSet>(AbilitySystemComponent->GetAttributeSet(UZodiacHealthSet::StaticClass()));
+	//CombatSet = CastChecked<UZodiacCombatSet>(InASC->GetAttributeSet(UZodiacCombatSet::StaticClass()));
+	UltimateSet = CastChecked<UZodiacUltimateSet>(AbilitySystemComponent->GetAttributeSet(UZodiacUltimateSet::StaticClass()));
 	
 	InZodiacASC->GetGameplayAttributeValueChangeDelegate(UZodiacHealthSet::GetHealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
 	InZodiacASC->GetGameplayAttributeValueChangeDelegate(UZodiacUltimateSet::GetUltimateGaugeAttribute()).AddUObject(this, &ThisClass::HandleUltimateGaugeChanged);
+
+	if (InSlotIndex == 0)
+	{
+		SendResetMessages();	
+	}
 }
 
 void UHeroDisplayManagerComponent::OnHeroChanged()
@@ -77,17 +85,6 @@ void UHeroDisplayManagerComponent::HandleUltimateGaugeChanged(const FOnAttribute
 void UHeroDisplayManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	SetAttributes();
-	
-	SendResetMessages();
-}
-
-void UHeroDisplayManagerComponent::SetAttributes()
-{
-	HealthSet = CastChecked<UZodiacHealthSet>(AbilitySystemComponent->GetAttributeSet(UZodiacHealthSet::StaticClass()));
-	//CombatSet = CastChecked<UZodiacCombatSet>(InASC->GetAttributeSet(UZodiacCombatSet::StaticClass()));
-	UltimateSet = CastChecked<UZodiacUltimateSet>(AbilitySystemComponent->GetAttributeSet(UZodiacUltimateSet::StaticClass()));
 }
 
 void UHeroDisplayManagerComponent::SendResetMessages()
@@ -185,7 +182,7 @@ void UHeroDisplayManagerComponent::GetCooldown(FHeroChangedMessage_SkillSlot& Ou
 		OutMessage.MaxValue = DurationAndTimeRemaining[BestIdx].Value;
 		OutMessage.bIsReady = false;
 
-		UE_LOG(LogTemp, Warning, TEXT("cool down: %.1f, remaining: %.1f"), OutMessage.MaxValue, OutMessage.CurrentValue );
+		//UE_LOG(LogTemp, Warning, TEXT("cool down: %.1f, remaining: %.1f"), OutMessage.MaxValue, OutMessage.CurrentValue );
 	}
 	else
 	{
