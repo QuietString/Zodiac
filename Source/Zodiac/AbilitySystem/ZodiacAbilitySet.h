@@ -1,4 +1,4 @@
-﻿// the.quiet.string@gmail.com
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 

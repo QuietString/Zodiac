@@ -1,11 +1,10 @@
-﻿// the.quiet.string@gmail.com
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ZodiacAbilitySet.h"
 
 #include "ZodiacAbilitySystemComponent.h"
 #include "ZodiacLogChannels.h"
 #include "Abilities/ZodiacGameplayAbility.h"
-#include "Attributes/ZodiacCombatSet.h"
 
 void FZodiacAbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle)
 {
