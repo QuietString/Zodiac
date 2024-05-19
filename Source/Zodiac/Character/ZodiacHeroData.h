@@ -8,22 +8,22 @@
 #include "ZodiacHeroData.generated.h"
 
 
+class UZodiacSkillDefinition;
 class UZodiacAbilitySet;
 struct FAttributeDefaults;
 class UZodiacReticleWidgetBase;
 
-UCLASS(DefaultToInstanced, EditInlineNew)
-class UZodiacSkillSocketSet : public UObject
+USTRUCT(BlueprintType)
+struct FZodiacSkillSocketData
 {
 	GENERATED_BODY()
 
 public:
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "Ability.Skill.Type"))
-	FGameplayTag SkillTag;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<FName> TraceSockets;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TArray<FName> Sockets;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<FName> EffectSockets;
 };
 
 UCLASS(BlueprintType, Const)
@@ -51,11 +51,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	TSubclassOf<UAnimInstance> HeroAnimInstance;
 
-	UPROPERTY(EditAnywhere, Category = "Socket")
-	TArray<FName> MuzzleSocketNames;
-
-	UPROPERTY(EditAnywhere, Instanced, Category = "Sockets")
-	TArray<UZodiacSkillSocketSet*> SkillSockets;
+	UPROPERTY(EditDefaultsOnly)
+	TArray<TObjectPtr<UZodiacSkillDefinition>> SkillDefinitions;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (Categories = "Skill"))
+	TMap<FGameplayTag, FZodiacSkillSocketData> SocketData;
 	
 	UPROPERTY(EditAnywhere, Category = "Display")
 	TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;

@@ -4,10 +4,10 @@
 #include "HeroDisplayManagerComponent.h"
 
 #include "ZodiacGameplayTags.h"
-#include "AbilitySystem/ZodiacAbilitySet.h"
+#include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "AbilitySystem/Attributes/ZodiacUltimateSet.h"
-#include "GameFramework/Character.h"
+#include "AbilitySystem/Skills/ZodiacSkillDefinition.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Messages/ZodiacMessageLibrary.h"
 #include "Messages/ZodiacMessageTypes.h"
@@ -22,41 +22,27 @@ UHeroDisplayManagerComponent::UHeroDisplayManagerComponent(const FObjectInitiali
 	UltimateSet = nullptr;
 }
 
-void UHeroDisplayManagerComponent::InitializeHeroData(const int32 InSlotIndex, UAbilitySystemComponent* InASC)
+void UHeroDisplayManagerComponent::InitializeHeroData(const int32 InSlotIndex, UZodiacAbilitySystemComponent* InZodiacASC, const TArray<UZodiacSkillDefinition*>
+                                                      & InSkillDefinitions)
 {
-	check(InASC);
+	check(InZodiacASC);
 
 	SlotIndex = InSlotIndex;
-	AbilitySystemComponent = InASC;
+	AbilitySystemComponent = InZodiacASC;
+	SkillDefinitions = InSkillDefinitions;
 	
-	HealthSet = CastChecked<UZodiacHealthSet>(InASC->GetAttributeSet(UZodiacHealthSet::StaticClass()));
+	HealthSet = CastChecked<UZodiacHealthSet>(InZodiacASC->GetAttributeSet(UZodiacHealthSet::StaticClass()));
 	//CombatSet = CastChecked<UZodiacCombatSet>(InASC->GetAttributeSet(UZodiacCombatSet::StaticClass()));
-	UltimateSet = CastChecked<UZodiacUltimateSet>(InASC->GetAttributeSet(UZodiacUltimateSet::StaticClass()));
+	UltimateSet = CastChecked<UZodiacUltimateSet>(InZodiacASC->GetAttributeSet(UZodiacUltimateSet::StaticClass()));
 	
-	InASC->GetGameplayAttributeValueChangeDelegate(HealthSet->GetHealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
-	InASC->GetGameplayAttributeValueChangeDelegate(UltimateSet->GetUltimateGaugeAttribute()).AddUObject(this, &ThisClass::HandleUltimateGaugeChanged);
-}
-
-void UHeroDisplayManagerComponent::RegisterSkillDisplayData(const FZodiacSkillSetWithHandle& SkillData)
-{
-	for (const auto& Elem : SkillData.Map)
-	{
-		FGameplayAbilitySpecHandle SpecHandle = Elem.Key;
-		const FZodiacSkillSet* SkillSet = Elem.Value;
-		SkillMap.Add(SpecHandle, *SkillSet);
-	}
+	InZodiacASC->GetGameplayAttributeValueChangeDelegate(HealthSet->GetHealthAttribute()).AddUObject(this, &ThisClass::HandleHealthChanged);
+	InZodiacASC->GetGameplayAttributeValueChangeDelegate(UltimateSet->GetUltimateGaugeAttribute()).AddUObject(this, &ThisClass::HandleUltimateGaugeChanged);
 }
 
 void UHeroDisplayManagerComponent::OnHeroChanged()
 {
 	SendSkillChangedMessages();
 	SendHealthBarHeroChangedMessage();
-}
-
-void UHeroDisplayManagerComponent::OnSkillChanged(UAbilitySystemComponent* InASC,
-                                                  const TArray<FGameplayAbilitySpecHandle>& Handles)
-{
-	SendSkillChangedMessages();
 }
 
 void UHeroDisplayManagerComponent::HandleHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData)
@@ -110,52 +96,79 @@ void UHeroDisplayManagerComponent::SendHealthBarHeroChangedMessage()
 
 void UHeroDisplayManagerComponent::SendSkillChangedMessages()
 {
-	if (!HasAuthority() && GetPawn<ACharacter>()->IsLocallyControlled())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("skill changed message"));	
-	}
+	// currently not working only for code reference.
+	// for (auto& [Handle, Skill] : SkillMap)
+	// {
+	// 	FHeroChangedMessage_SkillSlot Message;
+	// 	Message.Instigator = GetPawn<APawn>();
+	// 	Message.Brush = Skill.GetFragmentByClass<USkillFragment_Display>()->Brush;
+	//
+	// 	if (Skill.SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Primary)
+	// 	{
+	// 		
+	// 	}
+	// 	else if (Skill.SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Secondary)
+	// 	{
+	// 		GetCooldown(Message, &Skill);
+	// 	}
+	// 	else if (Skill.SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Ultimate)
+	// 	{
+	// 		GetUltimateGauge(Message, &Skill);
+	// 	}
+	// 		
+	// 	const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetSkillChangeChannelByTag(Skill.SlotType);
+	// 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	// 	MessageSubsystem.BroadcastMessage(MessageChannel, Message);
+	// }
 	
-	for (auto& [Handle, Skill] : SkillMap)
+	for (auto& Skill : SkillDefinitions)
 	{
-		FHeroChangedMessage_SkillSlot Message;
-		Message.Instigator = GetPawn<APawn>();
-		Message.Brush = Skill.GetFragmentByClass<USkillFragment_Display>()->Brush;
-		
-		if (!HasAuthority() && GetPawn<ACharacter>()->IsLocallyControlled())
+		UE_LOG(LogTemp, Warning, TEXT("skill match found: %s, %s"), *Skill->SkillID.ToString(), HasAuthority() ? TEXT("server") : TEXT("client"));
+		FGameplayTag SlotType;
+		if (AbilitySystemComponent->SkillHandles.GetSlotType(Skill->SkillID, OUT SlotType))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("skill type: %s"), *Skill.SlotType.GetTagName().ToString());	
-		}
-		
-		if (Skill.SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Primary)
-		{
+			FHeroChangedMessage_SkillSlot Message;
+			Message.Instigator = GetPawn<APawn>();
+			Message.Brush = Skill->Brush;
+
+			if (SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Primary)
+			{
+				
+			}
+			else if (SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Secondary)
+			{
+				GetCooldown(Message, Skill->SkillID);
+			}
+			else if (SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Ultimate)
+			{
+				GetUltimateGauge(Message);
+			}
 			
+			const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetSkillChangeChannelByTag(SlotType);
+			UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+			MessageSubsystem.BroadcastMessage(MessageChannel, Message);	
 		}
-		else if (Skill.SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Secondary)
-		{
-			GetCooldown(Message, &Skill);
-		}
-		else if (Skill.SlotType == ZodiacGameplayTags::Ability_Type_Skill_Slot_Ultimate)
-		{
-			GetUltimateGauge(Message, &Skill);
-		}
-			
-		const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetSkillChangeChannelByTag(Skill.SlotType);
-		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-		MessageSubsystem.BroadcastMessage(MessageChannel, Message);
 	}
 }
 
-void UHeroDisplayManagerComponent::GetUltimateGauge(FHeroChangedMessage_SkillSlot& OutMessage, FZodiacSkillSet* Skill)
+void UHeroDisplayManagerComponent::GetUltimateGauge(FHeroChangedMessage_SkillSlot& OutMessage)
 {
 	UE_LOG(LogTemp, Warning, TEXT("ult gauge current: %.1f: , max: %.1f"), UltimateSet->GetUltimateGauge(), UltimateSet->GetMaxUltimateGauge());
 	OutMessage.CurrentValue = UltimateSet->GetUltimateGauge();
 	OutMessage.MaxValue = UltimateSet->GetMaxUltimateGauge();
 }
 
-void UHeroDisplayManagerComponent::GetCooldown(FHeroChangedMessage_SkillSlot& OutMessage, FZodiacSkillSet* Skill)
+void UHeroDisplayManagerComponent::GetCooldown(FHeroChangedMessage_SkillSlot& OutMessage, FGameplayTag SkillID)
 {
 	FGameplayTagContainer QueryContainer;
-	QueryContainer.AddTag(ZodiacGameplayTags::GetCooldownExtendedTag(Skill->SlotType));
+
+	FGameplayTag SlotType;
+	if (!AbilitySystemComponent->SkillHandles.GetSlotType(SkillID, SlotType))
+	{
+		return;
+	}
+	
+	QueryContainer.AddTag(ZodiacGameplayTags::GetCooldownExtendedTag(SlotType));
 	
 	FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(QueryContainer);
 	TArray< TPair<float,float> > DurationAndTimeRemaining = AbilitySystemComponent->GetActiveEffectsTimeRemainingAndDuration(Query);

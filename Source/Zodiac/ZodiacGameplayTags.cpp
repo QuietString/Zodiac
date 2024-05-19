@@ -129,7 +129,9 @@ namespace ZodiacGameplayTags
 	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag)
 	{
 		FString CooldownTagString = SkillTag.ToString() + TEXT(".") + TEXT("Cooldown");
-		return FGameplayTag::RequestGameplayTag(*CooldownTagString);
+		FGameplayTag FoundTag = FGameplayTag::RequestGameplayTag(*CooldownTagString);
+		
+		return FoundTag.IsValid() ? FoundTag : FGameplayTag(); 
 	}
 }
 

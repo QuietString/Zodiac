@@ -20,21 +20,8 @@ public:
 protected:
 	virtual void InitializeComponent() override;
 
-	void OnHeroChanged(UZodiacHeroComponent* NewHeroComponent);
-	
-	void UpdateMuzzleSockets(const TArray<FName>& InSocketNames);
-
 protected:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TArray<FName> MuzzleSocketNames;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USkeletalMeshComponent> HeroMeshComponent;
-	
-private:
-
-	UPROPERTY()
-	TArray<TObjectPtr<UZodiacHeroComponent>> HeroComponents;
 
 };

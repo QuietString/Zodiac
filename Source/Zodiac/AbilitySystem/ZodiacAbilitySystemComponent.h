@@ -6,12 +6,82 @@
 #include "AbilitySystemComponent.h"
 #include "NativeGameplayTags.h"
 #include "Abilities/ZodiacGameplayAbility.h"
+#include "Skills/SkillHandle.h"
 #include "ZodiacAbilitySystemComponent.generated.h"
 
 struct FGameplayTag;
 struct FGameplayAbilitySpec;
 
 ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gameplay_AbilityInputBlocked);
+
+UCLASS(BlueprintType)
+class USkillMuzzleSocketData : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	FName MuzzleSocket;
+};
+
+USTRUCT(BlueprintType)
+struct FGameplayCueReadyData
+{
+	GENERATED_BODY()
+
+public:
+	void SetGCNParameters(const FGameplayCueParameters& NewParameters)
+	{
+		const UObject* RegisteredSourceObject = GCNParameters.SourceObject.Get();
+		GCNParameters = NewParameters;
+
+		if (RegisteredSourceObject)
+		{
+			GCNParameters.SourceObject = RegisteredSourceObject;
+		}
+		
+		bGCNParameterReady = true;
+	}
+
+	void SetMuzzleSocket(const USkillMuzzleSocketData* MuzzleSocketData)
+	{
+		GCNParameters.SourceObject = MuzzleSocketData;
+		bMuzzleSocketReady = true;
+	}
+
+	void SetGameplayTagCue(FGameplayTag NewGameplayTagCue)
+	{
+		GameplayCueTag = NewGameplayTagCue;
+		bGameplayCueTagSet = true;
+	}
+
+	bool IsReady()
+	{
+		return bGCNParameterReady && bMuzzleSocketReady && bGameplayCueTagSet;
+	}
+
+	void Reset()
+	{
+		GCNParameters = FGameplayCueParameters();
+		bGCNParameterReady = false;
+		bMuzzleSocketReady = false;
+		bGameplayCueTagSet = false;
+	}
+
+protected:
+
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayTag GameplayCueTag;
+	
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayCueParameters GCNParameters;
+
+	bool bGameplayCueTagSet = false;
+	bool bGCNParameterReady = false;
+	bool bMuzzleSocketReady = false;
+
+	friend UZodiacAbilitySystemComponent;
+};
 
 /**
  *	Base ability system component class used by this project.
@@ -23,6 +93,8 @@ class ZODIAC_API UZodiacAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	UZodiacAbilitySystemComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	//~UActorComponent interface
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -49,10 +121,21 @@ public:
 	/** Gets the ability target data associated with the given ability handle and activation info */
 	void GetAbilityTargetData(const FGameplayAbilitySpecHandle AbilityHandle, const FGameplayAbilityActivationInfo& ActivationInfo, FGameplayAbilityTargetDataHandle& OutTargetDataHandle);
 
+	UFUNCTION(BlueprintCallable)
+	void SetMuzzleSocketData(FName NewMuzzleSocketName);
+
+	UFUNCTION(BlueprintCallable)
+	void CheckAndExecuteGameplayCue();
+
+public:
+
+	UPROPERTY(Replicated)
+	FSkillHandleDataContainer SkillHandles;
+	
 protected:
 
 	void TryActivateAbilitiesOnSpawn();
-	
+
 	virtual void AbilitySpecInputPressed(FGameplayAbilitySpec& Spec) override;
 	virtual void AbilitySpecInputReleased(FGameplayAbilitySpec& Spec) override;
 
@@ -65,7 +148,15 @@ protected:
 
 	void HandleAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason);
 
+public:
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayCueReadyData GameplayCueReadyData;
+	
 protected:
+
+	UPROPERTY(Transient)
+	USkillMuzzleSocketData* MuzzleSocketData;
+	
 	// Handles to abilities that had their input pressed this frame.
 	TArray<FGameplayAbilitySpecHandle> InputPressedSpecHandles;
 

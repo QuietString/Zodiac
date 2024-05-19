@@ -41,7 +41,7 @@ public:
 	//~IGameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	//~End of IGameplayTagAssetInterface
-
+	
 	UFUNCTION(BlueprintCallable)
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -53,7 +53,10 @@ public:
 	UZodiacHeroComponent* GetCurrentHeroComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex] : nullptr; }
 
 	UFUNCTION(BlueprintCallable)
-	TArray<FName> GetCurrentAbilitySockets(FGameplayTag AbilityTag);
+	TArray<FName> UpdateLastAbilitySockets(FGameplayTag AbilityTag);
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FName> GetLastSkillSockets();
 	
 	UFUNCTION(BlueprintCallable)
 	UZodiacHealthComponent* GetCurrentHealthComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex]->GetHealthComponent() : nullptr; }
@@ -109,6 +112,11 @@ protected:
 	UFUNCTION()
 	void OnRep_ActiveHeroIndex(int32 OldIndex);
 
+public:
+	
+	UPROPERTY(BlueprintReadWrite)
+	FName CurrentSkillEffectSocket;
+	
 protected:
 	
 	UPROPERTY(VisibleAnywhere, Category = "Zodiac|Heroes")
@@ -146,11 +154,13 @@ protected:
 
 	UPROPERTY()
 	EZodiacTeam MyTeam;
-	
-private:
-	
+
 	UPROPERTY()
 	UZodiacHealthComponent* CurrentHealthComponent;
-
+	
+	UPROPERTY()
+	FGameplayTag LastActivatedSkillSlot;
+	
+private:
 	bool bHeroesInitialized = false;
 };

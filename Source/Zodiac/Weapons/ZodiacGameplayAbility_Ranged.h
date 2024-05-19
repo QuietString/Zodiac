@@ -60,6 +60,8 @@ protected:
 		}
 	};
 
+	void UpdateCurrentAbilitySockets();
+	
 	UFUNCTION(BlueprintCallable)
 	void StartRangedWeaponTargeting();
 
@@ -100,6 +102,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues")
 	FGameplayTag GameplayCueTag_Impact;
 
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayCueParameters GCNParameters;
+	
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
 

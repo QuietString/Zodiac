@@ -82,9 +82,19 @@ UAbilitySystemComponent* AZodiacPlayerCharacter::GetAbilitySystemComponent() con
 	return nullptr;
 }
 
-TArray<FName> AZodiacPlayerCharacter::GetCurrentAbilitySockets(FGameplayTag AbilityTag)
+TArray<FName> AZodiacPlayerCharacter::UpdateLastAbilitySockets(FGameplayTag AbilityTag)
 {
-	return HeroComponents[ActiveHeroIndex]->GetCurrentAbilitySockets(AbilityTag);
+	if (LastActivatedSkillSlot != AbilityTag)
+	{
+		LastActivatedSkillSlot = AbilityTag;
+	}
+	
+	return HeroComponents[ActiveHeroIndex]->GetCurrentSkillSockets(LastActivatedSkillSlot);
+}
+
+TArray<FName> AZodiacPlayerCharacter::GetLastSkillSockets()
+{
+	return HeroComponents[ActiveHeroIndex]->GetCurrentSkillSockets(LastActivatedSkillSlot);
 }
 
 void AZodiacPlayerCharacter::PostRegisterAllComponents()

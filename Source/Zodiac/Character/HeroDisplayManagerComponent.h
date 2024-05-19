@@ -3,18 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayAbilitySpecHandle.h"
 #include "GameplayEffectTypes.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
+#include "AbilitySystem/Skills/SkillHandle.h"
 #include "Components/PawnComponent.h"
 #include "HeroDisplayManagerComponent.generated.h"
 
+struct FSkillHandleDataContainer;
+class UZodiacSkillDefinition;
 struct FHeroChangedMessage_SkillSlot;
-struct FZodiacSkillSetWithHandle;
 class UZodiacUltimateSet;
 class UZodiacCombatSet;
 class UZodiacHealthSet;
-class UAbilitySystemComponent;
 
 
 UCLASS(Transient)
@@ -41,14 +41,10 @@ class ZODIAC_API UHeroDisplayManagerComponent : public UPawnComponent
 public:
 	UHeroDisplayManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	void InitializeHeroData(const int32 InSlotIndex, UAbilitySystemComponent* InASC);
+	void InitializeHeroData(const int32 InSlotIndex, UZodiacAbilitySystemComponent* InZodiacASC, const TArray<UZodiacSkillDefinition*>& InSkillDefinitions);
 	
-	void RegisterSkillDisplayData(const FZodiacSkillSetWithHandle& SkillData);
-
 	void OnHeroChanged();
 	
-	void OnSkillChanged(UAbilitySystemComponent* InASC, const TArray<FGameplayAbilitySpecHandle>& Handles);
-
 	void HandleHealthChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 	void HandleUltimateGaugeChanged(const FOnAttributeChangeData& OnAttributeChangeData);
 
@@ -57,8 +53,8 @@ protected:
 	void SendHealthBarHeroChangedMessage();
 	void SendSkillChangedMessages();
 	
-	void GetUltimateGauge(FHeroChangedMessage_SkillSlot& OutMessage, FZodiacSkillSet* Skill);
-	void GetCooldown(FHeroChangedMessage_SkillSlot& OutMessage, FZodiacSkillSet* Skill);
+	void GetUltimateGauge(FHeroChangedMessage_SkillSlot& OutMessage);
+	void GetCooldown(FHeroChangedMessage_SkillSlot& OutMessage, FGameplayTag SkillID);
 
 protected:
 
@@ -66,10 +62,7 @@ protected:
 	int32 SlotIndex = INDEX_NONE;
 
 	UPROPERTY(Transient)
-	UAbilitySystemComponent* AbilitySystemComponent;
-	
-	UPROPERTY()
-	TMap<FGameplayAbilitySpecHandle, FZodiacSkillSet> SkillMap;
+	UZodiacAbilitySystemComponent* AbilitySystemComponent;
 
 	UPROPERTY()
 	const UZodiacHealthSet* HealthSet;
@@ -79,4 +72,7 @@ protected:
 
 	UPROPERTY()
 	const UZodiacUltimateSet* UltimateSet;
+
+	UPROPERTY()
+	TArray<UZodiacSkillDefinition*> SkillDefinitions;
 };

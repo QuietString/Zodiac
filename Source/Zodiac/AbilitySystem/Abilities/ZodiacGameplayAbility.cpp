@@ -54,6 +54,19 @@ AZodiacPlayerController* UZodiacGameplayAbility::GetZodiacPlayerControllerFromAc
 	return (CurrentActorInfo ? Cast<AZodiacPlayerController>(CurrentActorInfo->PlayerController.Get()) : nullptr);
 }
 
+UZodiacAbilitySystemComponent* UZodiacGameplayAbility::GetZodiacAbilitySystemComponentFromActorInfo() const
+{
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+	{
+		if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(ASC))
+		{
+			return ZodiacASC;
+		}
+	}
+	
+	return nullptr;
+}
+
 AController* UZodiacGameplayAbility::GetControllerFromActorInfo() const
 {
 	if (CurrentActorInfo)
@@ -97,20 +110,6 @@ UZodiacHeroComponent* UZodiacGameplayAbility::GetCurrentHeroComponent() const
 	}
 
 	return nullptr;
-}
-
-FName UZodiacGameplayAbility::GetCurrentAbilitySocket_Implementation(const uint8 ComboIndex)
-{
-	if (AZodiacPlayerCharacter* PlayerCharacter = GetZodiacCharacterFromActorInfo())
-	{
-		TArray<FName> Sockets = PlayerCharacter->GetCurrentAbilitySockets(SkillTag);
-		if (Sockets.IsValidIndex(ComboIndex))
-		{
-			return Sockets[ComboIndex];
-		}
-	}
-	
-	return FName();
 }
 
 void UZodiacGameplayAbility::AddStatTagStack(const FGameplayTag Tag, const int32 StackCount)

@@ -10,6 +10,7 @@
 #include "ZodiacLogChannels.h"
 #include "Character/ZodiacPlayerCharacter.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Monster/ZodiacMonster.h"
 #include "Physics/ZodiacCollisionChannels.h"
 #include "Teams/ZodiacTeamSubsystem.h"
@@ -61,8 +62,8 @@ void UZodiacGameplayAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHa
 	// Bind target data callback
 	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
 	OnTargetDataReadyCallbackDelegateHandle = MyASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).AddUObject(this, &ThisClass::OnTargetDataReadyCallback);
-	
-	CurrentSkillSocket = GetCurrentAbilitySocket(ComboIndex);
+
+	UpdateCurrentAbilitySockets();
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
@@ -81,6 +82,19 @@ void UZodiacGameplayAbility_Ranged::EndAbility(const FGameplayAbilitySpecHandle 
 		MyAbilityComponent->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 
 		Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	}
+}
+
+void UZodiacGameplayAbility_Ranged::UpdateCurrentAbilitySockets()
+{
+	if (AZodiacPlayerCharacter* ZodiacPlayerCharacter = Cast<AZodiacPlayerCharacter>(GetOwningActorFromActorInfo()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Skill Tag: %s"), *SkillID.ToString());
+		TArray<FName> Sockets = ZodiacPlayerCharacter->UpdateLastAbilitySockets(SkillID);
+		if (Sockets.IsValidIndex(ComboIndex))
+		{
+			CurrentSkillSocket = Sockets[ComboIndex];
+		}
 	}
 }
 
@@ -169,10 +183,16 @@ void UZodiacGameplayAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation
 	for (auto& SingleTargetData : TargetData.Data)
 	{
 		const FHitResult* HitResult = SingleTargetData->GetHitResult();
+
+		GCNParameters = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
 		
-		// Execute a gameplay cue
-		FGameplayCueParameters GCNParameter = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
-		K2_ExecuteGameplayCueWithParams(GameplayCueTag_Firing, GCNParameter);
+		if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponentFromActorInfo())
+		{
+			ZodiacASC->GameplayCueReadyData.SetGameplayTagCue(GameplayCueTag_Firing);
+			ZodiacASC->GameplayCueReadyData.SetGCNParameters(GCNParameters);
+			ZodiacASC->CheckAndExecuteGameplayCue();
+		}
+		//K2_ExecuteGameplayCueWithParams(GameplayCueTag_Firing, GCNParameter);
 
 		if (ChargeUltimateEffect)
 		{
