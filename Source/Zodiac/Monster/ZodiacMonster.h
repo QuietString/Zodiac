@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "GameplayEffect.h"
 #include "GameplayTagAssetInterface.h"
 #include "GameFramework/Character.h"
 #include "Teams/ZodiacTeamAgentInterface.h"

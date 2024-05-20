@@ -2,35 +2,37 @@
 
 #include "SkillHandle.h"
 
-void FSkillHandleDataContainer::AddSkillHandle(FSkillHandleData Data)
+
+FGameplayTag FSkillHandleDataContainer::FindSkillIdByHandle(FGameplayAbilitySpecHandle Handle) const
 {
-	if (!Data.SkillID.IsValid())
+	for (auto& [Key, Value] : SkillTagToHandle)
 	{
-		return;
+		if (Value.Handle == Handle)
+		{
+			return Key;
+		}
 	}
 
-	if (!SkillTagToHandle.Find(Data.SkillID))
-	{
-		FSkillHandleData& NewData = SkillHandles.Emplace_GetRef(Data);
-		MarkItemDirty(NewData);
-		SkillTagToHandle.Add(NewData.SkillID, NewData);
-	}
+	return FGameplayTag();
 }
 
-void FSkillHandleDataContainer::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
-{
-	for (int32 Index : AddedIndices)
-	{
-		const FSkillHandleData& Data = SkillHandles[Index];
-		SkillTagToHandle.Add(Data.SkillID, Data);
-	}
-}
 
-bool FSkillHandleDataContainer::GetSlotType(FGameplayTag SkillID, FGameplayTag& OutSlotType) const
+bool FSkillHandleDataContainer::FindSlotType(FGameplayTag SkillID, FGameplayTag& OutSlotType) const
 {
 	if (SkillTagToHandle.Find(SkillID))
 	{
 		OutSlotType = SkillTagToHandle[SkillID].SlotType;
+		return true;
+	}
+
+	return false;
+}
+
+bool FSkillHandleDataContainer::FindCostType(FGameplayTag SkillID, FGameplayTag& OutCostType) const
+{
+	if (SkillTagToHandle.Find(SkillID))
+	{
+		OutCostType = SkillTagToHandle[SkillID].CostType;
 		return true;
 	}
 
@@ -46,4 +48,30 @@ bool FSkillHandleDataContainer::GetAbilitySpecHandle(FGameplayTag SkillID, FGame
 	}
 
 	return false;
+}
+
+void FSkillHandleDataContainer::AddSkillHandle(FSkillHandleData Data)
+{
+	if (!Data.SkillID.IsValid())
+	{
+		return;
+	}
+
+	if (!SkillTagToHandle.Find(Data.SkillID))
+	{
+		FSkillHandleData& NewData = SkillHandles.Emplace_GetRef(Data);
+		MarkItemDirty(NewData);
+		SkillTagToHandle.Add(NewData.SkillID, NewData);
+		SpecHandles.Add(NewData.Handle);
+	}
+}
+
+void FSkillHandleDataContainer::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
+{
+	for (int32 Index : AddedIndices)
+	{
+		const FSkillHandleData& Data = SkillHandles[Index];
+		SkillTagToHandle.Add(Data.SkillID, Data);
+		SpecHandles.Add(Data.Handle);
+	}
 }

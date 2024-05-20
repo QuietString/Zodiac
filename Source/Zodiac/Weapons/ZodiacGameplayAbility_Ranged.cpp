@@ -172,7 +172,6 @@ void UZodiacGameplayAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation
 		const FHitResult* HitResult = SingleTargetData->GetHitResult();
 
 		GCNParameters = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
-		
 		if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponentFromActorInfo())
 		{
 			ZodiacASC->GameplayCueReadyData.SetGameplayTagCue(GameplayCueTag_Firing);

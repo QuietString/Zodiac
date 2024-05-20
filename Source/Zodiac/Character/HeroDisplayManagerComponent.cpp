@@ -12,6 +12,7 @@
 #include "Messages/ZodiacMessageLibrary.h"
 #include "Messages/ZodiacMessageTypes.h"
 
+
 UHeroDisplayManagerComponent::UHeroDisplayManagerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -19,7 +20,7 @@ UHeroDisplayManagerComponent::UHeroDisplayManagerComponent(const FObjectInitiali
 	
 	AbilitySystemComponent = nullptr;
 	HealthSet = nullptr;
-	UltimateSet = nullptr;
+	UltimateSet = nullptr; 
 }
 
 void UHeroDisplayManagerComponent::InitializeHeroData(const int32 InSlotIndex, UZodiacAbilitySystemComponent* InZodiacASC, const TArray<UZodiacSkillDefinition*>
@@ -31,6 +32,23 @@ void UHeroDisplayManagerComponent::InitializeHeroData(const int32 InSlotIndex, U
 	AbilitySystemComponent = InZodiacASC;
 	SkillDefinitions = InSkillDefinitions;
 	OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
+	
+	for (auto& Skill : SkillDefinitions)
+	{
+		float CostAmount = AbilitySystemComponent->GetRequiredSkillCostAmount(Skill->SkillID);
+		RequiredCostAmounts.Add(Skill->SkillID, CostAmount);
+
+		FGameplayTag CostType;
+		if (AbilitySystemComponent->FindSkillCostType(Skill->SkillID, OUT CostType))
+		{
+			SkillCostTypeMap.Add(Skill->SkillID, OUT CostType);
+
+			if (CostType == ZodiacGameplayTags::Ability_Type_Skill_Cost_Ultimate)
+			{
+				RequiredUltimateCostAmount = RequiredCostAmounts[Skill->SkillID];
+			}
+		}
+	}
 	
 	HealthSet = CastChecked<UZodiacHealthSet>(AbilitySystemComponent->GetAttributeSet(UZodiacHealthSet::StaticClass()));
 	//CombatSet = CastChecked<UZodiacCombatSet>(InASC->GetAttributeSet(UZodiacCombatSet::StaticClass()));
@@ -57,7 +75,7 @@ void UHeroDisplayManagerComponent::HandleHealthChanged(const FOnAttributeChangeD
 	float OldValue = OnAttributeChangeData.OldValue;
 
 	FHeroValueChangedMessage Message;
-	Message.Instigator = Cast<APawn>(GetOwner());
+	Message.Instigator = GetPawn<APawn>();
 	Message.SlotIndex = SlotIndex;
 	Message.OldValue = OldValue;
 	Message.NewValue = NewValue;
@@ -73,9 +91,12 @@ void UHeroDisplayManagerComponent::HandleUltimateGaugeChanged(const FOnAttribute
 	float NewValue = OnAttributeChangeData.NewValue;
 	float OldValue = OnAttributeChangeData.OldValue;
 	
-	FUltimateChargeMessage Message;
-	Message.Instigator = GetOwner();
-	Message.ChargeAmount = NewValue;
+	FHeroValueChangedMessage Message;
+	Message.Instigator = GetPawn<APawn>();
+	Message.SlotIndex = SlotIndex;
+	Message.OldValue = OldValue;
+	Message.NewValue = NewValue;
+	Message.OptionalValue = RequiredUltimateCostAmount;
 	
 	const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetUltimateChargeChannel();
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
@@ -120,7 +141,7 @@ void UHeroDisplayManagerComponent::SendSkillChangedMessages()
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("skill match found: %s, %s"), *Skill->SkillID.ToString(), HasAuthority() ? TEXT("server") : TEXT("client"));
 		FGameplayTag SlotType;
-		if (AbilitySystemComponent->SkillHandles.GetSlotType(Skill->SkillID, OUT SlotType))
+		if (AbilitySystemComponent->SkillHandles.FindSlotType(Skill->SkillID, OUT SlotType))
 		{
 			FHeroChangedMessage_SkillSlot Message;
 			Message.Instigator = GetPawn<APawn>();
@@ -150,20 +171,19 @@ void UHeroDisplayManagerComponent::GetUltimateGauge(FHeroChangedMessage_SkillSlo
 {
 	OutMessage.CurrentValue = UltimateSet->GetUltimateGauge();
 	OutMessage.MaxValue = UltimateSet->GetMaxUltimateGauge();
+	OutMessage.OptionalValue = RequiredUltimateCostAmount;
 }
 
 void UHeroDisplayManagerComponent::GetCooldown(FHeroChangedMessage_SkillSlot& OutMessage, FGameplayTag SkillID)
 {
-	FGameplayTagContainer QueryContainer;
-
 	FGameplayTag SlotType;
-	if (!AbilitySystemComponent->SkillHandles.GetSlotType(SkillID, SlotType))
+	if (!AbilitySystemComponent->FindSkillSlotType(SkillID, SlotType))
 	{
 		return;
 	}
 	
+	FGameplayTagContainer QueryContainer;
 	QueryContainer.AddTag(ZodiacGameplayTags::GetCooldownExtendedTag(SlotType));
-	
 	FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(QueryContainer);
 	TArray< TPair<float,float> > DurationAndTimeRemaining = AbilitySystemComponent->GetActiveEffectsTimeRemainingAndDuration(Query);
 	if (DurationAndTimeRemaining.Num() > 0)
@@ -181,7 +201,6 @@ void UHeroDisplayManagerComponent::GetCooldown(FHeroChangedMessage_SkillSlot& Ou
 		OutMessage.CurrentValue = DurationAndTimeRemaining[BestIdx].Key;
 		OutMessage.MaxValue = DurationAndTimeRemaining[BestIdx].Value;
 		OutMessage.bIsReady = false;
-
 		//UE_LOG(LogTemp, Warning, TEXT("cool down: %.1f, remaining: %.1f"), OutMessage.MaxValue, OutMessage.CurrentValue );
 	}
 	else

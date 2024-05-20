@@ -33,6 +33,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Bullet, "Ability.Type.Skill.Cost.Bullet", "A skill that need to consume some number of items");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Cooldown, "Ability.Type.Skill.Cost.Cooldown", "A skill that has to wait certain time after activation");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Gauge, "Ability.Type.Skill.Cost.Gauge", "A skill that need fully charged gauage to activate");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Ultimate, "Ability.Type.Skill.Cost.Ultimate", "A skill that need hero's ultimate gauage to activate");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
 

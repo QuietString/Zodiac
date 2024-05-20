@@ -38,7 +38,8 @@ namespace ZodiacGameplayTags
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Cost_Bullet);
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Cost_Cooldown);
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Cost_Gauge);
-
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Cost_Ultimate);
+	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_PrimarySkill_Message);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_SecondarySkill_Message);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_UltimateSkill_Message);

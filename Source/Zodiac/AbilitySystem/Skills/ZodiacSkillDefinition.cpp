@@ -25,6 +25,7 @@ void UZodiacSkillDefinition::GiveToAbilitySystemComponent(UZodiacAbilitySystemCo
 	FSkillHandleData Data;
 	Data.SkillID = SkillID;
 	Data.SlotType = SlotType;
+	Data.CostType = CostType;
 	Data.Handle = AbilitySpecHandle;
 	ZodiacASC->SkillHandles.AddSkillHandle(Data);
 }

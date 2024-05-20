@@ -127,13 +127,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CheckAndExecuteGameplayCue();
 
+	bool FindSkillSlotType(FGameplayTag SkillID, FGameplayTag& OutSlotType) const;
+	bool FindSkillCostType(FGameplayTag SkillID, FGameplayTag& OutCostType) const;
+	FGameplayTag FindSkillIdByHandle(FGameplayAbilitySpecHandle Handle) const;
+	float GetRequiredSkillCostAmount(FGameplayTag SkillID);
 public:
 
 	UPROPERTY(Replicated)
 	FSkillHandleDataContainer SkillHandles;
 	
 protected:
-
+	
 	void TryActivateAbilitiesOnSpawn();
 
 	virtual void AbilitySpecInputPressed(FGameplayAbilitySpec& Spec) override;
@@ -154,6 +158,7 @@ public:
 	
 protected:
 
+	// For GameplayCue effects.
 	UPROPERTY(Transient)
 	USkillMuzzleSocketData* MuzzleSocketData;
 	
