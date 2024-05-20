@@ -49,6 +49,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Tags, meta=(Categories = "Ability.Type.Skill.Slot"))
 	FGameplayTag SlotType;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Tags, meta=(Categories = "Ability.Type.Skill.Cost"))
+	FGameplayTag CostType;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FZodiacSkillAbilityGrantData AbilityToGrant;
 	

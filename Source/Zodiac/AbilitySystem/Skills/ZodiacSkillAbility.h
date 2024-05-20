@@ -21,9 +21,11 @@ public:
 
 	virtual const FGameplayTagContainer* GetCooldownTags() const override;
 
+	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void CommitExecute(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual  void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
+	float GetRequiredCostAmount() const;
 protected:
 	// Called on CommitExecute.
 	void SendCooldownMessage();
@@ -31,10 +33,10 @@ protected:
 	void ChargeUltimate();
 
 protected:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Skill|Cost")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Costs")
 	FScalableFloat CooldownDuration;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "SKill|Cost")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Costs")
 	FGameplayTagContainer CooldownTags;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Ultimate")
@@ -42,6 +44,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Ultimate")
 	FScalableFloat UltimateChargeAmount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
+	FScalableFloat RequiredCostAmount;
 	
 private:
 	// Temp container that we will return the pointer to in GetCooldownTags().

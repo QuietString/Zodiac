@@ -28,6 +28,9 @@ private:
 	
 	UPROPERTY()
 	FGameplayTag SlotType;
+
+	UPROPERTY()
+	FGameplayTag CostType;
 	
 	UPROPERTY()
 	FGameplayAbilitySpecHandle Handle;
@@ -42,26 +45,31 @@ struct FSkillHandleDataContainer : public FFastArraySerializer
 	{}
 
 public:
+	FGameplayTag FindSkillIdByHandle(FGameplayAbilitySpecHandle Handle) const;
+	
+	// Return true if matching tag is found.
+	bool FindSlotType(FGameplayTag SkillID, FGameplayTag& OutSlotType) const;
+	bool FindCostType(FGameplayTag SkillID, FGameplayTag& OutCostType) const;
+
+	// Return true if matching ability handle is found.
+	bool GetAbilitySpecHandle(FGameplayTag SkillID, FGameplayAbilitySpecHandle& OutHandle) const;
+
 	void AddSkillHandle(FSkillHandleData Data);
 	
+	//~FFastArraySerializer contract
+	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
+	//~End of FFastArraySerializer contract
+
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo & DeltaParms)
 	{
 		return FFastArraySerializer::FastArrayDeltaSerialize<FSkillHandleData, FSkillHandleDataContainer>( SkillHandles, DeltaParms, *this );
 	}
 
-	//~FFastArraySerializer contract
-	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
-	//~End of FFastArraySerializer contract
-
-	// Return true if matching SlotType tag is found.
-	bool GetSlotType(FGameplayTag SkillID, FGameplayTag& OutSlotType) const;
-
-	// Return true if matching ability handle is found.
-	bool GetAbilitySpecHandle(FGameplayTag SkillID, FGameplayAbilitySpecHandle& OutHandle) const;
-
 private:
 	UPROPERTY()
 	TArray<FSkillHandleData> SkillHandles;
+	
+	TArray<FGameplayAbilitySpecHandle> SpecHandles;
 	
 	TMap<FGameplayTag, FSkillHandleData> SkillTagToHandle;
 };

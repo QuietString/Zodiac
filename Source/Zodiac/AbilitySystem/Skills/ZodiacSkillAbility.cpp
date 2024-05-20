@@ -23,6 +23,13 @@ const FGameplayTagContainer* UZodiacSkillAbility::GetCooldownTags() const
 	return MutableTags;
 }
 
+bool UZodiacSkillAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	FGameplayTagContainer* OptionalRelevantTags) const
+{
+	
+	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags);
+}
+
 void UZodiacSkillAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
                                         const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
@@ -47,6 +54,11 @@ void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 	}
 	
 	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+}
+
+float UZodiacSkillAbility::GetRequiredCostAmount() const
+{
+	return RequiredCostAmount.GetValueAtLevel(GetAbilityLevel());
 }
 
 void UZodiacSkillAbility::SendCooldownMessage()

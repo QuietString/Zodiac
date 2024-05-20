@@ -8,6 +8,7 @@
 #include "Abilities/ZodiacGameplayAbility.h"
 #include "Animation/ZodiacAnimInstance.h"
 #include "Net/UnrealNetwork.h"
+#include "Skills/ZodiacSkillAbility.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilitySystemComponent)
 
@@ -377,6 +378,38 @@ void UZodiacAbilitySystemComponent::CheckAndExecuteGameplayCue()
 		ExecuteGameplayCue(GameplayCueReadyData.GameplayCueTag, GameplayCueReadyData.GCNParameters);
 		GameplayCueReadyData.Reset();
 	}
+}
+
+bool UZodiacAbilitySystemComponent::FindSkillSlotType(FGameplayTag SkillID, FGameplayTag& OutSlotType) const
+{
+	return SkillHandles.FindSlotType(SkillID, OutSlotType);
+}
+
+bool UZodiacAbilitySystemComponent::FindSkillCostType(FGameplayTag SkillID, FGameplayTag& OutCostType) const
+{
+	return SkillHandles.FindCostType(SkillID, OutCostType);
+}
+
+FGameplayTag UZodiacAbilitySystemComponent::FindSkillIdByHandle(FGameplayAbilitySpecHandle Handle) const
+{
+	return SkillHandles.FindSkillIdByHandle(Handle);
+}
+
+float UZodiacAbilitySystemComponent::GetRequiredSkillCostAmount(FGameplayTag SkillID)
+{
+	FGameplayAbilitySpecHandle Handle;
+	SkillHandles.GetAbilitySpecHandle(SkillID, Handle);
+	
+	FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromHandle(Handle);
+	if (AbilitySpec->Ability)
+	{
+		if (UZodiacSkillAbility* SkillAbility = Cast<UZodiacSkillAbility>(AbilitySpec->Ability))
+		{
+			return SkillAbility->GetRequiredCostAmount();
+		}
+	}
+
+	return 0.0f;
 }
 
 void UZodiacAbilitySystemComponent::TryActivateAbilitiesOnSpawn()

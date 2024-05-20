@@ -70,13 +70,16 @@ protected:
 
 	UPROPERTY()
 	const UZodiacHealthSet* HealthSet;
-
 	// UPROPERTY()
 	// const UZodiacCombatSet* CombatSet;
-
 	UPROPERTY()
 	const UZodiacUltimateSet* UltimateSet;
 
 	UPROPERTY()
 	TArray<UZodiacSkillDefinition*> SkillDefinitions;
+
+	TMap<FGameplayTag, float> RequiredCostAmounts;
+	TMap<FGameplayTag, FGameplayTag> SkillCostTypeMap;
+
+	float RequiredUltimateCostAmount = 0.0f;
 };

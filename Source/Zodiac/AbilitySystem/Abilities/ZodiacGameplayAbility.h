@@ -152,11 +152,11 @@ protected:
 	EZodiacAbilityActivationGroup ActivationGroup;
 
 	// Additional costs that must be paid to activate this ability
-	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Skill|Cost")
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Costs")
 	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;
 
 	// initial amount of tag stack to give. e.g, ammo
-	UPROPERTY(EditDefaultsOnly, Category = "Skill|Cost")
+	UPROPERTY(EditDefaultsOnly, Category = "Costs")
 	TMap<FGameplayTag, int32> InitialTagStack;
 	
 	// Map of failure tags to simple error messages
