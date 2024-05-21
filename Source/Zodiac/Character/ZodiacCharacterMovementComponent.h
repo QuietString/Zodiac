@@ -48,7 +48,7 @@ public:
 	UZodiacCharacterMovementComponent(const FObjectInitializer& ObjectInitializer);
 
 	virtual void SimulateMovement(float DeltaTime) override;
-
+	virtual float GetMaxSpeed() const override;
 	virtual bool CanAttemptJump() const override;
 
 	// Returns the current ground info.  Calling this will update the ground info if it's out of date.
@@ -59,7 +59,7 @@ public:
 
 protected:
 	virtual void InitializeComponent() override;
-
+	
 protected:
 
 	// Cached ground info for the character.  Do not access this directly!  It's only updated when accessed via GetGroundInfo().

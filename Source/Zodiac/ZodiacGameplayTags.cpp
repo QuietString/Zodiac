@@ -70,7 +70,8 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death, "Status.Death", "Target has the death status.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dying, "Status.Death.Dying", "Target has begun the death process.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dead, "Status.Death.Dead", "Target has finished the death process.");
-
+	UE_DEFINE_GAMEPLAY_TAG(Status_Stun, "Status.Stun");
+	
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Slot_HeroChanged_Message, "HUD.Slot.HeroChanged.Message");
 	
 	// Tags for GameplayCue

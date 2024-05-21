@@ -34,7 +34,7 @@ void UZodiacHealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
 	{
 		OnOutOfHealth.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurrentHealth);
 	}
-	
+	//UE_LOG(LogTemp, Warning, TEXT("health: %.1f"), CurrentHealth);
 	bOutOfHealth = (CurrentHealth <= 0.0f);
 }
 

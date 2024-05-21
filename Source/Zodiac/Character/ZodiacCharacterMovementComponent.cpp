@@ -3,7 +3,7 @@
 #include "ZodiacCharacterMovementComponent.h"
 
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
+#include "ZodiacGameplayTags.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
@@ -35,6 +35,19 @@ void UZodiacCharacterMovementComponent::SimulateMovement(float DeltaTime)
 	{
 		Super::SimulateMovement(DeltaTime);
 	}
+}
+
+float UZodiacCharacterMovementComponent::GetMaxSpeed() const
+{
+	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(CharacterOwner))
+	{
+		if (TagInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Stun))
+		{
+			return 0.0f;
+		}		
+	}
+	
+	return Super::GetMaxSpeed();
 }
 
 bool UZodiacCharacterMovementComponent::CanAttemptJump() const
