@@ -2,12 +2,12 @@
 
 #include "ZodiacHeroComponent.h"
 
-#include "HeroDisplayManagerComponent.h"
+#include "ZodiacSkillManagerComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHeroData.h"
-#include "AbilitySystem/Skills/ZodiacSkillDefinition.h"
+#include "AbilitySystem/Skills/ZodiacSkillSlotDefinition.h"
 
 UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -17,6 +17,7 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+	SkillManager = CreateDefaultSubobject<UZodiacSkillManagerComponent>(TEXT("SkillManagerComponent"));
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -88,18 +89,17 @@ void UZodiacHeroComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UZodiacHeroComponent::InitializeDisplayManager()
-{
-	DisplayManager = NewObject<UHeroDisplayManagerComponent>(this);
-	DisplayManager->InitializeHeroData(SlotIndex, AbilitySystemComponent, HeroData->SkillDefinitions, OnHeroChanged_Simple);
-}
-
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 {
 	APawn* Pawn = GetPawn<APawn>();
 	check(Pawn && "No Owner Actor");
-
-	AddAbilities();
+	
+	SkillManager->InitializeSlots(this, HeroData->SkillSlotDefinitions);
+	
+	if (HasAuthority())
+	{
+		AddAbilities();
+	}
 	
 	AbilitySystemComponent->InitAbilityActorInfo(GetOwner(), GetOwner());
 	HealthComponent->InitializeWithAbilitySystem(SlotIndex, AbilitySystemComponent);
@@ -126,14 +126,6 @@ void UZodiacHeroComponent::AddAbilities()
 			for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
 			{
 				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
-			}
-		}
-		
-		if (HeroData->SkillDefinitions.Num() > 0)
-		{
-			for (auto& Skill : HeroData->SkillDefinitions)
-			{
-				Skill->GiveToAbilitySystemComponent(AbilitySystemComponent);
 			}
 		}
 	}

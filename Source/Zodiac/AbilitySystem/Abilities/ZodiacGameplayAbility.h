@@ -79,8 +79,6 @@ class ZODIAC_API UZodiacGameplayAbility : public UGameplayAbility
 public:
 
 	UZodiacGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AZodiacPlayerController* GetZodiacPlayerControllerFromActorInfo() const;
@@ -97,18 +95,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	UZodiacHeroComponent* GetCurrentHeroComponent() const;
 
-	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category="TagStack")
-	void AddStatTagStack(FGameplayTag Tag, int32 StackCount);
-
-	// Removes a specified number of stacks from the tag (does nothing if StackCount is below 1)
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category= "TagStack")
-	void RemoveStatTagStack(FGameplayTag Tag, int32 StackCount);
-	
-	// Returns the stack count of the specified tag (or 0 if the tag is not present)
-	UFUNCTION(BlueprintCallable, Category= "TagStack")
-	int32 GetStatTagStackCount(FGameplayTag Tag) const;
-	
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
@@ -140,7 +126,7 @@ protected:
 	// Called when the ability fails to activate
 	UFUNCTION(BlueprintImplementableEvent)
 	void ScriptOnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
-	
+
 protected:
 	
 	// Defines how this ability is meant to activate.
@@ -155,10 +141,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Costs")
 	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;
 
-	// initial amount of tag stack to give. e.g, ammo
-	UPROPERTY(EditDefaultsOnly, Category = "Costs")
-	TMap<FGameplayTag, int32> InitialTagStack;
-	
 	// Map of failure tags to simple error messages
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
 	TMap<FGameplayTag, FText> FailureTagToUserFacingMessages;
@@ -169,10 +151,4 @@ protected:
 
 	// Current camera mode set by the ability.
 	TSubclassOf<UZodiacCameraMode> ActiveCameraMode;
-
-private:
-
-	// Tag container for additional costs. e.g, ammo
-	UPROPERTY(Replicated)
-	FGameplayTagStackContainer StatTags;
 };

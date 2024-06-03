@@ -7,10 +7,12 @@
 #include "GameplayTagAssetInterface.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
+#include "AbilitySystem/Skills/ZodiacSkillSlot.h"
 #include "Components/PawnComponent.h"
 #include "ZodiacHeroComponent.generated.h"
 
-class UHeroDisplayManagerComponent;
+struct FZodiacSkillSlotList;
+class UZodiacSkillManagerComponent;
 class UZodiacHealthComponent;
 class UZodiacAbilitySystemComponent;
 class UZodiacHeroComponent;
@@ -47,11 +49,12 @@ public:
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 
-	void InitializeDisplayManager();
 	UZodiacAbilitySystemComponent* InitializeAbilitySystem();
 	
 	void ActivateHero();
 	void DeactivateHero();
+
+	void AddAbilities();
 
 public:
 
@@ -60,7 +63,6 @@ public:
 	
 protected:
 
-	void AddAbilities();
 	
 protected:
 
@@ -77,7 +79,6 @@ protected:
 	FGameplayTagContainer HeroTags;
 
 private:
-	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 	
@@ -85,6 +86,6 @@ private:
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
 
 	UPROPERTY()
-	TObjectPtr<UHeroDisplayManagerComponent> DisplayManager;
+	TObjectPtr<UZodiacSkillManagerComponent> SkillManager;
 };
 

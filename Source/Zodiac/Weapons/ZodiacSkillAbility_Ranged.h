@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Skills/ZodiacSkillAbility.h"
-#include "ZodiacGameplayAbility_Ranged.generated.h"
+#include "ZodiacSkillAbility_Ranged.generated.h"
 
 /** Defines where an ability starts its trace from and where it should face */
 UENUM(BlueprintType)
@@ -25,12 +25,12 @@ enum class EZodiacAbilityTargetingRule : uint8
 };
 
 UCLASS()
-class ZODIAC_API UZodiacGameplayAbility_Ranged : public UZodiacSkillAbility
+class ZODIAC_API UZodiacSkillAbility_Ranged : public UZodiacSkillAbility
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacGameplayAbility_Ranged(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UZodiacSkillAbility_Ranged(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
 	//~UGameplayAbility interface
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;

@@ -12,7 +12,6 @@
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacPlayerCharacter.generated.h"
 
-class UZodiacSkillManagerComponent;
 class UZodiacHealthComponent;
 class AZodiacPlayerState;
 struct FGenericTeamId;

@@ -26,8 +26,10 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Networking);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_ActivationGroup);
 
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Stack);
+	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Behavior_SurvivesDeath);
-
+	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Action_Jump);
 	
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Type_Skill_Slot_Primary);
@@ -43,7 +45,7 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_PrimarySkill_Message);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_SecondarySkill_Message);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HeroChanged_UltimateSkill_Message);
-
+	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Mouse);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Stick);
@@ -61,6 +63,7 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_RequestReset);
 
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_SkillMultiplier);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Heal);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cooldown);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_UltimateGauge);
@@ -74,9 +77,9 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dying);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dead);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Stun);
-
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Slot_HeroChanged_Message);
-
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_HeroChanged_SkillSlot);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_SkillDuration);
 	
 	// Tags for GameplayCue
 	

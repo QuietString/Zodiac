@@ -104,15 +104,15 @@ void AZodiacPlayerCharacter::PossessedBy(AController* NewController)
 void AZodiacPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (IsLocallyControlled())
-	{
-		for (auto& HeroComponent : HeroComponents)
-		{
-			HeroComponent->InitializeDisplayManager();
-		}	
-	}
-	
+	//
+	// if (IsLocallyControlled())
+	// {
+	// 	for (auto& HeroComponent : HeroComponents)
+	// 	{
+	// 		HeroComponent->InitializeDisplayManager();
+	// 	}	
+	// }
+	//
 	// Select first hero
 	ChangeHero(0, true);
 }

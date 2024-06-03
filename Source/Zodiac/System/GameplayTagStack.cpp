@@ -49,7 +49,6 @@ void FGameplayTagStackContainer::RemoveStack(FGameplayTag Tag, int32 StackCount)
 		return;
 	}
 
-	//@TODO: Should we error if you try to remove a stack that doesn't exist or has a smaller count?
 	if (StackCount > 0)
 	{
 		for (auto It = Stacks.CreateIterator(); It; ++It)

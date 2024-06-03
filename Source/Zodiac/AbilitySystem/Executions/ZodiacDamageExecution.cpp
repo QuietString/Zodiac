@@ -2,6 +2,7 @@
 
 #include "ZodiacDamageExecution.h"
 
+#include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
@@ -47,7 +48,9 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 {
 #if WITH_SERVER_CODE
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
-	
+
+	float SkillMultiplier = Spec.GetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_SkillMultiplier, false, 1.0f);
+
 	FGameplayEffectContext* TypedContext = Spec.GetContext().Get();
 	check(TypedContext);
 
@@ -60,7 +63,8 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 
 	float BaseDamage = 0.0f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BaseDamageDef, EvaluateParameters, BaseDamage);
-	
+
+
 	const AActor* EffectCauser = TypedContext->GetEffectCauser();
 	const FHitResult* HitActorResult = TypedContext->GetHitResult();
 
@@ -130,6 +134,7 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	// Apply ability source modifiers
 	float PhysicalMaterialAttenuation = 1.0f;
 	float DistanceAttenuation = 1.0f;
+	
 	// if (const IZodiacAbilitySourceInterface* AbilitySource = TypedContext->GetAbilitySource())
 	// {
 	// 	if (const UPhysicalMaterial* PhysMat = TypedContext->GetPhysicalMaterial())
@@ -142,7 +147,7 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	DistanceAttenuation = FMath::Max(DistanceAttenuation, 0.0f);
 
 	// Clamping is done when damage is converted to -health
-	const float DamageDone = FMath::Max(BaseDamage * DistanceAttenuation * PhysicalMaterialAttenuation * DamageInteractionAllowedMultiplier, 0.0f);
+	const float DamageDone = FMath::Max(BaseDamage * SkillMultiplier * DistanceAttenuation * PhysicalMaterialAttenuation * DamageInteractionAllowedMultiplier, 0.0f);
 
 	if (DamageDone > 0.0f)
 	{
