@@ -6,6 +6,16 @@
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
 
+namespace ZodiacConsoleVariables
+{
+	static bool EnableLogHealthChange = false;
+	static FAutoConsoleVariableRef CVarEnableLogHealthChange(
+		TEXT("zodiac.LogChannel.HealthChange"),
+		EnableLogHealthChange,
+		TEXT("Should we log debug information of health change"),
+		ECVF_Default);
+}
+
 UZodiacHealthSet::UZodiacHealthSet()
 	: Health(100.0f)
 	, MaxHealth(100.0f)
@@ -34,7 +44,13 @@ void UZodiacHealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
 	{
 		OnOutOfHealth.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldValue.GetCurrentValue(), CurrentHealth);
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("health: %.1f"), CurrentHealth);
+
+#if WITH_EDITOR
+	if (ZodiacConsoleVariables::EnableLogHealthChange)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("health: %.1f"), CurrentHealth);
+	}
+#endif
 	bOutOfHealth = (CurrentHealth <= 0.0f);
 }
 

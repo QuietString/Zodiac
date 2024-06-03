@@ -34,6 +34,8 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Cooldown, "Ability.Type.Skill.Cost.Cooldown", "A skill that has to wait certain time after activation");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Gauge, "Ability.Type.Skill.Cost.Gauge", "A skill that need fully charged gauage to activate");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Ultimate, "Ability.Type.Skill.Cost.Ultimate", "A skill that need hero's ultimate gauage to activate");
+
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Stack, "Ability.Stack");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
 
@@ -58,6 +60,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayEvent_RequestReset, "GameplayEvent.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Damage, "SetByCaller.Damage", "SetByCaller tag used by damage gameplay effects.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_SkillMultiplier, "SetByCaller.SkillMultiplier", "SetByCaller tag used to apply skill multiplier.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Heal, "SetByCaller.Heal", "SetByCaller tag used by healing gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Cooldown, "SetByCaller.Cooldown", "SetByCaller tag used to apply cooldown gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_UltimateGauge, "SetByCaller.Ultimate.Charge", "SetByCaller tag used to apply charge ultimate gauge gameplay effects.");
@@ -72,8 +75,9 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dead, "Status.Death.Dead", "Target has finished the death process.");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Stun, "Status.Stun");
 	
-	UE_DEFINE_GAMEPLAY_TAG(HUD_Slot_HeroChanged_Message, "HUD.Slot.HeroChanged.Message");
-	
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HeroChanged_SkillSlot, "HUD.Message.HeroChanged.SkillSlot");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillDuration, "HUD.Message.SkillDuration");
+
 	// Tags for GameplayCue
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_Rifle_Fire, "GameplayCue.Weapon.Rifle.Fire");
 

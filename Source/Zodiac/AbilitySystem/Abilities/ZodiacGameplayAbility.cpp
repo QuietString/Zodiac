@@ -12,9 +12,6 @@
 #include "Character/ZodiacPlayerCharacter.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
-#include "Messages/ZodiacMessageLibrary.h"
-#include "Messages/ZodiacMessageTypes.h"
-#include "Net/UnrealNetwork.h"
 #include "Player/ZodiacPlayerController.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility)
@@ -40,13 +37,6 @@ UZodiacGameplayAbility::UZodiacGameplayAbility(const FObjectInitializer& ObjectI
 
 	ActivationPolicy = EZodiacAbilityActivationPolicy::OnInputTriggered;
 	ActivationGroup = EZodiacAbilityActivationGroup::Independent;
-}
-
-void UZodiacGameplayAbility::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ThisClass, StatTags);
 }
 
 AZodiacPlayerController* UZodiacGameplayAbility::GetZodiacPlayerControllerFromActorInfo() const
@@ -112,32 +102,9 @@ UZodiacHeroComponent* UZodiacGameplayAbility::GetCurrentHeroComponent() const
 	return nullptr;
 }
 
-void UZodiacGameplayAbility::AddStatTagStack(const FGameplayTag Tag, const int32 StackCount)
-{
-	StatTags.AddStack(Tag, StackCount);
-}
-
-void UZodiacGameplayAbility::RemoveStatTagStack(const FGameplayTag Tag, const int32 StackCount)
-{
-	StatTags.RemoveStack(Tag, StackCount);
-}
-
-int32 UZodiacGameplayAbility::GetStatTagStackCount(const FGameplayTag Tag) const
-{
-	return StatTags.GetStackCount(Tag);
-}
-
 void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
-
-	if (!InitialTagStack.IsEmpty())
-	{
-		for (auto& [Key, Value] : InitialTagStack)
-		{
-			StatTags.AddStack(Key, Value);	
-		}
-	}
 	
 	TryActivateAbilityOnSpawn(ActorInfo, Spec);
 }

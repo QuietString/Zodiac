@@ -28,7 +28,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Message")
 	static FGameplayTag GetSkillChangeChannelByTag(const FGameplayTag Tag);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Message")
 	static FGameplayTag GetSkillChangeChannelByTags(const FGameplayTagContainer& TagContainer);
 };

@@ -4,30 +4,32 @@
 #include "AbilitySystem/Skills/ZodiacSkillAbility.h"
 
 #include "ZodiacGameplayTags.h"
+#include "ZodiacSkillSlot.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
-#include "Messages/ZodiacMessageLibrary.h"
 #include "Messages/ZodiacMessageTypes.h"
+
+
+UZodiacSkillSlot* UZodiacSkillAbility::GetSkillSlot() const
+{
+	if (FGameplayAbilitySpec* Spec = GetCurrentAbilitySpec())
+	{
+		return Cast<UZodiacSkillSlot>(Spec->SourceObject.Get());
+	}
+
+	return nullptr;
+}
 
 const FGameplayTagContainer* UZodiacSkillAbility::GetCooldownTags() const
 {
 	FGameplayTagContainer* MutableTags = const_cast<FGameplayTagContainer*>(&TempCooldownTags);
 	MutableTags->Reset();
 	
-	const FGameplayTagContainer* ParentTags = Super::GetCooldownTags();
-	if (ParentTags)
+	if (UZodiacSkillSlot* SkillSlot = GetSkillSlot())
 	{
-		MutableTags->AppendTags(*ParentTags);
+		MutableTags->AddTag(SkillSlot->GetSlotType());
 	}
-	MutableTags->AppendTags(CooldownTags);
-
-	return MutableTags;
-}
-
-bool UZodiacSkillAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	FGameplayTagContainer* OptionalRelevantTags) const
-{
 	
-	return Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags);
+	return MutableTags;
 }
 
 void UZodiacSkillAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
@@ -44,13 +46,19 @@ void UZodiacSkillAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
 void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
-	UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
-	if (CooldownGE)
+	if (UGameplayEffect* CooldownGE = GetCooldownGameplayEffect())
 	{
 		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(CooldownGE->GetClass(), GetAbilityLevel());
-		SpecHandle.Data.Get()->DynamicGrantedTags.AppendTags(CooldownTags);
-		SpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Cooldown, CooldownDuration.GetValueAtLevel(GetAbilityLevel()));
-		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+		if (FGameplayEffectSpec* EffectSpec = SpecHandle.Data.Get())
+		{
+			if (UZodiacSkillSlot* SkillSlot = Cast<UZodiacSkillSlot>(GetSourceObject(Handle, CurrentActorInfo)))
+			{
+				EffectSpec->DynamicGrantedTags.AddTag(SkillSlot->GetSlotType());
+			}
+		
+			EffectSpec->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Cooldown, CooldownDuration.GetValueAtLevel(GetAbilityLevel()));
+			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
+		}
 	}
 	
 	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
@@ -63,12 +71,15 @@ float UZodiacSkillAbility::GetRequiredCostAmount() const
 
 void UZodiacSkillAbility::SendCooldownMessage()
 {
-	const FGameplayTag MessageChannel = UZodiacMessageLibrary::GetCooldownChannelByTags(CooldownTags);
-
 	FSkillDurationMessage Message;
 	Message.Instigator = CurrentActorInfo->OwnerActor.Get();
 	Message.Cooldown_Duration = GetCooldownDuration();
+	if (UZodiacSkillSlot* SkillSlot = GetSkillSlot())
+	{
+		Message.SlotType = SkillSlot->GetSlotType();	
+	}
 	
+	const FGameplayTag MessageChannel = ZodiacGameplayTags::HUD_Message_SkillDuration;
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 	MessageSubsystem.BroadcastMessage(MessageChannel, Message);
 }

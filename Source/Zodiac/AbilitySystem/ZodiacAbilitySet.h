@@ -13,6 +13,13 @@ struct FActiveGameplayEffectHandle;
 class UZodiacAbilitySystemComponent;
 class UAttributeSet;
 
+UENUM()
+enum class EZodiacAbilitySetType : uint8
+{
+	Ability,
+	Skill
+};
+
 /**
  *	Data used by the ability set to grant gameplay abilities.
  */
@@ -90,15 +97,18 @@ class ZODIAC_API UZodiacAbilitySet : public UPrimaryDataAsset
 public:
 	UZodiacAbilitySet(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	void GiveToAbilitySystem(UZodiacAbilitySystemComponent* ZodiacASC, FZodiacAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
+	virtual void GiveToAbilitySystem(UZodiacAbilitySystemComponent* ZodiacASC, FZodiacAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
 
 protected:
-
 	// Gameplay abilities to grant when this ability set is granted.
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities", meta=(TitleProperty=Ability))
+	UPROPERTY(EditDefaultsOnly, meta=(TitleProperty=Ability, EditCondition="Type == EZodiacAbilitySetType::Ability"))
 	TArray<FZodiacAbilitySet_GameplayAbility> GrantedGameplayAbilities;
 
 	// Attribute sets to grant when this ability set is granted.
-	UPROPERTY(EditDefaultsOnly, Category = "Attribute Sets", meta=(TitleProperty=AttributeSet))
+	UPROPERTY(EditDefaultsOnly, meta=(TitleProperty=AttributeSet))
 	TArray<FZodiacAbilitySet_AttributeSet> GrantedAttributes;
+
+protected:
+	UPROPERTY()
+	EZodiacAbilitySetType Type = EZodiacAbilitySetType::Ability;
 };

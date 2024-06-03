@@ -13,22 +13,22 @@ struct FHeroValueChangedMessage
 public:
 
 	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<APawn> Instigator;
+	TObjectPtr<APawn> Instigator = nullptr;
 	
 	UPROPERTY(BlueprintReadOnly)
-	int32 SlotIndex;
+	int32 SlotIndex = INDEX_NONE;
 	
 	UPROPERTY(BlueprintReadOnly)
-	float OldValue;
+	float OldValue = 0.0f;
 
 	UPROPERTY(BlueprintReadOnly)
-	float NewValue;
+	float NewValue = 0.0f;
 
 	UPROPERTY(BlueprintReadOnly)
-	float MaxValue;
+	float MaxValue = 0.0f;
 
 	UPROPERTY(BlueprintReadOnly)
-	float OptionalValue;
+	float OptionalValue = 0.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -38,26 +38,26 @@ struct FHeroChangedMessage_SkillSlot
 
 public:
 	
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<APawn> Instigator = nullptr;
 
 	UPROPERTY(BlueprintReadOnly)
-	FText HeroName = FText();
+	FGameplayTag SlotType = FGameplayTag();
 	
 	UPROPERTY(BlueprintReadWrite)
-	FSlateBrush Brush;
+	FSlateBrush Brush = FSlateBrush();
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bIsReady;
+	bool bIsReady = false;
 
-	UPROPERTY(BlueprintReadWrite)
-	float CurrentValue;
+	UPROPERTY(BlueprintReadOnly)
+	float CurrentValue = 0.0f;
 
-	UPROPERTY(BlueprintReadWrite)
-	float MaxValue;
+	UPROPERTY(BlueprintReadOnly)
+	float MaxValue = 0.0f;
 
-	UPROPERTY(BlueprintReadWrite)
-	float OptionalValue;
+	UPROPERTY(BlueprintReadOnly)
+	float OptionalValue = 0.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -70,6 +70,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<AActor> Instigator = nullptr;
 
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag SlotType = FGameplayTag();
+	
 	UPROPERTY(BlueprintReadWrite)
 	float Cooldown_Duration = 0;
 };

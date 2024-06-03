@@ -6,6 +6,8 @@
 
 #include "ZodiacHeroData.generated.h"
 
+class UZodiacSkillSlotDefinition;
+class UZodiacSkillSlot;
 class UZodiacSkillDefinition;
 class UZodiacAbilitySet;
 struct FAttributeDefaults;
@@ -36,8 +38,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	TSubclassOf<UAnimInstance> HeroAnimInstance;
 
-	UPROPERTY(EditDefaultsOnly)
-	TArray<TObjectPtr<UZodiacSkillDefinition>> SkillDefinitions;
+	UPROPERTY(EditDefaultsOnly, Category = "Skills", meta=(DisplayName = "Skill Slots", Categories = "SkillSlot"))
+	TMap<FGameplayTag, TObjectPtr<UZodiacSkillSlotDefinition>> SkillSlotDefinitions;
 
 	UPROPERTY(EditAnywhere, Category = "Display")
 	TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;

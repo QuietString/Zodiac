@@ -6,9 +6,9 @@
 #include "AbilitySystemComponent.h"
 #include "NativeGameplayTags.h"
 #include "Abilities/ZodiacGameplayAbility.h"
-#include "Skills/SkillHandle.h"
 #include "ZodiacAbilitySystemComponent.generated.h"
 
+class UZodiacSkillAbility;
 struct FGameplayTag;
 struct FGameplayAbilitySpec;
 
@@ -93,13 +93,11 @@ class ZODIAC_API UZodiacAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	UZodiacAbilitySystemComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	//~UActorComponent interface
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	//~End of UActorComponent interface
-	
+
 	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
 
 	typedef TFunctionRef<bool(const UZodiacGameplayAbility* ZodiacAbility, FGameplayAbilitySpecHandle Handle)> TShouldCancelAbilityFunc;
@@ -127,15 +125,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CheckAndExecuteGameplayCue();
 
-	bool FindSkillSlotType(FGameplayTag SkillID, FGameplayTag& OutSlotType) const;
-	bool FindSkillCostType(FGameplayTag SkillID, FGameplayTag& OutCostType) const;
-	FGameplayTag FindSkillIdByHandle(FGameplayAbilitySpecHandle Handle) const;
-	float GetRequiredSkillCostAmount(FGameplayTag SkillID);
-public:
-
-	UPROPERTY(Replicated)
-	FSkillHandleDataContainer SkillHandles;
-	
 protected:
 	
 	void TryActivateAbilitiesOnSpawn();
