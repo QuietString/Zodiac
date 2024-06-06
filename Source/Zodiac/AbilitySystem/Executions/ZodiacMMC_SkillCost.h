@@ -6,9 +6,6 @@
 #include "GameplayModMagnitudeCalculation.h"
 #include "ZodiacMMC_SkillCost.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class ZODIAC_API UZodiacMMC_SkillCost : public UGameplayModMagnitudeCalculation
 {

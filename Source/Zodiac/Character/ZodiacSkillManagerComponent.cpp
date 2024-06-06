@@ -171,7 +171,7 @@ void UZodiacSkillManagerComponent::HandleUltimateGaugeChanged(const FOnAttribute
 {
 	float NewValue = OnAttributeChangeData.NewValue;
 	float OldValue = OnAttributeChangeData.OldValue;
-	UE_LOG(LogTemp, Warning, TEXT("ultimate gauge changed from %.1f to %.1f"), OldValue, NewValue);	
+
 	FHeroValueChangedMessage Message;
 	Message.Instigator = GetPawn<APawn>();
 	Message.SlotIndex = SlotIndex;

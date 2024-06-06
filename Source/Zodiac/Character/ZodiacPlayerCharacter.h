@@ -54,6 +54,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UZodiacHealthComponent* GetCurrentHealthComponent() { return HeroComponents.IsValidIndex(ActiveHeroIndex) ? HeroComponents[ActiveHeroIndex]->GetHealthComponent() : nullptr; }
 
+	UFUNCTION(BlueprintCallable)
+	void SetModularMesh(TSubclassOf<USkeletalMeshComponent> NewMeshCompClass, FName Socket);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearModularMesh();
+	
 	//~AActor interface
 	virtual void PostRegisterAllComponents() override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -123,6 +129,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Heroes")
 	TObjectPtr<USkeletalMeshComponent> HeroMeshComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Hero")
+	TObjectPtr<USkeletalMeshComponent> ModularMeshComponent;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
 	UZodiacInputData* InputData;
 
