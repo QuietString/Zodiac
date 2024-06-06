@@ -7,11 +7,9 @@
 #include "GameplayTagAssetInterface.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
-#include "AbilitySystem/Skills/ZodiacSkillSlot.h"
 #include "Components/PawnComponent.h"
 #include "ZodiacHeroComponent.generated.h"
 
-struct FZodiacSkillSlotList;
 class UZodiacSkillManagerComponent;
 class UZodiacHealthComponent;
 class UZodiacAbilitySystemComponent;
@@ -57,13 +55,9 @@ public:
 	void AddAbilities();
 
 public:
-
 	FOnHeroChanged OnHeroChanged;
 	FSimpleMulticastDelegate OnHeroChanged_Simple;
-	
-protected:
 
-	
 protected:
 
 	UPROPERTY()

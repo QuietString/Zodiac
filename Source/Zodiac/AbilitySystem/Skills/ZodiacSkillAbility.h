@@ -8,6 +8,27 @@
 
 class UZodiacSkillSlot;
 
+USTRUCT(BlueprintType)
+struct FZodiacCostEffectData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly)
+	FScalableFloat ActivationCostAmount = 0.0f;
+	
+	/**
+	 * An additional cost that applied during activation.
+	 * If true, ActivationCostAmount will be applied only once on activation.
+	 */
+	UPROPERTY(EditDefaultsOnly)
+	bool bUseSeparateMidActivationCost = false;
+	
+	// A cost that will be used while mid-activation
+	UPROPERTY(EditDefaultsOnly, meta=(EditContition="bUseSeparateMidActivationCost == true"))
+	FScalableFloat MidActivationCostAmount = 0.0f;
+};
+
 /**
  * Gameplay ability belongs to a hero character
  */
@@ -24,10 +45,11 @@ public:
 	float GetCooldownDuration() const { return CooldownDuration.GetValueAtLevel(GetAbilityLevel()); }
 
 	virtual const FGameplayTagContainer* GetCooldownTags() const override;
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void CommitExecute(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
-	virtual  void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
+	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
-	float GetRequiredCostAmount() const;
+	float GetCostAmount() const;
 	
 protected:
 	// Called on CommitExecute.
@@ -45,17 +67,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Ultimate")
 	FScalableFloat UltimateChargeAmount;
 
-	// @TODO: for ultimate skill only for now. 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
-	FScalableFloat RequiredCostAmount;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Costs")
+	FZodiacCostEffectData CostData;
+	
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Cooldowns")
 	FScalableFloat CooldownDuration;
 
+	bool bIsFirstActivation = false;
+	
 private:
 	// Temp container that we will return the pointer to in GetCooldownTags().
 	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.
 	UPROPERTY(Transient)
 	FGameplayTagContainer TempCooldownTags;
-	
 };

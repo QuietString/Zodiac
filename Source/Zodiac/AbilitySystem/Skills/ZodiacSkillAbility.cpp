@@ -5,6 +5,7 @@
 
 #include "ZodiacGameplayTags.h"
 #include "ZodiacSkillSlot.h"
+#include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Messages/ZodiacMessageTypes.h"
 
@@ -32,6 +33,15 @@ const FGameplayTagContainer* UZodiacSkillAbility::GetCooldownTags() const
 	return MutableTags;
 }
 
+void UZodiacSkillAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	const FGameplayEventData* TriggerEventData)
+{
+	bIsFirstActivation = true;
+	
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+}
+
 void UZodiacSkillAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
                                         const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
@@ -41,10 +51,12 @@ void UZodiacSkillAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
 	{
 		SendCooldownMessage();	
 	}
+	
+	bIsFirstActivation = false;
 }
 
 void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+                                        const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
 	if (UGameplayEffect* CooldownGE = GetCooldownGameplayEffect())
 	{
@@ -64,9 +76,14 @@ void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 }
 
-float UZodiacSkillAbility::GetRequiredCostAmount() const
+float UZodiacSkillAbility::GetCostAmount() const
 {
-	return RequiredCostAmount.GetValueAtLevel(GetAbilityLevel());
+	if (CostData.bUseSeparateMidActivationCost && !bIsFirstActivation)
+	{
+		return CostData.MidActivationCostAmount.GetValueAtLevel(1);
+	}
+	
+	return CostData.ActivationCostAmount.GetValueAtLevel(1);
 }
 
 void UZodiacSkillAbility::SendCooldownMessage()
