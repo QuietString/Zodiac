@@ -76,14 +76,19 @@ void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 }
 
-float UZodiacSkillAbility::GetCostAmount() const
+float UZodiacSkillAbility::GetCurrentCostAmount() const
 {
 	if (CostData.bUseSeparateMidActivationCost && !bIsFirstActivation)
 	{
-		return CostData.MidActivationCostAmount.GetValueAtLevel(1);
+		return CostData.MidActivationCostAmount.GetValue();
 	}
 	
-	return CostData.ActivationCostAmount.GetValueAtLevel(1);
+	return CostData.ActivationCostAmount.GetValue();
+}
+
+float UZodiacSkillAbility::GetInitialActivationCost() const
+{
+	return CostData.ActivationCostAmount.GetValue();
 }
 
 void UZodiacSkillAbility::SendCooldownMessage()
