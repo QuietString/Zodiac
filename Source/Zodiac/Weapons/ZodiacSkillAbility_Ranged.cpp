@@ -250,13 +250,13 @@ void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHi
 	OutHits.Add(HitResult);
 }
 
-FVector UZodiacSkillAbility_Ranged::GetSkillTargetingSourceLocation() const
+FVector UZodiacSkillAbility_Ranged::GetTargetingSourceLocation() const
 {
 	AZodiacPlayerCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo();
 	check(ZodiacCharacter);
 
-	// @TODO: get trace socket location.
-	return ZodiacCharacter->GetMesh()->GetSocketLocation(FName());
+	FName Socket = ComboSockets.IsValidIndex(ComboIndex) ? ComboSockets[ComboIndex] : FName();
+	return ZodiacCharacter->GetMesh()->GetSocketLocation(Socket);
 }
 
 FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform() const
@@ -266,8 +266,15 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform() const
 	return GetTargetingTransform(AvatarActor, TargetingSourceRule);
 }
 
+FTransform UZodiacSkillAbility_Ranged::GetFXTargetingTransform() const
+{
+	AZodiacPlayerCharacter* AvatarActor = Cast<AZodiacPlayerCharacter>(GetCurrentActorInfo()->AvatarActor);
+
+	return GetTargetingTransform(AvatarActor, EZodiacAbilityTargetingRule::WeaponTowardsFocus);
+}
+
 FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* SourcePawn,
-                                                                EZodiacAbilityTargetingRule Source) const
+                                                             EZodiacAbilityTargetingRule Source) const
 {
 	check(SourcePawn);
 	AController* SourcePawnController = SourcePawn->GetController(); 
@@ -299,7 +306,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* SourcePawn,
 		}
 		else // for AI controlled Pawn
 		{
-			SourceLoc = GetSkillTargetingSourceLocation();
+			SourceLoc = GetTargetingSourceLocation();
 			CamLoc = SourceLoc;
 			CamRot = Controller->GetControlRotation();
 		}
@@ -311,7 +318,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* SourcePawn,
 		// Move the start and focal point up in front of pawn
 		if (PC)
 		{
-			const FVector WeaponLoc = GetSkillTargetingSourceLocation();
+			const FVector WeaponLoc = GetTargetingSourceLocation();
 			CamLoc = FocalLoc + (((WeaponLoc - FocalLoc) | AimDir) * AimDir);
 			FocalLoc = CamLoc + (AimDir * FocalDistance);
 		}
@@ -331,7 +338,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* SourcePawn,
 
 	if ((Source == EZodiacAbilityTargetingRule::WeaponForward) || (Source == EZodiacAbilityTargetingRule::WeaponTowardsFocus))
 	{
-		SourceLoc = GetSkillTargetingSourceLocation();
+		SourceLoc = GetTargetingSourceLocation();
 	}
 	else
 	{

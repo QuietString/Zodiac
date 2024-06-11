@@ -168,10 +168,6 @@
 		{
 			"Name": "AssetSearch",
 			"Enabled": true
-		},
-		{
-			"Name": "CascadeToNiagaraConverter",
-			"Enabled": true
 		}
 	]
 }

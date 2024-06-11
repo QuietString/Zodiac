@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 
+#include "ZodiacSkillTypes.generated.h"
+
 UENUM(BlueprintType)
 enum class ESkillSlotType : uint8
 {
@@ -23,5 +25,17 @@ enum class ESkillCostType : uint8
 };
 
 /**
- * 
+ * Sockets used for skill ability FX.
  */
+USTRUCT(BlueprintType)
+struct FZodiacSkillComboSocketData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly)
+	TArray<FName> ComboSocket;
+
+	UPROPERTY(VisibleAnywhere)
+	int32 ComboIndex = 0;
+};

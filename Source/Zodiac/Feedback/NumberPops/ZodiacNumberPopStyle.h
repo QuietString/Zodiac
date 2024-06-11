@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "ZodiacDamagePopStyle.generated.h"
+#include "ZodiacNumberPopStyle.generated.h"
 
 class UNiagaraSystem;
 
 UCLASS()
-class ZODIAC_API UZodiacDamagePopStyle : public UDataAsset
+class ZODIAC_API UZodiacNumberPopStyle : public UDataAsset
 {
 	GENERATED_BODY()
 

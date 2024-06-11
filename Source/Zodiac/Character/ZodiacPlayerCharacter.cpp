@@ -28,8 +28,8 @@ AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectI
 	HeroMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("HeroMeshComponent"));
 	HeroMeshComponent->SetupAttachment(GetMesh(), NAME_None);
 
-	ModularMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ModularMesh"));
-	ModularMeshComponent->SetupAttachment(GetMesh(), NAME_None);
+	// ModularMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ModularMesh"));
+	// ModularMeshComponent->SetupAttachment(GetMesh(), NAME_None);
 	
 	CameraComponent = CreateDefaultSubobject<UZodiacCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
@@ -87,16 +87,25 @@ UAbilitySystemComponent* AZodiacPlayerCharacter::GetAbilitySystemComponent() con
 
 void AZodiacPlayerCharacter::SetModularMesh(TSubclassOf<USkeletalMeshComponent> NewMeshCompClass, FName Socket)
 {
-	ModularMeshComponent->UnregisterComponent();
+	if (ModularMeshComponent)
+	{
+		ModularMeshComponent->UnregisterComponent();
+	}
+	
 	USkeletalMeshComponent* NewMeshComp = NewObject<USkeletalMeshComponent>(this, NewMeshCompClass);
 	ModularMeshComponent = NewMeshComp;
-	NewMeshComp->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket);
-	//NewMeshComp->SetVisibility(false);
+	ModularMeshComponent->LeaderPoseComponent = GetMesh();
+	ModularMeshComponent->bUseBoundsFromLeaderPoseComponent = true;
+	ModularMeshComponent->SetVisibility(false);
+	ModularMeshComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket);
+	ModularMeshComponent->SetIsReplicated(true);
 	ModularMeshComponent->RegisterComponent();
+	ModularMeshComponent->SetVisibility(true);
 }
 
 void AZodiacPlayerCharacter::ClearModularMesh()
 {
+	ModularMeshComponent->SetVisibility(false);
 	ModularMeshComponent->UnregisterComponent();
 }
 

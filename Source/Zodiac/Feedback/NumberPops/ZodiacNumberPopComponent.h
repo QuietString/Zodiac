@@ -7,7 +7,7 @@
 #include "Components/ControllerComponent.h"
 #include "ZodiacNumberPopComponent.generated.h"
 
-class UZodiacDamagePopStyle;
+class UZodiacNumberPopStyle;
 class UNiagaraComponent;
 
 USTRUCT(BlueprintType)
@@ -58,7 +58,7 @@ protected:
 
 	/** Style patterns to attempt to apply to the incoming number pops */
 	UPROPERTY(EditDefaultsOnly, Category = "Number Pop|Style")
-	TObjectPtr<UZodiacDamagePopStyle> Style;
+	TObjectPtr<UZodiacNumberPopStyle> Style;
 
 	//Niagara Component used to display the damage
 	UPROPERTY(EditDefaultsOnly, Category = "Number Pop|Style")

@@ -55,17 +55,24 @@ public:
 protected:
 	// Called on CommitExecute.
 	void SendCooldownMessage();
-	
+
+	UFUNCTION(BlueprintCallable)
 	void ChargeUltimate();
 
+	UFUNCTION(BlueprintCallable)
+	virtual void ProceedCombo() { ComboIndex = (ComboSockets.Num() > 0) ? (ComboIndex + 1) % ComboSockets.Num() : 0; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual void ResetCombo() { ComboIndex = 0; }
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
 	FScalableFloat SkillMultiplier = 1.0f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill|Ultimate")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate")
 	TSubclassOf<UGameplayEffect> ChargeUltimateEffect;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Skill|Ultimate")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultimate")
 	FScalableFloat UltimateChargeAmount;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Costs")
@@ -74,6 +81,12 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Cooldowns")
 	FScalableFloat CooldownDuration;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combo")
+	TArray<FName> ComboSockets;
+
+	UPROPERTY(BlueprintReadOnly)
+	uint8 ComboIndex = 0;
+	
 private:
 	bool bIsFirstActivation = false;
 	

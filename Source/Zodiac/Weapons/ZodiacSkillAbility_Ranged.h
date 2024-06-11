@@ -70,11 +70,14 @@ protected:
 	
 	void PerformLocalTargeting(OUT TArray<FHitResult>& OutHits);
 
-	FVector GetSkillTargetingSourceLocation() const;
+	FVector GetTargetingSourceLocation() const;
 	
 	UFUNCTION(BlueprintCallable)
 	FTransform GetTargetingTransform() const;
 
+	UFUNCTION(BlueprintCallable)
+	FTransform GetFXTargetingTransform() const;
+	
 	FTransform GetTargetingTransform(APawn* SourcePawn, EZodiacAbilityTargetingRule Source) const;
 
 protected:
@@ -88,9 +91,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Skill")
 	EZodiacAbilityTargetingRule TargetingSourceRule;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Skill|Combo")
-	uint8 ComboIndex;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
 	TSubclassOf<UGameplayEffect> DamageEffect;
 

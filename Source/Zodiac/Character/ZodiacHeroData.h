@@ -7,8 +7,6 @@
 #include "ZodiacHeroData.generated.h"
 
 class UZodiacSkillSlotDefinition;
-class UZodiacSkillSlot;
-class UZodiacSkillDefinition;
 class UZodiacAbilitySet;
 struct FAttributeDefaults;
 class UZodiacReticleWidgetBase;
