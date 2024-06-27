@@ -5,6 +5,7 @@
 
 #include "SemiUniformGridSlot.h"
 #include "SSemiUniformGridPanel.h"
+#include "UI/Menu/MenuTileBase.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SemiUniformGridPanel)
 
@@ -81,6 +82,17 @@ void USemiUniformGridPanel::SynchronizeProperties()
 	MySemiUniformGridPanel->SetSlotPadding(SlotPadding);
 	MySemiUniformGridPanel->SetMinDesiredSlotWidth(MinDesiredSlotWidth);
 	MySemiUniformGridPanel->SetMinDesiredSlotHeight(MinDesiredSlotHeight);
+
+	if (Style)
+	{
+		for (UPanelSlot* PanelSlot : Slots)
+		{
+			if (UMenuTileBase* MenuTile = Cast<UMenuTileBase>(PanelSlot->Content))
+			{
+				MenuTile->SetStyleFromPanel(Style);
+			}
+		}
+	}
 }
 
 void USemiUniformGridPanel::ReleaseSlateResources(bool bReleaseChildren)
@@ -101,16 +113,24 @@ void USemiUniformGridPanel::OnSlotAdded(UPanelSlot* InSlot)
 	if ( MySemiUniformGridPanel.IsValid() )
 	{
 		CastChecked<USemiUniformGridSlot>(InSlot)->BuildSlot(MySemiUniformGridPanel.ToSharedRef());
+
+		if (Style)
+		{
+			if (UMenuTileBase* MenuTile = Cast<UMenuTileBase>(InSlot->Content))
+			{
+				MenuTile->SetStyleFromPanel(Style);
+			}
+		}
 	}
 }
 
 void USemiUniformGridPanel::OnSlotRemoved(UPanelSlot* InSlot)
 {
 	// Remove the widget from the live slot if it exists.
-	if ( MySemiUniformGridPanel.IsValid() && InSlot->Content)
+	if (MySemiUniformGridPanel.IsValid() && InSlot->Content)
 	{
 		TSharedPtr<SWidget> Widget = InSlot->Content->GetCachedWidget();
-		if ( Widget.IsValid() )
+		if (Widget.IsValid())
 		{
 			MySemiUniformGridPanel->RemoveSlot(Widget.ToSharedRef());
 		}
@@ -127,9 +147,16 @@ TSharedRef<SWidget> USemiUniformGridPanel::RebuildWidget()
 		{
 			TypedSlot->Parent = this;
 			TypedSlot->BuildSlot(MySemiUniformGridPanel.ToSharedRef());
+			if (Style)
+			{
+				if (UMenuTileBase* MenuTile = Cast<UMenuTileBase>(TypedSlot->Content))
+				{
+					MenuTile->SetStyleFromPanel(Style);
+				}	
+			}
 		}
 	}
-
+	
 	return MySemiUniformGridPanel.ToSharedRef();
 }
 

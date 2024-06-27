@@ -6,6 +6,7 @@
 #include "Components/PanelWidget.h"
 #include "SemiUniformGridPanel.generated.h"
 
+class UCommonButtonStyle;
 class SSemiUniformGridPanel;
 class USemiUniformGridSlot;
 
@@ -33,6 +34,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Getter, Setter, BlueprintSetter="SetMinDesiredSlotHeight", Category="Child Layout")
 	float MinDesiredSlotHeight;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Child Layout")
+	TSubclassOf<UCommonButtonStyle> Style;
+	
 public:
 
 	FMargin GetSlotPadding() const;

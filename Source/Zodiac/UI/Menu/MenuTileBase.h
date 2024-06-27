@@ -45,6 +45,8 @@ public:
 	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
 	//~ End UWidget Interface
 
+	void SetStyleFromPanel(TSubclassOf<UCommonButtonStyle> InStyle);
+	
 protected:
 	//~ Begin UWidget Interface
 	virtual TSharedRef<SWidget> RebuildWidget() override;
@@ -63,4 +65,8 @@ protected:
 
 	UPROPERTY(meta=(BindWidget))
 	UImage* TileImage;
+
+	// If false, it uses a style selected from outer panel. 
+	UPROPERTY(EditAnywhere, Category=Style)
+	bool bOverrideStyle = false;
 };

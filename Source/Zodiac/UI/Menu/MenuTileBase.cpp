@@ -24,15 +24,20 @@ void UMenuTileBase::SynchronizeProperties()
 void UMenuTileBase::ReleaseSlateResources(bool bReleaseChildren)
 {
 	Super::ReleaseSlateResources(bReleaseChildren);
-	//UE_LOG(LogTemp, Warning, TEXT("release resource: %s"), *GetName());
 
 	OnClicked().Clear();
 }
 
+void UMenuTileBase::SetStyleFromPanel(const TSubclassOf<UCommonButtonStyle> InStyle)
+{
+	if (!bOverrideStyle)
+	{
+		SetStyle(InStyle);
+	}
+}
+
 TSharedRef<SWidget> UMenuTileBase::RebuildWidget()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("rebuild: %s"), *GetName());
-
 	TSharedRef<SWidget> Result = Super::RebuildWidget();
 	
 	OnClicked().AddUObject(this, &ThisClass::HandleOnClicked);
@@ -42,12 +47,8 @@ TSharedRef<SWidget> UMenuTileBase::RebuildWidget()
 
 void UMenuTileBase::HandleOnClicked()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("HandleOnClicked"));
-
 	if (!TileData.WidgetToPush.IsValid())
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("widgettopush not valid"));
-
 		return;
 	}
 	
