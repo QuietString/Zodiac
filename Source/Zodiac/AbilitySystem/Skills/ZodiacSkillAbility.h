@@ -6,6 +6,7 @@
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
 #include "ZodiacSkillAbility.generated.h"
 
+class UZodiacSkillAbilityCost;
 class UZodiacSkillSlot;
 
 USTRUCT(BlueprintType)
@@ -25,8 +26,12 @@ public:
 	bool bUseSeparateMidActivationCost = false;
 	
 	// A cost that will be used while mid-activation
-	UPROPERTY(EditDefaultsOnly, meta=(EditContition="bUseSeparateMidActivationCost == true"))
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="bUseSeparateMidActivationCost == true"))
 	FScalableFloat MidActivationCostAmount = 0.0f;
+
+	// Additional costs that must be paid to activate this ability
+	UPROPERTY(EditDefaultsOnly, Instanced)
+	TArray<TObjectPtr<UZodiacSkillAbilityCost>> AdditionalCosts;
 };
 
 /**
@@ -47,10 +52,15 @@ public:
 	virtual const FGameplayTagContainer* GetCooldownTags() const override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void CommitExecute(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
+	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
+	const FZodiacCostEffectData& GetCostEffectData() { return CostData;	}
+	
 	float GetCurrentCostAmount() const;
 	float GetInitialActivationCost() const;
+	bool GetIsSubordinate() const { return bIsSubordinate; }
 	
 protected:
 	// Called on CommitExecute.
@@ -84,9 +94,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combo")
 	TArray<FName> ComboSockets;
 
+	// if this skill is subordinate skill of the other. if true, it won't display cost data.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
+	bool bIsSubordinate = false;
+	
 	UPROPERTY(BlueprintReadOnly)
 	uint8 ComboIndex = 0;
-	
+
 private:
 	bool bIsFirstActivation = false;
 	

@@ -32,4 +32,7 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, meta=(Categories="Ability.Stack"))
 	TMap<FGameplayTag, int32> InitialTagStack;
+
+	UPROPERTY(EditDefaultsOnly, meta=(Categories="HUD.SkillSlot.Cost"))
+	FGameplayTagContainer DisplayCostTypes;
 };

@@ -9,12 +9,12 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSkillCost_TagStack)
 
-UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_FAIL_COST, "Ability.ActivateFail.Cost");
+//UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_FAIL_COST, "Ability.ActivateFail.Cost");
 
 UZodiacSkillCost_TagStack::UZodiacSkillCost_TagStack()
 {
 	Quantity.SetValue(1.0f);
-	FailureTag = TAG_ABILITY_FAIL_COST;
+	//FailureTag = TAG_ABILITY_FAIL_COST;
 }
 
 bool UZodiacSkillCost_TagStack::CheckCost(const UZodiacGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const

@@ -6,7 +6,6 @@
 #include "ZodiacGlobalAbilitySystem.h"
 #include "ZodiacLogChannels.h"
 #include "Abilities/ZodiacGameplayAbility.h"
-#include "Net/UnrealNetwork.h"
 #include "Skills/ZodiacSkillAbility.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilitySystemComponent)

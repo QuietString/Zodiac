@@ -11,7 +11,6 @@
 UZodiacSkillSlot::UZodiacSkillSlot(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
 }
 
 void UZodiacSkillSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -45,9 +44,17 @@ int32 UZodiacSkillSlot::GetStatTagStackCount(FGameplayTag Tag) const
 void UZodiacSkillSlot::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
 {
 	StatTag.AddStack(Tag, StackCount);
+	UE_LOG(LogTemp, Warning, TEXT("slot addtag"));
 }
 
 void UZodiacSkillSlot::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
 {
 	StatTag.RemoveStack(Tag, StackCount);
+	UE_LOG(LogTemp, Warning, TEXT("slot remove tag"));
+}
+
+void UZodiacSkillSlot::OnRep_StatTag()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("slot onrep stattag"));
+	//OnTagStackChanged.Execute(this);
 }

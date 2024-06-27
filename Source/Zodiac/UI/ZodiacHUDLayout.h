@@ -9,7 +9,6 @@
 class UCommonActivatableWidget;
 class UObject;
 
-
 /**
  *	Widget used to lay out the player's HUD (typically specified by an Add Widgets action in the experience)
  */
@@ -19,10 +18,9 @@ class UZodiacHUDLayout : public UZodiacActivatableWidget
 	GENERATED_BODY()
 
 public:
-
 	UZodiacHUDLayout(const FObjectInitializer& ObjectInitializer);
 
-	void NativeOnInitialized() override;
+	virtual void NativeOnInitialized() override;
 
 protected:
 	void HandleEscapeAction();

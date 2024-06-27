@@ -18,6 +18,11 @@
 				"CommonGame",
 				"ReplicationGraph"
 			]
+		},
+		{
+			"Name": "ZodiacEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [

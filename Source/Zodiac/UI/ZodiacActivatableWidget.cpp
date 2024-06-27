@@ -2,6 +2,7 @@
 
 #include "ZodiacActivatableWidget.h"
 
+#include "Animation/UMGSequencePlayer.h"
 #include "Editor/WidgetCompilerLog.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacActivatableWidget)
@@ -11,6 +12,26 @@
 UZodiacActivatableWidget::UZodiacActivatableWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+}
+
+void UZodiacActivatableWidget::DeactivateOnAnimFinished(UUMGSequencePlayer& UUmgSequencePlayer)
+{
+	Super::NativeOnDeactivated();
+}
+
+void UZodiacActivatableWidget::NativeOnDeactivated()
+{
+	UE_LOG(LogTemp, Warning, TEXT("on deactivated"));
+	if (BoundAnim_OnActivated)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("on deactivated with anim"));
+		PlayAnimationReverse(BoundAnim_OnActivated)->OnSequenceFinishedPlaying().AddUObject(this, &ThisClass::DeactivateOnAnimFinished);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("on deactivated without anim"));
+		Super::NativeOnDeactivated();
+	}
 }
 
 TOptional<FUIInputConfig> UZodiacActivatableWidget::GetDesiredInputConfig() const

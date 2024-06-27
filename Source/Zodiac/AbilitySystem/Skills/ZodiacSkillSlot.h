@@ -10,8 +10,10 @@
 class UZodiacSkillSlotDefinition;
 class UZodiacSkillSlotFragment;
 class UZodiacAbilitySystemComponent;
+class UZodiacSkillSlot;
 class UZodiacSkillSet;
 
+DECLARE_DELEGATE_OneParam(FOnTagStackChanged, UZodiacSkillSlot* Slot);
 /**
  * 
  */
@@ -49,6 +51,13 @@ public:
 	void RemoveStatTagStack(FGameplayTag Tag, int32 StackCount);
 
 protected:
+	UFUNCTION()
+	void OnRep_StatTag();
+	
+public:
+	FOnTagStackChanged OnTagStackChanged;
+	
+protected:
 	UPROPERTY()
 	const UZodiacSkillSlotDefinition* SlotDefinition = nullptr;
 
@@ -56,6 +65,6 @@ protected:
 	FGameplayTag SlotType;
 	
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_StatTag)
 	FGameplayTagStackContainer StatTag;
 };

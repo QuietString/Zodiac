@@ -25,7 +25,9 @@ class UZodiacActivatableWidget : public UCommonActivatableWidget
 
 public:
 	UZodiacActivatableWidget(const FObjectInitializer& ObjectInitializer);
-	
+
+	void DeactivateOnAnimFinished(UUMGSequencePlayer& UUmgSequencePlayer);
+	virtual void NativeOnDeactivated() override;
 public:
 	
 	//~UCommonActivatableWidget interface
@@ -44,4 +46,7 @@ protected:
 	/** The desired mouse behavior when the game gets input. */
 	UPROPERTY(EditDefaultsOnly, Category = Input)
 	EMouseCaptureMode GameMouseCaptureMode = EMouseCaptureMode::CapturePermanently;
+
+	UPROPERTY(Transient, BlueprintReadOnly, meta=(BindWidgetAnimOptional))
+	TObjectPtr<UWidgetAnimation> BoundAnim_OnActivated;
 };

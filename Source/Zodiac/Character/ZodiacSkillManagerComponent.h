@@ -42,8 +42,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UZodiacSkillSlot> Slot = nullptr;
 
-	// Authority-only list of granted handles
-	UPROPERTY(NotReplicated)
+	UPROPERTY()
 	FZodiacAbilitySet_GrantedHandles GrantedHandles;
 };
 
@@ -108,9 +107,15 @@ protected:
 	void SendResetMessages();
 	
 	void SendHealthBarHeroChangedMessage();
+	void SendSlotStatTagChangedMessage(UZodiacSkillSlot* Slot);
 	void SendSkillSlotChangedMessages();
+	
 	void GetUltimateGauge(FHeroChangedMessage_SkillSlot& OutMessage);
 	void GetCooldown(FHeroChangedMessage_SkillSlot& OutMessage, FGameplayTag SlotType);
+	void GetCooldown2(FHeroChangedMessage_SkillSlot& OutMessage, FGameplayTag SlotType);
+
+	UFUNCTION()
+	void OnRep_SkillSlotList(const FZodiacSkillSlotList& OldList);
 
 protected:
 	UPROPERTY()
@@ -119,7 +124,7 @@ protected:
 	UPROPERTY(Transient)
 	UZodiacAbilitySystemComponent* AbilitySystemComponent;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_SkillSlotList)
 	FZodiacSkillSlotList SkillSlotList;
 	
 	UPROPERTY()

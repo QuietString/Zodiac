@@ -58,6 +58,24 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	float OptionalValue = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly)
+	uint8 CurrentStack = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	uint8 MaxStack = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	uint8 ActivationStack = 0;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTagContainer DisplayCostType;
+	
+	UPROPERTY(BlueprintReadOnly)
+	float Cooldown_Remaining = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly)
+	float Cooldown_Duration = 0.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -75,6 +93,25 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite)
 	float Cooldown_Duration = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FZodiacSkillCommitMessage_TagStack
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<APawn> Instigator = nullptr;
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag SlotType = FGameplayTag();
+	
+	UPROPERTY(BlueprintReadOnly)
+	int32 OldValue = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 ConsumeAmount = 0;
 };
 
 USTRUCT(BlueprintType)

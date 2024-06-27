@@ -3,16 +3,14 @@
 #include "ZodiacUIMessaging.h"
 
 #include "Messaging/CommonGameDialog.h"
-#include "NativeGameplayTags.h"
 #include "Player/ZodiacLocalPlayer.h"
 #include "PrimaryGameLayout.h"
+#include "ZodiacGameplayTags.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacUIMessaging)
 
 class FSubsystemCollectionBase;
-
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_UI_LAYER_MODAL, "UI.Layer.Modal");
 
 void UZodiacUIMessaging::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -28,7 +26,7 @@ void UZodiacUIMessaging::ShowConfirmation(UCommonGameDialogDescriptor* DialogDes
 	{
 		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
 		{
-			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(TAG_UI_LAYER_MODAL, ConfirmationDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog) {
+			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(ZodiacGameplayTags::UI_Layer_Modal, ConfirmationDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog) {
 				Dialog.SetupDialog(DialogDescriptor, ResultCallback);
 			});
 		}
@@ -41,7 +39,7 @@ void UZodiacUIMessaging::ShowError(UCommonGameDialogDescriptor* DialogDescriptor
 	{
 		if (UPrimaryGameLayout* RootLayout = LocalPlayer->GetRootUILayout())
 		{
-			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(TAG_UI_LAYER_MODAL, ErrorDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog) {
+			RootLayout->PushWidgetToLayerStack<UCommonGameDialog>(ZodiacGameplayTags::UI_Layer_Modal, ErrorDialogClassPtr, [DialogDescriptor, ResultCallback](UCommonGameDialog& Dialog) {
 				Dialog.SetupDialog(DialogDescriptor, ResultCallback);
 			});
 		}

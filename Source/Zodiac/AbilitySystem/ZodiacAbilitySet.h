@@ -8,6 +8,7 @@
 #include "Engine/DataAsset.h"
 #include "ZodiacAbilitySet.generated.h"
 
+class UZodiacSkillManagerComponent;
 class UZodiacGameplayAbility;
 struct FActiveGameplayEffectHandle;
 class UZodiacAbilitySystemComponent;
@@ -71,6 +72,9 @@ public:
 	//void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddAttributeSet(UAttributeSet* Set);
 
+private:
+	friend UZodiacSkillManagerComponent;
+	
 protected:
 
 	// Handles to the granted abilities.

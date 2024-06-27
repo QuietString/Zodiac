@@ -109,80 +109,11 @@ void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* Acto
 	TryActivateAbilityOnSpawn(ActorInfo, Spec);
 }
 
-bool UZodiacGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
-{
-	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags) || !ActorInfo)
-	{
-		return false;
-	}
-
-	// Verify we can afford any additional costs
-	for (TObjectPtr<UZodiacAbilityCost> AdditionalCost : AdditionalCosts)
-	{
-		if (AdditionalCost != nullptr)
-		{
-			if (!AdditionalCost->CheckCost(this, Handle, ActorInfo, OUT OptionalRelevantTags))
-			{
-				return false;
-			}
-		}
-	}
-
-	return true;
-}
 
 void UZodiacGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle,
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
-	
-	// Used to determine if the ability actually hit a target (as some costs are only spent on successful attempts)
-	auto DetermineIfAbilityHitTarget = [&]()
-	{
-		if (ActorInfo->IsNetAuthority())
-		{
-			if (UZodiacAbilitySystemComponent* ASC = Cast<UZodiacAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get()))
-			{
-				FGameplayAbilityTargetDataHandle TargetData;
-				ASC->GetAbilityTargetData(Handle, ActivationInfo, TargetData);
-				for (int32 TargetDataIdx = 0; TargetDataIdx < TargetData.Data.Num(); ++TargetDataIdx)
-				{
-					if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetData, TargetDataIdx))
-					{
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
-	};
-
-	// Pay any additional costs
-	bool bAbilityHitTarget = false;
-	bool bHasDeterminedIfAbilityHitTarget = false;
-	for (TObjectPtr<UZodiacAbilityCost> AdditionalCost : AdditionalCosts)
-	{
-		if (AdditionalCost != nullptr)
-		{
-			if (AdditionalCost->ShouldOnlyApplyCostOnHit())
-			{
-				if (!bHasDeterminedIfAbilityHitTarget)
-				{
-					bAbilityHitTarget = DetermineIfAbilityHitTarget();
-					bHasDeterminedIfAbilityHitTarget = true;
-				}
-
-				if (!bAbilityHitTarget)
-				{
-					continue;
-				}
-			}
-
-			AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
-		}
-	}
 }
 
 void UZodiacGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,

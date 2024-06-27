@@ -8,6 +8,7 @@
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "Components/PawnComponent.h"
+#include "System/GameplayTagStack.h"
 #include "ZodiacHeroComponent.generated.h"
 
 class UZodiacSkillManagerComponent;
@@ -51,7 +52,7 @@ public:
 	
 	void ActivateHero();
 	void DeactivateHero();
-
+	
 	void AddAbilities();
 
 public:

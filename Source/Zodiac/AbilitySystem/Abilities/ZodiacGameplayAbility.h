@@ -96,7 +96,6 @@ public:
 	UZodiacHeroComponent* GetCurrentHeroComponent() const;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	
 	EZodiacAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
@@ -136,10 +135,6 @@ protected:
 	// Defines the relationship between this ability activating and other abilities activating.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Activation")
 	EZodiacAbilityActivationGroup ActivationGroup;
-
-	// Additional costs that must be paid to activate this ability
-	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Costs")
-	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;
 
 	// Map of failure tags to simple error messages
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
