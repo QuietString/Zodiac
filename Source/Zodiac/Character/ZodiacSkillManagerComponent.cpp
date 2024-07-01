@@ -15,108 +15,53 @@
 #include "AbilitySystem/Skills/ZodiacSkillSet.h"
 #include "AbilitySystem/Skills/ZodiacSkillSlot.h"
 #include "AbilitySystem/Skills/ZodiacSkillSlotFragment_SlotIcon.h"
-#include "Engine/ActorChannel.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Messages/ZodiacMessageLibrary.h"
 #include "Messages/ZodiacMessageTypes.h"
 #include "Net/UnrealNetwork.h"
 
-FString FZodiacSkillSlotEntry::GetDebugString() const
-{
-	return FString::Printf(TEXT("%s of %s"), *GetNameSafe(Slot), *GetNameSafe(SlotDefinition.Get()));
-}
-
-UZodiacSkillSlot* FZodiacSkillSlotList::AddEntry(TObjectPtr<UZodiacSkillSlotDefinition> SlotDefinition, FGameplayTag
-                                                 SlotType, TObjectPtr<UZodiacAbilitySystemComponent> ZodiacASC)
-{
-	UZodiacSkillSlot* Result = nullptr;
-
-	check(ZodiacASC);
-	check(SlotDefinition);
-	check(OwnerComponent);
-	check(OwnerComponent->GetOwner()->HasAuthority());
-
-	FZodiacSkillSlotEntry& NewEntry = Entries.AddDefaulted_GetRef();
-	NewEntry.SlotDefinition = SlotDefinition;
-	NewEntry.Slot = NewObject<UZodiacSkillSlot>(OwnerComponent->GetOwner(), UZodiacSkillSlot::StaticClass());
-	
-	Result = NewEntry.Slot;
-	Result->SetSlotType(SlotType);
-	Result->SetSlotDefinition(SlotDefinition);
-	for (auto& [Key, Value] : SlotDefinition->InitialTagStack)
-	{
-		Result->AddStatTagStack(Key, Value);
-	}
-	
-	if (TObjectPtr<UZodiacSkillSet> SkillSet = SlotDefinition->SkillSetToGrant)
-	{
-		SlotDefinition->SkillSetToGrant->GiveToAbilitySystem(ZodiacASC, IN OUT &NewEntry.GrantedHandles, Result);
-	}
-
-	MarkItemDirty(NewEntry);
-
-	return Result;
-}
-
 UZodiacSkillManagerComponent::UZodiacSkillManagerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
-	, SkillSlotList(this)
 {
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 	bReplicateUsingRegisteredSubObjectList = true;
 	SetIsReplicatedByDefault(true);
 	AbilitySystemComponent = nullptr;
 	HealthSet = nullptr;
-	UltimateSet = nullptr; 
+	UltimateSet = nullptr;
 }
 
 void UZodiacSkillManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass, SkillSlotList);
-}
-
-bool UZodiacSkillManagerComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch,
-	FReplicationFlags* RepFlags)
-{
-	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-	//UE_LOG(LogTemp, Warning, TEXT("replicate subobjects"));
-	for (FZodiacSkillSlotEntry& Entry : SkillSlotList.Entries)
-	{
-		UZodiacSkillSlot* Instance = Entry.Slot;
-
-		if (IsValid(Instance))
-		{
-			WroteSomething |= Channel->ReplicateSubobject(Instance, *Bunch, *RepFlags);
-		}
-	}
-
-	return WroteSomething;
+	DOREPLIFETIME(ThisClass, Slots);
 }
 
 void UZodiacSkillManagerComponent::ReadyForReplication()
 {
 	Super::ReadyForReplication();
-
+	
 	// Register existing ZodiacSkillSlot
 	if (IsUsingRegisteredSubObjectList())
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("use subobject list"));
-		for (const FZodiacSkillSlotEntry& Entry : SkillSlotList.Entries)
+		for (const auto& Slot : Slots)
 		{
-			UZodiacSkillSlot* Instance = Entry.Slot;
-
-			if (IsValid(Instance))
+			if (Slot)
 			{
-				AddReplicatedSubObject(Instance);
+				AddReplicatedSubObject(Slot);
 			}
 		}
 	}
+}
+
+void UZodiacSkillManagerComponent::BeginPlay()
+{
+	Super::BeginPlay();
 
 	if (SlotIndex == 0)
 	{
-		SendResetMessages();
+		SendResetMessages();	
 	}
 }
 
@@ -129,16 +74,32 @@ void UZodiacSkillManagerComponent::InitializeSlots(UZodiacHeroComponent* HeroCom
 	
 	SlotIndex = HeroComponent->GetSlotIndex();
 	AbilitySystemComponent = ZodiacASC;
-
+	
 	if (HasAuthority())
 	{
 		for (auto& [SlotType, Definition] : SlotDefinitions)
 		{
-			UZodiacSkillSlot* Slot = SkillSlotList.AddEntry(Definition, SlotType, ZodiacASC);
+			UZodiacSkillSlot* Slot = Slots.Add_GetRef(NewObject<UZodiacSkillSlot>(GetOwner(), UZodiacSkillSlot::StaticClass()));
+			Slot->SetSlotType(SlotType);
+			Slot->SetSlotDefinition(Definition);
+			for (auto& [Key, Value] : Definition->InitialTagStack)
+			{
+				Slot->AddStatTagStack(Key, Value);
+			}
+			
+			if (TObjectPtr<UZodiacSkillSet> SkillSet = Definition->SkillSetToGrant)
+			{
+				Definition->SkillSetToGrant->GiveToAbilitySystem(ZodiacASC, &Slot->GrantedHandles, Slot);
+			}
+			
+			if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && Slot)
+			{
+				AddReplicatedSubObject(Slot);
+			}
 			Slot->OnTagStackChanged.BindUObject(this, &ThisClass::SendSlotStatTagChangedMessage);
 		}	
 	}
-
+	
 	// for displaying UI elements
 	HeroComponent->OnHeroChanged_Simple.AddUObject(this, &ThisClass::OnHeroChanged);
 	
@@ -240,21 +201,17 @@ void UZodiacSkillManagerComponent::SendSlotStatTagChangedMessage(UZodiacSkillSlo
 	const FGameplayTag MessageChannel = ZodiacGameplayTags::HUD_Message_SkillCommit;
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 	MessageSubsystem.BroadcastMessage(MessageChannel, Message);
-
-	UE_LOG(LogTemp, Warning, TEXT("stat tag message sent"));
 }
 
 void UZodiacSkillManagerComponent::SendSkillSlotChangedMessages()
 {
 	TArray<FGameplayAbilitySpecHandle> Handles;
 
-	for (auto& SlotEntry : SkillSlotList.Entries)
+	for (UZodiacSkillSlot* Slot : Slots)
 	{
-		SlotEntry.Slot->AddStatTagStack(ZodiacGameplayTags::Status_Stun, 1);
-		UZodiacSkillSlot* Slot = SlotEntry.Slot;
 		const UZodiacSkillSlotFragment_SlotIcon* SlotIcon = Slot->FindFragment<UZodiacSkillSlotFragment_SlotIcon>();
 
-		for (auto& AbilityHandle : SlotEntry.GrantedHandles.AbilitySpecHandles)
+		for (auto& AbilityHandle : Slot->GrantedHandles.AbilitySpecHandles)
 		{
 			if (FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(AbilityHandle))
 			{
@@ -265,7 +222,7 @@ void UZodiacSkillManagerComponent::SendSkillSlotChangedMessages()
 						FHeroChangedMessage_SkillSlot Message;
 						Message.Instigator = GetPawn<APawn>();
 						Message.SlotType = Slot->GetSlotType();
-						Message.DisplayCostType = SlotEntry.SlotDefinition->DisplayCostTypes;
+						Message.DisplayCostType = Slot->GetSlotDefinition()->DisplayCostTypes;
 						Message.Brush = SlotIcon ? SlotIcon->Brush : FSlateBrush();
 
 						const FZodiacCostEffectData CostData = SkillAbility->GetCostEffectData();
@@ -275,7 +232,7 @@ void UZodiacSkillManagerComponent::SendSkillSlotChangedMessages()
 							{
 								Message.CurrentStack = Slot->GetStatTagStackCount(Cost->TagToSpend());
 								Message.ActivationStack = Cost->GetQuantity();
-								Message.MaxStack = SlotEntry.SlotDefinition->InitialTagStack.Find(Cost->TagToSpend()) ? SlotEntry.SlotDefinition->InitialTagStack[Cost->TagToSpend()] : 0;
+								Message.MaxStack = Slot->GetSlotDefinition()->InitialTagStack.Find(Cost->TagToSpend()) ? Slot->GetSlotDefinition()->InitialTagStack[Cost->TagToSpend()] : 0;
 							}
 						}
 						
@@ -318,30 +275,6 @@ void UZodiacSkillManagerComponent::SendSkillSlotChangedMessages()
 	// 		}
 	// 	}
 	// }
-
-	if (!HasAuthority())
-	{
-		//UE_LOG(LogTemp, Warning, TEXT("on client"));
-		for (auto& SlotEntry : SkillSlotList.Entries)
-		{
-			if (SlotEntry.Slot)
-			{
-				//UE_LOG(LogTemp, Warning, TEXT("slot: %s"), *SlotEntry.Slot.GetName());
-			}
-		}
-	}
-
-	AbilitySystemComponent->GetAllAbilities(Handles);
-	for (auto& Handle : Handles)
-	{
-		if (FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle))
-		{
-			if (UZodiacSkillSlot* SkillSlot = Cast<UZodiacSkillSlot>(AbilitySpec->SourceObject))
-			{
-				//UE_LOG(LogTemp, Warning, TEXT("slot from sourceobject: %s"), *SkillSlot->GetName());
-			}
-		}
-	}
 }
 
 
@@ -412,9 +345,4 @@ void UZodiacSkillManagerComponent::GetCooldown2(FHeroChangedMessage_SkillSlot& O
 		OutMessage.Cooldown_Duration = BIG_NUMBER;
 		OutMessage.bIsReady = true;
 	}
-}
-
-void UZodiacSkillManagerComponent::OnRep_SkillSlotList(const FZodiacSkillSlotList& OldList)
-{
-	UE_LOG(LogTemp, Warning, TEXT("onrepskillslotlist"));
 }

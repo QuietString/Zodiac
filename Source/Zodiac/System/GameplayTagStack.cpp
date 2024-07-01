@@ -85,7 +85,6 @@ void FGameplayTagStackContainer::PreReplicatedRemove(const TArrayView<int32> Rem
 	{
 		const FGameplayTag Tag = Stacks[Index].Tag;
 		TagToCountMap.Remove(Tag);
-		//UE_LOG(LogTemp, Warning, TEXT("pre replicated remove"));
 	}
 }
 
@@ -95,7 +94,7 @@ void FGameplayTagStackContainer::PostReplicatedAdd(const TArrayView<int32> Added
 	{
 		const FGameplayTagStack& Stack = Stacks[Index];
 		TagToCountMap.Add(Stack.Tag, Stack.StackCount);
-		//UE_LOG(LogTemp, Warning, TEXT("post replicated add"));
+		UE_LOG(LogTemp, Warning, TEXT("post replicated add tag: %s, count: %d"), *Stack.Tag.ToString(), Stack.StackCount);
 	}
 }
 
@@ -105,7 +104,6 @@ void FGameplayTagStackContainer::PostReplicatedChange(const TArrayView<int32> Ch
 	{
 		const FGameplayTagStack& Stack = Stacks[Index];
 		TagToCountMap[Stack.Tag] = Stack.StackCount;
-		//UE_LOG(LogTemp, Warning, TEXT("post replicated changed tag: %s, count: %d"), *Stack.Tag.ToString(), Stack.StackCount);
+		UE_LOG(LogTemp, Warning, TEXT("post replicated changed tag: %s, count: %d, index: %d"), *Stack.Tag.ToString(), Stack.StackCount, Index);
 	}
 }
-

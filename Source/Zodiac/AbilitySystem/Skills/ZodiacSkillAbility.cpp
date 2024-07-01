@@ -157,7 +157,7 @@ void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 
 float UZodiacSkillAbility::GetCurrentCostAmount() const
 {
-	if (CostData.bUseSeparateMidActivationCost && !bIsFirstActivation)
+	if (CostData.bUseMidActivationCost && !bIsFirstActivation)
 	{
 		return CostData.MidActivationCostAmount.GetValue();
 	}

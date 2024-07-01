@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystem/ZodiacAbilitySet.h"
 #include "System/GameplayTagStack.h"
 #include "UObject/Object.h"
 #include "ZodiacSkillSlot.generated.h"
@@ -32,6 +33,7 @@ public:
 
 	const UZodiacSkillSlotFragment* FindFragmentByClass(TSubclassOf<UZodiacSkillSlotFragment> FragmentClass) const;
 	FGameplayTag GetSlotType() const { return SlotType; }
+	const UZodiacSkillSlotDefinition* GetSlotDefinition() const { return SlotDefinition; }
 	void SetSlotDefinition(const UZodiacSkillSlotDefinition* InSlotDefinition) { SlotDefinition = InSlotDefinition; }
 	void SetSlotType(const FGameplayTag InSlotType) { SlotType = InSlotType; }
 	
@@ -56,12 +58,15 @@ protected:
 	
 public:
 	FOnTagStackChanged OnTagStackChanged;
+
+	UPROPERTY(Replicated)
+	FZodiacAbilitySet_GrantedHandles GrantedHandles;
 	
 protected:
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	const UZodiacSkillSlotDefinition* SlotDefinition = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	FGameplayTag SlotType;
 	
 private:

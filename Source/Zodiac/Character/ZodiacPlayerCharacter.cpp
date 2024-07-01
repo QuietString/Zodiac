@@ -27,9 +27,8 @@ AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectI
 
 	HeroMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("HeroMeshComponent"));
 	HeroMeshComponent->SetupAttachment(GetMesh(), NAME_None);
-
-	// ModularMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ModularMesh"));
-	// ModularMeshComponent->SetupAttachment(GetMesh(), NAME_None);
+	HeroMeshComponent->SetLeaderPoseComponent(GetMesh());
+	HeroMeshComponent->bUseBoundsFromLeaderPoseComponent = true;
 	
 	CameraComponent = CreateDefaultSubobject<UZodiacCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));

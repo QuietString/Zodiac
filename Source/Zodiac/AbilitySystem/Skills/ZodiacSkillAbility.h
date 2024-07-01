@@ -23,10 +23,10 @@ public:
 	 * If true, ActivationCostAmount will be applied only once on activation.
 	 */
 	UPROPERTY(EditDefaultsOnly)
-	bool bUseSeparateMidActivationCost = false;
+	bool bUseMidActivationCost = false;
 	
 	// A cost that will be used while mid-activation
-	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="bUseSeparateMidActivationCost == true"))
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="bUseMidActivationCost"))
 	FScalableFloat MidActivationCostAmount = 0.0f;
 
 	// Additional costs that must be paid to activate this ability

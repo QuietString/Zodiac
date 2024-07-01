@@ -17,7 +17,7 @@ UZodiacHeroComponent::UZodiacHeroComponent(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
-	SkillManager = CreateDefaultSubobject<UZodiacSkillManagerComponent>(TEXT("SkillManagerComponent"));
+	SkillManager = ObjectInitializer.CreateDefaultSubobject<UZodiacSkillManagerComponent>(this, TEXT("SkillManagerComponent"));
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::GetZodiacAbilitySystemComponent()
@@ -86,15 +86,16 @@ void UZodiacHeroComponent::InitializeComponent()
 
 void UZodiacHeroComponent::BeginPlay()
 {
+	SkillManager->InitializeSlots(this, HeroData->SkillSlotDefinitions);
 	Super::BeginPlay();
 }
 
 UZodiacAbilitySystemComponent* UZodiacHeroComponent::InitializeAbilitySystem()
 {
 	APawn* Pawn = GetPawn<APawn>();
-	check(Pawn && "No Owner Actor");
+	check(Pawn);
 	
-	SkillManager->InitializeSlots(this, HeroData->SkillSlotDefinitions);
+	//SkillManager->InitializeSlots(this, HeroData->SkillSlotDefinitions);
 	
 	if (HasAuthority())
 	{

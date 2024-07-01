@@ -35,7 +35,6 @@ bool UZodiacSkillCost_TagStack::CheckCost(const UZodiacGameplayAbility* Ability,
 		
 		const bool bCanApplyCost = NumStacksFound >= NumStacks;
 		
-		UE_LOG(LogTemp, Warning, TEXT("%s count: %d"), *Tag.ToString(), NumStacksFound);
 		// Inform other abilities why this cost cannot be applied
 		if (!bCanApplyCost && OptionalRelevantTags && FailureTag.IsValid())
 		{

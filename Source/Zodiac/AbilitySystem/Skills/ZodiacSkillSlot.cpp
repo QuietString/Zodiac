@@ -18,6 +18,9 @@ void UZodiacSkillSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, StatTag);
+	DOREPLIFETIME_CONDITION(ThisClass, SlotDefinition, COND_InitialOnly);
+	DOREPLIFETIME(ThisClass, GrantedHandles);
+	DOREPLIFETIME_CONDITION(ThisClass, SlotType, COND_InitialOnly);
 }
 
 const UZodiacSkillSlotFragment* UZodiacSkillSlot::FindFragmentByClass(TSubclassOf<UZodiacSkillSlotFragment> FragmentClass) const
@@ -32,7 +35,7 @@ const UZodiacSkillSlotFragment* UZodiacSkillSlot::FindFragmentByClass(TSubclassO
 			}
 		}
 	}
-
+	
 	return nullptr;
 }
 
@@ -55,6 +58,6 @@ void UZodiacSkillSlot::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
 
 void UZodiacSkillSlot::OnRep_StatTag()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("slot onrep stattag"));
+	UE_LOG(LogTemp, Warning, TEXT("slot onrep stattag"));
 	//OnTagStackChanged.Execute(this);
 }

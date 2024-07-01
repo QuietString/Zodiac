@@ -26,11 +26,8 @@ void UZodiacHUDLayout::NativeOnInitialized()
 
 void UZodiacHUDLayout::HandleEscapeAction()
 {
-	UE_LOG(LogTemp, Warning, TEXT("handle escape action"));
-
 	if (ensure(!EscapeMenuClass.IsNull()))
 	{
 		UCommonUIExtensions::PushStreamedContentToLayer_ForPlayer(GetOwningLocalPlayer(), ZodiacGameplayTags::UI_Layer_Menu, EscapeMenuClass);
-		UE_LOG(LogTemp, Warning, TEXT("push %s"), *EscapeMenuClass->GetName());
 	}
 }
