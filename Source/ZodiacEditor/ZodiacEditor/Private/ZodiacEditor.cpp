@@ -13,8 +13,22 @@ class FZodiacEditorModule : public FDefaultGameModuleImpl
 
 	virtual void StartupModule() override
 	{
+		// @TODO: use IDesignerExtensionFactory instead?
 		IUMGEditorModule& EditorModule = FModuleManager::LoadModuleChecked<IUMGEditorModule>("UMGEditor");
-		EditorModule.GetDesignerExtensibilityManager().Get()->AddDesignerExtension(MakeShareable(new FSemiUniformGridSlotExtension));
+		EditorModule.GetDesignerExtensibilityManager().Get()->AddDesignerExtension(MakeShareable(new FSemiUniformGridSlotExtension()));
+	}
+
+	virtual void ShutdownModule() override
+	{
+		IUMGEditorModule& EditorModule = FModuleManager::LoadModuleChecked<IUMGEditorModule>("UMGEditor");
+		TArray<TSharedRef<FDesignerExtension>> Extensions = EditorModule.GetDesignerExtensibilityManager().Get()->GetExternalDesignerExtensions();
+		if (Extensions.Num() > 0)
+		{
+			for (auto& Extension : Extensions)
+			{
+				EditorModule.GetDesignerExtensibilityManager().Get()->RemoveDesignerExtension(Extension);
+			}
+		}
 	}
 };
 

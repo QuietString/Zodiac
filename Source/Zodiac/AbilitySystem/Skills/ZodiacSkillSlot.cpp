@@ -5,8 +5,12 @@
 
 #include "ZodiacSkillSet.h"
 #include "ZodiacSkillSlotDefinition.h"
+#include "Blueprint/UserWidget.h"
+#include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
+#include "UI/HUD/ZodiacSkillSlotWidgetBase.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSkillSlot)
 
 UZodiacSkillSlot::UZodiacSkillSlot(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -18,25 +22,37 @@ void UZodiacSkillSlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, StatTag);
-	DOREPLIFETIME_CONDITION(ThisClass, SlotDefinition, COND_InitialOnly);
-	DOREPLIFETIME(ThisClass, GrantedHandles);
+	DOREPLIFETIME_CONDITION(ThisClass, Definition, COND_InitialOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, GrantedHandles, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, SlotType, COND_InitialOnly);
 }
 
-const UZodiacSkillSlotFragment* UZodiacSkillSlot::FindFragmentByClass(TSubclassOf<UZodiacSkillSlotFragment> FragmentClass) const
+void UZodiacSkillSlot::InitializeSlot(const UZodiacSkillSlotDefinition* InDef, FGameplayTag InType)
 {
-	if (FragmentClass && SlotDefinition)
+	check(InDef);
+	SlotType = InType;
+	Definition = InDef;
+
+	StatTag.OnStackChanged.BindUObject(this, &ThisClass::OnTagStackChanged_Internal);
+}
+
+void UZodiacSkillSlot::CreateSlotWidget()
+{
+	if (Definition->SlotWidgetClass)
 	{
-		for (UZodiacSkillSlotFragment* Fragment : SlotDefinition->Fragments)
+		if (const ACharacter* Char = Cast<ACharacter>(GetOuter()))
 		{
-			if (Fragment && Fragment->IsA(FragmentClass))
+			if (APlayerController* PC = Cast<APlayerController>(Char->GetController()))
 			{
-				return Fragment;
+				Widget = CreateWidget<UZodiacSkillSlotWidgetBase>(PC, Definition->SlotWidgetClass);
 			}
-		}
+		}	
 	}
-	
-	return nullptr;
+}
+
+UUserWidget* UZodiacSkillSlot::GetSlotWidget()
+{
+	return Widget;
 }
 
 int32 UZodiacSkillSlot::GetStatTagStackCount(FGameplayTag Tag) const
@@ -47,17 +63,27 @@ int32 UZodiacSkillSlot::GetStatTagStackCount(FGameplayTag Tag) const
 void UZodiacSkillSlot::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
 {
 	StatTag.AddStack(Tag, StackCount);
-	UE_LOG(LogTemp, Warning, TEXT("slot addtag"));
 }
 
 void UZodiacSkillSlot::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
 {
 	StatTag.RemoveStack(Tag, StackCount);
-	UE_LOG(LogTemp, Warning, TEXT("slot remove tag"));
 }
 
 void UZodiacSkillSlot::OnRep_StatTag()
 {
-	UE_LOG(LogTemp, Warning, TEXT("slot onrep stattag"));
-	//OnTagStackChanged.Execute(this);
+}
+
+void UZodiacSkillSlot::OnTagStackChanged_Internal(const FGameplayTag Tag, const int32 OldValue, const int32 NewValue)
+{
+	if (Widget)
+	{
+		Widget->OnTagStackChanged.Broadcast(Tag, OldValue, NewValue);
+	}
+}
+
+void UZodiacSkillSlot::OnRep_Definition()
+{
+	CreateSlotWidget();
+	StatTag.OnStackChanged.BindUObject(this, &ThisClass::OnTagStackChanged_Internal);
 }

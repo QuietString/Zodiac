@@ -15,7 +15,7 @@ class FSemiUniformGridSlotExtension : public FDesignerExtension
 public:
 	FSemiUniformGridSlotExtension();
 
-	virtual ~FSemiUniformGridSlotExtension() {}
+	virtual ~FSemiUniformGridSlotExtension() { Designer = nullptr; }
 
 	virtual bool CanExtendSelection(const TArray< FWidgetReference >& Selection) const override;
 	

@@ -10,28 +10,62 @@ class UZodiacSkillAbilityCost;
 class UZodiacSkillSlot;
 
 USTRUCT(BlueprintType)
-struct FZodiacCostEffectData
+struct FZodiacCostData_Single
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditDefaultsOnly)
+	FScalableFloat CostGEAmount = 0.0f;
+	
+	UPROPERTY(EditDefaultsOnly, Instanced)
+	TArray<TObjectPtr<UZodiacSkillAbilityCost>> AdditionalCosts;
+};
+
+USTRUCT(BlueprintType)
+struct FZodiacSkillCostData
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly)
-	FScalableFloat ActivationCostAmount = 0.0f;
-	
+	TArray<TObjectPtr<UZodiacSkillAbilityCost>> GetCurrentAdditionalCostData(const bool bIsFirstActivation) const
+	{
+		if (bUseMidActivationCost)
+		{
+			if (!bIsFirstActivation)
+			{
+				return MidActivationCostData.AdditionalCosts;	
+			}
+		}
+
+		return  ActivationCostData.AdditionalCosts;
+	}
+
+	FScalableFloat GetCurrentCostGEAmount(const bool bIsFirstActivation) const
+	{
+		if (bUseMidActivationCost)
+		{
+			if (!bIsFirstActivation)
+			{
+				return MidActivationCostData.CostGEAmount;	
+			}
+		}
+
+		return ActivationCostData.CostGEAmount;
+	}
+
+public:
 	/**
 	 * An additional cost that applied during activation.
 	 * If true, ActivationCostAmount will be applied only once on activation.
 	 */
 	UPROPERTY(EditDefaultsOnly)
 	bool bUseMidActivationCost = false;
-	
-	// A cost that will be used while mid-activation
-	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="bUseMidActivationCost"))
-	FScalableFloat MidActivationCostAmount = 0.0f;
 
-	// Additional costs that must be paid to activate this ability
-	UPROPERTY(EditDefaultsOnly, Instanced)
-	TArray<TObjectPtr<UZodiacSkillAbilityCost>> AdditionalCosts;
+	UPROPERTY(EditDefaultsOnly)
+	FZodiacCostData_Single ActivationCostData;
+
+	UPROPERTY(EditDefaultsOnly, meta=(EditCondition="bUseMidActivationCost"))
+	FZodiacCostData_Single MidActivationCostData;
 };
 
 /**
@@ -56,11 +90,11 @@ public:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
-	const FZodiacCostEffectData& GetCostEffectData() { return CostData;	}
+	const FZodiacSkillCostData& GetCostEffectData() { return CostData;	}
 	
-	float GetCurrentCostAmount() const;
-	float GetInitialActivationCost() const;
+	float GetCurrentGECostAmount() const;
 	bool GetIsSubordinate() const { return bIsSubordinate; }
+	TArray<TObjectPtr<UZodiacSkillAbilityCost>> GetCurrentAdditionalCosts();
 	
 protected:
 	// Called on CommitExecute.
@@ -86,7 +120,7 @@ protected:
 	FScalableFloat UltimateChargeAmount;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Costs")
-	FZodiacCostEffectData CostData;
+	FZodiacSkillCostData CostData;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Cooldowns")
 	FScalableFloat CooldownDuration;

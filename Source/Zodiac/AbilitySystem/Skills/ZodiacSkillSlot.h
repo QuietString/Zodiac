@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ZodiacSkillSlotDefinition.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "System/GameplayTagStack.h"
 #include "UObject/Object.h"
@@ -14,7 +15,6 @@ class UZodiacAbilitySystemComponent;
 class UZodiacSkillSlot;
 class UZodiacSkillSet;
 
-DECLARE_DELEGATE_OneParam(FOnTagStackChanged, UZodiacSkillSlot* Slot);
 /**
  * 
  */
@@ -31,12 +31,15 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	//~End of UObject interface
 
-	const UZodiacSkillSlotFragment* FindFragmentByClass(TSubclassOf<UZodiacSkillSlotFragment> FragmentClass) const;
-	FGameplayTag GetSlotType() const { return SlotType; }
-	const UZodiacSkillSlotDefinition* GetSlotDefinition() const { return SlotDefinition; }
-	void SetSlotDefinition(const UZodiacSkillSlotDefinition* InSlotDefinition) { SlotDefinition = InSlotDefinition; }
-	void SetSlotType(const FGameplayTag InSlotType) { SlotType = InSlotType; }
+	// Set up slot data, authority only.
+	void InitializeSlot(const UZodiacSkillSlotDefinition* InDef, FGameplayTag InType);
 	
+	void CreateSlotWidget();
+	UUserWidget* GetSlotWidget();
+	
+	FGameplayTag GetSlotType() const { return SlotType; }
+	const UZodiacSkillSlotDefinition* GetSlotDefinition() const { return Definition; }
+
 	template <typename ResultClass>
 	const ResultClass* FindFragment() const { return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass()); }
 	
@@ -52,22 +55,30 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void RemoveStatTagStack(FGameplayTag Tag, int32 StackCount);
 
+	UPROPERTY(Replicated)
+	FZodiacAbilitySet_GrantedHandles GrantedHandles;
+
+	UFUNCTION()
+	void OnTagStackChanged_Internal(FGameplayTag Tag, const int32 OldValue, const int32 NewValue);
+
+public:
+	// Create slot widget instance.
+	UFUNCTION()
+	void OnRep_Definition();
+	
 protected:
 	UFUNCTION()
 	void OnRep_StatTag();
-	
-public:
-	FOnTagStackChanged OnTagStackChanged;
 
-	UPROPERTY(Replicated)
-	FZodiacAbilitySet_GrantedHandles GrantedHandles;
-	
 protected:
-	UPROPERTY(Replicated)
-	const UZodiacSkillSlotDefinition* SlotDefinition = nullptr;
+	UPROPERTY(ReplicatedUsing = OnRep_Definition)
+	const UZodiacSkillSlotDefinition* Definition = nullptr;
 
 	UPROPERTY(Replicated)
 	FGameplayTag SlotType;
+
+	UPROPERTY()
+	TObjectPtr<UZodiacSkillSlotWidgetBase> Widget;
 	
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_StatTag)

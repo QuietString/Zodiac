@@ -9,7 +9,7 @@ float UZodiacMMC_SkillCost::CalculateBaseMagnitude_Implementation(const FGamepla
 {
 	if (const UZodiacSkillAbility* SkillAbility = Cast<UZodiacSkillAbility>(Spec.GetContext().GetAbilityInstance_NotReplicated()))
 	{
-		return SkillAbility->GetCurrentCostAmount();
+		return SkillAbility->GetCurrentGECostAmount();
 	}
 	
 	return 0.0f;

@@ -7,7 +7,6 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacSkillSlot.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "AbilitySystem/Abilities/ZodiacAbilityCost.h"
 #include "AbilitySystem/Abilities/ZodiacSkillAbilityCost.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Messages/ZodiacMessageTypes.h"
@@ -67,7 +66,7 @@ bool UZodiacSkillAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, con
 	}
 
 	// Verify we can afford any additional costs
-	for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.AdditionalCosts)
+	for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.GetCurrentAdditionalCostData(bIsFirstActivation))
 	{
 		if (AdditionalCost != nullptr)
 		{
@@ -85,7 +84,7 @@ void UZodiacSkillAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, con
                                     const FGameplayAbilityActivationInfo ActivationInfo) const
 {
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
-
+	
 	// Used to determine if the ability actually hit a target (as some costs are only spent on successful attempts)
 	auto DetermineIfAbilityHitTarget = [&]()
 	{
@@ -111,7 +110,7 @@ void UZodiacSkillAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, con
 	// Pay any additional costs
 	bool bAbilityHitTarget = false;
 	bool bHasDeterminedIfAbilityHitTarget = false;
-	for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.AdditionalCosts)
+	for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.GetCurrentAdditionalCostData(bIsFirstActivation))
 	{
 		if (AdditionalCost != nullptr)
 		{
@@ -155,19 +154,14 @@ void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 }
 
-float UZodiacSkillAbility::GetCurrentCostAmount() const
+float UZodiacSkillAbility::GetCurrentGECostAmount() const
 {
-	if (CostData.bUseMidActivationCost && !bIsFirstActivation)
-	{
-		return CostData.MidActivationCostAmount.GetValue();
-	}
-	
-	return CostData.ActivationCostAmount.GetValue();
+	return CostData.GetCurrentCostGEAmount(bIsFirstActivation).GetValue();
 }
 
-float UZodiacSkillAbility::GetInitialActivationCost() const
+TArray<TObjectPtr<UZodiacSkillAbilityCost>> UZodiacSkillAbility::GetCurrentAdditionalCosts()
 {
-	return CostData.ActivationCostAmount.GetValue();
+	return CostData.GetCurrentAdditionalCostData(bIsFirstActivation);
 }
 
 void UZodiacSkillAbility::SendCooldownMessage()

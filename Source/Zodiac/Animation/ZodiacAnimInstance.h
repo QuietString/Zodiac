@@ -11,10 +11,11 @@
 #include "Animation/AnimNodeReference.h"
 #include "ZodiacAnimInstance.generated.h"
 
+class AZodiacPlayerCharacter;
 class UAbilitySystemComponent;
 class UCharacterMovementComponent;
 
-UENUM()
+UENUM(BlueprintType)
 enum EAnimEnum_CardinalDirection
 {
 	Front UMETA(DisplayName = "Forward"),
@@ -31,6 +32,28 @@ enum EAnimEnum_RootYawOffsetMode
 	Accumulate UMETA(DisplayName = "Accumulate")
 };
 
+USTRUCT(BlueprintType)
+struct FAnimStruct_CardinalDirections
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UAnimSequence* Forward;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UAnimSequence* Backward;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UAnimSequence* Left;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UAnimSequence* Right;
+
+	TArray<UAnimSequence*> GetAnimSequences()
+	{
+		return { Forward, Backward, Left, Right };
+	}
+};
 
 /**
  *	The base game animation instance class used by this project.
@@ -43,9 +66,9 @@ class ZODIAC_API UZodiacAnimInstance : public UAnimInstance
 public:
 
 	UZodiacAnimInstance(const FObjectInitializer& ObjectInitializer);
-
+	
 	virtual void InitializePropertyMap();
-
+	
 	float GetGroundDistance() const;
 
 protected:
@@ -54,8 +77,9 @@ protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 	
-	UCharacterMovementComponent* GetMovementComponent();
-
+	UCharacterMovementComponent* GetMovementComponent() const;
+	AZodiacPlayerCharacter* GetZodiacPlayerCharacter() const;
+	
 	// Gameplay tags that can be mapped to blueprint variables. The variables will automatically update as the tags are added or removed.
 	// These should be used instead of manually querying for the gameplay tags.
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
@@ -88,10 +112,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Gameplay_Tag_Bindings)
 	bool GameplayTag_IsADS;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gameplay_Tag_Bindings)
+	bool GameplayTag_IsSprinting;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Gameplay_Tag_Bindings)
+	bool GameplayTag_Test;
 	/***********************
 	* LOCATION DATA
 	************************/
-
+	
 protected:
 
 	void UpdateLocationData(float DeltaSeconds);
@@ -99,13 +128,13 @@ protected:
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Location_Data)
-		FVector WorldLocation;
+	FVector WorldLocation;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Location_Data)
-		float DisplacementSinceLastUpdate;
+	float DisplacementSinceLastUpdate;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Location_Data)
-		float DisplacementSpeed;
+	float DisplacementSpeed;
 
 
 	/***********************
@@ -119,17 +148,17 @@ protected:
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Rotation_Data)
-		FRotator WorldRotation;
+	FRotator WorldRotation;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Rotation_Data)
-		float YawDeltaSinceLastUpdate;
+	float YawDeltaSinceLastUpdate;
 
 	// how much angle character should lean toward left or right
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Rotation_Data)
-		float AdditiveLeanAngle;
+	float AdditiveLeanAngle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Rotation_Data)
-		float YawDeltaSpeed;
+	float YawDeltaSpeed;
 
 
 	/***********************
@@ -139,25 +168,25 @@ public:
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Velocity_Data)
-		FVector WorldVelocity;
+	FVector WorldVelocity;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Velocity_Data)
-		FVector LocalVelocity2D;
+	FVector LocalVelocity2D;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Velocity_Data)
-		float LocalVelocityDirectionAngle;
+	float LocalVelocityDirectionAngle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Velocity_Data)
-		float LocalVelocityDirectionAngleWithOffset;
+	float LocalVelocityDirectionAngleWithOffset;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Velocity_Data)
-		TEnumAsByte<EAnimEnum_CardinalDirection> LocalVelocityDirection;
+	TEnumAsByte<EAnimEnum_CardinalDirection> LocalVelocityDirection;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Velocity_Data)
-		TEnumAsByte<EAnimEnum_CardinalDirection> LocalVelocityDirectionNoOffset;
+	TEnumAsByte<EAnimEnum_CardinalDirection> LocalVelocityDirectionNoOffset;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Velocity_Data)
-		bool HasVelocity;
+	bool HasVelocity;
 
 private:
 
@@ -193,16 +222,16 @@ public:
 	bool IsOnGround;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-	bool IsCrouching;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
-	bool CrouchStateChange;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
 	bool ADSStateChanged;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
 	bool WasADSLastUpdate;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
+	bool SprintStateChanged;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
+	bool bWasSprintingLastUpdate;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character_State_Data)
 	float TimeSinceFiredWeapon = 9999.f;
@@ -222,7 +251,6 @@ public:
 private:
 
 	void UpdateCharacterStateData(float DeltaSeconds);
-
 	/***********************
 	* BLEND WEIGHT DATA
 	************************/
@@ -243,23 +271,20 @@ private:
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Turn_In_Place)
-		float RootYawOffset;
+	float RootYawOffset;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Turn_In_Place)
-		FFloatSpringState RootYawOffsetSpringState;
+	FFloatSpringState RootYawOffsetSpringState;
 
 	// remaining angle to yaw
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Turn_In_Place)
-		float TurnYawCurveValue;
+	float TurnYawCurveValue;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Turn_In_Place)
-		TEnumAsByte<EAnimEnum_RootYawOffsetMode> RootYawOffsetMode = EAnimEnum_RootYawOffsetMode::BlendOut;
+	TEnumAsByte<EAnimEnum_RootYawOffsetMode> RootYawOffsetMode = EAnimEnum_RootYawOffsetMode::BlendOut;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Turn_In_Place)
-		FVector2D RootYawOffsetAngleClamp = FVector2D(-120.f, 100.f);
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Turn_In_Place)
-		FVector2D RootYawOffsetAngleClampCrouched = FVector2D(-90.f, 80.f);
+	FVector2D RootYawOffsetAngleClamp = FVector2D(-120.f, 100.f);
 
 private:
 	// when the yaw offset gets too big, trigger TurnInPlace Animations to rotate the character back.
@@ -367,10 +392,10 @@ public:
 	bool StopRule() const;
 
 	UFUNCTION(BlueprintPure, meta = (BlueprintThreadSafe, Category = TRANSITION_RULES))
-	bool PivotToCycle() const;
+	bool TransitionRule_PivotToCycle() const;
 
 	UFUNCTION(BlueprintPure, meta = (BlueprintThreadSafe, Category = TRANSITION_RULES))
-	bool PivotSourcesToPivot() const;
+	bool TransitionRule_PivotSourcesToPivot() const;
 
 	UFUNCTION(BlueprintPure, meta = (BlueprintThreadSafe, Category = TRANSITION_RULES))
 	bool JumpStartLoopToJumpApex() const;
@@ -398,4 +423,161 @@ private:
 
 	EAnimEnum_CardinalDirection SelectCardinalDirectionFromAngle(
 	float Angle, float DeadZone, EAnimEnum_CardinalDirection CurrentDirection, bool UseCurrentDirection);
+
+/***********************
+* DISTANCE MATCHING
+************************/
+
+private:
+
+	FName LocomotionDistanceCurveName = FName(TEXT("DistanceCurve"));
+
+	bool ShouldDistanceMatchStop() const;
+
+	
+	/***********************
+	* STRIDE WARPING
+	************************/
+
+public:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = PoseWarping)
+	float StrideWarpingStartAlpha = 0.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = PoseWarping)
+	float StrideWarpingPivotAlpha = 0.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = PoseWarping)
+	float StrideWarpingCycleAlpha = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = Settings)
+	float StrideWarpingBlendInDurationScaled = 0.2f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = Settings)
+	float StrideWarpingBlendInStartOffset = 0.15f;
+	
+/***********************
+* NODE FUNCTIONS
+************************/
+
+protected:
+
+	// Stops
+	
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Node_Functions)
+	void SetupStopAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Node_Functions)
+	void UpdateStopAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	float GetPredictedStopDistance() const;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Stops")
+	FAnimStruct_CardinalDirections WalkStopCardinals;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Stops")
+	FAnimStruct_CardinalDirections JogStopCardinals;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Stops")
+	FAnimStruct_CardinalDirections SprintStopCardinals;
+	
+	// Starts
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Node_Functions)
+	void SetUpStartAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Node_Functions)
+	void UpdateStartAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Starts")
+	FAnimStruct_CardinalDirections WalkStartCardinals;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Starts")
+	FAnimStruct_CardinalDirections JogStartCardinals;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Starts")
+	FAnimStruct_CardinalDirections SprintStartCardinals;
+
+	// Pivots
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Node_Functions)
+	void SetupPivotAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node_Functions);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Node_Functions)
+	void UpdatePivotAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Pivots)
+	FVector PivotStartingAcceleration;
+	
+	float TimeAtPivotStop = 0.f;
+
+	// Select anim sequence considering ADS
+	UAnimSequence* GetDesiredPivotSequence(EAnimEnum_CardinalDirection InDirection);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Pivots")
+	FAnimStruct_CardinalDirections WalkPivotCardinals;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Pivots")
+	FAnimStruct_CardinalDirections JogPivotCardinals;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Pivots")
+	FAnimStruct_CardinalDirections SprintPivotCardinals;
+
+	// Cycles
+	
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Node_Functions)
+	void UpdateCycleAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe))
+	float GetOrientationAngle() const;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Cycles")
+	FAnimStruct_CardinalDirections WalkCardinals;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Cycles")
+	FAnimStruct_CardinalDirections JogCardinals;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Cycles")
+	FAnimStruct_CardinalDirections SprintCardinals;
+
+	// Turn in Place
+
+	// reset explicit time
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Turn_In_Place)
+	void SetUpTurnInPlaceAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Turn_In_Place)
+	void UpdateTurnInPlaceAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Turn_In_Place)
+	void SetUpTurnInPlaceRotationState(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Turn_In_Place)
+	void SetUpTurnInPlaceRecoveryState(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = Turn_In_Place)
+	void UpdateTurnInPlaceRecoveryAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+
+	// select anim sequence considering direction and crouch
+	UAnimSequence* SelectTurnInPlaceAnimation(float Direction) const;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Turn_In_Place)
+	float TurnInPlaceAnimTime = 0.f;
+	
+	float TurnInPlaceRotationDirection = 0.f;
+	float TurnInPlaceRecoveryDirection = 0.f;
+
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Turn in Place")
+	UAnimSequence* TurnInPlaceLeft;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anim Set - Turn in Place")
+	UAnimSequence* TurnInPlaceRight;
+
+	////////////////////////////
+	///
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = true), Category = Settings)
+	FVector2D PlayRateClampStartsPivots = FVector2D(0.6f, 5.f);
+
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = true), Category = Settings)
+	FVector2D PlayRateClampCycle = FVector2D(0.8f, 1.2f);
 };

@@ -32,7 +32,7 @@ public:
 
 	//~UActorComponent interface
 	virtual void ReadyForReplication() override;
-	virtual  void BeginPlay() override;
+	virtual void BeginPlay() override;
 	//~End of UActorComponent interface
 	
 	void InitializeSlots(UZodiacHeroComponent* HeroComponent, TMap<FGameplayTag, TObjectPtr<UZodiacSkillSlotDefinition>>SlotDefinitions);
@@ -43,18 +43,19 @@ public:
 
 protected:
 	void SendResetMessages();
+
+	void SendSlotWidgetCreatedMessage();
 	
 	void SendHealthBarHeroChangedMessage();
-	void SendSlotStatTagChangedMessage(UZodiacSkillSlot* Slot);
+	
 	void SendSkillSlotChangedMessages();
 	
 	void GetUltimateGauge(FHeroChangedMessage_SkillSlot& OutMessage);
 	void GetCooldown(FHeroChangedMessage_SkillSlot& OutMessage, FGameplayTag SlotType);
-	void GetCooldown2(FHeroChangedMessage_SkillSlot& OutMessage, FGameplayTag SlotType);
 
 protected:
 	UPROPERTY()
-	int32 SlotIndex = INDEX_NONE;
+	int32 HeroIndex = INDEX_NONE;
 
 	UPROPERTY(Transient)
 	UZodiacAbilitySystemComponent* AbilitySystemComponent;

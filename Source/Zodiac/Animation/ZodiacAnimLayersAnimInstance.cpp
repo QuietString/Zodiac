@@ -66,8 +66,7 @@ void UZodiacAnimLayersAnimInstance::UpdateIdleState(const FAnimUpdateContext& Co
 
 void UZodiacAnimLayersAnimInstance::UpdateIdleAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node)
 {
-	UAnimSequence* SequenceToPlay = (GetMainAnimBPThreadSafe()->IsCrouching) ? CrouchIdle :
-		(GetMainAnimBPThreadSafe()->GameplayTag_IsADS) ? IdleADS : IdleHipfire;
+	UAnimSequence* SequenceToPlay = (GetMainAnimBPThreadSafe()->GameplayTag_IsADS) ? IdleADS : IdleHipfire;
 
 	EAnimNodeReferenceConversionResult Result;
 	const FSequencePlayerReference SequencePlayerRef = USequencePlayerLibrary::ConvertToSequencePlayer(Node, Result);
@@ -78,7 +77,7 @@ void UZodiacAnimLayersAnimInstance::UpdateIdleAnim(const FAnimUpdateContext& Con
 bool UZodiacAnimLayersAnimInstance::CanPlayIdleBreak() const
 {
 	const bool HasIdleAnims = IdleBreaks.Num() > 0;
-	const bool CanPlayIdleBreak = !(GetMainAnimBPThreadSafe()->IsCrouching || GetMainAnimBPThreadSafe()->GameplayTag_IsADS
+	const bool CanPlayIdleBreak = !(GetMainAnimBPThreadSafe()->GameplayTag_IsADS
 		|| GetMainAnimBPThreadSafe()->GameplayTag_IsFiring || GetMainAnimBPThreadSafe()->IsAnyMontagePlaying()
 		|| GetMainAnimBPThreadSafe()->HasVelocity || GetMainAnimBPThreadSafe()->IsJumping);
 
@@ -99,7 +98,7 @@ void UZodiacAnimLayersAnimInstance::SetUpIdleTransition(const FAnimUpdateContext
 	EAnimNodeReferenceConversionResult Result;
 	const FSequencePlayerReference SequencePlayerRef = USequencePlayerLibrary::ConvertToSequencePlayer(Node, Result);
 
-	UAnimSequence* SequenceToPlay = GetMainAnimBPThreadSafe()->IsCrouching ? CrouchIdleEntry : CrouchIdleExit;
+	UAnimSequence* SequenceToPlay = CrouchIdleExit;
 	USequencePlayerLibrary::SetSequence(SequencePlayerRef, SequenceToPlay);
 }
 
@@ -178,8 +177,7 @@ void UZodiacAnimLayersAnimInstance::SetUpStartAnim(const FAnimUpdateContext& Con
 	UAnimSequence* JogAnim = JogStartCardinals.GetAnimSequences()[Index];
 	UAnimSequence* CrouchAnim = CrouchStartCardinals.GetAnimSequences()[Index];
 
-	UAnimSequence* SequenceToPlay = GetMainAnimBPThreadSafe()->IsCrouching ? CrouchAnim :
-		GetMainAnimBPThreadSafe()->GameplayTag_IsADS ? ADSAnim : JogAnim;
+	UAnimSequence* SequenceToPlay = GetMainAnimBPThreadSafe()->GameplayTag_IsADS ? ADSAnim : JogAnim;
 
 	EAnimNodeReferenceConversionResult Result;
 	FSequenceEvaluatorReference SequenceEvaluatorRef =
@@ -218,8 +216,7 @@ void UZodiacAnimLayersAnimInstance::UpdateCycleAnim(const FAnimUpdateContext& Co
 	UAnimSequence* ADSAnim = WalkCardinals.GetAnimSequences()[Index];
 	UAnimSequence* CrouchAnim = CrouchWalkCardinals.GetAnimSequences()[Index];
 
-	UAnimSequence* SequenceToPlay = GetMainAnimBPThreadSafe()->IsCrouching ? CrouchAnim :
-		GetMainAnimBPThreadSafe()->GameplayTag_IsADS ? ADSAnim : JogAnim;
+	UAnimSequence* SequenceToPlay = GetMainAnimBPThreadSafe()->GameplayTag_IsADS ? ADSAnim : JogAnim;
 
 	EAnimNodeReferenceConversionResult Result;
 	const FSequencePlayerReference SequencePlayerRef = USequencePlayerLibrary::ConvertToSequencePlayer(Node, Result);
@@ -234,8 +231,8 @@ void UZodiacAnimLayersAnimInstance::UpdateCycleAnim(const FAnimUpdateContext& Co
 
 UAnimSequence* UZodiacAnimLayersAnimInstance::SelectTurnInPlaceAnimation(const float Direction) const
 {
-	UAnimSequence* TurnLeft = (GetMainAnimBPThreadSafe()->IsCrouching) ? CrouchTurnInPlaceLeft : TurnInPlaceLeft;
-	UAnimSequence* TurnRight = (GetMainAnimBPThreadSafe()->IsCrouching) ? CrouchTurnInPlaceRight : TurnInPlaceRight;
+	UAnimSequence* TurnLeft = TurnInPlaceLeft;
+	UAnimSequence* TurnRight = TurnInPlaceRight;
 
 	return (Direction > 0.f) ? TurnRight : TurnLeft;
 }
@@ -246,8 +243,7 @@ void UZodiacAnimLayersAnimInstance::SetupStopAnim(const FAnimUpdateContext& Cont
 	UAnimSequence* JogAnim = JogStopCardinals.GetAnimSequences()[Index];
 	UAnimSequence* ADSAnim = ADSStopCardinals.GetAnimSequences()[Index];
 	UAnimSequence* CrouchAnim = CrouchStopCardinals.GetAnimSequences()[Index];
-	UAnimSequence* SequenceToPlay = GetMainAnimBPThreadSafe()->IsCrouching ? CrouchAnim :
-		GetMainAnimBPThreadSafe()->GameplayTag_IsADS ? ADSAnim : JogAnim;
+	UAnimSequence* SequenceToPlay = GetMainAnimBPThreadSafe()->GameplayTag_IsADS ? ADSAnim : JogAnim;
 
 	EAnimNodeReferenceConversionResult Result;
 	const FSequenceEvaluatorReference SequenceEvaluatorRef =
@@ -361,8 +357,7 @@ UAnimSequence* UZodiacAnimLayersAnimInstance::GetDesiredPivotSequence(const EAni
 	UAnimSequence* ADSAnim = ADSPivotCardinals.GetAnimSequences()[InDirection];
 	UAnimSequence* CrouchAnim = CrouchPivotCardinals.GetAnimSequences()[InDirection];
 
-	return GetMainAnimBPThreadSafe()->IsCrouching ? CrouchAnim :
-		GetMainAnimBPThreadSafe()->GameplayTag_IsADS ? ADSAnim : JogAnim;
+	return GetMainAnimBPThreadSafe()->GameplayTag_IsADS ? ADSAnim : JogAnim;
 }
 
 void UZodiacAnimLayersAnimInstance::SetUpFallLandAnim(const FAnimUpdateContext& Context, const FAnimNodeReference& Node)
@@ -388,7 +383,6 @@ void UZodiacAnimLayersAnimInstance::LandRecoveryStart(const FAnimUpdateContext& 
 	const UE::Math::TVector2 InRange = UE::Math::TVector2(0.f, 0.4f);
 	const UE::Math::TVector2 OutRange = UE::Math::TVector2(0.1f, 1.0f);
 	LandRecoveryAlpha = FMath::GetMappedRangeValueClamped(InRange, OutRange, TimeFalling);
-	if (GetMainAnimBPThreadSafe()->IsCrouching) LandRecoveryAlpha *= 0.5f;
 }
 
 void UZodiacAnimLayersAnimInstance::UpdateJumpFallData()
@@ -430,16 +424,15 @@ void UZodiacAnimLayersAnimInstance::UpdateHipFireRaiseWeaponPose(const FAnimUpda
 	const FSequenceEvaluatorReference SequenceEvaluatorRef =
 		USequenceEvaluatorLibrary::ConvertToSequenceEvaluator(Node, Result);
 
-	UAnimSequence* SequenceToPlay = GetMainAnimBPThreadSafe()->IsCrouching ? AimHipFirePoseCrouch : AimHipFirePose;
+	UAnimSequence* SequenceToPlay = AimHipFirePose;
 	USequenceEvaluatorLibrary::SetSequence(SequenceEvaluatorRef, SequenceToPlay);
 }
 
 void UZodiacAnimLayersAnimInstance::UpdateBlendWeightData()
 {
 	// hip fire override weight
-	const bool CrouchCondition = GetMainAnimBPThreadSafe()->IsCrouching && !RaiseWeaponAfterFiringWhenCrouched;
-	const bool ADSCondition = !GetMainAnimBPThreadSafe()->IsCrouching &&
-		GetMainAnimBPThreadSafe()->GameplayTag_IsADS && GetMainAnimBPThreadSafe()->IsOnGround;
+	const bool CrouchCondition = !RaiseWeaponAfterFiringWhenCrouched;
+	const bool ADSCondition = GetMainAnimBPThreadSafe()->GameplayTag_IsADS && GetMainAnimBPThreadSafe()->IsOnGround;
 
 	if (CrouchCondition || ADSCondition)
 	{
@@ -449,8 +442,7 @@ void UZodiacAnimLayersAnimInstance::UpdateBlendWeightData()
 	else
 	{
 		const bool ShouldNotRaiseWeapon = GetMainAnimBPThreadSafe()->TimeSinceFiredWeapon < RaiseWeaponAfterFiringDuration;
-		const bool IsADSInCrouchedOrAir = GetMainAnimBPThreadSafe()->GameplayTag_IsADS &&
-			(!GetMainAnimBPThreadSafe()->IsOnGround || GetMainAnimBPThreadSafe()->IsCrouching);
+		const bool IsADSInCrouchedOrAir = GetMainAnimBPThreadSafe()->GameplayTag_IsADS && (!GetMainAnimBPThreadSafe()->IsOnGround);
 		const bool ShouldApplyHipFireOverride = GetCurveValue("applyHipfireOverridePose") > 0.f;
 		if (ShouldNotRaiseWeapon || IsADSInCrouchedOrAir || ShouldApplyHipFireOverride)
 		{

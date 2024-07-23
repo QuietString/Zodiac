@@ -10,28 +10,7 @@
 #include "ZodiacAnimLayersAnimInstance.generated.h"
 
 
-USTRUCT(BlueprintType)
-struct FAnimStruct_CardinalDirections
-{
-	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UAnimSequence* Forward;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UAnimSequence* Backward;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UAnimSequence* Left;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	UAnimSequence* Right;
-
-	TArray<UAnimSequence*> GetAnimSequences()
-	{
-		return { Forward, Backward, Left, Right };
-	}
-};
 
 
 /**
@@ -358,7 +337,7 @@ private:
 	FName LocomotionDistanceCurveName = FName(TEXT("Distance"));
 
 	bool ShouldDistanceMatchStop() const;
-
+	
 	/***********************
 	* LEFT HAND POSE
 	************************/

@@ -7,6 +7,7 @@
 #include "Engine/DataAsset.h"
 #include "ZodiacSkillSlotDefinition.generated.h"
 
+class UZodiacSkillSlotWidgetBase;
 class UZodiacSkillSet;
 
 UCLASS(DefaultToInstanced, EditInlineNew, Abstract)
@@ -33,6 +34,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, meta=(Categories="Ability.Stack"))
 	TMap<FGameplayTag, int32> InitialTagStack;
 
-	UPROPERTY(EditDefaultsOnly, meta=(Categories="HUD.SkillSlot.Cost"))
-	FGameplayTagContainer DisplayCostTypes;
+	UPROPERTY(EditDefaultsOnly, meta=(DisplayThumbnail="true", DisplayName="Slot Widget"))
+	TSubclassOf<UZodiacSkillSlotWidgetBase> SlotWidgetClass;
 };

@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "ZodiacMessageTypes.generated.h"
 
+class UZodiacSkillSlotWidgetBase;
+
 USTRUCT(BlueprintType)
 struct FHeroValueChangedMessage
 {
@@ -120,10 +122,109 @@ struct FUltimateChargeMessage
 	GENERATED_BODY()
 
 public:
-	
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<AActor> Instigator = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
 	float ChargeAmount = 0;
+};
+
+USTRUCT(BlueprintType)
+struct FZodiacHUDMessage_SkillSlotChanged
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<APawn> Instigator = nullptr;
+	
+	UPROPERTY(BlueprintReadOnly, meta=(Categories="HUD.Slot"))
+	FGameplayTag Slot;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 HeroIndex = INDEX_NONE;
+};
+
+USTRUCT(BlueprintType)
+struct FZodiacHUDMessage_SlotCreated
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<APawn> Instigator = nullptr;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 HeroIndex = INDEX_NONE;
+	
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UUserWidget> Widget = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, meta=(Categories="SkillSlot"))
+	FGameplayTag Slot;
+};
+
+USTRUCT(BlueprintType)
+struct FZodiacHUDMessage_HeroChanged
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<APawn> Instigator = nullptr;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 HeroIndex = INDEX_NONE;
+};
+
+USTRUCT(BlueprintType)
+struct FZodiacHUDMessage_SlotTagStackChanged
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<APawn> Instigator = nullptr;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 HeroIndex = INDEX_NONE;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag SlotType = FGameplayTag::EmptyTag;
+
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag ChangedTag = FGameplayTag::EmptyTag;
+	
+	UPROPERTY(BlueprintReadOnly)
+	int32 OldValue = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 NewValue = 0;
+};
+
+UENUM()
+enum class EZodiacAttributeType
+{
+	None,
+	Health,
+	Ultimate,
+};
+
+USTRUCT(BlueprintType)
+struct FZodiacHUDMessage_AttributeChanged
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<APawn> Instigator = nullptr;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 HeroIndex = INDEX_NONE;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 OldValue = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 NewValue = 0;
 };

@@ -16,6 +16,8 @@
 #include "Net/UnrealNetwork.h"
 #include "Player/ZodiacPlayerState.h"
 
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_EVENT_MOVEMENT_SPRINT, "Event.Movement.Sprint");
+
 AZodiacPlayerCharacter::AZodiacPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
@@ -228,44 +230,25 @@ void AZodiacPlayerCharacter::InitializeHeroComponents()
 	HeroComponents.Reset(2);
 	AbilitySystemComponents.Reset(2);
 
-	// HeroComponents.Add(HeroComponent1);
-	// HeroComponents.Add(HeroComponent2);
-	//
-	// int32 Index = 0;
-	// for (auto& HeroComponent : HeroComponents)
-	// {
-	// 	if (HeroComponent)
-	// 	{
-	// 		HeroComponent->SetSlotIndex(Index);
-	// 		HeroComponent->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
-	// 	
-	// 		UZodiacAbilitySystemComponent* HeroASC = HeroComponent->InitializeAbilitySystem();
-	// 		check(HeroASC);
-	// 		AbilitySystemComponents.Add(HeroASC);
-	// 		Index++;
-	// 	}
-	// }
-
-	if (HeroComponent1)
+	HeroComponents.Add(HeroComponent1);
+	HeroComponents.Add(HeroComponent2);
+	
+	int32 Index = 0;
+	for (auto& HeroComponent : HeroComponents)
 	{
-		HeroComponents.Add(HeroComponent1);
-		HeroComponent1->SetSlotIndex(0);
-		HeroComponent1->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
+		if (HeroComponent)
+		{
+			HeroComponent->SetSlotIndex(Index);
+			HeroComponent->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
 		
-		UZodiacAbilitySystemComponent* HeroASC1 = HeroComponent1->InitializeAbilitySystem();
-		check(HeroASC1);
-		AbilitySystemComponents.Add(HeroASC1);
-	}
-	
-	if (HeroComponent2)
-	{
-		HeroComponents.Add(HeroComponent2);
-		HeroComponent2->SetSlotIndex(1);
-		HeroComponent2->OnHeroChanged.AddUObject(this, &ThisClass::OnHeroChanged);
-	
-		UZodiacAbilitySystemComponent* HeroASC2 = HeroComponent2->InitializeAbilitySystem();
-		check(HeroASC2);
-		AbilitySystemComponents.Add(HeroASC2);
+			UZodiacAbilitySystemComponent* HeroASC = HeroComponent->InitializeAbilitySystem();
+			check(HeroASC);
+			AbilitySystemComponents.Add(HeroASC);
+			Index++;
+
+			FOnGameplayEffectTagCountChanged::FDelegate Delegate = FOnGameplayEffectTagCountChanged::FDelegate::CreateUObject(this, &ThisClass::OnSprintTagChanged);
+			HeroASC->RegisterAndCallGameplayTagEvent(TAG_EVENT_MOVEMENT_SPRINT, Delegate, EGameplayTagEventType::NewOrRemoved);
+		}
 	}
 	
 	bHeroesInitialized = true;
@@ -318,7 +301,6 @@ void AZodiacPlayerCharacter::InitializePlayerInput()
 				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
 				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, false);
 				//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Stick, ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
-				ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch, false);
 				//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_AutoRun, ETriggerEvent::Triggered, this, &ThisClass::Input_AutoRun, /*bLogIfNotFound=*/ false);
 			}
 		}
@@ -347,10 +329,11 @@ void AZodiacPlayerCharacter::Input_Move(const FInputActionValue& InputActionValu
 	{
 		const FVector2D Value = InputActionValue.Get<FVector2D>();
 		const FRotator MovementRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
-
+	
 		if (Value.X != 0.0f)
 		{
 			const FVector MovementDirection = MovementRotation.RotateVector(FVector::RightVector);
+			const float InputValue = bIsSprinting ? Value.X * SprintWeight : Value.X; 
 			AddMovementInput(MovementDirection, Value.X);
 		}
 
@@ -377,37 +360,10 @@ void AZodiacPlayerCharacter::Input_LookMouse(const FInputActionValue& InputActio
 	}
 }
 
-void AZodiacPlayerCharacter::Input_Crouch(const FInputActionValue& InputActionValue)
+void AZodiacPlayerCharacter::OnSprintTagChanged(FGameplayTag Tag, int Count)
 {
-	const UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
-
-	if (bIsCrouched || ZodiacMoveComp->bWantsToCrouch)
-	{
-		UnCrouch();
-	}
-	else if (ZodiacMoveComp->IsMovingOnGround())
-	{
-		Crouch();
-	}
+	bIsSprinting = Count > 0;
 }
-
-void AZodiacPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
-{
-	if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
-	{
-		ZodiacASC->SetLooseGameplayTagCount(ZodiacGameplayTags::Status_Crouching, 1);
-	}
-	
-	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);}
-
-void AZodiacPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
-{
-	if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
-	{
-		ZodiacASC->SetLooseGameplayTagCount(ZodiacGameplayTags::Status_Crouching, 0);
-	}
-	
-	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);}
 
 bool AZodiacPlayerCharacter::CanJumpInternal_Implementation() const
 {

@@ -31,10 +31,13 @@ void FGameplayTagStackContainer::AddStack(FGameplayTag Tag, int32 StackCount)
 		{
 			if (Stack.Tag == Tag)
 			{
-				const int32 NewCount = Stack.StackCount + StackCount;
+				const int32 OldCount = Stack.StackCount;
+				const int32 NewCount = OldCount + StackCount;
 				Stack.StackCount = NewCount;
 				TagToCountMap[Tag] = NewCount;
+
 				MarkItemDirty(Stack);
+				OnStackChanged.ExecuteIfBound(Tag, OldCount, NewCount);
 				return;
 			}
 		}
@@ -62,16 +65,24 @@ void FGameplayTagStackContainer::RemoveStack(FGameplayTag Tag, int32 StackCount)
 			{
 				if (Stack.StackCount <= StackCount)
 				{
+					const int32 OldCount = Stack.StackCount;
+					const int32 NewCount = 0;
+					
 					It.RemoveCurrent();
 					TagToCountMap.Remove(Tag);
 					MarkArrayDirty();
+					
+					OnStackChanged.ExecuteIfBound(Tag, OldCount, NewCount);
 				}
 				else
 				{
-					const int32 NewCount = Stack.StackCount - StackCount;
+					const int32 OldCount = Stack.StackCount;
+					const int32 NewCount = OldCount - StackCount;
 					Stack.StackCount = NewCount;
 					TagToCountMap[Tag] = NewCount;
 					MarkItemDirty(Stack);
+					
+					OnStackChanged.ExecuteIfBound(Tag, OldCount, NewCount);
 				}
 				return;
 			}
@@ -83,8 +94,13 @@ void FGameplayTagStackContainer::PreReplicatedRemove(const TArrayView<int32> Rem
 {
 	for (int32 Index : RemovedIndices)
 	{
+		const int32 OldCount = Stacks[Index].StackCount;
+		const int32 NewCount = 0;
+
 		const FGameplayTag Tag = Stacks[Index].Tag;
 		TagToCountMap.Remove(Tag);
+		OnStackChanged.ExecuteIfBound(Tag, OldCount, NewCount);
+
 	}
 }
 
@@ -93,7 +109,10 @@ void FGameplayTagStackContainer::PostReplicatedAdd(const TArrayView<int32> Added
 	for (int32 Index : AddedIndices)
 	{
 		const FGameplayTagStack& Stack = Stacks[Index];
-		TagToCountMap.Add(Stack.Tag, Stack.StackCount);
+		const int32 OldCount = 0;
+		const int32 NewCount = TagToCountMap.Add(Stack.Tag, Stack.StackCount);
+
+		OnStackChanged.ExecuteIfBound(Stack.Tag, OldCount, NewCount);
 		UE_LOG(LogTemp, Warning, TEXT("post replicated add tag: %s, count: %d"), *Stack.Tag.ToString(), Stack.StackCount);
 	}
 }
@@ -103,7 +122,10 @@ void FGameplayTagStackContainer::PostReplicatedChange(const TArrayView<int32> Ch
 	for (int32 Index : ChangedIndices)
 	{
 		const FGameplayTagStack& Stack = Stacks[Index];
-		TagToCountMap[Stack.Tag] = Stack.StackCount;
+		const int32 OldCount = TagToCountMap[Stack.Tag];
+		const int32 NewCount = TagToCountMap[Stack.Tag] = Stack.StackCount;
+
+		OnStackChanged.ExecuteIfBound(Stack.Tag, OldCount, NewCount);
 		UE_LOG(LogTemp, Warning, TEXT("post replicated changed tag: %s, count: %d, index: %d"), *Stack.Tag.ToString(), Stack.StackCount, Index);
 	}
 }

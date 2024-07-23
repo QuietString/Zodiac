@@ -9,6 +9,7 @@
 #include "KismetAnimationLibrary.h"
 #include "Character/ZodiacPlayerCharacter.h"
 
+
 UZodiacAnimInstance::UZodiacAnimInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -22,7 +23,7 @@ void UZodiacAnimInstance::InitializePropertyMap()
 		{
 			if (UAbilitySystemComponent* ASC = Character->GetAbilitySystemComponent())
 			{
-				GameplayTagPropertyMap.Initialize(this, ASC);			
+				GameplayTagPropertyMap.Initialize(this, ASC);
 			}
 		}
 	}
@@ -86,7 +87,7 @@ void UZodiacAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 	IsFirstUpdate = false;
 }
 
-UCharacterMovementComponent* UZodiacAnimInstance::GetMovementComponent()
+UCharacterMovementComponent* UZodiacAnimInstance::GetMovementComponent() const
 {
 	if (APawn* Pawn = TryGetPawnOwner())
 	{
@@ -99,27 +100,40 @@ UCharacterMovementComponent* UZodiacAnimInstance::GetMovementComponent()
 	return nullptr;
 }
 
+AZodiacPlayerCharacter* UZodiacAnimInstance::GetZodiacPlayerCharacter() const
+{
+	if (APawn* Pawn = TryGetPawnOwner())
+	{
+		if (AZodiacPlayerCharacter* ZodiacPlayerCharacter = Cast<AZodiacPlayerCharacter>(Pawn))
+		{
+			return ZodiacPlayerCharacter;
+		}
+	}
+
+	return nullptr;
+}
+
 void UZodiacAnimInstance::UpdateLocationData(const float DeltaSeconds)
 {
 	const FVector PositionDiff = GetOwningActor()->GetActorLocation() - WorldLocation;
 	DisplacementSinceLastUpdate = UKismetMathLibrary::VSizeXY(PositionDiff);
 
 	WorldLocation = GetOwningActor()->GetActorLocation();
-
+	
 	DisplacementSpeed = UKismetMathLibrary::SafeDivide(DisplacementSinceLastUpdate, DeltaSeconds);
 }
 
 void UZodiacAnimInstance::UpdateRotationData(const float DeltaSeconds)
 {
-	const FRotator RotationDiff = GetOwningActor()->GetActorRotation() - WorldRotation;
-	YawDeltaSinceLastUpdate = RotationDiff.Yaw;
-
-	YawDeltaSpeed = UKismetMathLibrary::SafeDivide(YawDeltaSinceLastUpdate, DeltaSeconds);
+	const FRotator OldWorldRotation = WorldRotation;
 	WorldRotation = GetOwningActor()->GetActorRotation();
+	
+	const FRotator RotationDiff = WorldRotation - OldWorldRotation;
+	YawDeltaSinceLastUpdate = FMath::UnwindDegrees(RotationDiff.Yaw);
+	YawDeltaSpeed = UKismetMathLibrary::SafeDivide(YawDeltaSinceLastUpdate, DeltaSeconds);
 
-	const float LeanWeight = (IsCrouching || GameplayTag_IsADS) ? 0.025f : 0.0375;
+	const float LeanWeight = GameplayTag_IsADS ? 0.025f : 0.0375;
 	AdditiveLeanAngle = YawDeltaSpeed * LeanWeight;
-
 }
 
 void UZodiacAnimInstance::UpdateVelocityData()
@@ -132,7 +146,6 @@ void UZodiacAnimInstance::UpdateVelocityData()
 	LocalVelocity2D = WorldRotation.UnrotateVector(WorldVelocity2D);
 
 	LocalVelocityDirectionAngle = UKismetAnimationLibrary::CalculateDirection(WorldVelocity2D, WorldRotation);
-
 	LocalVelocityDirectionAngleWithOffset = LocalVelocityDirectionAngle - RootYawOffset;
 
 	LocalVelocityDirection = SelectCardinalDirectionFromAngle(
@@ -167,7 +180,6 @@ void UZodiacAnimInstance::UpdateAccelerationData()
 {
 	FVector WorldAcceleration2D = GetMovementComponent()->GetCurrentAcceleration();
 	WorldAcceleration2D.Z = 0;
-
 	LocalAcceleration2D = WorldRotation.UnrotateVector(WorldAcceleration2D);
 
 	const float AccelerationSquared = UKismetMathLibrary::VSizeXYSquared(LocalAcceleration2D);
@@ -185,14 +197,14 @@ void UZodiacAnimInstance::UpdateAccelerationData()
 void UZodiacAnimInstance::UpdateCharacterStateData(const float DeltaSeconds)
 {
 	IsOnGround = GetMovementComponent()->IsMovingOnGround();
-
-	const bool WasCrouchingLastUpdate = IsCrouching;
-	IsCrouching = GetMovementComponent()->IsCrouching();
-	CrouchStateChange = (IsCrouching != WasCrouchingLastUpdate) ? true : false;
-
+	
 	ADSStateChanged = (GameplayTag_IsADS != WasADSLastUpdate) ? true : false;
 	WasADSLastUpdate = GameplayTag_IsADS;
 
+	GameplayTag_IsSprinting = GetZodiacPlayerCharacter() ? GetZodiacPlayerCharacter()->bIsSprinting : false;
+	SprintStateChanged = ( GameplayTag_IsSprinting != bWasSprintingLastUpdate );
+	bWasSprintingLastUpdate = GameplayTag_IsSprinting;
+	
 	TimeSinceFiredWeapon = GameplayTag_IsFiring ? 0.f : TimeSinceFiredWeapon + DeltaSeconds;
 
 	IsJumping = false;
@@ -239,12 +251,12 @@ void UZodiacAnimInstance::ProcessTurnYawCurve()
 void UZodiacAnimInstance::SetRootYawOffset(const float InRootYawOffset)
 {
 	const float RootYawOffsetNormalized = UKismetMathLibrary::NormalizeAxis(InRootYawOffset);
-	const FVector2D OffsetClamp = (IsCrouching) ? RootYawOffsetAngleClampCrouched : RootYawOffsetAngleClamp;
+	const FVector2D OffsetClamp = RootYawOffsetAngleClamp;
 
 	const float ClampedOffset = UKismetMathLibrary::ClampAngle(RootYawOffsetNormalized, OffsetClamp.X, OffsetClamp.Y);
 	RootYawOffset = (OffsetClamp.X == OffsetClamp.Y) ? RootYawOffsetNormalized : ClampedOffset;
 
-	//UE_LOG(LogTemp, Warning, TEXT("RootYawOffset: %f"), RootYawOffset);
+	//UE_LOG(LogTemp, Warning, TEXT("aimyaw: %f"), AimYaw);
 
 	AimYaw = -RootYawOffset;
 }
@@ -374,11 +386,10 @@ bool UZodiacAnimInstance::StartToCycle3()
 	const int32 MachineIndex = GetStateMachineIndex(StateMachineName);
 
 	const bool Condition1 = StartDirection != LocalVelocityDirection;
-	const bool Condition2 = CrouchStateChange;
 	const bool Condition3 = ADSStateChanged;
 	const bool Condition4 =( GetInstanceCurrentStateElapsedTime(MachineIndex) > 0.15f) && (DisplacementSpeed < 10.f);
 
-	return (Condition1 || Condition2 || Condition3 || Condition4);
+	return (Condition1 || Condition3 || Condition4);
 }
 
 bool UZodiacAnimInstance::StartToCycle() const
@@ -393,7 +404,7 @@ bool UZodiacAnimInstance::StartToCycle() const
 
 bool UZodiacAnimInstance::StopToIdle() const
 {
-	return CrouchStateChange || ADSStateChanged;
+	return ADSStateChanged;
 }
 
 bool UZodiacAnimInstance::StopRule() const
@@ -401,12 +412,12 @@ bool UZodiacAnimInstance::StopRule() const
 	return !(HasAcceleration || (GameplayTag_IsMelee && HasVelocity));
 }
 
-bool UZodiacAnimInstance::PivotToCycle() const
+bool UZodiacAnimInstance::TransitionRule_PivotToCycle() const
 {
-	return (CrouchStateChange || ADSStateChanged || (IsMovingPerpendicularToInitialPivot() && LastPivotTime <= 0.f));
+	return (ADSStateChanged || (IsMovingPerpendicularToInitialPivot() && LastPivotTime <= 0.f));
 }
 
-bool UZodiacAnimInstance::PivotSourcesToPivot() const
+bool UZodiacAnimInstance::TransitionRule_PivotSourcesToPivot() const
 {
 	// Check if velocity (where we're moving) is opposite to acceleration (where we want to be moving).
 	return ((LocalVelocity2D.Dot(LocalAcceleration2D) < 0.f) && !IsRunningIntoWall);
@@ -454,11 +465,11 @@ EAnimEnum_CardinalDirection UZodiacAnimInstance::SelectCardinalDirectionFromAngl
 	{
 		switch (CurrentDirection)
 		{
-		case EAnimEnum_CardinalDirection::Front:
+		case Front:
 			FwdDeadZone *= 2;
 			break;
 
-		case EAnimEnum_CardinalDirection::Backward:
+		case Backward:
 			BwdDeadZone *= 2;
 			break;
 
@@ -467,11 +478,17 @@ EAnimEnum_CardinalDirection UZodiacAnimInstance::SelectCardinalDirectionFromAngl
 		}
 	}
 
-	if (AbsAngle <= FwdDeadZone + 45.f) return EAnimEnum_CardinalDirection::Front;
+	if (AbsAngle <= FwdDeadZone + 45.f) return Front;
 
-	if (AbsAngle >= 135.f - BwdDeadZone) return EAnimEnum_CardinalDirection::Backward;
+	if (AbsAngle >= 135.f - BwdDeadZone) return Backward;
 
-	if (Angle > 0.f) return EAnimEnum_CardinalDirection::Right;
+	if (Angle > 0.f) return Right;
 
-	return EAnimEnum_CardinalDirection::Left;
+	return Left;
+}
+
+bool UZodiacAnimInstance::ShouldDistanceMatchStop() const
+{
+	// when movement doesn't exist, but a character is still moving.
+	return HasVelocity && !HasAcceleration;
 }

@@ -98,10 +98,8 @@ protected:
 	
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
-	void Input_Crouch(const FInputActionValue& InputActionValue);
 
-	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	void OnSprintTagChanged(FGameplayTag Tag, int Count);
 	virtual bool CanJumpInternal_Implementation() const override;
 
 protected:
@@ -109,6 +107,10 @@ protected:
 	UFUNCTION()
 	void OnRep_ActiveHeroIndex(int32 OldIndex);
 
+public:
+	UPROPERTY()
+	bool bIsSprinting = false;
+	
 protected:
 	
 	UPROPERTY(VisibleAnywhere, Category = "Zodiac|Heroes")
@@ -135,6 +137,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
 	UZodiacInputData* InputData;
 
+	// Reduce left/right movement input amount when sprinting
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
+	float SprintWeight = 0.3f;
+	
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveHeroIndex, BlueprintReadOnly)
 	int32 ActiveHeroIndex;
 
@@ -152,7 +158,7 @@ protected:
 
 	UPROPERTY()
 	UZodiacHealthComponent* CurrentHealthComponent;
-
+	
 private:
 	bool bHeroesInitialized = false;
 };

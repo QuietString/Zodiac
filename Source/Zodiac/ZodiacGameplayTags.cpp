@@ -48,6 +48,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_UltimateSkill_Message , "Ability.HeroChanged.Ultimate.Message")
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Move, "InputTag.Move", "Move input.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Move_Sprint, "InputTag.Move.Sprint", "Sprint direction input");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Look_Mouse, "InputTag.Look.Mouse", "Look (mouse) input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Look_Stick, "InputTag.Look.Stick", "Look (stick) input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Crouch, "InputTag.Crouch", "Crouch input.");
@@ -86,8 +87,13 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(UI_Action_Escape, "UI.Action.Escape");
 	
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HeroChanged_SkillSlot, "HUD.Message.HeroChanged.SkillSlot");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HeroChanged, "HUD.Message.HeroChanged");
+
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillDuration, "HUD.Message.SkillDuration");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillCommit, "HUD.Message.SkillCommit");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillSlot_TagStackChanged, "HUD.Message.SkillSlot.TagStackChanged");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillSlot_Created, "HUD.Message.SkillSlot.Created");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AttributeChanged_Ultimate, "HUD.Message.AttributeChanged.Ultimate");
 	
 	// Tags for GameplayCue
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_Rifle_Fire, "GameplayCue.Weapon.Rifle.Fire");

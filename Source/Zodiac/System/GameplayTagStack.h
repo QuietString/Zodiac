@@ -10,6 +10,7 @@
 struct FGameplayTagStackContainer;
 struct FNetDeltaSerializeInfo;
 
+DECLARE_DELEGATE_ThreeParams(FOnStackChanged, const FGameplayTag Tag, const int32 OldValue, const int32 NewValue);
 /**
  * Represents one stack of a gameplay tag (tag + count)
  */
@@ -69,6 +70,8 @@ public:
 		return TagToCountMap.Contains(Tag);
 	}
 
+	FOnStackChanged OnStackChanged;
+	
 	//~FFastArraySerializer contract
 	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
 	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize);
