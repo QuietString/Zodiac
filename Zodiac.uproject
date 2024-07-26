@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{DBFAB60D-41FE-1AF6-60F4-24BABA146FA9}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "Zodiac",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		}
+	]
+}
