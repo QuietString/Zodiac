@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// the.quiet.string@gmail.com
 
 using UnrealBuildTool;
 
@@ -30,7 +30,6 @@ public class Zodiac : ModuleRules
 				"ModularGameplayActors",
 				"DataRegistry",
 				"ReplicationGraph",
-				"GameFeatures",
 				"SignificanceManager",
 				"AnimationLocomotionLibraryRuntime",
 				"AnimGraphRuntime",
@@ -66,7 +65,8 @@ public class Zodiac : ModuleRules
 				"NetworkReplayStreaming",
 				"UIExtension",
 				"ClientPilot",
-				"AudioModulation"
+				"AudioModulation",
+				"GameSubtitles"
 			}
 		);
 	}

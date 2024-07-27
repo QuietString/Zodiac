@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// the.quiet.string@gmail.com
 
 #include "Zodiac.h"
 #include "Modules/ModuleManager.h"
