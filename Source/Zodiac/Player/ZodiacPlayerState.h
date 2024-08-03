@@ -5,9 +5,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GenericTeamAgentInterface.h"
-#include "ModularCharacter.h"
 #include "ModularPlayerState.h"
-#include "GameFramework/PlayerState.h"
 #include "System/GameplayTagStack.h"
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacPlayerState.generated.h"
@@ -34,7 +32,7 @@ enum class EZodiacPlayerConnectionType : uint8
 /**
  * Base player state class used by this project.
  */
-UCLASS(Config = Game)
+UCLASS()
 class ZODIAC_API AZodiacPlayerState : public AModularPlayerState, public IAbilitySystemInterface, public IZodiacTeamAgentInterface
 {
 	GENERATED_BODY()
@@ -43,15 +41,17 @@ public:
 	AZodiacPlayerState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	virtual void ClientInitialize(AController* C) override;	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&) const override;
-
+	
 	//~IZodiacTeamAgentInterface interface
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
 	//~End of IZodiacTeamAgentInterface interface
-	
-private:
 
+private:
+	// The ability system component sub-object used by player characters.
+	UPROPERTY(VisibleAnywhere, Category = "Zodiac|PlayerState")
+	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
+	
 	UPROPERTY(Replicated)
 	EZodiacPlayerConnectionType MyPlayerConnectionType;
 

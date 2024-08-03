@@ -43,7 +43,7 @@ bool UZodiacGameplayAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecH
 		return false;
 	}
 
-	const AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(ActorInfo->AvatarActor.Get());
+	const AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(ActorInfo->OwnerActor.Get());
 	if (!HostCharacter || !HostCharacter->CanJump())
 	{
 		return false;
@@ -72,7 +72,7 @@ void UZodiacGameplayAbility_Jump::OnInputRelease(float TimeHeld)
 
 void UZodiacGameplayAbility_Jump::CharacterJumpStart()
 {
-	if (AZodiacHostCharacter* HostCharacter = GetZodiacCharacterFromActorInfo())
+	if (AZodiacHostCharacter* HostCharacter = GetZodiacHostCharacterFromActorInfo())
 	{
 		if (HostCharacter->IsLocallyControlled() && !HostCharacter->bPressedJump)
 		{
@@ -84,7 +84,7 @@ void UZodiacGameplayAbility_Jump::CharacterJumpStart()
 
 void UZodiacGameplayAbility_Jump::CharacterJumpStop()
 {
-	if (AZodiacHostCharacter* HostCharacter = GetZodiacCharacterFromActorInfo())
+	if (AZodiacHostCharacter* HostCharacter = GetZodiacHostCharacterFromActorInfo())
 	{
 		if (HostCharacter->IsLocallyControlled() && HostCharacter->bPressedJump)
 		{

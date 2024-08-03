@@ -77,24 +77,20 @@ class ZODIAC_API UZodiacGameplayAbility : public UGameplayAbility
 	GENERATED_BODY()
 
 public:
-
 	UZodiacGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AZodiacPlayerController* GetZodiacPlayerControllerFromActorInfo() const;
 
 	UFUNCTION(BlueprintCallable)
-	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponentFromActorInfo() const;
-	
+	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponentFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
+	AZodiacHostCharacter* GetZodiacHostCharacterFromActorInfo() const;
+
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AController* GetControllerFromActorInfo() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
-	AZodiacHostCharacter* GetZodiacCharacterFromActorInfo() const;
-
-	// UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
-	// UZodiacHeroComponent* GetCurrentHeroComponent() const;
-
+	
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	

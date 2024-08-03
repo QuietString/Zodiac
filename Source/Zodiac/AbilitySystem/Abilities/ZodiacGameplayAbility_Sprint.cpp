@@ -52,7 +52,7 @@ UEnhancedInputLocalPlayerSubsystem* UZodiacGameplayAbility_Sprint::GetEnhancedIn
 
 void UZodiacGameplayAbility_Sprint::Sprint()
 {
-	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
+	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacHostCharacterFromActorInfo())
 	{
 		if (UCharacterMovementComponent* CharMoveComp =  ZodiacCharacter->GetCharacterMovement())
 		{
@@ -70,7 +70,7 @@ void UZodiacGameplayAbility_Sprint::Sprint()
 
 void UZodiacGameplayAbility_Sprint::Walk()
 {
-	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
+	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacHostCharacterFromActorInfo())
 	{
 		if (UCharacterMovementComponent* CharMoveComp =  ZodiacCharacter->GetCharacterMovement())
 		{

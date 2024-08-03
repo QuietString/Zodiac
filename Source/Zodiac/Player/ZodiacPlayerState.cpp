@@ -1,8 +1,8 @@
 ﻿// the.quiet.string@gmail.com
 
-
 #include "ZodiacPlayerState.h"
 
+#include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Net/UnrealNetwork.h"
 
@@ -12,22 +12,14 @@ AZodiacPlayerState::AZodiacPlayerState(const FObjectInitializer& ObjectInitializ
 	: Super(ObjectInitializer)
 	, MyPlayerConnectionType(EZodiacPlayerConnectionType::Player)
 {
-
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
 UAbilitySystemComponent* AZodiacPlayerState::GetAbilitySystemComponent() const
 {
-	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetPawn()))
-	{
-		return HostCharacter->GetAbilitySystemComponent();
-	}
-
-	return nullptr;
-}
-
-void AZodiacPlayerState::ClientInitialize(AController* C)
-{
-	Super::ClientInitialize(C);
+	return AbilitySystemComponent;
 }
 
 void AZodiacPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

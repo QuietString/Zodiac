@@ -3,17 +3,34 @@
 #include "ZodiacHostCharacter.h"
 
 #include "EnhancedInputSubsystems.h"
+#include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHero.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Animation/ZodiacHeroAnimInstance.h"
 #include "Camera/ZodiacCameraComponent.h"
+#include "Player/ZodiacPlayerState.h"
 #include "Input/ZodiacInputComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/ZodiacPlayerState.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHostCharacter)
 
+namespace ZodiacConsoleVariables
+{
+	static TAutoConsoleVariable<bool> CVarHostMovementModeLoggingEnable(
+		TEXT("zodiac.HostMovement.EnableLogging"),
+		false,
+		TEXT("Enables log of host character movement mode"));
+	
+	bool LogEnabled()
+	{
+		return CVarHostMovementModeLoggingEnable.GetValueOnAnyThread();
+	}
+}
+
 AZodiacHostCharacter::AZodiacHostCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer),
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)),
 	HeroList(this)
 {
 	CameraComponent = CreateDefaultSubobject<UZodiacCameraComponent>(TEXT("CameraComponent"));
@@ -28,17 +45,38 @@ void AZodiacHostCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(ThisClass, ActiveHeroIndex);
 }
 
-void AZodiacHostCharacter::PreInitializeComponents()
+void AZodiacHostCharacter::PossessedBy(AController* NewController)
 {
-	Super::PreInitializeComponents();
+	Super::PossessedBy(NewController);
+
+	if (AZodiacPlayerState* ZodiacPS = Cast<AZodiacPlayerState>(GetPlayerState()))
+	{
+		if (UAbilitySystemComponent* ASC = ZodiacPS->GetAbilitySystemComponent())
+		{
+			InitializeHostAbilitySystem(ASC);
+		}
+	}
+}
+
+void AZodiacHostCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if (AZodiacPlayerState* ZodiacPS = Cast<AZodiacPlayerState>(GetPlayerState()))
+	{
+		if (UAbilitySystemComponent* ASC = ZodiacPS->GetAbilitySystemComponent())
+		{
+			InitializeHostAbilitySystem(ASC);
+		}
+	}
 }
 
 void AZodiacHostCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
+	
 	CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
-
+	
 	if (HasAuthority())
 	{
 		InitializeHeroes();
@@ -48,7 +86,7 @@ void AZodiacHostCharacter::PostInitializeComponents()
 void AZodiacHostCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	ChangeHero(0);
 }
 
@@ -157,17 +195,104 @@ void AZodiacHostCharacter::Input_LookMouse(const FInputActionValue& InputActionV
 	}
 }
 
+void AZodiacHostCharacter::OnAimingTagChanged(FGameplayTag Tag, int Count)
+{
+	if (UZodiacCharacterMovementComponent* ZodiacMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		if (Count > 0)
+		{
+			ZodiacMoveComp->SetMovementMode(MOVE_Walking, MOVE_Aiming);
+		}
+		else
+		{
+			ZodiacMoveComp->SetMovementMode(MOVE_Walking, MOVE_None);
+		}
+	}
+}
+
+void AZodiacHostCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode)
+{
+	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
+	
+	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
+
+	SetMovementModeTag(PrevMovementMode, PreviousCustomMode, false);
+
+	EMovementMode MovementMode = ZodiacMoveComp->MovementMode;
+	uint8 CustomMovementMode = ZodiacMoveComp->CustomMovementMode;
+
+#if WITH_EDITOR
+	if (ZodiacConsoleVariables::LogEnabled())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("new movement mode: %d, %d on %s"), MovementMode, CustomMovementMode,  HasAuthority() ? TEXT("server") : TEXT("Client"));	
+	}
+#endif
+	
+	SetMovementModeTag(MovementMode, CustomMovementMode, true);
+}
+
+void AZodiacHostCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled)
+{
+	if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	{
+		const FGameplayTag* MovementModeTag = nullptr;
+
+		if (CustomMovementMode == MOVE_None)
+		{
+			MovementModeTag = ZodiacGameplayTags::MovementModeTagMap.Find(MovementMode);
+			if (MovementModeTag && MovementModeTag->IsValid())
+			{
+				ZodiacASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
+			}
+		}
+	}
+}
+
+void AZodiacHostCharacter::InitializeHostAbilitySystem(UAbilitySystemComponent* InASC)
+{
+	check(InASC);
+	
+	AbilitySystemComponent = InASC;
+	AbilitySystemComponent->InitAbilityActorInfo(GetPlayerState(), this);
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_Custom_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnAimingTagChanged);	
+	
+	OnHostAbilitySystemComponentLoaded.Broadcast(AbilitySystemComponent);
+	OnHostAbilitySystemComponentLoaded.Clear();
+}
+
+void AZodiacHostCharacter::CallOrRegister_OnAbilitySystemInitialized(FOnHostAbilitySystemComponentLoaded::FDelegate&& Delegate)
+{
+	if (AbilitySystemComponent)
+	{
+		Delegate.Execute(AbilitySystemComponent);
+	}
+	else
+	{
+		OnHostAbilitySystemComponentLoaded.Add(MoveTemp(Delegate));
+	}
+}
+
 UAbilitySystemComponent* AZodiacHostCharacter::GetAbilitySystemComponent() const
 {
-	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
+	if (AZodiacPlayerState* ZodiacPS = Cast<AZodiacPlayerState>(GetPlayerState()))
 	{
-		return Hero->GetAbilitySystemComponent();
+		return ZodiacPS->GetAbilitySystemComponent();
 	}
-	
+
 	return nullptr;
 }
 
-UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetZodiacAbilitySystemComponent() const
+UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetZodiacAbilitySystemComponent()
+{
+	if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(GetAbilitySystemComponent()))
+	{
+		return ZodiacASC;
+	}
+
+	return nullptr;
+}
+
+UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetHeroAbilitySystemComponent()
 {
 	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
 	{
@@ -191,7 +316,10 @@ void AZodiacHostCharacter::InitializeHeroes()
 {
 	for (TSubclassOf<AZodiacHero> HeroClass : HeroClasses)
 	{
-		AZodiacHero* Hero = HeroList.AddEntry(HeroClass, GetWorld());	
+		if (HeroClass)
+		{
+			AZodiacHero* Hero = HeroList.AddEntry(HeroClass, GetWorld());
+		}
 	}
 }
 
@@ -207,11 +335,6 @@ void AZodiacHostCharacter::ChangeHero(const int32 Index)
 			OnRep_ActiveHeroIndex(OldIndex);
 		}
 	}
-}
-
-bool AZodiacHostCharacter::CheckHeroesReady()
-{
-	return false;
 }
 
 void AZodiacHostCharacter::SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle)

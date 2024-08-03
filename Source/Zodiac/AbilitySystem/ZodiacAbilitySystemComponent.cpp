@@ -224,6 +224,12 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 		}
 	}
 
+	const FGameplayAbilityActorInfo* ActorInfo = AbilityActorInfo.Get();
+	if (ActorInfo->AvatarActor->GetLocalRole() == ROLE_SimulatedProxy && ActorInfo->OwnerActor->GetLocalRole() == ROLE_AutonomousProxy)
+	{
+		ActorInfo->AvatarActor->SetRole(ROLE_AutonomousProxy);
+	}
+	
 	//
 	// Try to activate all the abilities that are from presses and holds.
 	// We do it all at once so that held inputs don't activate the ability
@@ -231,7 +237,7 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 	//
 	for (const FGameplayAbilitySpecHandle& AbilitySpecHandle : AbilitiesToActivate)
 	{
-		TryActivateAbility(AbilitySpecHandle);
+		bool Activated = TryActivateAbility(AbilitySpecHandle);
 	}
 
 	// Process all abilities that had their input released this frame.

@@ -3,11 +3,15 @@
 #include "ZodiacHero.h"
 
 #include "AbilitySystemComponent.h"
+#include "ZodiacCharacterMovementComponent.h"
+#include "ZodiacGameplayTags.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "GameFramework/Character.h"
 #include "ZodiacHealthComponent.h"
+#include "ZodiacHostCharacter.h"
+#include "Animation/ZodiacHeroAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Net/UnrealNetwork.h"
 
@@ -17,7 +21,7 @@ AZodiacHero::AZodiacHero(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	bReplicates = true;
-
+	
 	Mesh = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("Mesh"));
 	Mesh->AlwaysLoadOnClient = true;
 	Mesh->AlwaysLoadOnServer = false;
@@ -51,17 +55,25 @@ void AZodiacHero::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	AttachToOwner();
-
-	if (Owner)
+	if (AZodiacHostCharacter* HostCharacter = GetHostCharacter())
 	{
-		InitializeAbilitySystem();
+		HostCharacter->CallOrRegister_OnAbilitySystemInitialized(FOnHostAbilitySystemComponentLoaded::FDelegate::CreateUObject(this, &ThisClass::OnHostAbilitySystemComponentInitialized));
+	}
+	
+	if (HasAuthority())
+	{
+		Initialize();
 	}
 }
 
 void AZodiacHero::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AZodiacHero::OnRep_Owner()
+{
+	Initialize();
 }
 
 UAbilitySystemComponent* AZodiacHero::GetAbilitySystemComponent() const
@@ -74,11 +86,16 @@ TObjectPtr<UZodiacAbilitySystemComponent> AZodiacHero::GetZodiacAbilitySystemCom
 	return AbilitySystemComponent;
 }
 
+AZodiacHostCharacter* AZodiacHero::GetHostCharacter() const
+{
+	return Cast<AZodiacHostCharacter>(Owner);
+}
+
 void AZodiacHero::InitializeAbilitySystem()
 {
 	check(AbilitySystemComponent);
-	
-	AbilitySystemComponent->InitAbilityActorInfo(Owner, Owner);
+
+	AbilitySystemComponent->InitAbilityActorInfo(Owner, this);
 	
 	if (HeroData && HasAuthority())
 	{
@@ -87,7 +104,7 @@ void AZodiacHero::InitializeAbilitySystem()
 			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 		}
 	}
-
+	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 }
 
@@ -115,6 +132,15 @@ void AZodiacHero::Deactivate()
 	bIsActive = false;
 }
 
+void AZodiacHero::Initialize()
+{
+	if (Owner)
+	{
+		AttachToOwner();
+		InitializeAbilitySystem();
+	}
+}
+
 void AZodiacHero::AttachToOwner()
 {
 	if (ACharacter* Character = Cast<ACharacter>(Owner))
@@ -124,6 +150,14 @@ void AZodiacHero::AttachToOwner()
 			AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, NAME_None);
 			AddTickPrerequisiteComponent(CharacterMesh);
 		}
+	}
+}
+
+void AZodiacHero::OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* HostASC)
+{
+	if (UZodiacHeroAnimInstance* HeroAnimInstance = Cast<UZodiacHeroAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		HeroAnimInstance->InitializeWithAbilitySystem(HostASC);
 	}
 }
 

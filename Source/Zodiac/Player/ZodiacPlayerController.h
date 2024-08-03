@@ -21,10 +21,9 @@ public:
 	AZodiacPlayerController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	AZodiacPlayerState* GetZodiacPlayerState() const;
-	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
+	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent();
 	
 	//~APlayerController interface
-	virtual void AcknowledgePossession(APawn* P) override;
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 	//~End of APlayerController interface
 };

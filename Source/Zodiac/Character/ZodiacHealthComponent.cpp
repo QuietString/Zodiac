@@ -152,7 +152,7 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 		// Send the "GameplayEvent.Death" gameplay event through the owner's ability system.  This can be used to trigger a death gameplay ability.
 		{
 			FGameplayEventData Payload;
-			Payload.EventTag = ZodiacGameplayTags::GameplayEvent_Death;
+			Payload.EventTag = ZodiacGameplayTags::Event_Death;
 			Payload.Instigator = DamageInstigator;
 			Payload.Target = AbilitySystemComponent->GetAvatarActor();
 			Payload.OptionalObject = DamageEffectSpec->Def;

@@ -4,9 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
 #include "ZodiacHero.generated.h"
 
+class UZodiacCharacterMovementComponent;
+class AZodiacHostCharacter;
 class UZodiacHealthComponent;
 class UZodiacHeroData;
 class UZodiacAbilitySystemComponent;
@@ -23,23 +26,30 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
+	virtual void OnRep_Owner() override;
 	//~End of AActor interface
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	TObjectPtr<UZodiacAbilitySystemComponent> GetZodiacAbilitySystemComponent() const;
 
+	AZodiacHostCharacter* GetHostCharacter() const;
 	UZodiacHealthComponent* GetHealthComponent() const;
-
+	USkeletalMeshComponent* GetMesh() { return Mesh; }
+	
 	void Activate();
 	void Deactivate();
 	
 protected:
+	void Initialize();
+	
 	void InitializeAbilitySystem();
 
 	void AttachToOwner();
 
+	void OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* HostASC);
+	
 protected:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 	
 	UPROPERTY(VisibleAnywhere)

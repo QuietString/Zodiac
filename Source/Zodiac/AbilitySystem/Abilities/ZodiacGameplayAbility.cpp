@@ -44,7 +44,7 @@ AZodiacPlayerController* UZodiacGameplayAbility::GetZodiacPlayerControllerFromAc
 	return (CurrentActorInfo ? Cast<AZodiacPlayerController>(CurrentActorInfo->PlayerController.Get()) : nullptr);
 }
 
-UZodiacAbilitySystemComponent* UZodiacGameplayAbility::GetZodiacAbilitySystemComponentFromActorInfo() const
+UZodiacAbilitySystemComponent* UZodiacGameplayAbility::GetHeroAbilitySystemComponentFromActorInfo() const
 {
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
@@ -55,6 +55,11 @@ UZodiacAbilitySystemComponent* UZodiacGameplayAbility::GetZodiacAbilitySystemCom
 	}
 	
 	return nullptr;
+}
+
+AZodiacHostCharacter* UZodiacGameplayAbility::GetZodiacHostCharacterFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<AZodiacHostCharacter>(CurrentActorInfo->OwnerActor.Get()) : nullptr);
 }
 
 AController* UZodiacGameplayAbility::GetControllerFromActorInfo() const
@@ -86,21 +91,6 @@ AController* UZodiacGameplayAbility::GetControllerFromActorInfo() const
 	
 	return nullptr;
 }
-
-AZodiacHostCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
-{
-	return (CurrentActorInfo ? Cast<AZodiacHostCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
-}
-
-// UZodiacHeroComponent* UZodiacGameplayAbility::GetCurrentHeroComponent() const
-// {
-// 	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
-// 	{
-// 		return ZodiacCharacter->GetCurrentHeroComponent();
-// 	}
-//
-// 	return nullptr;
-// }
 
 void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
@@ -148,7 +138,7 @@ void UZodiacGameplayAbility::SetCameraMode(TSubclassOf<UZodiacCameraMode> Camera
 {
 	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(SetCameraMode, );
 
-	if (AZodiacHostCharacter* HostCharacter = GetZodiacCharacterFromActorInfo())
+	if (AZodiacHostCharacter* HostCharacter = GetZodiacHostCharacterFromActorInfo())
 	{
 		HostCharacter->SetAbilityCameraMode(CameraMode, CurrentSpecHandle);
 		ActiveCameraMode = CameraMode;
@@ -161,7 +151,7 @@ void UZodiacGameplayAbility::ClearCameraMode()
 
 	if (ActiveCameraMode)
 	{
-		if (AZodiacHostCharacter* HostCharacter = GetZodiacCharacterFromActorInfo())
+		if (AZodiacHostCharacter* HostCharacter = GetZodiacHostCharacterFromActorInfo())
 		{
 			HostCharacter->ClearAbilityCameraMode(CurrentSpecHandle);
 		}

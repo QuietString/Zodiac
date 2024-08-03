@@ -5,16 +5,10 @@
 #include "Engine/EngineTypes.h"
 #include "GameplayTagsManager.h"
 #include "ZodiacLogChannels.h"
+#include "Character/ZodiacCharacterMovementComponent.h"
 
 namespace ZodiacGameplayTags
 {
-	// Heroes
-	UE_DEFINE_GAMEPLAY_TAG(Hero_Name_Twinblast, "Hero.Name.Twinblast");
-	UE_DEFINE_GAMEPLAY_TAG(Hero_Name_Murdock, "Hero.Name.Murdock");
-	UE_DEFINE_GAMEPLAY_TAG(Hero_Slot_Slot1, "Hero.Slot.Slot1");
-	UE_DEFINE_GAMEPLAY_TAG(Hero_Slot_Slot2, "Hero.Slot.Slot2");
-	UE_DEFINE_GAMEPLAY_TAG(Hero_Changed_HealthBar_Message, "Hero.Changed.HealthBar.Message");
-	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_IsDead, "Ability.ActivateFail.IsDead", "Ability failed to activate because its owner is dead.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_Cooldown, "Ability.ActivateFail.Cooldown", "Ability failed to activate because it is on cool down.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_Cost, "Ability.ActivateFail.Cost", "Ability failed to activate because it did not pass the cost checks.");
@@ -24,16 +18,6 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_ActivationGroup, "Ability.ActivateFail.ActivationGroup", "Ability failed to activate because of its activation group.");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Jump, "Ability.Type.Action.Jump");
-	
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Slot_Primary, "Ability.Type.Skill.Slot.Primary");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Slot_Secondary, "Ability.Type.Skill.Slot.Secondary");
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Skill_Slot_Ultimate, "Ability.Type.Skill.Slot.Ultimate");
-
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_None, "Ability.Type.Skill.Cost.None", "A skill that can be used without any cost");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Bullet, "Ability.Type.Skill.Cost.Bullet", "A skill that need to consume some number of items");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Cooldown, "Ability.Type.Skill.Cost.Cooldown", "A skill that has to wait certain time after activation");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Gauge, "Ability.Type.Skill.Cost.Gauge", "A skill that need fully charged gauage to activate");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Type_Skill_Cost_Ultimate, "Ability.Type.Skill.Cost.Ultimate", "A skill that need hero's ultimate gauage to activate");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Cost_Stack, "Ability.Cost.Stack");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Cost_Cooldown, "Ability.Cost.Cooldown");
@@ -59,10 +43,10 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_DataInitialized, "InitState.DataInitialized", "3: The available data has been initialized for this actor/component, but it is not ready for full gameplay");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_GameplayReady, "InitState.GameplayReady", "4: The actor/component is fully ready for active gameplay");
 
-	UE_DEFINE_GAMEPLAY_TAG(GameplayEvent_Damaged_Message, "GameplayEvent.Damaged.Message");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayEvent_Death, "GameplayEvent.Death", "Event that fires on death. This event only fires on the server.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayEvent_Reset, "GameplayEvent.Reset", "Event that fires once a player reset is executed.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(GameplayEvent_RequestReset, "GameplayEvent.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Damaged_Message, "Event.Damaged.Message");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Death, "Event.Death", "Event that fires on death. This event only fires on the server.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Reset, "Event.Reset", "Event that fires once a player reset is executed.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_RequestReset, "Event.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Damage, "SetByCaller.Damage", "SetByCaller tag used by damage gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_SkillMultiplier, "SetByCaller.SkillMultiplier", "SetByCaller tag used to apply skill multiplier.");
@@ -74,8 +58,9 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_GodMode, "Cheat.GodMode", "GodMode cheat is active on the owner.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_UnlimitedHealth, "Cheat.UnlimitedHealth", "UnlimitedHealth cheat is active on the owner.");
 
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Crouching, "Status.Crouching", "Target is crouching.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_AutoRunning, "Status.AutoRunning", "Target is auto-running.");
+	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Attacking , "Status.Movement.Attacking");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status__MovementCrouching, "Status.Movement.Crouching", "Target is crouching.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status__MovementAutoRunning, "Status.Movement.AutoRunning", "Target is auto-running.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death, "Status.Death", "Target has the death status.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dying, "Status.Death.Dying", "Target has begun the death process.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dead, "Status.Death.Dead", "Target has finished the death process.");
@@ -99,15 +84,19 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_Rifle_Fire, "GameplayCue.Weapon.Rifle.Fire");
 
 	// These are mapped to the movement modes inside GetMovementModeTagMap()
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Mode, "Movement.Mode");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_None, "Movement.Mode.None", "Default Character movement tag");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Walking, "Movement.Mode.Walking", "Default Character movement tag");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_NavWalking, "Movement.Mode.NavWalking", "Default Character movement tag");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Falling, "Movement.Mode.Falling", "Default Character movement tag");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Swimming, "Movement.Mode.Swimming", "Default Character movement tag");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Flying, "Movement.Mode.Flying", "Default Character movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom, "Movement.Mode.Custom", "Default Character movement tag");
 
-	// When extending Zodiac, you can create your own movement modes but you need to update GetCustomMovementModeTagMap()
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom, "Movement.Mode.Custom", "This is invalid and should be replaced with custom tags.  See ZodiacGameplayTags::CustomMovementModeTagMap.");
-
+	// These are mapped to the movement modes inside GetCustomMovementModeTagMap()
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom_Sprinting, "Movement.Mode.Custom.Sprinting", "Custom Character movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom_Aiming, "Movement.Mode.Custom.Aiming", "Custom Character movement tag");
+	
 	// Unreal Movement Modes
 	const TMap<uint8, FGameplayTag> MovementModeTagMap =
 	{
@@ -116,13 +105,15 @@ namespace ZodiacGameplayTags
 		{ MOVE_Falling, Movement_Mode_Falling },
 		{ MOVE_Swimming, Movement_Mode_Swimming },
 		{ MOVE_Flying, Movement_Mode_Flying },
-		{ MOVE_Custom, Movement_Mode_Custom }
+		{MOVE_Custom, Movement_Mode_Custom}
 	};
 
 	// Custom Movement Modes
 	const TMap<uint8, FGameplayTag> CustomMovementModeTagMap =
 	{
-		// Fill these in with your custom modes
+		{MOVE_None, Movement_Mode_None},
+		{MOVE_Aiming, Movement_Mode_Custom_Aiming},
+		{MOVE_Sprinting, Movement_Mode_Custom_Sprinting},
 	};
 
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)

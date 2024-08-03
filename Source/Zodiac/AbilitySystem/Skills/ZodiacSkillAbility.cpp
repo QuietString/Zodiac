@@ -1,6 +1,5 @@
 // the.quiet.string@gmail.com
 
-
 #include "AbilitySystem/Skills/ZodiacSkillAbility.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
@@ -8,9 +7,20 @@
 #include "ZodiacSkillSlot.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/ZodiacSkillAbilityCost.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
-#include "Messages/ZodiacMessageTypes.h"
+#include "Character/ZodiacHostCharacter.h"
 
+UAbilitySystemComponent* UZodiacSkillAbility::GetHostAbilitySystemComponent() const
+{
+	if (CurrentActorInfo)
+	{
+		if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(CurrentActorInfo->OwnerActor.Get()))
+		{
+			return HostCharacter->GetAbilitySystemComponent();
+		}
+	}
+
+	return nullptr;
+}
 
 UZodiacSkillSlot* UZodiacSkillAbility::GetSkillSlot() const
 {
@@ -35,9 +45,25 @@ const FGameplayTagContainer* UZodiacSkillAbility::GetCooldownTags() const
 	return MutableTags;
 }
 
+bool UZodiacSkillAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
+	{
+		return false;
+	}
+
+	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
+	{
+		return DoesAbilitySatisfyTagRequirements(*HostASC, SourceTags, TargetTags, OptionalRelevantTags);	
+	}
+	
+	return true;
+}
+
 void UZodiacSkillAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+                                          const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+                                          const FGameplayEventData* TriggerEventData)
 {
 	bIsFirstActivation = true;
 	
@@ -49,33 +75,28 @@ void UZodiacSkillAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::CommitExecute(Handle, ActorInfo, ActivationInfo);
 
-	if (CooldownGameplayEffectClass)
-	{
-		SendCooldownMessage();	
-	}
-	
 	bIsFirstActivation = false;
 }
 
 bool UZodiacSkillAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	FGameplayTagContainer* OptionalRelevantTags) const
+                                    FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags) || !ActorInfo)
 	{
 		return false;
 	}
-
-	// Verify we can afford any additional costs
-	for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.GetCurrentAdditionalCostData(bIsFirstActivation))
-	{
-		if (AdditionalCost != nullptr)
-		{
-			if (!AdditionalCost->CheckCost(this, Handle, ActorInfo, OUT OptionalRelevantTags))
-			{
-				return false;
-			}
-		}
-	}
+	//
+	// // Verify we can afford any additional costs
+	// for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.GetCurrentAdditionalCostData(bIsFirstActivation))
+	// {
+	// 	if (AdditionalCost != nullptr)
+	// 	{
+	// 		if (!AdditionalCost->CheckCost(this, Handle, ActorInfo, OUT OptionalRelevantTags))
+	// 		{
+	// 			return false;
+	// 		}
+	// 	}
+	// }
 
 	return true;
 }
@@ -108,29 +129,29 @@ void UZodiacSkillAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, con
 	};
 	
 	// Pay any additional costs
-	bool bAbilityHitTarget = false;
-	bool bHasDeterminedIfAbilityHitTarget = false;
-	for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.GetCurrentAdditionalCostData(bIsFirstActivation))
-	{
-		if (AdditionalCost != nullptr)
-		{
-			if (AdditionalCost->ShouldOnlyApplyCostOnHit())
-			{
-				if (!bHasDeterminedIfAbilityHitTarget)
-				{
-					bAbilityHitTarget = DetermineIfAbilityHitTarget();
-					bHasDeterminedIfAbilityHitTarget = true;
-				}
-
-				if (!bAbilityHitTarget)
-				{
-					continue;
-				}
-			}
-
-			AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
-		}
-	}
+	// bool bAbilityHitTarget = false;
+	// bool bHasDeterminedIfAbilityHitTarget = false;
+	// for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.GetCurrentAdditionalCostData(bIsFirstActivation))
+	// {
+	// 	if (AdditionalCost != nullptr)
+	// 	{
+	// 		if (AdditionalCost->ShouldOnlyApplyCostOnHit())
+	// 		{
+	// 			if (!bHasDeterminedIfAbilityHitTarget)
+	// 			{
+	// 				bAbilityHitTarget = DetermineIfAbilityHitTarget();
+	// 				bHasDeterminedIfAbilityHitTarget = true;
+	// 			}
+	//
+	// 			if (!bAbilityHitTarget)
+	// 			{
+	// 				continue;
+	// 			}
+	// 		}
+	//
+	// 		AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
+	// 	}
+	// }
 }
 
 void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
@@ -152,37 +173,4 @@ void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 	}
 	
 	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
-}
-
-float UZodiacSkillAbility::GetCurrentGECostAmount() const
-{
-	return CostData.GetCurrentCostGEAmount(bIsFirstActivation).GetValue();
-}
-
-TArray<TObjectPtr<UZodiacSkillAbilityCost>> UZodiacSkillAbility::GetCurrentAdditionalCosts()
-{
-	return CostData.GetCurrentAdditionalCostData(bIsFirstActivation);
-}
-
-void UZodiacSkillAbility::SendCooldownMessage()
-{
-	FSkillDurationMessage Message;
-	Message.Instigator = CurrentActorInfo->OwnerActor.Get();
-	Message.Cooldown_Duration = GetCooldownDuration();
-	if (UZodiacSkillSlot* SkillSlot = GetSkillSlot())
-	{
-		Message.SlotType = SkillSlot->GetSlotType();	
-	}
-	
-	const FGameplayTag MessageChannel = ZodiacGameplayTags::HUD_Message_SkillDuration;
-	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSubsystem.BroadcastMessage(MessageChannel, Message);
-}
-
-void UZodiacSkillAbility::ChargeUltimate()
-{
-	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ChargeUltimateEffect, GetAbilityLevel());
-	EffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_UltimateGauge, UltimateChargeAmount.GetValueAtLevel(GetAbilityLevel()));
-
-	ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 }

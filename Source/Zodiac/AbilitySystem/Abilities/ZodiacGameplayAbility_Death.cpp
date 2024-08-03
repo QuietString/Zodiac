@@ -20,7 +20,7 @@ UZodiacGameplayAbility_Death::UZodiacGameplayAbility_Death(const FObjectInitiali
 	{
 		// Add the ability trigger tag as default to the CDO.
 		FAbilityTriggerData TriggerData;
-		TriggerData.TriggerTag = ZodiacGameplayTags::GameplayEvent_Death;
+		TriggerData.TriggerTag = ZodiacGameplayTags::Event_Death;
 		TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 		AbilityTriggers.Add(TriggerData);
 	}

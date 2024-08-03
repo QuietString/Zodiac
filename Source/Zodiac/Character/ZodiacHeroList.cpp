@@ -40,6 +40,22 @@ AZodiacHero* FZodiacHeroList::GetHero(const int32 Index) const
 	return nullptr;
 }
 
+TArray<AZodiacHero*> FZodiacHeroList::GetHeroes()
+{
+	TArray<AZodiacHero*> Results;
+	Results.Reserve(Heroes.Num());
+	
+	for (const FZodiacHeroEntry& Entry : Heroes)
+	{
+		if (Entry.Actor)
+		{
+			Results.Add(Entry.Actor);	
+		}
+	}
+	
+	return Results;
+}
+
 void FZodiacHeroList::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
 {
 }

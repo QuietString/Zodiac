@@ -21,19 +21,14 @@ AZodiacPlayerState* AZodiacPlayerController::GetZodiacPlayerState() const
 	return CastChecked<AZodiacPlayerState>(PlayerState);
 }
 
-UZodiacAbilitySystemComponent* AZodiacPlayerController::GetZodiacAbilitySystemComponent() const
+UZodiacAbilitySystemComponent* AZodiacPlayerController::GetHeroAbilitySystemComponent()
 {
-	if (const AZodiacHostCharacter* ZodiacHostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
+	if (AZodiacHostCharacter* ZodiacHostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
 	{
-		return ZodiacHostCharacter->GetZodiacAbilitySystemComponent();
+		return ZodiacHostCharacter->GetHeroAbilitySystemComponent();
 	}
 
 	return nullptr;
-}
-
-void AZodiacPlayerController::AcknowledgePossession(APawn* P)
-{
-	Super::AcknowledgePossession(P);
 }
 
 void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
@@ -42,7 +37,7 @@ void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool
 	{
 		if (IsLocalPlayerController())
 		{
-			if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+			if (UZodiacAbilitySystemComponent* ZodiacASC = GetHeroAbilitySystemComponent())
 			{
 				ZodiacASC->ProcessAbilityInput(DeltaTime, bGamePaused);
 			}
