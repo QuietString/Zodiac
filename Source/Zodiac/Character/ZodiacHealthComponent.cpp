@@ -136,7 +136,7 @@ void UZodiacHealthComponent::HandleHealthChanged(AActor* DamageInstigator, AActo
 {
 	OnHealthChanged.Broadcast(this, OldValue, NewValue, DamageInstigator);
 
-	UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);
+	//UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);
 }
 
 void UZodiacHealthComponent::HandleMaxHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)

@@ -9,6 +9,7 @@
 
 class UCharacterMovementComponent;
 class AZodiacHostCharacter;
+
 /**
  * 
  */
@@ -22,6 +23,9 @@ public:
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayAimingReleaseMontage();
+	
 protected:
 	void UpdateRotationData(float DeltaSeconds, AActor* OwningActor);
 	void UpdateAimingData(AZodiacHostCharacter* HostCharacter);
@@ -29,21 +33,12 @@ protected:
 	AZodiacHostCharacter* GetHostCharacter() const;
 	
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Rotation_Data)
-	FRotator WorldRotation;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Rotation_Data)
-	float YawDeltaSinceLastUpdate;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Aiming_Data)
 	float AimYaw;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Aiming_Data)
 	float AimPitch;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Aiming_Data)
-	float RootYawOffset;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Aiming_Data)
 	FVector2D RootYawOffsetAngleClamp = FVector2D(-120.f, 100.f);
 

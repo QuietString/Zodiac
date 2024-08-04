@@ -71,16 +71,16 @@ protected:
 	virtual void InitializeComponent() override;
 	
 protected:
+	UPROPERTY(Category="Character Movement: Sprinting", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
+	float MaxSprintSpeed;
 
+	UPROPERTY(Category="Character Movement: Aiming", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
+	float MaxWalkSpeedWithAiming;
+	
 	// Cached ground info for the character.  Do not access this directly!  It's only updated when accessed via GetGroundInfo().
 	FZodiacCharacterGroundInfo CachedGroundInfo;
 
 	UPROPERTY(Transient)
 	bool bHasReplicatedAcceleration = false;
 
-	UPROPERTY(Category="Character Movement: Sprinting", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
-	float MaxSprintSpeed;
-
-	UPROPERTY(Category="Character Movement: Aiming", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
-	float MaxWalkSpeedWithAiming;
 };

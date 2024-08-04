@@ -6,7 +6,6 @@
 #include "AbilitySystemComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHostAnimInstance.h"
-#include "Character/ZodiacCharacterMovementComponent.h"
 #include "Character/ZodiacHero.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -43,11 +42,6 @@ void UZodiacHeroAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponen
 
 void UZodiacHeroAnimInstance::UpdateRotationData(float DeltaSeconds, AActor* OwningActor)
 {
-	const FRotator OldWorldRotation = WorldRotation;
-	WorldRotation = OwningActor->GetActorRotation();
-	
-	const FRotator RotationDiff = WorldRotation - OldWorldRotation;
-	YawDeltaSinceLastUpdate = FMath::UnwindDegrees(RotationDiff.Yaw);
 }
 
 void UZodiacHeroAnimInstance::UpdateAimingData(AZodiacHostCharacter* HostCharacter)
@@ -57,15 +51,11 @@ void UZodiacHeroAnimInstance::UpdateAimingData(AZodiacHostCharacter* HostCharact
 		FRotator AimRotation = HostCharacter->GetBaseAimRotation();
 		FRotator RootTransform = HostAnimInstance->RootTransform.Rotator();
 		FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
-		
-		AimPitch = Delta.Pitch;
-		AimYaw = Delta.Yaw;
 
-		if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = HostAnimInstance->ZodiacCharMovComp)
-		{
-			const TEnumAsByte<EZodiacCustomMovementMode> CustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
-			bIsAiming = CustomMovementMode == MOVE_Aiming;
-		}
+		bIsAiming = HostAnimInstance->GetIsAiming();
+
+		AimPitch = bIsAiming ? Delta.Pitch : 0.0f;
+		AimYaw = Delta.Yaw;
 	}
 }
 

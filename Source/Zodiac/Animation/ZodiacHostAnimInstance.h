@@ -16,11 +16,15 @@ class ZODIAC_API UZodiacHostAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 public:
+	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
+	
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 	
-	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
+	void UpdateVelocityData();
+	
+	bool GetIsAiming() const { return bIsAiming; }
 
 protected:
 	UFUNCTION(BlueprintCallable)
@@ -48,8 +52,7 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<AZodiacHostCharacter> HostCharacter;
-	
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
-	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsAiming;
 };

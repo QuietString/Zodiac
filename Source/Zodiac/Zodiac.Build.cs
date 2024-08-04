@@ -66,7 +66,7 @@ public class Zodiac : ModuleRules
 				"UIExtension",
 				"ClientPilot",
 				"AudioModulation",
-				"GameSubtitles"
+				"GameSubtitles",
 			}
 		);
 	}
