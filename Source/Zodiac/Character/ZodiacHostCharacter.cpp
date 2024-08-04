@@ -29,18 +29,146 @@ namespace ZodiacConsoleVariables
 	}
 }
 
+FSharedRepMovement::FSharedRepMovement()
+{
+	RepMovement.LocationQuantizationLevel = EVectorQuantization::RoundTwoDecimals;
+}
+
+bool FSharedRepMovement::FillForCharacter(ACharacter* Character)
+{
+	if (USceneComponent* PawnRootComponent = Character->GetRootComponent())
+	{
+		UCharacterMovementComponent* CharacterMovement = Character->GetCharacterMovement();
+
+		RepMovement.Location = FRepMovement::RebaseOntoZeroOrigin(PawnRootComponent->GetComponentLocation(), Character);
+		RepMovement.Rotation = PawnRootComponent->GetComponentRotation();
+		RepMovement.LinearVelocity = CharacterMovement->Velocity;
+		RepMovementMode = CharacterMovement->PackNetworkMovementMode();
+		bProxyIsJumpForceApplied = Character->bProxyIsJumpForceApplied || (Character->JumpForceTimeRemaining > 0.0f);
+
+		// Timestamp is sent as zero if unused
+		if ((CharacterMovement->NetworkSmoothingMode == ENetworkSmoothingMode::Linear) || CharacterMovement->bNetworkAlwaysReplicateTransformUpdateTimestamp)
+		{
+			RepTimeStamp = CharacterMovement->GetServerLastTransformUpdateTimeStamp();
+		}
+		else
+		{
+			RepTimeStamp = 0.f;
+		}
+
+		return true;
+	}
+	return false;
+}
+
+bool FSharedRepMovement::Equals(const FSharedRepMovement& Other, ACharacter* Character) const
+{
+	if (RepMovement.Location != Other.RepMovement.Location)
+	{
+		return false;
+	}
+
+	if (RepMovement.Rotation != Other.RepMovement.Rotation)
+	{
+		return false;
+	}
+
+	if (RepMovement.LinearVelocity != Other.RepMovement.LinearVelocity)
+	{
+		return false;
+	}
+
+	if (RepMovementMode != Other.RepMovementMode)
+	{
+		return false;
+	}
+
+	if (bProxyIsJumpForceApplied != Other.bProxyIsJumpForceApplied)
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+bool FSharedRepMovement::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOutSuccess)
+{
+	bOutSuccess = true;
+	RepMovement.NetSerialize(Ar, Map, bOutSuccess);
+	Ar << RepMovementMode;
+	Ar << bProxyIsJumpForceApplied;
+
+	// Timestamp, if non-zero.
+	uint8 bHasTimeStamp = (RepTimeStamp != 0.f);
+	Ar.SerializeBits(&bHasTimeStamp, 1);
+	if (bHasTimeStamp)
+	{
+		Ar << RepTimeStamp;
+	}
+	else
+	{
+		RepTimeStamp = 0.f;
+	}
+
+	return true;
+}
+
+/////////////////////////////////////////////////////////////////
+///
 AZodiacHostCharacter::AZodiacHostCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)),
 	HeroList(this)
 {
 	CameraComponent = CreateDefaultSubobject<UZodiacCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
+
+	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
+	ZodiacMoveComp->GravityScale = 1.0f;
+	ZodiacMoveComp->MaxAcceleration = 2400.0f;
+	ZodiacMoveComp->BrakingFrictionFactor = 1.0f;
+	ZodiacMoveComp->BrakingFriction = 6.0f;
+	ZodiacMoveComp->GroundFriction = 8.0f;
+	ZodiacMoveComp->BrakingDecelerationWalking = 1400.0f;
+	ZodiacMoveComp->bUseControllerDesiredRotation = false;
+	ZodiacMoveComp->bOrientRotationToMovement = false;
+	ZodiacMoveComp->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	ZodiacMoveComp->bAllowPhysicsRotationDuringAnimRootMotion = false;
+	ZodiacMoveComp->GetNavAgentPropertiesRef().bCanCrouch = true;
+	ZodiacMoveComp->bCanWalkOffLedgesWhenCrouching = true;
+	ZodiacMoveComp->SetCrouchedHalfHeight(65.0f);
+}
+
+bool AZodiacHostCharacter::UpdateSharedReplication()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		FSharedRepMovement SharedMovement;
+		if (SharedMovement.FillForCharacter(this))
+		{
+			// Only call FastSharedReplication if data has changed since the last frame.
+			// Skipping this call will cause replication to reuse the same bunch that we previously
+			// produced, but not send it to clients that already received. (But a new client who has not received
+			// it, will get it this frame)
+			if (!SharedMovement.Equals(LastSharedReplication, this))
+			{
+				LastSharedReplication = SharedMovement;
+				ReplicatedMovementMode = SharedMovement.RepMovementMode;
+
+				FastSharedReplication(SharedMovement);
+			}
+			return true;
+		}
+	}
+
+	// We cannot fastrep right now. Don't send anything.
+	return false;
 }
 
 void AZodiacHostCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedAcceleration, COND_SimulatedOnly);
 	DOREPLIFETIME(ThisClass, HeroList);
 	DOREPLIFETIME(ThisClass, ActiveHeroIndex);
 }
@@ -88,6 +216,57 @@ void AZodiacHostCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	ChangeHero(0);
+}
+
+void AZodiacHostCharacter::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)
+{
+	Super::PreReplication(ChangedPropertyTracker);
+
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		// Compress Acceleration: XY components as direction + magnitude, Z component as direct value
+		const double MaxAccel = MovementComponent->MaxAcceleration;
+		const FVector CurrentAccel = MovementComponent->GetCurrentAcceleration();
+		double AccelXYRadians, AccelXYMagnitude;
+		FMath::CartesianToPolar(CurrentAccel.X, CurrentAccel.Y, AccelXYMagnitude, AccelXYRadians);
+
+		ReplicatedAcceleration.AccelXYRadians   = FMath::FloorToInt((AccelXYRadians / TWO_PI) * 255.0);     // [0, 2PI] -> [0, 255]
+		ReplicatedAcceleration.AccelXYMagnitude = FMath::FloorToInt((AccelXYMagnitude / MaxAccel) * 255.0);	// [0, MaxAccel] -> [0, 255]
+		ReplicatedAcceleration.AccelZ           = FMath::FloorToInt((CurrentAccel.Z / MaxAccel) * 127.0);   // [-MaxAccel, MaxAccel] -> [-127, 127]
+	}
+}
+
+void AZodiacHostCharacter::FastSharedReplication_Implementation(const FSharedRepMovement& SharedRepMovement)
+{
+	if (GetWorld()->IsPlayingReplay())
+	{
+		return;
+	}
+
+	// Timestamp is checked to reject old moves.
+	if (GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		// Timestamp
+		ReplicatedServerLastTransformUpdateTimeStamp = SharedRepMovement.RepTimeStamp;
+
+		// Movement mode
+		if (ReplicatedMovementMode != SharedRepMovement.RepMovementMode)
+		{
+			ReplicatedMovementMode = SharedRepMovement.RepMovementMode;
+			GetCharacterMovement()->bNetworkMovementModeChanged = true;
+			GetCharacterMovement()->bNetworkUpdateReceived = true;
+		}
+
+		// Location, Rotation, Velocity, etc.
+		FRepMovement& MutableRepMovement = GetReplicatedMovement_Mutable();
+		MutableRepMovement = SharedRepMovement.RepMovement;
+
+		// This also sets LastRepMovement
+		OnRep_ReplicatedMovement();
+
+		// Jump force
+		bProxyIsJumpForceApplied = SharedRepMovement.bProxyIsJumpForceApplied;
+	}
 }
 
 void AZodiacHostCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -206,6 +385,18 @@ void AZodiacHostCharacter::OnAimingTagChanged(FGameplayTag Tag, int Count)
 		else
 		{
 			ZodiacMoveComp->SetMovementMode(MOVE_Walking, MOVE_None);
+			OnAimingReleased();		
+		}
+	}
+}
+
+void AZodiacHostCharacter::OnAimingReleased()
+{
+	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
+	{
+		if (UZodiacHeroAnimInstance* HeroAnimInstance = Cast<UZodiacHeroAnimInstance>(Hero->GetMesh()->GetAnimInstance()))
+		{
+			HeroAnimInstance->PlayAimingReleaseMontage();
 		}
 	}
 }
@@ -363,6 +554,23 @@ TSubclassOf<UZodiacCameraMode> AZodiacHostCharacter::DetermineCameraMode()
 	}
 
 	return DefaultAbilityCameraMode;
+}
+
+void AZodiacHostCharacter::OnRep_ReplicatedAcceleration()
+{
+	if (UZodiacCharacterMovementComponent* ZodiacMovementComponent = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		// Decompress Acceleration
+		const double MaxAccel         = ZodiacMovementComponent->MaxAcceleration;
+		const double AccelXYMagnitude = double(ReplicatedAcceleration.AccelXYMagnitude) * MaxAccel / 255.0; // [0, 255] -> [0, MaxAccel]
+		const double AccelXYRadians   = double(ReplicatedAcceleration.AccelXYRadians) * TWO_PI / 255.0;     // [0, 255] -> [0, 2PI]
+
+		FVector UnpackedAcceleration(FVector::ZeroVector);
+		FMath::PolarToCartesian(AccelXYMagnitude, AccelXYRadians, UnpackedAcceleration.X, UnpackedAcceleration.Y);
+		UnpackedAcceleration.Z = double(ReplicatedAcceleration.AccelZ) * MaxAccel / 127.0; // [-127, 127] -> [-MaxAccel, MaxAccel]
+
+		ZodiacMovementComponent->SetReplicatedAcceleration(UnpackedAcceleration);
+	}
 }
 
 void AZodiacHostCharacter::OnRep_ActiveHeroIndex(int32 OldIndex)

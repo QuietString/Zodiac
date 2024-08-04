@@ -22,6 +22,9 @@ public:
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayAimingReleaseMontage();
+	
 protected:
 	void UpdateRotationData(float DeltaSeconds, AActor* OwningActor);
 	void UpdateAimingData(AZodiacHostCharacter* HostCharacter);
