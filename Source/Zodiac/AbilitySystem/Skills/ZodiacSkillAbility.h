@@ -35,14 +35,35 @@ public:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
+	FVector GetFXSourceLocation() const;
+	
 protected:
+	void ApplyAimingEffect();
+
+	// Activate next part of this ability
+	UFUNCTION(BlueprintCallable)
+	void AdvanceComboIndex();
+
+	UFUNCTION(BlueprintCallable)
+	void ResetCombo() { ComboIndex = 0; }
+	
+protected:
+	// Apply MOVE_Aiming movement mode when it's activated
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
+	bool bAimWhenActivated;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
+	TSubclassOf<UGameplayEffect> AimingEffect;
+	
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Cooldowns")
 	FScalableFloat CooldownDuration;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "FX")
+	TArray<FName> ComboSockets;
 	
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "FX")
 	uint8 ComboIndex = 0;
 
-	
 private:
 	bool bIsFirstActivation = false;
 	

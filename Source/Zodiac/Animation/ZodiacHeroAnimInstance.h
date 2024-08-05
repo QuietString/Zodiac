@@ -7,6 +7,7 @@
 #include "Animation/AnimInstance.h"
 #include "ZodiacHeroAnimInstance.generated.h"
 
+class UZodiacHostAnimInstance;
 class UCharacterMovementComponent;
 class AZodiacHostCharacter;
 
@@ -23,15 +24,19 @@ public:
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
 
+	UFUNCTION(BlueprintCallable)
+	AZodiacHostCharacter* GetHostCharacter() const;
+
+	UFUNCTION(BlueprintCallable)
+	UZodiacHostAnimInstance* GetHostAnimInstance() const;
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayAimingReleaseMontage();
 	
 protected:
 	void UpdateRotationData(float DeltaSeconds, AActor* OwningActor);
-	void UpdateAimingData(AZodiacHostCharacter* HostCharacter);
-	
-	AZodiacHostCharacter* GetHostCharacter() const;
-	
+	void UpdateAimingData(float DeltaSeconds);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Aiming_Data)
 	float AimYaw;
@@ -42,10 +47,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Aiming_Data)
 	FVector2D RootYawOffsetAngleClamp = FVector2D(-120.f, 100.f);
 
-protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
 	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsAiming;
+	bool bIsAiming = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bIsGunsHidden = true;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsHostMoving;
+
+private:
+	UPROPERTY()
+	TObjectPtr<AZodiacHostCharacter> HostCharacter;
+	
+	UPROPERTY()
+	TObjectPtr<UZodiacHostAnimInstance> HostAnimInstance;
 };

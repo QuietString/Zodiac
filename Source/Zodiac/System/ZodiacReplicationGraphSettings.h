@@ -23,7 +23,7 @@ public:
 	UPROPERTY(config, EditAnywhere, Category = ReplicationGraph)
 	bool bDisableReplicationGraph = true;
 
-	UPROPERTY(config, EditAnywhere, Category = ReplicationGraph, meta = (MetaClass = "/Script/ZodiacGame.ZodiacReplicationGraph"))
+	UPROPERTY(config, EditAnywhere, Category = ReplicationGraph, meta = (MetaClass = "/Script/Zodiac.ZodiacReplicationGraph"))
 	FSoftClassPath DefaultReplicationGraphClass;
 
 	UPROPERTY(EditAnywhere, Category = FastSharedPath, meta = (ConsoleVariable = "Zodiac.RepGraph.EnableFastSharedPath"))

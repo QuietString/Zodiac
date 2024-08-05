@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility_Sprint.h"
 #include "Animation/AnimInstance.h"
+#include "Character/ZodiacCharacterMovementComponent.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "ZodiacHostAnimInstance.generated.h"
 

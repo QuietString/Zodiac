@@ -66,6 +66,11 @@ void UZodiacSkillAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
                                           const FGameplayEventData* TriggerEventData)
 {
 	bIsFirstActivation = true;
+
+	if (AimingEffect && bAimWhenActivated)
+	{
+		ApplyAimingEffect();
+	}
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
@@ -173,4 +178,35 @@ void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 	}
 	
 	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+}
+
+FVector UZodiacSkillAbility::GetFXSourceLocation() const
+{
+	if (USkeletalMeshComponent* MeshComponent =  GetOwningComponentFromActorInfo())
+	{
+		if (ComboSockets.IsValidIndex(ComboIndex))
+		{
+			return MeshComponent->GetSocketLocation(ComboSockets[ComboIndex]);	
+		}
+	}
+
+	return  FVector();
+}
+
+void UZodiacSkillAbility::ApplyAimingEffect()
+{
+	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
+	{
+		FGameplayEffectContextHandle ContextHandle = HostASC->MakeEffectContext();
+		FGameplayEffectSpecHandle SpecHandle = HostASC->MakeOutgoingSpec(AimingEffect, 1.0f, ContextHandle);
+		HostASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	}
+}
+
+void UZodiacSkillAbility::AdvanceComboIndex()
+{
+	if (++ComboIndex >= ComboSockets.Num())
+	{
+		ComboIndex = 0;
+	}
 }

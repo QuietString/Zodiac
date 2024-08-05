@@ -8,6 +8,7 @@
 #include "AIController.h"
 #include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Character/ZodiacHero.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Physics/ZodiacCollisionChannels.h"
 
@@ -49,6 +50,7 @@ void UZodiacSkillAbility_Traced::ActivateAbility(const FGameplayAbilitySpecHandl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	
 	// Bind target data callback
 	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
 	OnTargetDataReadyCallbackDelegateHandle = MyASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).AddUObject(this, &ThisClass::OnTargetDataReadyCallback);
@@ -154,12 +156,13 @@ void UZodiacSkillAbility_Traced::OnTargetDataReadyCallback(const FGameplayAbilit
 
 void UZodiacSkillAbility_Traced::PerformLocalTargeting(TArray<FHitResult>& OutHits)
 {
-	AZodiacHostCharacter* AvatarActor = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHero* HeroActor = Cast<AZodiacHero>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
 	
 	FRangedSkillTraceData TraceData;
-	TraceData.bCanPlayBulletFX = (AvatarActor->GetNetMode() != NM_DedicatedServer);
+	TraceData.bCanPlayBulletFX = (HeroActor->GetNetMode() != NM_DedicatedServer);
 
-	const FTransform TargetTransform = GetTargetingTransform(AvatarActor, TargetingSourceRule);
+	const FTransform TargetTransform = GetTargetingTransform(HostCharacter, HeroActor, AimTraceRule);
 	TraceData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
 	TraceData.StartTrace = TargetTransform.GetTranslation();
 	const FVector EndTrace = TraceData.StartTrace + TraceData.AimDir * 100000.f;
@@ -167,7 +170,7 @@ void UZodiacSkillAbility_Traced::PerformLocalTargeting(TArray<FHitResult>& OutHi
 	FHitResult HitResult;
 	FCollisionQueryParams Params;
 	Params.bReturnPhysicalMaterial = true;
-	Params.AddIgnoredActor(AvatarActor);
+	Params.AddIgnoredActor(HeroActor);
 	Params.bTraceComplex = true;
 
 	const ECollisionChannel TraceChannel = ZODIAC_TRACE_CHANNEL_WEAPON;
@@ -202,40 +205,36 @@ void UZodiacSkillAbility_Traced::PerformLocalTargeting(TArray<FHitResult>& OutHi
 
 FVector UZodiacSkillAbility_Traced::GetTargetingSourceLocation() const
 {
-	AZodiacHostCharacter* ZodiacCharacter = GetZodiacHostCharacterFromActorInfo();
-	check(ZodiacCharacter);
-
-	// @TODO: Socket
-	//FName Socket = ComboSockets.IsValidIndex(ComboIndex) ? ComboSockets[ComboIndex] : FName();
-	FName Socket = FName();
-	return ZodiacCharacter->GetMesh()->GetSocketLocation(Socket);
+	return GetFXSourceLocation();
 }
 
 FTransform UZodiacSkillAbility_Traced::GetTargetingTransform() const
 {
-	AZodiacHostCharacter* AvatarActor = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->AvatarActor);
-
-	return GetTargetingTransform(AvatarActor, TargetingSourceRule);
+	AZodiacHero* HeroActor = Cast<AZodiacHero>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
+	
+	return GetTargetingTransform(HostCharacter, HeroActor, AimTraceRule);
 }
 
 FTransform UZodiacSkillAbility_Traced::GetFXTargetingTransform() const
 {
-	AZodiacHostCharacter* AvatarActor = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->AvatarActor);
-
-	return GetTargetingTransform(AvatarActor, EZodiacAbilityTargetingRule::WeaponTowardsFocus);
+	AZodiacHero* HeroActor = Cast<AZodiacHero>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
+	
+	return GetTargetingTransform(HostCharacter, HeroActor, EZodiacAbilityAimTraceRule::WeaponTowardsFocus);
 }
 
-FTransform UZodiacSkillAbility_Traced::GetTargetingTransform(APawn* SourcePawn, EZodiacAbilityTargetingRule Source) const
+FTransform UZodiacSkillAbility_Traced::GetTargetingTransform(APawn* OwningPawn, AActor* SourceActor, EZodiacAbilityAimTraceRule Source) const
 {
-	check(SourcePawn);
-	AController* SourcePawnController = SourcePawn->GetController(); 
+	check(OwningPawn);
+	check(SourceActor);
 	
 	// The caller should determine the transform without calling this if the mode is custom!
-	check(Source != EZodiacAbilityTargetingRule::Custom);
+	check(Source != EZodiacAbilityAimTraceRule::Custom);
 	
-	const FVector ActorLoc = SourcePawn->GetActorLocation();
-	FQuat AimQuat = SourcePawn->GetActorQuat();
-	AController* Controller = SourcePawn->Controller;
+	const FVector ActorLoc = SourceActor->GetActorLocation();
+	FQuat AimQuat = SourceActor->GetActorQuat();
+	AController* Controller = OwningPawn->Controller;
 	FVector SourceLoc;
 
 	double FocalDistance = 1024.0f;
@@ -245,7 +244,7 @@ FTransform UZodiacSkillAbility_Traced::GetTargetingTransform(APawn* SourcePawn, 
 	FRotator CamRot;
 	bool bFoundFocus = false;
 	
-	if (Controller && ((Source == EZodiacAbilityTargetingRule::CameraTowardsFocus) || (Source == EZodiacAbilityTargetingRule::PawnTowardsFocus) || (Source == EZodiacAbilityTargetingRule::WeaponTowardsFocus)))
+	if (Controller && ((Source == EZodiacAbilityAimTraceRule::CameraTowardsFocus) || (Source == EZodiacAbilityAimTraceRule::PawnTowardsFocus) || (Source == EZodiacAbilityAimTraceRule::WeaponTowardsFocus)))
 	{
 		// Get camera position for later
 		bFoundFocus = true;
@@ -277,19 +276,19 @@ FTransform UZodiacSkillAbility_Traced::GetTargetingTransform(APawn* SourcePawn, 
 		//Move the start to be the HeadPosition of the AI
 		else if (AAIController* AIController = Cast<AAIController>(Controller))
 		{
-			CamLoc = SourcePawn->GetActorLocation() + FVector(0, 0, SourcePawn->BaseEyeHeight);
+			CamLoc = SourceActor->GetActorLocation() + FVector(0, 0, OwningPawn->BaseEyeHeight);
 		}
 
-		if (Source == EZodiacAbilityTargetingRule::CameraTowardsFocus)
+		if (Source == EZodiacAbilityAimTraceRule::CameraTowardsFocus)
 		{
 			// If we're camera -> focus then we're done
 			return FTransform(CamRot, CamLoc);
 		}
 	}
 
-	if ((Source == EZodiacAbilityTargetingRule::WeaponForward) || (Source == EZodiacAbilityTargetingRule::WeaponTowardsFocus))
+	if ((Source == EZodiacAbilityAimTraceRule::WeaponForward) || (Source == EZodiacAbilityAimTraceRule::WeaponTowardsFocus))
 	{
-		SourceLoc = GetTargetingSourceLocation();
+		SourceLoc = GetFXSourceLocation();
 	}
 	else
 	{
@@ -297,7 +296,7 @@ FTransform UZodiacSkillAbility_Traced::GetTargetingTransform(APawn* SourcePawn, 
 		SourceLoc = ActorLoc;
 	}
 
-	if (bFoundFocus && ((Source == EZodiacAbilityTargetingRule::PawnTowardsFocus) || (Source == EZodiacAbilityTargetingRule::WeaponTowardsFocus)))
+	if (bFoundFocus && ((Source == EZodiacAbilityAimTraceRule::PawnTowardsFocus) || (Source == EZodiacAbilityAimTraceRule::WeaponTowardsFocus)))
 	{
 		// Return a rotator pointing at the focal point from the source
 		return FTransform((FocalLoc - SourceLoc).Rotation(), SourceLoc);

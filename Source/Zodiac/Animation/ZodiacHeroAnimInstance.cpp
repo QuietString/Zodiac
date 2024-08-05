@@ -22,15 +22,37 @@ void UZodiacHeroAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
 
 	AActor* OwningActor = GetOwningActor();
-	AZodiacHostCharacter* HostCharacter = GetHostCharacter();
+	HostCharacter = GetHostCharacter();
+	HostAnimInstance = GetHostAnimInstance();
 	
 	if (!HostCharacter)
 	{
 		return;
 	}
-	
-	UpdateRotationData(DeltaSeconds, OwningActor);
-	UpdateAimingData(HostCharacter);
+
+	//UpdateHostData(HostCharacter);
+	//UpdateRotationData(DeltaSeconds, OwningActor);
+	UpdateAimingData(DeltaSeconds);
+}
+
+AZodiacHostCharacter* UZodiacHeroAnimInstance::GetHostCharacter() const
+{
+	if (AZodiacHero* Hero = Cast<AZodiacHero>(GetOwningActor()))
+	{
+		return Hero->GetHostCharacter();
+	}
+
+	return nullptr;
+}
+
+UZodiacHostAnimInstance* UZodiacHeroAnimInstance::GetHostAnimInstance() const
+{
+	if (HostCharacter)
+	{
+		return  Cast<UZodiacHostAnimInstance>(HostCharacter->GetMesh()->GetAnimInstance());
+	}
+
+	return nullptr;
 }
 
 void UZodiacHeroAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* InASC)
@@ -42,29 +64,25 @@ void UZodiacHeroAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponen
 
 void UZodiacHeroAnimInstance::UpdateRotationData(float DeltaSeconds, AActor* OwningActor)
 {
+	
 }
 
-void UZodiacHeroAnimInstance::UpdateAimingData(AZodiacHostCharacter* HostCharacter)
+void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 {
-	if (UZodiacHostAnimInstance* HostAnimInstance = Cast<UZodiacHostAnimInstance>(HostCharacter->GetMesh()->GetAnimInstance()))
+	if (HostAnimInstance)
 	{
 		FRotator AimRotation = HostCharacter->GetBaseAimRotation();
 		FRotator RootTransform = HostAnimInstance->RootTransform.Rotator();
 		FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
 
 		bIsAiming = HostAnimInstance->GetIsAiming();
+		if (bIsGunsHidden && bIsAiming)
+		{
+			// set true from an animation blueprint
+			bIsGunsHidden = false;
+		}
 
-		AimPitch = bIsAiming ? Delta.Pitch : 0.0f;
+		AimPitch = (bIsGunsHidden && !bIsAiming) ? FMath::Lerp(AimPitch, 0.0f, DeltaSeconds * 5.0f) : Delta.Pitch;
 		AimYaw = Delta.Yaw;
 	}
-}
-
-AZodiacHostCharacter* UZodiacHeroAnimInstance::GetHostCharacter() const
-{
-	if (AZodiacHero* Hero = Cast<AZodiacHero>(GetOwningActor()))
-	{
-		return Hero->GetHostCharacter();
-	}
-
-	return nullptr;
 }

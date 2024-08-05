@@ -8,7 +8,7 @@
 
 /** Defines where an ability starts its trace from and where it should face */
 UENUM(BlueprintType)
-enum class EZodiacAbilityTargetingRule : uint8
+enum class EZodiacAbilityAimTraceRule : uint8
 {
 	// From the player's camera towards camera focus
 	CameraTowardsFocus,
@@ -76,10 +76,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	FTransform GetFXTargetingTransform() const;
 	
-	FTransform GetTargetingTransform(APawn* SourcePawn, EZodiacAbilityTargetingRule Source) const;
+	FTransform GetTargetingTransform(APawn* OwningPawn, AActor* SourceActor, EZodiacAbilityAimTraceRule Source) const;
 
 protected:
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Skill")
 	float RateOfFire;
 
@@ -87,7 +86,7 @@ protected:
 	float FireInterval;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Skill")
-	EZodiacAbilityTargetingRule TargetingSourceRule;
+	EZodiacAbilityAimTraceRule AimTraceRule;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
 	TSubclassOf<UGameplayEffect> DamageEffect;
