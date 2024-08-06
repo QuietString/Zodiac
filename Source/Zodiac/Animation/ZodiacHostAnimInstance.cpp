@@ -38,8 +38,9 @@ void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 {
 	if (ZodiacCharMovComp)
 	{
-		TEnumAsByte CustomMovementMode = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
-		bIsAiming = (CustomMovementMode == MOVE_Aiming);
+		CustomMovement_Last = CustomMovement;
+		CustomMovement = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
+		bIsAimingMovement = (CustomMovement == MOVE_Aiming);
 	}
 }
 

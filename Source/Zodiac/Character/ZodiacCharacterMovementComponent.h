@@ -12,10 +12,11 @@ struct FFrame;
 
 ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gameplay_MovementStopped);
 
-UENUM()
+UENUM(BlueprintType)
 enum EZodiacCustomMovementMode
 {
-	MOVE_Aiming = 1,
+	MOVE_Standard = 0, // not using custom movement
+	MOVE_Aiming,
 	MOVE_Sprinting,
 };
 

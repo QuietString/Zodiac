@@ -23,21 +23,32 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
-
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	UFUNCTION(BlueprintCallable)
 	AZodiacHostCharacter* GetHostCharacter() const;
 
 	UFUNCTION(BlueprintCallable)
 	UZodiacHostAnimInstance* GetHostAnimInstance() const;
+
+	void OnAimingChanged(bool bHasActivated);
+	void OnIsPistolReadyChanged(bool InIsReady);
 	
 	UFUNCTION(BlueprintImplementableEvent)
-	void PlayAimingReleaseMontage();
+	void PlayHideOrRevealGunsMontage(bool bReveal);
 	
 protected:
 	void UpdateRotationData(float DeltaSeconds, AActor* OwningActor);
 	void UpdateAimingData(float DeltaSeconds);
-
+	void UpdateBlendData(float DeltaSeconds);
+	
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blends")
+	float PistolScale;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blends")
+	float PistolBlendAlpha;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Aiming_Data)
 	float AimYaw;
 
@@ -53,12 +64,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsAiming = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
 	bool bIsGunsHidden = true;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsHostMoving;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsPistolReady = false;
+	
 private:
 	UPROPERTY()
 	TObjectPtr<AZodiacHostCharacter> HostCharacter;

@@ -25,7 +25,7 @@ public:
 	
 	void UpdateVelocityData();
 	
-	bool GetIsAiming() const { return bIsAiming; }
+	bool GetIsAiming() const { return bIsAimingMovement; }
 
 protected:
 	UFUNCTION(BlueprintCallable)
@@ -38,6 +38,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FTransform RootTransform;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement_Last;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float AimYaw;
 
@@ -53,7 +59,7 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<AZodiacHostCharacter> HostCharacter;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsAiming;
+	bool bIsAimingMovement;
 };

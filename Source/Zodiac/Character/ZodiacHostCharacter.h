@@ -126,9 +126,8 @@ protected:
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
-
+	
 	void OnAimingTagChanged(FGameplayTag Tag, int Count);
-	void OnAimingReleased();
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 	void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled);
 	

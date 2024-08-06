@@ -38,11 +38,13 @@ public:
 	
 	void Activate();
 	void Deactivate();
-	
+
 protected:
 	void Initialize();
 	
 	void InitializeAbilitySystem();
+
+	void OnMovementTagChanged(FGameplayTag Tag, int Count);
 
 	void AttachToOwner();
 
@@ -68,6 +70,9 @@ protected:
 	float CapsuleRadius;
 	
 private:
+	UPROPERTY()
+	TObjectPtr<AZodiacHostCharacter> HostCharacter;
+	
 	// Initial use only for initialization on a client.
 	UPROPERTY(ReplicatedUsing=OnRep_bIsActive)
 	bool bIsActive = false;

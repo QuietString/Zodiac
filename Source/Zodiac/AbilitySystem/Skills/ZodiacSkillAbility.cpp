@@ -9,6 +9,8 @@
 #include "AbilitySystem/Abilities/ZodiacSkillAbilityCost.h"
 #include "Character/ZodiacHostCharacter.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSkillAbility)
+
 UAbilitySystemComponent* UZodiacSkillAbility::GetHostAbilitySystemComponent() const
 {
 	if (CurrentActorInfo)
@@ -199,7 +201,7 @@ void UZodiacSkillAbility::ApplyAimingEffect()
 	{
 		FGameplayEffectContextHandle ContextHandle = HostASC->MakeEffectContext();
 		FGameplayEffectSpecHandle SpecHandle = HostASC->MakeOutgoingSpec(AimingEffect, 1.0f, ContextHandle);
-		HostASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		FActiveGameplayEffectHandle ActiveGameplayEffect = HostASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	}
 }
 

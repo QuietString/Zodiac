@@ -54,11 +54,6 @@ void AZodiacHero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 void AZodiacHero::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
-	if (AZodiacHostCharacter* HostCharacter = GetHostCharacter())
-	{
-		HostCharacter->CallOrRegister_OnAbilitySystemInitialized(FOnHostAbilitySystemComponentLoaded::FDelegate::CreateUObject(this, &ThisClass::OnHostAbilitySystemComponentInitialized));
-	}
 	
 	if (HasAuthority())
 	{
@@ -88,7 +83,7 @@ TObjectPtr<UZodiacAbilitySystemComponent> AZodiacHero::GetZodiacAbilitySystemCom
 
 AZodiacHostCharacter* AZodiacHero::GetHostCharacter() const
 {
-	return Cast<AZodiacHostCharacter>(Owner);
+	return HostCharacter;
 }
 
 void AZodiacHero::InitializeAbilitySystem()
@@ -96,7 +91,9 @@ void AZodiacHero::InitializeAbilitySystem()
 	check(AbilitySystemComponent);
 
 	AbilitySystemComponent->InitAbilityActorInfo(Owner, this);
-	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_Custom_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
+
 	if (HeroData && HasAuthority())
 	{
 		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
@@ -106,6 +103,33 @@ void AZodiacHero::InitializeAbilitySystem()
 	}
 	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+}
+
+void AZodiacHero::OnMovementTagChanged(FGameplayTag Tag, int Count)
+{
+	check(HostCharacter);
+	
+	if (UAbilitySystemComponent* HostASC = HostCharacter->GetAbilitySystemComponent())
+	{
+		if (Count > 0)
+		{
+			HostASC->SetLooseGameplayTagCount(Tag, 1);
+		}
+		else
+		{
+			HostASC->SetLooseGameplayTagCount(Tag, 0);
+		}
+
+		UZodiacHeroAnimInstance* HeroAnimInstance = CastChecked<UZodiacHeroAnimInstance>(Mesh->GetAnimInstance());
+		if (Tag == ZodiacGameplayTags::Movement_Mode_Custom_Aiming)
+		{
+			(Count > 0) ? HeroAnimInstance->OnAimingChanged(true) : HeroAnimInstance->OnAimingChanged(false); 
+		}
+		else if (Tag == ZodiacGameplayTags::Status_WeaponReady)
+		{
+			(Count > 0) ? HeroAnimInstance->OnIsPistolReadyChanged(true) : HeroAnimInstance->OnIsPistolReadyChanged(false);
+		}
+	}
 }
 
 UZodiacHealthComponent* AZodiacHero::GetHealthComponent() const
@@ -124,6 +148,9 @@ void AZodiacHero::Activate()
 		}
 	}
  	bIsActive =  true;
+
+	// @TODO: change tick option for optimization.
+	//Mesh->VisibilityBasedAnimTickOption = 
 }
 
 void AZodiacHero::Deactivate()
@@ -134,8 +161,11 @@ void AZodiacHero::Deactivate()
 
 void AZodiacHero::Initialize()
 {
-	if (Owner)
+	HostCharacter = Cast<AZodiacHostCharacter>(Owner);
+	if (HostCharacter)
 	{
+		HostCharacter->CallOrRegister_OnAbilitySystemInitialized(FOnHostAbilitySystemComponentLoaded::FDelegate::CreateUObject(this, &ThisClass::OnHostAbilitySystemComponentInitialized));
+		
 		AttachToOwner();
 		InitializeAbilitySystem();
 	}

@@ -59,7 +59,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_UnlimitedHealth, "Cheat.UnlimitedHealth", "UnlimitedHealth cheat is active on the owner.");
 
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Attacking , "Status.Movement.Attacking");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status__MovementCrouching, "Status.Movement.Crouching", "Target is crouching.");
+	UE_DEFINE_GAMEPLAY_TAG(Status_WeaponReady , "Status.WeaponReady");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status__MovementAutoRunning, "Status.Movement.AutoRunning", "Target is auto-running.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death, "Status.Death", "Target has the death status.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dying, "Status.Death.Dying", "Target has begun the death process.");
@@ -111,7 +111,7 @@ namespace ZodiacGameplayTags
 	// Custom Movement Modes
 	const TMap<uint8, FGameplayTag> CustomMovementModeTagMap =
 	{
-		{MOVE_None, Movement_Mode_None},
+		{MOVE_Standard, Movement_Mode_None},
 		{MOVE_Aiming, Movement_Mode_Custom_Aiming},
 		{MOVE_Sprinting, Movement_Mode_Custom_Sprinting},
 	};

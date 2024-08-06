@@ -49,7 +49,6 @@ void UZodiacSkillAbility_Traced::ActivateAbility(const FGameplayAbilitySpecHandl
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
 	
 	// Bind target data callback
 	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
@@ -59,8 +58,6 @@ void UZodiacSkillAbility_Traced::ActivateAbility(const FGameplayAbilitySpecHandl
 void UZodiacSkillAbility_Traced::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
 	if (IsEndAbilityValid(Handle, ActorInfo))
 	{
 		UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();

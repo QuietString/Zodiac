@@ -21,7 +21,7 @@ public:
 public:
 
 	UPROPERTY(config, EditAnywhere, Category = ReplicationGraph)
-	bool bDisableReplicationGraph = true;
+	bool bDisableReplicationGraph = false;
 
 	UPROPERTY(config, EditAnywhere, Category = ReplicationGraph, meta = (MetaClass = "/Script/Zodiac.ZodiacReplicationGraph"))
 	FSoftClassPath DefaultReplicationGraphClass;

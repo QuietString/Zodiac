@@ -385,18 +385,6 @@ void AZodiacHostCharacter::OnAimingTagChanged(FGameplayTag Tag, int Count)
 		else
 		{
 			ZodiacMoveComp->SetMovementMode(MOVE_Walking, MOVE_None);
-			OnAimingReleased();		
-		}
-	}
-}
-
-void AZodiacHostCharacter::OnAimingReleased()
-{
-	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
-	{
-		if (UZodiacHeroAnimInstance* HeroAnimInstance = Cast<UZodiacHeroAnimInstance>(Hero->GetMesh()->GetAnimInstance()))
-		{
-			HeroAnimInstance->PlayAimingReleaseMontage();
 		}
 	}
 }

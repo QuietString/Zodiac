@@ -424,9 +424,10 @@ void UZodiacAbilitySystemComponent::NotifyAbilityEnded(FGameplayAbilitySpecHandl
 {
 	Super::NotifyAbilityEnded(Handle, Ability, bWasCancelled);
 
-	UZodiacGameplayAbility* ZodiacAbility = CastChecked<UZodiacGameplayAbility>(Ability);
-
-	RemoveAbilityFromActivationGroup(ZodiacAbility->GetActivationGroup(), ZodiacAbility);
+	if (UZodiacGameplayAbility* ZodiacAbility = Cast<UZodiacGameplayAbility>(Ability))
+	{
+		RemoveAbilityFromActivationGroup(ZodiacAbility->GetActivationGroup(), ZodiacAbility);	
+	}
 }
 
 void UZodiacAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Ability,

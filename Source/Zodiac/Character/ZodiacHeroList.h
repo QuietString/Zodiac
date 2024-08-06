@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Net/Serialization/FastArraySerializer.h"
 #include "ZodiacHeroList.generated.h"
 
@@ -50,7 +51,7 @@ public:
 
 	AZodiacHero* GetHero(const int32 Index) const;
 	TArray<AZodiacHero*> GetHeroes();
-	
+
 public:
 	//~FFastArraySerializer contract
 	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);
