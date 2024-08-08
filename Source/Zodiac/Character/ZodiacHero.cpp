@@ -3,7 +3,6 @@
 #include "ZodiacHero.h"
 
 #include "AbilitySystemComponent.h"
-#include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
@@ -91,7 +90,7 @@ void AZodiacHero::InitializeAbilitySystem()
 	check(AbilitySystemComponent);
 
 	AbilitySystemComponent->InitAbilityActorInfo(Owner, this);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_Custom_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_Walking_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
 
 	if (HeroData && HasAuthority())
@@ -121,7 +120,7 @@ void AZodiacHero::OnMovementTagChanged(FGameplayTag Tag, int Count)
 		}
 
 		UZodiacHeroAnimInstance* HeroAnimInstance = CastChecked<UZodiacHeroAnimInstance>(Mesh->GetAnimInstance());
-		if (Tag == ZodiacGameplayTags::Movement_Mode_Custom_Aiming)
+		if (Tag == ZodiacGameplayTags::Movement_Mode_Walking_Aiming)
 		{
 			(Count > 0) ? HeroAnimInstance->OnAimingChanged(true) : HeroAnimInstance->OnAimingChanged(false); 
 		}

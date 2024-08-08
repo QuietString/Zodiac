@@ -5,6 +5,7 @@
 #include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
 #include "Character/ZodiacHostCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility_Jump)
 
@@ -24,16 +25,39 @@ void UZodiacGameplayAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHand
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	CharacterJumpStart();
+	if (AZodiacHostCharacter* HostCharacter = GetZodiacHostCharacterFromActorInfo())
+	{
+		if (UCharacterMovementComponent* CharMovComp = HostCharacter->GetCharacterMovement())
+		{
+			if (!HostCharacter->GetDoingTraversalAction() && CharMovComp->IsMovingOnGround())
+			{
+				float ForwardTraceDistance = HostCharacter->GetTraversalForwardTraceDistance();
+				bool bCheckFailed;
+				bool bMontageSelectionFailed;
 
-	UAbilityTask_StartAbilityState* JumpAbilityState = UAbilityTask_StartAbilityState::StartAbilityState(this, TEXT("Jumping"), true);
-	//JumpAbilityState->OnStateEnded.AddDynamic(this, &ThisClass::UZodiacGameplayAbility_Jump::CharacterJumpStop);
-	//JumpAbilityState->OnStateInterrupted.AddDynamic(this, &ThisClass::UZodiacGameplayAbility_Jump::CharacterJumpStop);
-	JumpAbilityState->Activate();
+				HostCharacter->TryTraversalAction(ForwardTraceDistance, bCheckFailed, bMontageSelectionFailed);
+				if (bCheckFailed)
+				{
+					CharacterJumpStart();
+					bHasJumped = true;
+					
+					UAbilityTask_StartAbilityState* JumpAbilityState = UAbilityTask_StartAbilityState::StartAbilityState(this, TEXT("Jumping"), true);
+					//JumpAbilityState->OnStateEnded.AddDynamic(this, &ThisClass::UZodiacGameplayAbility_Jump::CharacterJumpStop);
+					//JumpAbilityState->OnStateInterrupted.AddDynamic(this, &ThisClass::UZodiacGameplayAbility_Jump::CharacterJumpStop);
+					JumpAbilityState->Activate();
 	
-	UAbilityTask_WaitInputRelease* WaitInputRelease = UAbilityTask_WaitInputRelease::WaitInputRelease(this, true);
-	WaitInputRelease->OnRelease.AddDynamic(this, &ThisClass::OnInputRelease);
-	WaitInputRelease->Activate();
+					UAbilityTask_WaitInputRelease* WaitInputRelease = UAbilityTask_WaitInputRelease::WaitInputRelease(this, true);
+					WaitInputRelease->OnRelease.AddDynamic(this, &ThisClass::OnInputRelease);
+					WaitInputRelease->Activate();
+
+					return;
+				}
+			}
+		}
+	}
+
+	bHasJumped = false;
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 bool UZodiacGameplayAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
@@ -60,7 +84,10 @@ bool UZodiacGameplayAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecH
 void UZodiacGameplayAbility_Jump::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	// Stop jumping in case the ability blueprint doesn't call it.
-	CharacterJumpStop();
+	if (bHasJumped)
+	{
+		CharacterJumpStop();
+	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

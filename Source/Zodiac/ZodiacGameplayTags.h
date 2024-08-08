@@ -99,6 +99,8 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Custom);
 
 	// Custom MovementMode
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Custom_Sprinting);
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Custom_Aiming);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Walking_Sprinting);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Walking_Aiming);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Walking_Traversal);
+
 };

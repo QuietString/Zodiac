@@ -38,4 +38,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	void CharacterJumpStop();
+
+private:
+	bool bHasJumped;
 };

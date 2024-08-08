@@ -6,6 +6,7 @@
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHero.h"
+#include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Animation/ZodiacHeroAnimInstance.h"
 #include "Camera/ZodiacCameraComponent.h"
@@ -169,6 +170,7 @@ void AZodiacHostCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedAcceleration, COND_SimulatedOnly);
+
 	DOREPLIFETIME(ThisClass, HeroList);
 	DOREPLIFETIME(ThisClass, ActiveHeroIndex);
 }
@@ -403,7 +405,7 @@ void AZodiacHostCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode,
 #if WITH_EDITOR
 	if (ZodiacConsoleVariables::LogEnabled())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("new movement mode: %d, %d on %s"), MovementMode, CustomMovementMode,  HasAuthority() ? TEXT("server") : TEXT("Client"));	
+		UE_LOG(LogZodiacMovement, Warning, TEXT("MovementMode: %d, Custom: %d on %s"), MovementMode, CustomMovementMode,  HasAuthority() ? TEXT("server") : TEXT("Client"));	
 	}
 #endif
 	
@@ -433,7 +435,7 @@ void AZodiacHostCharacter::InitializeHostAbilitySystem(UAbilitySystemComponent* 
 	
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(GetPlayerState(), this);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_Custom_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnAimingTagChanged);	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_Walking_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnAimingTagChanged);	
 	
 	OnHostAbilitySystemComponentLoaded.Broadcast(AbilitySystemComponent);
 	OnHostAbilitySystemComponentLoaded.Clear();
@@ -532,6 +534,19 @@ void AZodiacHostCharacter::ClearAbilityCameraMode(const FGameplayAbilitySpecHand
 		ActiveAbilityCameraMode = nullptr;
 		AbilityCameraModeOwningSpecHandle = FGameplayAbilitySpecHandle();
 	}
+}
+
+float AZodiacHostCharacter::GetTraversalForwardTraceDistance() const
+{
+	FRotator ActorRotation = GetActorRotation();
+	float ForwardDistance = ActorRotation.UnrotateVector(GetCharacterMovement()->Velocity).X;
+	float ForwardDistanceClamped = FMath::GetMappedRangeValueClamped(FVector2f(0.0f, 500.0f), FVector2f(75.0f, 350.0f), ForwardDistance);
+
+	return ForwardDistanceClamped;
+}
+
+void AZodiacHostCharacter::TryTraversalAction_Implementation(float TraceForwardDistance, bool& bTraversalCheckFailed, bool& bMontageSelectionFailed)
+{
 }
 
 TSubclassOf<UZodiacCameraMode> AZodiacHostCharacter::DetermineCameraMode()

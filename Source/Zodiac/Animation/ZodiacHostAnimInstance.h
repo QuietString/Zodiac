@@ -24,7 +24,8 @@ public:
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 	
 	void UpdateVelocityData();
-	
+	void UpdateAccelerationData(float DeltaSeconds);
+
 	bool GetIsAiming() const { return bIsAimingMovement; }
 
 protected:
@@ -38,6 +39,33 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FTransform RootTransform;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector Velocity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector Velocity_Last;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector Velocity_LastNonZero;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float Speed2D;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bHasVelocity;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector Acceleration;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bHasAcceleration;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float AccelerationAmount;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FVector AccelerationFromVelocityDiff;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement;
 

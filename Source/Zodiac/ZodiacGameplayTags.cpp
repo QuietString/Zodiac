@@ -94,9 +94,10 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom, "Movement.Mode.Custom", "Default Character movement tag");
 
 	// These are mapped to the movement modes inside GetCustomMovementModeTagMap()
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom_Sprinting, "Movement.Mode.Custom.Sprinting", "Custom Character movement tag");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom_Aiming, "Movement.Mode.Custom.Aiming", "Custom Character movement tag");
-	
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Walking_Sprinting, "Movement.Mode.Walking.Sprinting", "Custom Character Sprinting movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Walking_Aiming, "Movement.Mode.Walking.Aiming", "Custom Character Aiming movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Walking_Traversal, "Movement.Mode.Walking.Traversal", "Custom Character Traversal movement tag");
+
 	// Unreal Movement Modes
 	const TMap<uint8, FGameplayTag> MovementModeTagMap =
 	{
@@ -112,8 +113,9 @@ namespace ZodiacGameplayTags
 	const TMap<uint8, FGameplayTag> CustomMovementModeTagMap =
 	{
 		{MOVE_Standard, Movement_Mode_None},
-		{MOVE_Aiming, Movement_Mode_Custom_Aiming},
-		{MOVE_Sprinting, Movement_Mode_Custom_Sprinting},
+		{MOVE_Aiming, Movement_Mode_Walking_Aiming},
+		{MOVE_Sprinting, Movement_Mode_Walking_Sprinting},
+		{MOVE_Traversal, Movement_Mode_Walking_Traversal}
 	};
 
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)

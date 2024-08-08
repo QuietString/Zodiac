@@ -101,6 +101,15 @@ public:
 	/** Clears the camera override if it is set */
 	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
 
+	float GetTraversalForwardTraceDistance() const;
+	bool GetDoingTraversalAction()
+	{
+		return bDoingTraversalAction;
+	}
+	
+	UFUNCTION(BlueprintNativeEvent)
+	void TryTraversalAction(float TraceForwardDistance, bool& bTraversalCheckFailed, bool& bMontageSelectionFailed);
+	
 	/** RPCs that is called on frames when default property replication is skipped. This replicates a single movement update to everyone. */
 	UFUNCTION(NetMulticast, unreliable)
 	void FastSharedReplication(const FSharedRepMovement& SharedRepMovement);
@@ -162,13 +171,17 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Zodiac|Hero")
 	TArray<TSubclassOf<AZodiacHero>> HeroClasses;
-
+	
 	UPROPERTY(Replicated)
 	FZodiacHeroList HeroList;
 
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveHeroIndex, BlueprintReadOnly)
 	int32 ActiveHeroIndex = INDEX_NONE;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bDoingTraversalAction = false;
+	
+private:
 	UFUNCTION()
 	void OnRep_ReplicatedAcceleration();
 	

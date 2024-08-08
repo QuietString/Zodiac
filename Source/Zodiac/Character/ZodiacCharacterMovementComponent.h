@@ -15,9 +15,10 @@ ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gameplay_MovementStopped);
 UENUM(BlueprintType)
 enum EZodiacCustomMovementMode
 {
-	MOVE_Standard = 0, // not using custom movement
+	MOVE_Standard = 0, // not using custom movement, same value as MOVE_None
 	MOVE_Aiming,
 	MOVE_Sprinting,
+	MOVE_Traversal
 };
 
 /**
@@ -42,7 +43,6 @@ struct FZodiacCharacterGroundInfo
 	float GroundDistance;
 };
 
-
 /**
  *	The base character movement component class used by this project.
  */
@@ -59,6 +59,7 @@ public:
 	virtual void UnpackNetworkMovementMode(const uint8 ReceivedMode, TEnumAsByte<EMovementMode>& OutMode, uint8& OutCustomMode, TEnumAsByte<EMovementMode>& OutGroundMode) const override;
 	virtual void SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode = 0) override;
 	virtual void SimulateMovement(float DeltaTime) override;
+	virtual void JumpOff(AActor* MovementBaseActor) override;
 	virtual float GetMaxSpeed() const override;
 	virtual bool CanAttemptJump() const override;
 	

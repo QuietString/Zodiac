@@ -4,6 +4,7 @@
 #include "ZodiacHostAnimInstance.h"
 
 #include "Character/ZodiacCharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHostAnimInstance)
 
@@ -41,11 +42,28 @@ void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 		CustomMovement_Last = CustomMovement;
 		CustomMovement = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
 		bIsAimingMovement = (CustomMovement == MOVE_Aiming);
+
+		UpdateVelocityData();
+		UpdateAccelerationData(DeltaSeconds);
 	}
 }
 
 void UZodiacHostAnimInstance::UpdateVelocityData()
 {
+	Velocity_Last = Velocity;
+	Velocity = ZodiacCharMovComp->Velocity;
+	Speed2D = UKismetMathLibrary::VSizeXY(Velocity);
+	bHasVelocity = Speed2D > 5.0f;
+	if (bHasVelocity) Velocity_LastNonZero = Velocity;
+}
+
+void UZodiacHostAnimInstance::UpdateAccelerationData(float DeltaSeconds)
+{
+	AccelerationFromVelocityDiff = (Velocity - Velocity_Last) / (FMath::Max(DeltaSeconds, 0.001f));
+	
+	Acceleration = ZodiacCharMovComp->GetCurrentAcceleration();
+	AccelerationAmount = Acceleration.Length() / ZodiacCharMovComp->MaxAcceleration;
+	bHasAcceleration = AccelerationAmount > 0;
 }
 
 void UZodiacHostAnimInstance::UpdateGait()

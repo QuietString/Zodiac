@@ -103,6 +103,41 @@ void UZodiacCharacterMovementComponent::SimulateMovement(float DeltaTime)
 	}
 }
 
+void UZodiacCharacterMovementComponent::JumpOff(AActor* MovementBaseActor)
+{
+	// Don't set MovementMode to MOVE_Falling when CustomMovementMode is MOVE_Traversal.
+	if ( !bPerformingJumpOff )
+	{
+		bPerformingJumpOff = true;
+		if ( CharacterOwner )
+		{
+			const float MaxSpeed = GetMaxSpeed() * 0.85f;
+			Velocity += MaxSpeed * GetBestDirectionOffActor(MovementBaseActor);
+			if ( Velocity.Size2D() > MaxSpeed )
+			{
+				Velocity = MaxSpeed * Velocity.GetSafeNormal();
+			}
+
+			if (HasCustomGravity())
+			{
+				FVector GravityRelativeVelocity = RotateWorldToGravity(Velocity);
+				GravityRelativeVelocity.Z = JumpOffJumpZFactor * JumpZVelocity;
+				Velocity = RotateGravityToWorld(GravityRelativeVelocity);
+			}
+			else
+			{
+				Velocity.Z = JumpOffJumpZFactor * JumpZVelocity;
+			}
+
+			if (CustomMovementMode != MOVE_Traversal)
+			{
+				SetMovementMode(MOVE_Falling);	
+			}
+		}
+		bPerformingJumpOff = false;
+	}
+}
+
 float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 {
 	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(CharacterOwner))
