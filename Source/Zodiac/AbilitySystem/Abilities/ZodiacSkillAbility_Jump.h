@@ -4,7 +4,7 @@
 
 #include "ZodiacGameplayAbility.h"
 
-#include "ZodiacGameplayAbility_Jump.generated.h"
+#include "ZodiacSkillAbility_Jump.generated.h"
 
 class UObject;
 struct FFrame;
@@ -16,13 +16,13 @@ struct FGameplayTagContainer;
  *	Gameplay ability used for character jumping.
  */
 UCLASS(Abstract)
-class UZodiacGameplayAbility_Jump : public UZodiacGameplayAbility
+class UZodiacSkillAbility_Jump : public UZodiacGameplayAbility
 {
 	GENERATED_BODY()
 
 public:
 
-	UZodiacGameplayAbility_Jump(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UZodiacSkillAbility_Jump(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 protected:
@@ -31,14 +31,17 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	UFUNCTION()
-	void OnInputRelease(float TimeHeld);
+	void OnJustLanded(FGameplayEventData Payload);
 	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	void CharacterJumpStart();
 
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	void CharacterJumpStop();
-
-private:
-	bool bHasJumped;
 };
+
+inline void UZodiacSkillAbility_Jump::OnJustLanded(FGameplayEventData Payload)
+{
+	CharacterJumpStop();
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}

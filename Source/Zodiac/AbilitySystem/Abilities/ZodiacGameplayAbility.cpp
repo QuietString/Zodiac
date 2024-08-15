@@ -39,11 +39,6 @@ UZodiacGameplayAbility::UZodiacGameplayAbility(const FObjectInitializer& ObjectI
 	ActivationGroup = EZodiacAbilityActivationGroup::Independent;
 }
 
-AZodiacPlayerController* UZodiacGameplayAbility::GetZodiacPlayerControllerFromActorInfo() const
-{
-	return (CurrentActorInfo ? Cast<AZodiacPlayerController>(CurrentActorInfo->PlayerController.Get()) : nullptr);
-}
-
 UZodiacAbilitySystemComponent* UZodiacGameplayAbility::GetHeroAbilitySystemComponentFromActorInfo() const
 {
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())

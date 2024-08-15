@@ -77,6 +77,7 @@ struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBas
 	};
 };
 
+
 UCLASS(Abstract)
 class ZODIAC_API AZodiacHostCharacter : public ACharacter, public IAbilitySystemInterface
 {
@@ -88,7 +89,7 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent();
 	virtual UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent();
-	void InitializeHostAbilitySystem(UAbilitySystemComponent* InASC);
+	void InitializeHostAbilitySystem(UZodiacAbilitySystemComponent* InASC);
 
 	void CallOrRegister_OnAbilitySystemInitialized(FOnHostAbilitySystemComponentLoaded::FDelegate&& Delegate);
 	UZodiacHealthComponent* GetCurrentHeroHealthComponent();
@@ -100,15 +101,6 @@ public:
 
 	/** Clears the camera override if it is set */
 	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
-
-	float GetTraversalForwardTraceDistance() const;
-	bool GetDoingTraversalAction()
-	{
-		return bDoingTraversalAction;
-	}
-	
-	UFUNCTION(BlueprintNativeEvent)
-	void TryTraversalAction(float TraceForwardDistance, bool& bTraversalCheckFailed, bool& bMontageSelectionFailed);
 	
 	/** RPCs that is called on frames when default property replication is skipped. This replicates a single movement update to everyone. */
 	UFUNCTION(NetMulticast, unreliable)
@@ -135,8 +127,13 @@ protected:
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
+
+	void OnStatusTagChanged(FGameplayTag Tag, int Count);
+	void OnMovementTagChanged(FGameplayTag Tag, int Count);
+
+	void OnJustLanded();
+	void OnJustLifted();
 	
-	void OnAimingTagChanged(FGameplayTag Tag, int Count);
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 	void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled);
 	
@@ -146,7 +143,7 @@ protected:
 
 protected:
 	UPROPERTY()
-	UAbilitySystemComponent* AbilitySystemComponent;
+	UZodiacAbilitySystemComponent* AbilitySystemComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UZodiacCameraComponent> CameraComponent;
@@ -178,9 +175,6 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveHeroIndex, BlueprintReadOnly)
 	int32 ActiveHeroIndex = INDEX_NONE;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	bool bDoingTraversalAction = false;
-	
 private:
 	UFUNCTION()
 	void OnRep_ReplicatedAcceleration();

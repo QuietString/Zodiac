@@ -3,6 +3,7 @@
 
 #include "ZodiacHostAnimInstance.h"
 
+#include "ZodiacGameplayTags.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -35,17 +36,22 @@ void UZodiacHostAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 }
 
+
 void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
 	if (ZodiacCharMovComp)
 	{
-		CustomMovement_Last = CustomMovement;
-		CustomMovement = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
-		bIsAimingMovement = (CustomMovement == MOVE_Aiming);
-
+		UpdateMovementData();
 		UpdateVelocityData();
 		UpdateAccelerationData(DeltaSeconds);
 	}
+}
+
+void UZodiacHostAnimInstance::UpdateMovementData()
+{
+	CustomMovement_Last = CustomMovement;
+	CustomMovement = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
+	bIsADS = (CustomMovement == MOVE_ADS);
 }
 
 void UZodiacHostAnimInstance::UpdateVelocityData()
@@ -66,6 +72,14 @@ void UZodiacHostAnimInstance::UpdateAccelerationData(float DeltaSeconds)
 	bHasAcceleration = AccelerationAmount > 0;
 }
 
+void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
+{
+	if (Tag == ZodiacGameplayTags::Status_Focus)
+	{
+		bIsFocus = bHasTag;
+	}
+}
+
 void UZodiacHostAnimInstance::UpdateGait()
 {
 	if (ZodiacCharMovComp)
@@ -80,11 +94,11 @@ void UZodiacHostAnimInstance::UpdateGait()
 		case MOVE_Walking:
 			switch (CustomMovementMode)
 			{
-			case MOVE_Aiming:
+			case MOVE_ADS:
 				Gait = Gait_Walk;
 				return;
 			
-			case MOVE_Sprinting:
+			case MOVE_Running:
 				Gait = Gait_Run;
 				return;
 				

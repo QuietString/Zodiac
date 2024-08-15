@@ -8,6 +8,7 @@
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/ZodiacSkillAbilityCost.h"
 #include "Character/ZodiacHostCharacter.h"
+#include "Player/ZodiacPlayerController.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSkillAbility)
 
@@ -22,6 +23,11 @@ UAbilitySystemComponent* UZodiacSkillAbility::GetHostAbilitySystemComponent() co
 	}
 
 	return nullptr;
+}
+
+AZodiacPlayerController* UZodiacSkillAbility::GetHostPlayerControllerFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<AZodiacPlayerController>(GetZodiacHostCharacterFromActorInfo()->GetController()) : nullptr);
 }
 
 UZodiacSkillSlot* UZodiacSkillAbility::GetSkillSlot() const
@@ -61,6 +67,18 @@ bool UZodiacSkillAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Ha
 	}
 	
 	return true;
+}
+
+void UZodiacSkillAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate,
+	const FGameplayEventData* TriggerEventData)
+{
+	Super::PreActivate(Handle, ActorInfo, ActivationInfo, OnGameplayAbilityEndedDelegate, TriggerEventData);
+
+	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
+	{
+		HostASC->AddLooseGameplayTags(ActivationOwnedTags);
+	}
 }
 
 void UZodiacSkillAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -180,6 +198,17 @@ void UZodiacSkillAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 	}
 	
 	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
+}
+
+void UZodiacSkillAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
+	{
+		HostASC->RemoveLooseGameplayTags(ActivationOwnedTags);
+	}
 }
 
 FVector UZodiacSkillAbility::GetFXSourceLocation() const

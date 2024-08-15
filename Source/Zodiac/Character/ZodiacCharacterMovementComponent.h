@@ -16,8 +16,9 @@ UENUM(BlueprintType)
 enum EZodiacCustomMovementMode
 {
 	MOVE_Standard = 0, // not using custom movement, same value as MOVE_None
-	MOVE_Aiming,
-	MOVE_Sprinting,
+	MOVE_ADS, // Slow walking movement with weapon fire
+	MOVE_Focus, // Standard walking movement with light weapon fire
+	MOVE_Running, 
 	MOVE_Traversal
 };
 
@@ -73,16 +74,15 @@ protected:
 	virtual void InitializeComponent() override;
 	
 protected:
-	UPROPERTY(Category="Character Movement: Sprinting", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
-	float MaxSprintSpeed;
+	UPROPERTY(Category="Character Movement: Running", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
+	float MaxRunningSpeed;
 
-	UPROPERTY(Category="Character Movement: Aiming", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
-	float MaxWalkSpeedWithAiming;
+	UPROPERTY(Category="Character Movement: ADS", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
+	float MaxADSSpeed;
 	
 	// Cached ground info for the character.  Do not access this directly!  It's only updated when accessed via GetGroundInfo().
 	FZodiacCharacterGroundInfo CachedGroundInfo;
 
 	UPROPERTY(Transient)
 	bool bHasReplicatedAcceleration = false;
-
 };

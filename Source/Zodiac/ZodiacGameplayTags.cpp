@@ -44,6 +44,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_GameplayReady, "InitState.GameplayReady", "4: The actor/component is fully ready for active gameplay");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_Damaged_Message, "Event.Damaged.Message");
+	UE_DEFINE_GAMEPLAY_TAG(Event_JustLanded, "Event.JustLanded");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Death, "Event.Death", "Event that fires on death. This event only fires on the server.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Reset, "Event.Reset", "Event that fires once a player reset is executed.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_RequestReset, "Event.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
@@ -60,6 +61,7 @@ namespace ZodiacGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Attacking , "Status.Movement.Attacking");
 	UE_DEFINE_GAMEPLAY_TAG(Status_WeaponReady , "Status.WeaponReady");
+	UE_DEFINE_GAMEPLAY_TAG(Status_Focus , "Status.Focus");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status__MovementAutoRunning, "Status.Movement.AutoRunning", "Target is auto-running.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death, "Status.Death", "Target has the death status.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dying, "Status.Death.Dying", "Target has begun the death process.");
@@ -94,9 +96,10 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom, "Movement.Mode.Custom", "Default Character movement tag");
 
 	// These are mapped to the movement modes inside GetCustomMovementModeTagMap()
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Walking_Sprinting, "Movement.Mode.Walking.Sprinting", "Custom Character Sprinting movement tag");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Walking_Aiming, "Movement.Mode.Walking.Aiming", "Custom Character Aiming movement tag");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Walking_Traversal, "Movement.Mode.Walking.Traversal", "Custom Character Traversal movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Running, "Movement.Mode.Walking.Running", "Custom character running movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_ADS, "Movement.Mode.Walking.ADS", "Custom character aiming movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Focus, "Movement.Mode.Walking.Focus", "Custom character focused movement tag");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Traversal, "Movement.Mode.Walking.Traversal", "Custom character traversal movement tag");
 
 	// Unreal Movement Modes
 	const TMap<uint8, FGameplayTag> MovementModeTagMap =
@@ -113,9 +116,10 @@ namespace ZodiacGameplayTags
 	const TMap<uint8, FGameplayTag> CustomMovementModeTagMap =
 	{
 		{MOVE_Standard, Movement_Mode_None},
-		{MOVE_Aiming, Movement_Mode_Walking_Aiming},
-		{MOVE_Sprinting, Movement_Mode_Walking_Sprinting},
-		{MOVE_Traversal, Movement_Mode_Walking_Traversal}
+		{MOVE_ADS, Movement_Mode_ADS},
+		{MOVE_Focus, Movement_Mode_Focus},
+		{MOVE_Running, Movement_Mode_Running},
+		{MOVE_Traversal, Movement_Mode_Traversal}
 	};
 
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)
@@ -140,14 +144,6 @@ namespace ZodiacGameplayTags
 		}
 
 		return Tag;
-	}
-
-	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag)
-	{
-		FString CooldownTagString = SkillTag.ToString() + TEXT(".") + TEXT("Cooldown");
-		FGameplayTag FoundTag = FGameplayTag::RequestGameplayTag(*CooldownTagString);
-		
-		return FoundTag.IsValid() ? FoundTag : FGameplayTag(); 
 	}
 }
 

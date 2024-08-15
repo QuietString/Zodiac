@@ -20,8 +20,8 @@ namespace ZodiacCharacter
 UZodiacCharacterMovementComponent::UZodiacCharacterMovementComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	MaxSprintSpeed = 800;
-	MaxWalkSpeedWithAiming = 300.0f;
+	MaxRunningSpeed = 800;
+	MaxADSSpeed = 300.0f;
 }
 
 namespace PackedMovementModeConstants
@@ -51,7 +51,7 @@ void UZodiacCharacterMovementComponent::UnpackNetworkMovementMode(const uint8 Re
 
 void UZodiacCharacterMovementComponent::SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode)
 {
-	// Same as UCharacterMovementComponent's implementation but
+	// Almost same as UCharacterMovementComponent's implementation but
 	// 1. without NewMovementMode == MOVE_CUSTOM check
 	// 2. allowing custom mode even when MovementMode is not MOVE_CUSTOM 
 	
@@ -152,12 +152,12 @@ float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 	{
 		switch (CustomMovementMode)
 		{
-		case MOVE_None:
+		case MOVE_Standard:
 			return MaxWalkSpeed;
-		case MOVE_Aiming:
-			return MaxWalkSpeedWithAiming;
-		case MOVE_Sprinting:
-			return MaxSprintSpeed;
+		case MOVE_ADS:
+			return MaxADSSpeed;
+		case MOVE_Running:
+			return MaxRunningSpeed;
 		default:
 			return MaxWalkSpeed;
 		}

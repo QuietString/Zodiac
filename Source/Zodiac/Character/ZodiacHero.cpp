@@ -10,6 +10,7 @@
 #include "GameFramework/Character.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHostCharacter.h"
+#include "AbilitySystem/ZodiacHeroAbilitySystemComponent.h"
 #include "Animation/ZodiacHeroAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -36,7 +37,7 @@ AZodiacHero::AZodiacHero(const FObjectInitializer& ObjectInitializer)
 	Mesh->SetVisibility(false);
 	RootComponent = Mesh;
 	
-	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHeroAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
@@ -75,7 +76,7 @@ UAbilitySystemComponent* AZodiacHero::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
-TObjectPtr<UZodiacAbilitySystemComponent> AZodiacHero::GetZodiacAbilitySystemComponent() const
+TObjectPtr<UZodiacAbilitySystemComponent> AZodiacHero::GetHeroAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
@@ -90,8 +91,8 @@ void AZodiacHero::InitializeAbilitySystem()
 	check(AbilitySystemComponent);
 
 	AbilitySystemComponent->InitAbilityActorInfo(Owner, this);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_Walking_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
 
 	if (HeroData && HasAuthority())
 	{
@@ -104,30 +105,19 @@ void AZodiacHero::InitializeAbilitySystem()
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 }
 
-void AZodiacHero::OnMovementTagChanged(FGameplayTag Tag, int Count)
+void AZodiacHero::OnStatusTagChanged(FGameplayTag Tag, int Count)
 {
 	check(HostCharacter);
 	
 	if (UAbilitySystemComponent* HostASC = HostCharacter->GetAbilitySystemComponent())
 	{
-		if (Count > 0)
-		{
-			HostASC->SetLooseGameplayTagCount(Tag, 1);
-		}
-		else
-		{
-			HostASC->SetLooseGameplayTagCount(Tag, 0);
-		}
-
+		bool bHasTag = Count > 0;
+		int32 NewCount = bHasTag ? 1 : 0;
+		
+		HostASC->SetLooseGameplayTagCount(Tag, NewCount);
+		
 		UZodiacHeroAnimInstance* HeroAnimInstance = CastChecked<UZodiacHeroAnimInstance>(Mesh->GetAnimInstance());
-		if (Tag == ZodiacGameplayTags::Movement_Mode_Walking_Aiming)
-		{
-			(Count > 0) ? HeroAnimInstance->OnAimingChanged(true) : HeroAnimInstance->OnAimingChanged(false); 
-		}
-		else if (Tag == ZodiacGameplayTags::Status_WeaponReady)
-		{
-			(Count > 0) ? HeroAnimInstance->OnIsPistolReadyChanged(true) : HeroAnimInstance->OnIsPistolReadyChanged(false);
-		}
+		HeroAnimInstance->OnStatusChanged(Tag, bHasTag);
 	}
 }
 
@@ -184,9 +174,14 @@ void AZodiacHero::AttachToOwner()
 
 void AZodiacHero::OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* HostASC)
 {
+	if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(HostASC))
+	{
+		AbilitySystemComponent->SetHostAbilitySystemComponent(ZodiacASC);	
+	}
+	
 	if (UZodiacHeroAnimInstance* HeroAnimInstance = Cast<UZodiacHeroAnimInstance>(GetMesh()->GetAnimInstance()))
 	{
-		HeroAnimInstance->InitializeWithAbilitySystem(HostASC);
+		HeroAnimInstance->InitializeWithAbilitySystem(AbilitySystemComponent);
 	}
 }
 

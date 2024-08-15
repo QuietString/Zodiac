@@ -8,6 +8,8 @@
 #include "GameFramework/Actor.h"
 #include "ZodiacHero.generated.h"
 
+class UInputMappingContext;
+class UZodiacHeroAbilitySystemComponent;
 class UZodiacCharacterMovementComponent;
 class AZodiacHostCharacter;
 class UZodiacHealthComponent;
@@ -30,7 +32,7 @@ public:
 	//~End of AActor interface
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	TObjectPtr<UZodiacAbilitySystemComponent> GetZodiacAbilitySystemComponent() const;
+	TObjectPtr<UZodiacAbilitySystemComponent> GetHeroAbilitySystemComponent() const;
 
 	AZodiacHostCharacter* GetHostCharacter() const;
 	UZodiacHealthComponent* GetHealthComponent() const;
@@ -44,7 +46,7 @@ protected:
 	
 	void InitializeAbilitySystem();
 
-	void OnMovementTagChanged(FGameplayTag Tag, int Count);
+	void OnStatusTagChanged(FGameplayTag Tag, int Count);
 
 	void AttachToOwner();
 
@@ -55,7 +57,7 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> Mesh;
 	
 	UPROPERTY(VisibleAnywhere)
-	UZodiacAbilitySystemComponent* AbilitySystemComponent;
+	UZodiacHeroAbilitySystemComponent* AbilitySystemComponent;
 
 	UPROPERTY()
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;

@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Abilities/ZodiacGameplayAbility_Sprint.h"
+#include "GameplayTagContainer.h"
 #include "Animation/AnimInstance.h"
 #include "ZodiacHeroAnimInstance.generated.h"
 
+class UAbilitySystemComponent;
 class UZodiacHostAnimInstance;
 class UCharacterMovementComponent;
 class AZodiacHostCharacter;
@@ -32,16 +33,18 @@ public:
 	UZodiacHostAnimInstance* GetHostAnimInstance() const;
 
 	void OnAimingChanged(bool bHasActivated);
-	void OnIsPistolReadyChanged(bool InIsReady);
+	void OnIsWeaponReadyChanged(bool InIsReady);
+	void OnStatusChanged(FGameplayTag Tag, bool bActive);
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayHideOrRevealGunsMontage(bool bReveal);
 	
 protected:
+	void UpdateMovementData();
 	void UpdateRotationData(float DeltaSeconds, AActor* OwningActor);
 	void UpdateAimingData(float DeltaSeconds);
 	void UpdateBlendData(float DeltaSeconds);
-	
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blends")
 	float PistolScale;
@@ -49,29 +52,72 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blends")
 	float PistolBlendAlpha;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Aiming_Data)
+	UPROPERTY(BlueprintReadOnly, Category = Aiming_Data)
 	float AimYaw;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Aiming_Data)
+	UPROPERTY(BlueprintReadOnly, Category = Aiming_Data)
 	float AimPitch;
 
+	UPROPERTY(EditDefaultsOnly, Category = Aiming_Data)
+	FVector2D AimYawClampRange = FVector2D(-60.0f, 60.0f);
+	
+	UPROPERTY(EditDefaultsOnly, Category = Aiming_Data)
+	float AimYawBlendSpeed = 5.0f;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Aiming_Data)
 	FVector2D RootYawOffsetAngleClamp = FVector2D(-120.f, 100.f);
 
-	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
-	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
+	//UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
+	//FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsAiming = false;
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsADS;
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
-	bool bIsGunsHidden = true;
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsFocus;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsTraversal;
+
+	UPROPERTY(BlueprintReadOnly)
 	bool bIsHostMoving;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsPistolReady = false;
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsWeaponReady = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bAnimNotify_RevealLeftPistol;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bAnimNotify_RevealRightPistol;
+	
+	UPROPERTY(BlueprintReadOnly)
+	bool bShouldReveal_LeftPistol;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bShouldReveal_RightPistol;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bShouldRaise_RightArm;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bShouldRaise_LeftArm;
+	
+	UPROPERTY(BlueprintReadOnly)
+	bool bApplyAimOffSet;
+
+	// 0 to hide right pistol, 1 to reveal right pistol 
+	UPROPERTY(BlueprintReadOnly)
+	float RightPistolScaleAlpha;
+
+	UPROPERTY(EditDefaultsOnly)
+	float RightPistolAlphaSpeedMultiplier = 5.0f;
+
+	UPROPERTY(BlueprintReadOnly)
+	float LeftPistolScaleAlpha;
+
+	UPROPERTY(EditDefaultsOnly)
+	float LeftPistolAlphaSpeedMultiplier = 5.0f;
 	
 private:
 	UPROPERTY()

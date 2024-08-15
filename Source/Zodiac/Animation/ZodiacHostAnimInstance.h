@@ -25,8 +25,10 @@ public:
 	
 	void UpdateVelocityData();
 	void UpdateAccelerationData(float DeltaSeconds);
-
-	bool GetIsAiming() const { return bIsAimingMovement; }
+	void UpdateMovementData();
+	bool GetIsAiming() const { return bIsADS; }
+	
+	void OnStatusChanged(FGameplayTag Tag, bool bHasTag);
 
 protected:
 	UFUNCTION(BlueprintCallable)
@@ -65,6 +67,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector AccelerationFromVelocityDiff;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsADS;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsFocus;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement;
@@ -72,10 +80,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement_Last;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY( BlueprintReadWrite)
 	float AimYaw;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite)
 	float AimPitch;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -87,7 +95,4 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<AZodiacHostCharacter> HostCharacter;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsAimingMovement;
 };

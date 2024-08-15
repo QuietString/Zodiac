@@ -78,9 +78,6 @@ class ZODIAC_API UZodiacGameplayAbility : public UGameplayAbility
 
 public:
 	UZodiacGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-	
-	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
-	AZodiacPlayerController* GetZodiacPlayerControllerFromActorInfo() const;
 
 	UFUNCTION(BlueprintCallable)
 	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponentFromActorInfo() const;

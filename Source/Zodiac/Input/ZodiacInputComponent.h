@@ -22,6 +22,9 @@ struct FZodiacInputConfig
 	TArray<TObjectPtr<UInputMappingContext>> MappingContexts;
 
 	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UInputMappingContext> InAirContext;
+	
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UZodiacInputTagMapping> TagMapping;
 
 public:

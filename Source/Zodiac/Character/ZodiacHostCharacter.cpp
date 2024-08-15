@@ -9,6 +9,7 @@
 #include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Animation/ZodiacHeroAnimInstance.h"
+#include "Animation/ZodiacHostAnimInstance.h"
 #include "Camera/ZodiacCameraComponent.h"
 #include "Player/ZodiacPlayerState.h"
 #include "Input/ZodiacInputComponent.h"
@@ -181,9 +182,9 @@ void AZodiacHostCharacter::PossessedBy(AController* NewController)
 
 	if (AZodiacPlayerState* ZodiacPS = Cast<AZodiacPlayerState>(GetPlayerState()))
 	{
-		if (UAbilitySystemComponent* ASC = ZodiacPS->GetAbilitySystemComponent())
+		if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(ZodiacPS->GetAbilitySystemComponent()))
 		{
-			InitializeHostAbilitySystem(ASC);
+			InitializeHostAbilitySystem(ZodiacASC);
 		}
 	}
 }
@@ -194,9 +195,9 @@ void AZodiacHostCharacter::OnRep_PlayerState()
 
 	if (AZodiacPlayerState* ZodiacPS = Cast<AZodiacPlayerState>(GetPlayerState()))
 	{
-		if (UAbilitySystemComponent* ASC = ZodiacPS->GetAbilitySystemComponent())
+		if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(ZodiacPS->GetAbilitySystemComponent()))
 		{
-			InitializeHostAbilitySystem(ASC);
+			InitializeHostAbilitySystem(ZodiacASC);
 		}
 	}
 }
@@ -276,7 +277,7 @@ void AZodiacHostCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	if (IsLocallyControlled())
-	{
+	{ 
 		InitializePlayerInput();
 	}
 }
@@ -322,7 +323,7 @@ void AZodiacHostCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 {
 	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
 	{
-		if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetZodiacAbilitySystemComponent())
+		if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
 		{
 			ZodiacASC->AbilityInputTagPressed(InputTag);
 		}
@@ -333,7 +334,7 @@ void AZodiacHostCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 {
 	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
 	{
-		if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetZodiacAbilitySystemComponent())
+		if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
 		{
 			ZodiacASC->AbilityInputTagReleased(InputTag);
 		}
@@ -376,17 +377,82 @@ void AZodiacHostCharacter::Input_LookMouse(const FInputActionValue& InputActionV
 	}
 }
 
-void AZodiacHostCharacter::OnAimingTagChanged(FGameplayTag Tag, int Count)
+void AZodiacHostCharacter::OnStatusTagChanged(FGameplayTag Tag, int Count)
+{
+	bool bHasTag = Count > 0;
+	int32 NewCount = bHasTag ? 1 : 0;
+
+	UZodiacHostAnimInstance* HostAnimInstance = CastChecked<UZodiacHostAnimInstance>(GetMesh()->GetAnimInstance());
+	HostAnimInstance->OnStatusChanged(Tag, bHasTag);
+}
+
+void AZodiacHostCharacter::OnMovementTagChanged(FGameplayTag Tag, int Count)
 {
 	if (UZodiacCharacterMovementComponent* ZodiacMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
 	{
-		if (Count > 0)
+		uint8 CustomMode_Candidate;
+		if (Tag == ZodiacGameplayTags::Movement_Mode_ADS)
 		{
-			ZodiacMoveComp->SetMovementMode(MOVE_Walking, MOVE_Aiming);
+			CustomMode_Candidate = MOVE_ADS;
+		}
+		else if (Tag == ZodiacGameplayTags::Movement_Mode_Focus)
+		{
+			CustomMode_Candidate = MOVE_Focus;
 		}
 		else
 		{
-			ZodiacMoveComp->SetMovementMode(MOVE_Walking, MOVE_None);
+			CustomMode_Candidate = MOVE_None;
+		}
+
+		bool bHasTag = Count > 0;
+		uint8 CustomMode = bHasTag ? CustomMode_Candidate : MOVE_None;
+		ZodiacMoveComp->SetMovementMode(MOVE_Walking, CustomMode);
+	}
+}
+
+void AZodiacHostCharacter::OnJustLanded()
+{
+	if (const APlayerController* PC = GetController<APlayerController>())
+	{
+		if (const ULocalPlayer* LP = Cast<ULocalPlayer>(PC->GetLocalPlayer()))
+		{
+			UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+			check(Subsystem);
+
+			if (InputConfig.IsValid() && InputConfig.InAirContext)
+			{
+				Subsystem->RemoveMappingContext(InputConfig.InAirContext);
+			}
+		}
+	}
+	
+	UAbilitySystemComponent* HeroASC = GetHeroAbilitySystemComponent();
+	FGameplayEffectContextHandle ContextHandle = HeroASC->MakeEffectContext();
+	FGameplayEventData Payload;
+	Payload.EventTag = ZodiacGameplayTags::Event_JustLanded;
+	Payload.Target = HeroASC->GetAvatarActor();
+	Payload.ContextHandle = ContextHandle;
+	Payload.EventMagnitude = 1;
+	
+	FScopedPredictionWindow NewScopedWindow(HeroASC, true);
+	HeroASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+}
+
+void AZodiacHostCharacter::OnJustLifted()
+{
+	if (const APlayerController* PC = GetController<APlayerController>())
+	{
+		if (const ULocalPlayer* LP = Cast<ULocalPlayer>(PC->GetLocalPlayer()))
+		{
+			UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+			check(Subsystem);
+
+			if (InputConfig.IsValid() && InputConfig.InAirContext)
+			{
+				FModifyContextOptions Options = {};
+				Options.bIgnoreAllPressedKeysUntilRelease = true;
+				Subsystem->AddMappingContext(InputConfig.InAirContext, 6, Options);
+			}
 		}
 	}
 }
@@ -401,6 +467,23 @@ void AZodiacHostCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode,
 
 	EMovementMode MovementMode = ZodiacMoveComp->MovementMode;
 	uint8 CustomMovementMode = ZodiacMoveComp->CustomMovementMode;
+	
+	SetMovementModeTag(MovementMode, CustomMovementMode, true);
+
+	if (ZodiacMoveComp->IsMovingOnGround())
+	{
+		if (PrevMovementMode == MOVE_Falling || PrevMovementMode == MOVE_Flying)
+		{
+			OnJustLanded();
+		}
+	}
+	else
+	{
+		if (PrevMovementMode == MOVE_Walking || PrevMovementMode == MOVE_NavWalking)
+		{
+			OnJustLifted();
+		}
+	}
 
 #if WITH_EDITOR
 	if (ZodiacConsoleVariables::LogEnabled())
@@ -408,12 +491,11 @@ void AZodiacHostCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode,
 		UE_LOG(LogZodiacMovement, Warning, TEXT("MovementMode: %d, Custom: %d on %s"), MovementMode, CustomMovementMode,  HasAuthority() ? TEXT("server") : TEXT("Client"));	
 	}
 #endif
-	
-	SetMovementModeTag(MovementMode, CustomMovementMode, true);
 }
 
 void AZodiacHostCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled)
 {
+	// MOVE_Walking and MOVE_Traversal tags applied from CharMoveComp to ASC. 
 	if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
 	{
 		const FGameplayTag* MovementModeTag = nullptr;
@@ -426,17 +508,26 @@ void AZodiacHostCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 
 				ZodiacASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
 			}
 		}
+		else if (CustomMovementMode == MOVE_Traversal)
+		{
+			MovementModeTag = ZodiacGameplayTags::CustomMovementModeTagMap.Find(CustomMovementMode);
+			if (MovementModeTag && MovementModeTag->IsValid())
+			{
+				ZodiacASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
+			}
+		}
 	}
 }
 
-void AZodiacHostCharacter::InitializeHostAbilitySystem(UAbilitySystemComponent* InASC)
+void AZodiacHostCharacter::InitializeHostAbilitySystem(UZodiacAbilitySystemComponent* InASC)
 {
 	check(InASC);
 	
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(GetPlayerState(), this);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_Walking_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnAimingTagChanged);	
-	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
+
 	OnHostAbilitySystemComponentLoaded.Broadcast(AbilitySystemComponent);
 	OnHostAbilitySystemComponentLoaded.Clear();
 }
@@ -477,7 +568,7 @@ UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetHeroAbilitySystemCompone
 {
 	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
 	{
-		return Hero->GetZodiacAbilitySystemComponent();
+		return Hero->GetHeroAbilitySystemComponent();
 	}
 	
 	return nullptr;
@@ -536,18 +627,7 @@ void AZodiacHostCharacter::ClearAbilityCameraMode(const FGameplayAbilitySpecHand
 	}
 }
 
-float AZodiacHostCharacter::GetTraversalForwardTraceDistance() const
-{
-	FRotator ActorRotation = GetActorRotation();
-	float ForwardDistance = ActorRotation.UnrotateVector(GetCharacterMovement()->Velocity).X;
-	float ForwardDistanceClamped = FMath::GetMappedRangeValueClamped(FVector2f(0.0f, 500.0f), FVector2f(75.0f, 350.0f), ForwardDistance);
 
-	return ForwardDistanceClamped;
-}
-
-void AZodiacHostCharacter::TryTraversalAction_Implementation(float TraceForwardDistance, bool& bTraversalCheckFailed, bool& bMontageSelectionFailed)
-{
-}
 
 TSubclassOf<UZodiacCameraMode> AZodiacHostCharacter::DetermineCameraMode()
 {
