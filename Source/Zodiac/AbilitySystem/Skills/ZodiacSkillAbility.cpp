@@ -18,7 +18,7 @@ UAbilitySystemComponent* UZodiacSkillAbility::GetHostAbilitySystemComponent() co
 	{
 		if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(CurrentActorInfo->OwnerActor.Get()))
 		{
-			return HostCharacter->GetAbilitySystemComponent();
+			return HostCharacter->GetHostAbilitySystemComponent();
 		}
 	}
 

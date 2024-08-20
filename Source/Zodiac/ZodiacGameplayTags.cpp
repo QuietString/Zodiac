@@ -70,6 +70,7 @@ namespace ZodiacGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Menu, "UI.Layer.Menu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");
+	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_GameMenu, "UI.Layer.GameMenu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Modal, "UI.Layer.Modal");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Action_Escape, "UI.Action.Escape");
 	
@@ -81,6 +82,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillSlot_TagStackChanged, "HUD.Message.SkillSlot.TagStackChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillSlot_Created, "HUD.Message.SkillSlot.Created");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AttributeChanged_Ultimate, "HUD.Message.AttributeChanged.Ultimate");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_ReticleChanged, "HUD.Message.ReticleChanged");
 	
 	// Tags for GameplayCue
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_Rifle_Fire, "GameplayCue.Weapon.Rifle.Fire");

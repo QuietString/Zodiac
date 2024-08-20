@@ -6,10 +6,18 @@
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility_Sprint.h"
 #include "Animation/AnimInstance.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
-#include "Character/ZodiacHostCharacter.h"
 #include "ZodiacHostAnimInstance.generated.h"
 
 class UZodiacCharacterMovementComponent;
+class AZodiacCharacter;
+
+UENUM(BlueprintType)
+enum EZodiacGait
+{
+	Gait_Walk,
+	Gait_Run,
+	Gait_Sprint
+};
 
 UCLASS()
 class ZODIAC_API UZodiacHostAnimInstance : public UAnimInstance
@@ -94,5 +102,5 @@ public:
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<AZodiacHostCharacter> HostCharacter;
+	TObjectPtr<AZodiacCharacter> OwningCharacter;
 };

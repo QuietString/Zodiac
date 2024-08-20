@@ -56,7 +56,7 @@ enum class EZodiacTraversalActionType : uint8
 	Mantle,
 };
 
-USTRUCT(BlueprintType, DisplayName="Traversal Check Result", meta = (HasNativeBreak = "Zodiac.ZodiacTraversalCheckHelper.BreakTraversalCheckResult"))
+USTRUCT(BlueprintType, DisplayName="Traversal Check Result", meta = (HasNativeMake = "/Script/Zodiac.ZodiacTraversalCheckHelper:MakeTraversalCheckResult", HasNativeBreak = "/Script/Zodiac.ZodiacTraversalCheckHelper:BreakTraversalCheckResult"))
 struct FZodiacTraversalCheckResult
 {
 	GENERATED_BODY()

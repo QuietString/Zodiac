@@ -21,23 +21,28 @@ AZodiacPlayerState* AZodiacPlayerController::GetZodiacPlayerState() const
 	return CastChecked<AZodiacPlayerState>(PlayerState);
 }
 
-UZodiacAbilitySystemComponent* AZodiacPlayerController::GetHeroAbilitySystemComponent()
+UZodiacAbilitySystemComponent* AZodiacPlayerController::GetZodiacAbilitySystemComponent()
 {
-	if (AZodiacHostCharacter* ZodiacHostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
+	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetCharacter()))
 	{
-		return ZodiacHostCharacter->GetHeroAbilitySystemComponent();
+		return ZodiacCharacter->GetZodiacAbilitySystemComponent();
 	}
 
 	return nullptr;
 }
 
+FGenericTeamId AZodiacPlayerController::GetGenericTeamId() const
+{
+	return GetZodiacPlayerState()->GetGenericTeamId();
+}
+
 void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
-	if (AZodiacHostCharacter* ZodiacHostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
+	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetCharacter()))
 	{
 		if (IsLocalPlayerController())
 		{
-			if (UZodiacAbilitySystemComponent* ZodiacASC = GetHeroAbilitySystemComponent())
+			if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
 			{
 				ZodiacASC->ProcessAbilityInput(DeltaTime, bGamePaused);
 			}

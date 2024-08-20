@@ -65,7 +65,7 @@ void UZodiacAbilitySet::GiveToAbilitySystem(UZodiacAbilitySystemComponent* Zodia
 	{
 		const FZodiacAbilitySet_AttributeSet& SetToGrant = GrantedAttributes[SetIndex];
 
-		if (!IsValid(SetToGrant.AttributeSet))
+		if (!IsValid(SetToGrant.AttributeSet) || !IsValid(SetToGrant.Table))
 		{
 			UE_LOG(LogZodiacAbilitySystem, Error, TEXT("GrantedAttributes[%d] on ability set [%s] is not valid"), SetIndex, *GetNameSafe(this));
 			continue;

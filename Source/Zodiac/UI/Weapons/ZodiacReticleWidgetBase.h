@@ -6,7 +6,6 @@
 #include "CommonUserWidget.h"
 #include "ZodiacReticleWidgetBase.generated.h"
 
-class UZodiacHeroComponent;
 /**
  * 
  */
@@ -17,13 +16,7 @@ class ZODIAC_API UZodiacReticleWidgetBase : public UCommonUserWidget
 
 public:
 	UZodiacReticleWidgetBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnHeroInitialized();
-
-	//UFUNCTION(BlueprintCallable)
-	//void InitializeFromHero(UZodiacHeroComponent* InHeroComponent);
-
+	
 	/** Returns the current weapon's diametrical spread angle, in degrees */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	float ComputeSpreadAngle() const;
@@ -38,8 +31,4 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool HasFirstShotAccuracy() const;
-
-protected:
-	//UPROPERTY(BlueprintReadOnly)
-	//TObjectPtr<UZodiacHeroComponent> HeroComponent;
 };

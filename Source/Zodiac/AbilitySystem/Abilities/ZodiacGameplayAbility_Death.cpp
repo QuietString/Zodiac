@@ -66,7 +66,7 @@ void UZodiacGameplayAbility_Death::StartDeath()
 {
 	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetOwningActorFromActorInfo()))
 	{
-		if (UZodiacHealthComponent* HealthComponent = HostCharacter->GetCurrentHeroHealthComponent())
+		if (UZodiacHealthComponent* HealthComponent = HostCharacter->GetHealthComponent())
 		{
 			if (HealthComponent->GetDeathState() == EZodiacDeathState::NotDead)
 			{
@@ -80,7 +80,7 @@ void UZodiacGameplayAbility_Death::FinishDeath()
 {
 	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetOwningActorFromActorInfo()))
 	{
-		if (UZodiacHealthComponent* HealthComponent = HostCharacter->GetCurrentHeroHealthComponent())
+		if (UZodiacHealthComponent* HealthComponent = HostCharacter->GetHealthComponent())
 		{
 			if (HealthComponent->GetDeathState() == EZodiacDeathState::DeathStarted)
 			{

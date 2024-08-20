@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Animation/AnimInstance.h"
+#include "Character/ZodiacCharacter.h"
 #include "ZodiacHeroAnimInstance.generated.h"
 
 class UAbilitySystemComponent;
@@ -27,10 +28,10 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION(BlueprintCallable)
-	AZodiacHostCharacter* GetHostCharacter() const;
+	AZodiacCharacter* GetParentCharacter() const;
 
 	UFUNCTION(BlueprintCallable)
-	UZodiacHostAnimInstance* GetHostAnimInstance() const;
+	UZodiacHostAnimInstance* GetParentAnimInstance() const;
 
 	void OnAimingChanged(bool bHasActivated);
 	void OnIsWeaponReadyChanged(bool InIsReady);
@@ -121,8 +122,8 @@ protected:
 	
 private:
 	UPROPERTY()
-	TObjectPtr<AZodiacHostCharacter> HostCharacter;
+	TObjectPtr<AZodiacCharacter> ParentCharacter;
 	
 	UPROPERTY()
-	TObjectPtr<UZodiacHostAnimInstance> HostAnimInstance;
+	TObjectPtr<UZodiacHostAnimInstance> ParentAnimInstance;
 };

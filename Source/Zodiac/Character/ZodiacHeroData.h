@@ -26,21 +26,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
 
-	// UPROPERTY(EditAnywhere, Category = "Attribute")
-	// TArray<FAttributeDefaults> Attributes;
-	//
-	// UPROPERTY(EditAnywhere, Category = "Mesh")
-	// TObjectPtr<USkeletalMesh> HeroMesh;
-	//
-	// UPROPERTY(EditAnywhere, Category = "Mesh")
-	// TObjectPtr<USkeletalMesh> InvisibleMesh;
-	//
-	// UPROPERTY(EditAnywhere, Category = "Mesh")
-	// TSubclassOf<UAnimInstance> HeroAnimInstance;
-
 	// UPROPERTY(EditDefaultsOnly, Category = "Skills", meta=(DisplayName = "Skill Slots", Categories = "SkillSlot"))
 	// TMap<FGameplayTag, TObjectPtr<UZodiacSkillSlotDefinition>> SkillSlotDefinitions;
 
-	//UPROPERTY(EditAnywhere, Category = "Display")
-	//TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;
+	UPROPERTY(EditAnywhere, Category = "Display")
+	TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;
 };

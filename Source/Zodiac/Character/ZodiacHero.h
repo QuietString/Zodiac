@@ -8,6 +8,8 @@
 #include "GameFramework/Actor.h"
 #include "ZodiacHero.generated.h"
 
+class UZodiacHUDManagerComponent;
+struct FZodiacHeroList;
 class UInputMappingContext;
 class UZodiacHeroAbilitySystemComponent;
 class UZodiacCharacterMovementComponent;
@@ -30,17 +32,21 @@ public:
 	virtual void BeginPlay() override;
 	virtual void OnRep_Owner() override;
 	//~End of AActor interface
-
+	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	TObjectPtr<UZodiacAbilitySystemComponent> GetHeroAbilitySystemComponent() const;
+	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
 
+	const UZodiacHeroData* GetHeroData() const { return HeroData; }
 	AZodiacHostCharacter* GetHostCharacter() const;
 	UZodiacHealthComponent* GetHealthComponent() const;
 	USkeletalMeshComponent* GetMesh() { return Mesh; }
+
+	int32 GetIndex() const { return Index; }
 	
 	void Activate();
 	void Deactivate();
-
+	FSimpleMulticastDelegate OnHeroActivated;
+	
 protected:
 	void Initialize();
 	
@@ -51,7 +57,7 @@ protected:
 	void AttachToOwner();
 
 	void OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* HostASC);
-	
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USkeletalMeshComponent> Mesh;
@@ -62,18 +68,26 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
 
+	UPROPERTY()
+	TObjectPtr<UZodiacHUDManagerComponent> HUDManagerComponent;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	const UZodiacHeroData* HeroData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Shape, meta=(ClampMin="0", UIMin="0"))
-	float CapsuleHalfHeight;
+	float CapsuleHalfHeight = 88.0f;;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=Shape, meta=(ClampMin="0", UIMin="0"))
-	float CapsuleRadius;
+	float CapsuleRadius = 40.0f;
 	
 private:
+	friend FZodiacHeroList;
+	
 	UPROPERTY()
 	TObjectPtr<AZodiacHostCharacter> HostCharacter;
+
+	UPROPERTY()
+	int32 Index = INDEX_NONE;
 	
 	// Initial use only for initialization on a client.
 	UPROPERTY(ReplicatedUsing=OnRep_bIsActive)

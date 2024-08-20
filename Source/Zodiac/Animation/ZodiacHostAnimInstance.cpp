@@ -4,6 +4,7 @@
 #include "ZodiacHostAnimInstance.h"
 
 #include "ZodiacGameplayTags.h"
+#include "Character/ZodiacCharacter.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -16,20 +17,20 @@ void UZodiacHostAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponen
 
 void UZodiacHostAnimInstance::NativeInitializeAnimation()
 {
-	if (AZodiacHostCharacter* PawnOwner = Cast<AZodiacHostCharacter>(TryGetPawnOwner()))
+	if (AZodiacCharacter* PawnOwner = Cast<AZodiacCharacter>(TryGetPawnOwner()))
 	{
-		HostCharacter = PawnOwner;
-		HostCharacter->CallOrRegister_OnAbilitySystemInitialized(FOnHostAbilitySystemComponentLoaded::FDelegate::CreateUObject(this, &ThisClass::InitializeWithAbilitySystem));
+		OwningCharacter = PawnOwner;
+		OwningCharacter->CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySystemComponentInitialized::FDelegate::CreateUObject(this, &ThisClass::InitializeWithAbilitySystem));
 	}
 }
 
 void UZodiacHostAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
-	if (AZodiacHostCharacter* PawnOwner = Cast<AZodiacHostCharacter>(TryGetPawnOwner()))
+	if (AZodiacCharacter* PawnOwner = Cast<AZodiacCharacter>(TryGetPawnOwner()))
 	{
-		HostCharacter = PawnOwner;
+		OwningCharacter = PawnOwner;
 		
-		if (UZodiacCharacterMovementComponent* CharacterMovement = Cast<UZodiacCharacterMovementComponent>(HostCharacter->GetCharacterMovement()))
+		if (UZodiacCharacterMovementComponent* CharacterMovement = Cast<UZodiacCharacterMovementComponent>(OwningCharacter->GetCharacterMovement()))
 		{
 			ZodiacCharMovComp = CharacterMovement;	
 		}

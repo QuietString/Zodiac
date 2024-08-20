@@ -9,6 +9,7 @@
 #include "Engine/DataAsset.h"
 #include "ZodiacAbilitySet.generated.h"
 
+class UInputMappingContext;
 class UZodiacSkillManagerComponent;
 class UZodiacGameplayAbility;
 struct FActiveGameplayEffectHandle;
@@ -99,7 +100,6 @@ public:
 	UZodiacAbilitySet(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void GiveToAbilitySystem(UZodiacAbilitySystemComponent* ZodiacASC, FZodiacAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
-
 protected:
 	// Gameplay abilities to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly)

@@ -2,13 +2,14 @@
 
 #pragma once
 
-#include "UI/HUD/ZodiacHeroWidgetBase.h"
+#include "CommonUserWidget.h"
+
 
 #include "ZodiacWeaponUserInterface.generated.h"
 
 
 UCLASS()
-class UZodiacWeaponUserInterface : public UZodiacHeroWidgetBase
+class UZodiacWeaponUserInterface : public UCommonUserWidget
 {
 	GENERATED_BODY()
 
@@ -17,9 +18,4 @@ public:
 
 protected:
 
-	//virtual void HandleHeroChanged(UZodiacHeroComponent* HeroComponent) override;
-	
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnHeroChanged(TSubclassOf<UZodiacReticleWidgetBase> ReticleWidget);
-	
 };

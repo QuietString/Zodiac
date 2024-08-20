@@ -8,7 +8,6 @@
 #include "ZodiacHeroList.generated.h"
 
 struct FZodiacHeroList;
-class AZodiacHostCharacter;
 class UZodiacAbilitySystemComponent;
 class AZodiacHero;
 class UGameplayAbility;
@@ -46,7 +45,7 @@ struct FZodiacHeroList : public FFastArraySerializer
 	}
 	
 public:
-	AZodiacHero* AddEntry(TSubclassOf<AZodiacHero> HeroClass, UWorld* World);
+	AZodiacHero* AddEntry(UWorld* World, TSubclassOf<AZodiacHero> HeroClass, int Index);
 	void RemoveEntry(AZodiacHero* Instance);
 
 	AZodiacHero* GetHero(const int32 Index) const;

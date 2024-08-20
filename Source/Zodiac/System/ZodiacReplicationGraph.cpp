@@ -84,7 +84,7 @@
 #include "UObject/UObjectIterator.h"
 
 #include "ZodiacReplicationGraphSettings.h"
-#include "Character/ZodiacHostCharacter.h"
+#include "Character/ZodiacCharacter.h"
 #include "Player/ZodiacPlayerController.h"
 
 DEFINE_LOG_CATEGORY( LogZodiacRepGraph );
@@ -415,13 +415,13 @@ void UZodiacReplicationGraph::InitGlobalActorClassSettings()
 	CharacterClassRepInfo.DistancePriorityScale = 1.f;
 	CharacterClassRepInfo.StarvationPriorityScale = 1.f;
 	CharacterClassRepInfo.ActorChannelFrameTimeout = 4;
-	CharacterClassRepInfo.SetCullDistanceSquared(AZodiacHostCharacter::StaticClass()->GetDefaultObject<AZodiacHostCharacter>()->NetCullDistanceSquared);
+	CharacterClassRepInfo.SetCullDistanceSquared(AZodiacCharacter::StaticClass()->GetDefaultObject<AZodiacCharacter>()->NetCullDistanceSquared);
 
 	SetClassInfo(ACharacter::StaticClass(), CharacterClassRepInfo);
 
 	{
 		// Sanity check our FSharedRepMovement type has the same quantization settings as the default character.
-		FRepMovement DefaultRepMovement = AZodiacHostCharacter::StaticClass()->GetDefaultObject<AZodiacHostCharacter>()->GetReplicatedMovement(); // Use the same quantization settings as our default replicatedmovement
+		FRepMovement DefaultRepMovement = AZodiacCharacter::StaticClass()->GetDefaultObject<AZodiacCharacter>()->GetReplicatedMovement(); // Use the same quantization settings as our default replicatedmovement
 		FSharedRepMovement SharedRepMovement;
 		ensureMsgf(SharedRepMovement.RepMovement.LocationQuantizationLevel == DefaultRepMovement.LocationQuantizationLevel, TEXT("LocationQuantizationLevel mismatch. %d != %d"), (uint8)SharedRepMovement.RepMovement.LocationQuantizationLevel, (uint8)DefaultRepMovement.LocationQuantizationLevel);
 		ensureMsgf(SharedRepMovement.RepMovement.VelocityQuantizationLevel == DefaultRepMovement.VelocityQuantizationLevel, TEXT("VelocityQuantizationLevel mismatch. %d != %d"), (uint8)SharedRepMovement.RepMovement.VelocityQuantizationLevel, (uint8)DefaultRepMovement.VelocityQuantizationLevel);
@@ -435,7 +435,7 @@ void UZodiacReplicationGraph::InitGlobalActorClassSettings()
 	CharacterClassRepInfo.FastSharedReplicationFunc = [](AActor* Actor)
 	{
 		bool bSuccess = false;
-		if (AZodiacHostCharacter* Character = Cast<AZodiacHostCharacter>(Actor))
+		if (AZodiacCharacter* Character = Cast<AZodiacCharacter>(Actor))
 		{
 			bSuccess = Character->UpdateSharedReplication();
 		}
@@ -447,7 +447,7 @@ void UZodiacReplicationGraph::InitGlobalActorClassSettings()
 	FastSharedPathConstants.MaxBitsPerFrame = (int32)((float)(Zodiac::RepGraph::TargetKBytesSecFastSharedPath * 1024 * 8) / NetDriver->GetNetServerMaxTickRate());
 	FastSharedPathConstants.DistanceRequirementPct = Zodiac::RepGraph::FastSharedPathCullDistPct;
 
-	SetClassInfo(AZodiacHostCharacter::StaticClass(), CharacterClassRepInfo);
+	SetClassInfo(AZodiacCharacter::StaticClass(), CharacterClassRepInfo);
 
 	// ---------------------------------------------------------------------
 	UReplicationGraphNode_ActorListFrequencyBuckets::DefaultSettings.ListSize = 12;
@@ -709,7 +709,7 @@ void UZodiacReplicationGraphNode_AlwaysRelevant_ForConnection::GatherActorListsF
 
 			FCachedAlwaysRelevantActorInfo& LastData = PastRelevantActorMap.FindOrAdd(CurViewer.Connection);
 
-			if (AZodiacHostCharacter* Pawn = Cast<AZodiacHostCharacter>(PC->GetPawn()))
+			if (AZodiacCharacter* Pawn = Cast<AZodiacCharacter>(PC->GetPawn()))
 			{
 				UpdateCachedRelevantActor(Params, Pawn, LastData.LastViewer);
 
@@ -719,7 +719,7 @@ void UZodiacReplicationGraphNode_AlwaysRelevant_ForConnection::GatherActorListsF
 				}
 			}
 
-			if (AZodiacHostCharacter* ViewTargetPawn = Cast<AZodiacHostCharacter>(CurViewer.ViewTarget))
+			if (AZodiacCharacter* ViewTargetPawn = Cast<AZodiacCharacter>(CurViewer.ViewTarget))
 			{
 				UpdateCachedRelevantActor(Params, ViewTargetPawn, LastData.LastViewTarget);
 			}

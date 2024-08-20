@@ -9,7 +9,6 @@
 
 class UZodiacAbilitySystemComponent;
 class UZodiacAbilityCost;
-class UZodiacHeroComponent;
 class AZodiacPlayerController;
 class UZodiacCameraMode;
 class AZodiacHostCharacter;

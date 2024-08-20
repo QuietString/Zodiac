@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHostAnimInstance.h"
+#include "Character/ZodiacCharacterMovementComponent.h"
 #include "Character/ZodiacHero.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -23,10 +24,10 @@ void UZodiacHeroAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
 
 	AActor* OwningActor = GetOwningActor();
-	HostCharacter = GetHostCharacter();
-	HostAnimInstance = GetHostAnimInstance();
+	ParentCharacter = GetParentCharacter();
+	ParentAnimInstance = GetParentAnimInstance();
 	
-	if (!HostCharacter)
+	if (!ParentCharacter)
 	{
 		return;
 	}
@@ -37,8 +38,13 @@ void UZodiacHeroAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 	UpdateBlendData(DeltaSeconds);
 }
 
-AZodiacHostCharacter* UZodiacHeroAnimInstance::GetHostCharacter() const
+AZodiacCharacter* UZodiacHeroAnimInstance::GetParentCharacter() const
 {
+	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetOwningActor()))
+	{
+		return ZodiacCharacter;
+	}
+	
 	if (AZodiacHero* Hero = Cast<AZodiacHero>(GetOwningActor()))
 	{
 		return Hero->GetHostCharacter();
@@ -47,11 +53,11 @@ AZodiacHostCharacter* UZodiacHeroAnimInstance::GetHostCharacter() const
 	return nullptr;
 }
 
-UZodiacHostAnimInstance* UZodiacHeroAnimInstance::GetHostAnimInstance() const
+UZodiacHostAnimInstance* UZodiacHeroAnimInstance::GetParentAnimInstance() const
 {
-	if (HostCharacter)
+	if (ParentCharacter)
 	{
-		return  Cast<UZodiacHostAnimInstance>(HostCharacter->GetMesh()->GetAnimInstance());
+		return  Cast<UZodiacHostAnimInstance>(ParentCharacter->GetMesh()->GetAnimInstance());
 	}
 
 	return nullptr;
@@ -97,8 +103,8 @@ void UZodiacHeroAnimInstance::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 void UZodiacHeroAnimInstance::UpdateMovementData()
 {
 	//bIsFocus = HostAnimInstance->bIsFocus;
-	bIsADS = HostAnimInstance->bIsADS;
-	bIsTraversal = HostAnimInstance->CustomMovement == MOVE_Traversal;
+	bIsADS = ParentAnimInstance->bIsADS;
+	bIsTraversal = ParentAnimInstance->CustomMovement == MOVE_Traversal;
 }
 
 void UZodiacHeroAnimInstance::UpdateRotationData(float DeltaSeconds, AActor* OwningActor)
@@ -108,10 +114,10 @@ void UZodiacHeroAnimInstance::UpdateRotationData(float DeltaSeconds, AActor* Own
 
 void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 {
-	if (HostAnimInstance)
+	if (ParentAnimInstance)
 	{
-		FRotator AimRotation = HostCharacter->GetBaseAimRotation();
-		FRotator RootTransform = HostAnimInstance->RootTransform.Rotator();
+		FRotator AimRotation = ParentCharacter->GetBaseAimRotation();
+		FRotator RootTransform = ParentAnimInstance->RootTransform.Rotator();
 		FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
 
 		bShouldRaise_RightArm = (!bIsTraversal) && bIsFocus;

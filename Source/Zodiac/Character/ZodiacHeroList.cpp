@@ -5,7 +5,7 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroList)
 
-AZodiacHero* FZodiacHeroList::AddEntry(TSubclassOf<AZodiacHero> HeroClass, UWorld* World)
+AZodiacHero* FZodiacHeroList::AddEntry(UWorld* World, TSubclassOf<AZodiacHero> HeroClass, int Index)
 {
 	AZodiacHero* Result = nullptr;
 	check(HeroClass);
@@ -16,7 +16,8 @@ AZodiacHero* FZodiacHeroList::AddEntry(TSubclassOf<AZodiacHero> HeroClass, UWorl
 	Params.Owner = Owner;
 
 	AZodiacHero* Hero = World->SpawnActor<AZodiacHero>(HeroClass, Params);
-
+	Hero->Index = Index;
+	
 	FZodiacHeroEntry& NewEntry = Heroes.AddDefaulted_GetRef();
 	NewEntry.Actor = Hero;
 	

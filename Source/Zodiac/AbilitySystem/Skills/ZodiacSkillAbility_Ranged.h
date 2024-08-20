@@ -4,33 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Skills/ZodiacSkillAbility.h"
-#include "ZodiacSkillAbility_Traced.generated.h"
+#include "ZodiacSkillAbility_Ranged.generated.h"
 
 /** Defines where an ability starts its trace from and where it should face */
 UENUM(BlueprintType)
 enum class EZodiacAbilityAimTraceRule : uint8
 {
-	// From the player's camera towards camera focus
-	CameraTowardsFocus,
-	// From the pawn's center, in the pawn's orientation
-	PawnForward,
-	// From the pawn's center, oriented towards camera focus
-	PawnTowardsFocus,
-	// From the weapon's muzzle or location, in the pawn's orientation
-	WeaponForward,
-	// From the weapon's muzzle or location, towards camera focus
-	WeaponTowardsFocus,
-	// Custom blueprint-specified source location
-	Custom
+	CameraTowardsFocus			UMETA(ToolTip = "From the player's camera towards camera focus"),
+	PawnForward					UMETA(ToolTip = "From the pawn's center, in the pawn's orientation"),
+	PawnTowardsFocus			UMETA(ToolTip = "From the weapon's muzzle or location, in the pawn's orientation"),
+	WeaponForward				UMETA(ToolTip = "From the weapon's muzzle or location, in the pawn's orientation"),
+	WeaponTowardsFocus			UMETA(ToolTip = "From the weapon's muzzle or location, towards camera focus"),
+	WeaponTowardsFocusHit	UMETA(ToolTip = "From the weapon's muzzle or location, towards focus trace hit"),
+	Custom						UMETA(ToolTip = "Custom blueprint-specified source location")
 };
 
 UCLASS()
-class ZODIAC_API UZodiacSkillAbility_Traced : public UZodiacSkillAbility
+class ZODIAC_API UZodiacSkillAbility_Ranged : public UZodiacSkillAbility
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacSkillAbility_Traced(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UZodiacSkillAbility_Ranged(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
@@ -71,10 +66,10 @@ protected:
 	FVector GetTargetingSourceLocation() const;
 	
 	UFUNCTION(BlueprintCallable)
-	FTransform GetTargetingTransform() const;
+	FTransform GetTargetingTransform(EZodiacAbilityAimTraceRule TraceRule) const;
 
 	UFUNCTION(BlueprintCallable)
-	FTransform GetFXTargetingTransform() const;
+	FTransform GetWeaponTargetingTransform() const;
 	
 	FTransform GetTargetingTransform(APawn* OwningPawn, AActor* SourceActor, EZodiacAbilityAimTraceRule Source) const;
 

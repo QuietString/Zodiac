@@ -13,6 +13,7 @@
 #include "AbilitySystem/ZodiacHeroAbilitySystemComponent.h"
 #include "Animation/ZodiacHeroAnimInstance.h"
 #include "Components/CapsuleComponent.h"
+#include "ZodiacHUDManagerComponent.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHero)
@@ -42,6 +43,8 @@ AZodiacHero::AZodiacHero(const FObjectInitializer& ObjectInitializer)
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+
+	HUDManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHUDManagerComponent>(this, TEXT("HUD Manager"));
 }
 
 void AZodiacHero::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -76,7 +79,7 @@ UAbilitySystemComponent* AZodiacHero::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
-TObjectPtr<UZodiacAbilitySystemComponent> AZodiacHero::GetHeroAbilitySystemComponent() const
+UZodiacAbilitySystemComponent* AZodiacHero::GetHeroAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
@@ -98,7 +101,10 @@ void AZodiacHero::InitializeAbilitySystem()
 	{
 		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
 		{
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+			if (AbilitySet)
+			{
+				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
+			}
 		}
 	}
 	
@@ -109,7 +115,7 @@ void AZodiacHero::OnStatusTagChanged(FGameplayTag Tag, int Count)
 {
 	check(HostCharacter);
 	
-	if (UAbilitySystemComponent* HostASC = HostCharacter->GetAbilitySystemComponent())
+	if (UAbilitySystemComponent* HostASC = HostCharacter->GetHostAbilitySystemComponent())
 	{
 		bool bHasTag = Count > 0;
 		int32 NewCount = bHasTag ? 1 : 0;
@@ -128,6 +134,8 @@ UZodiacHealthComponent* AZodiacHero::GetHealthComponent() const
 
 void AZodiacHero::Activate()
 {
+	bIsActive =  true;
+
 	Mesh->SetVisibility(true);
 	if (ACharacter* Character = Cast<ACharacter>(Owner))
 	{
@@ -136,8 +144,10 @@ void AZodiacHero::Activate()
 			Capsule->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 		}
 	}
- 	bIsActive =  true;
+	
+	OnHeroActivated.Broadcast();
 
+	
 	// @TODO: change tick option for optimization.
 	//Mesh->VisibilityBasedAnimTickOption = 
 }
@@ -153,7 +163,7 @@ void AZodiacHero::Initialize()
 	HostCharacter = Cast<AZodiacHostCharacter>(Owner);
 	if (HostCharacter)
 	{
-		HostCharacter->CallOrRegister_OnAbilitySystemInitialized(FOnHostAbilitySystemComponentLoaded::FDelegate::CreateUObject(this, &ThisClass::OnHostAbilitySystemComponentInitialized));
+		HostCharacter->CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySystemComponentInitialized::FDelegate::CreateUObject(this, &ThisClass::OnHostAbilitySystemComponentInitialized));
 		
 		AttachToOwner();
 		InitializeAbilitySystem();
