@@ -62,8 +62,6 @@ protected:
 	void OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 	
 	void PerformLocalTargeting(OUT TArray<FHitResult>& OutHits);
-
-	FVector GetTargetingSourceLocation() const;
 	
 	UFUNCTION(BlueprintCallable)
 	FTransform GetTargetingTransform(EZodiacAbilityAimTraceRule TraceRule) const;

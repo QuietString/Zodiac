@@ -2,7 +2,6 @@
 
 #include "ZodiacHostCharacter.h"
 
-#include "ZodiacAIController.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHero.h"
 #include "ZodiacLogChannels.h"
@@ -95,19 +94,6 @@ void AZodiacHostCharacter::OnJustLanded()
 		FScopedPredictionWindow NewScopedWindow(HeroASC, true);
 		HeroASC->HandleGameplayEvent(Payload.EventTag, &Payload);
 	}
-}
-
-void AZodiacHostCharacter::InitializeHostAbilitySystem(UZodiacAbilitySystemComponent* InASC)
-{
-	// check(InASC);
-	//
-	// HostAbilitySystemComponent = InASC;
-	// HostAbilitySystemComponent->InitAbilityActorInfo(GetPlayerState(), this);
-	// HostAbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
-	// HostAbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
-	//
-	// OnAbilitySystemComponentInitialized.Broadcast(HostAbilitySystemComponent);
-	// OnAbilitySystemComponentInitialized.Clear();
 }
 
 UAbilitySystemComponent* AZodiacHostCharacter::GetAbilitySystemComponent() const

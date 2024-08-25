@@ -70,7 +70,8 @@ struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBas
 		WithNetSharedSerialization = true,
 	};
 };
-UCLASS()
+
+UCLASS(BlueprintType)
 class ZODIAC_API AZodiacCharacter : public ACharacter, public IAbilitySystemInterface, public IZodiacTeamAgentInterface
 {
 	GENERATED_BODY()

@@ -14,6 +14,16 @@
 
 UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Zodiac_Elimination_Message, "Zodiac.Elimination.Message");
 
+namespace ZodiacConsoleVariables
+{
+	static bool EnableLogHealthChange = false;
+	static FAutoConsoleVariableRef CVarEnableLogHealthChange(
+		TEXT("zodiac.LogChannel.HealthChange"),
+		EnableLogHealthChange,
+		TEXT("Should we log debug information of health change"),
+		ECVF_Default);
+}
+
 UZodiacHealthComponent::UZodiacHealthComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -136,7 +146,12 @@ void UZodiacHealthComponent::HandleHealthChanged(AActor* DamageInstigator, AActo
 {
 	OnHealthChanged.Broadcast(this, OldValue, NewValue, DamageInstigator);
 
-	UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);
+#if WITH_EDITOR
+	if (ZodiacConsoleVariables::EnableLogHealthChange)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);
+	}
+#endif
 }
 
 void UZodiacHealthComponent::HandleMaxHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)

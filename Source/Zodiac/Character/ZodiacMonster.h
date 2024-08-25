@@ -26,4 +26,8 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	const UZodiacHeroData* HeroData;
+
+private:
+	UPROPERTY()
+	TObjectPtr<UZodiacHealthComponent> HealthComponent;
 };

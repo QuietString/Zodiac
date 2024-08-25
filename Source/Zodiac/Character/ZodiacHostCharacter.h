@@ -28,8 +28,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
 	
-	void InitializeHostAbilitySystem(UZodiacAbilitySystemComponent* InASC);
-
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
 
 	void ChangeHero(const int32 Index);

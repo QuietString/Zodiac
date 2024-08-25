@@ -4,11 +4,13 @@
 #include "ZodiacMonster.h"
 
 #include "ZodiacAIController.h"
+#include "ZodiacHealthComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 
 AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
 }
 
 UAbilitySystemComponent* AZodiacMonster::GetAbilitySystemComponent() const
@@ -27,7 +29,7 @@ void AZodiacMonster::PossessedBy(AController* NewController)
 
 	if (AZodiacAIController* ZodiacAC = Cast<AZodiacAIController>(NewController))
 	{
-		if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+		if (UZodiacAbilitySystemComponent* ZodiacASC = ZodiacAC->GetZodiacAbilitySystemComponent())
 		{
 			InitializeAbilitySystem(ZodiacASC, ZodiacAC);
 		}
@@ -48,4 +50,6 @@ void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InAS
 			}
 		}
 	}
+
+	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 }

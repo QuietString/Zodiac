@@ -211,7 +211,7 @@ void UZodiacSkillAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, co
 	}
 }
 
-FVector UZodiacSkillAbility::GetFXSourceLocation() const
+FVector UZodiacSkillAbility::GetWeaponLocation() const
 {
 	if (USkeletalMeshComponent* MeshComponent =  GetOwningComponentFromActorInfo())
 	{
@@ -219,6 +219,8 @@ FVector UZodiacSkillAbility::GetFXSourceLocation() const
 		{
 			return MeshComponent->GetSocketLocation(ComboSockets[ComboIndex]);	
 		}
+
+		return MeshComponent->GetSocketLocation(FName());
 	}
 
 	return  FVector();

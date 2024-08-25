@@ -126,15 +126,9 @@ void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 		bool bIsSlotActive = IsSlotActive(FName("Weapon_Additive"));
 		bool bIsRightPistolSlotActive = IsSlotActive(FName("Weapon_RightPistolAdditive"));
 
-		bShouldReveal_LeftPistol = bAnimNotify_RevealLeftPistol || (bIsADS && bIsWeaponReady) || bIsSlotActive;
+		bShouldReveal_LeftPistol = bAnimNotify_RevealLeftPistol || (bIsADS && bIsWeaponReady);
 		bShouldReveal_RightPistol = (bAnimNotify_RevealRightPistol && bIsFocus) || (bIsFocus && bIsWeaponReady) || bIsRightPistolSlotActive || bShouldReveal_LeftPistol;
-
-		// if (bIsGunsHidden && bIsAiming)
-		// {
-		// 	// set true from an animation blueprint
-		// 	bIsGunsHidden = false;
-		// }
-
+		
 		bApplyAimOffSet = (bShouldRaise_LeftArm | bShouldRaise_RightArm | bIsADS);
 
 		AimPitch = (bApplyAimOffSet) ? Delta.Pitch : FMath::Lerp(AimPitch, 0.0f, DeltaSeconds * 5.0f);

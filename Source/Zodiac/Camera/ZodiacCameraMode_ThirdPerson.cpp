@@ -192,12 +192,6 @@ void UZodiacCameraMode_ThirdPerson::PreventCameraPenetration(class AActor const&
 
 	SphereParams.AddIgnoredActor(&ViewTarget);
 
-	//TODO IZodiacCameraTarget.GetIgnoredActorsForCameraPenetration();
-	//if (IgnoreActorForCameraPenetration)
-	//{
-	//	SphereParams.AddIgnoredActor(IgnoreActorForCameraPenetration);
-	//}
-
 	FCollisionShape SphereShape = FCollisionShape::MakeSphere(0.f);
 	UWorld* World = GetWorld();
 
@@ -232,7 +226,7 @@ void UZodiacCameraMode_ThirdPerson::PreventCameraPenetration(class AActor const&
 				DrawDebugSphere(World, bHit ? Hit.Location : RayTarget, SphereShape.Sphere.Radius, 8, FColor::Red);
 				DrawDebugLine(World, SafeLoc, bHit ? Hit.Location : RayTarget, FColor::Red);
 			}
-#endif // ENABLE_DRAW_DEBUG
+#endif
 
 			Feeler.FramesUntilNextTrace = Feeler.TraceInterval;
 

@@ -40,7 +40,7 @@ namespace ZodiacConsoleVariables
 	static bool bDrawTargetingTraceHit = false;
 	static FAutoConsoleVariableRef CVarDrawTargetingTraceHit(
 		TEXT("zodiac.Weapon.DrawTargetingTraceHit"),
-		DrawBulletHitRadius,
+		bDrawTargetingTraceHit,
 		TEXT("Should we do debug drawing for weapon targeting trace hit"),
 		ECVF_Default);
 }
@@ -207,11 +207,6 @@ void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHi
 	OutHits.Add(HitResult);
 }
 
-FVector UZodiacSkillAbility_Ranged::GetTargetingSourceLocation() const
-{
-	return GetFXSourceLocation();
-}
-
 FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(const EZodiacAbilityAimTraceRule TraceRule) const
 {
 	AZodiacHero* HeroActor = Cast<AZodiacHero>(GetCurrentActorInfo()->AvatarActor);
@@ -260,7 +255,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, 
 		}
 		else // for AI controlled Pawn
 		{
-			SourceLoc = GetTargetingSourceLocation();
+			SourceLoc = GetWeaponLocation();
 			CamLoc = SourceLoc;
 			CamRot = Controller->GetControlRotation();
 		}
@@ -280,7 +275,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, 
 			}
 			else
 			{
-				const FVector WeaponLoc = GetTargetingSourceLocation();
+				const FVector WeaponLoc = GetWeaponLocation();
 				CamLoc = FocalLoc + (((WeaponLoc - FocalLoc) | AimDir) * AimDir);
 			}
 
@@ -306,7 +301,10 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, 
 
 			const ECollisionChannel TraceChannel = ECC_Visibility;
 			bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, CamLoc, FocalLoc, TraceChannel, Params);
-			FocalLoc = HitResult.ImpactPoint;
+
+			float FallbackFocalDistance = 2000.0f;
+			FVector FallbackFocalLoc = CamLoc + (AimDir * FallbackFocalDistance);
+			FocalLoc =  bHit ? HitResult.ImpactPoint : FallbackFocalLoc;
 
 #if ENABLE_DRAW_DEBUG
 			if (ZodiacConsoleVariables::bDrawTargetingTraceHit)
@@ -327,7 +325,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, 
 
 	if ((Source == EZodiacAbilityAimTraceRule::WeaponForward) || (Source == EZodiacAbilityAimTraceRule::WeaponTowardsFocus) || (Source == EZodiacAbilityAimTraceRule::WeaponTowardsFocusHit))
 	{
-		SourceLoc = GetFXSourceLocation();
+		SourceLoc = GetWeaponLocation();
 	}
 	else
 	{

@@ -5,6 +5,8 @@
 
 #include "Net/UnrealNetwork.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCombatSet)
+
 UZodiacCombatSet::UZodiacCombatSet()
 	: BaseDamage(50.0f)
 	, BaseHeal(0.0f)
