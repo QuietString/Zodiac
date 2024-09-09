@@ -164,7 +164,7 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 #if WITH_SERVER_CODE
 	if (AbilitySystemComponent && DamageEffectSpec)
 	{
-		// Send the "GameplayEvent.Death" gameplay event through the owner's ability system.  This can be used to trigger a death gameplay ability.
+		// Send the "Event.Death" gameplay event through the owner's ability system.  This can be used to trigger a death gameplay ability.
 		{
 			FGameplayEventData Payload;
 			Payload.EventTag = ZodiacGameplayTags::Event_Death;

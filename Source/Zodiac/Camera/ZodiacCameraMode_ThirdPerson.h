@@ -21,7 +21,6 @@ class UZodiacCameraMode_ThirdPerson : public UZodiacCameraMode
 	GENERATED_BODY()
 
 public:
-
 	UZodiacCameraMode_ThirdPerson();
 
 protected:

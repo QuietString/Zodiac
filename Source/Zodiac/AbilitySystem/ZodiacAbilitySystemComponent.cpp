@@ -77,7 +77,7 @@ void UZodiacAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 		// 	GlobalAbilitySystem->RegisterASC(this);
 		// }
 		
-		//TryActivateAbilitiesOnSpawn();
+		TryActivateAbilitiesOnSpawn();
 	}
 }
 

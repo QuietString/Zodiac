@@ -25,6 +25,7 @@ public:
 	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const override;
 	UZodiacAbilitySystemComponent* GetHostAbilitySystemComponent() const;
 
+	
 	UFUNCTION(BlueprintCallable)
 	virtual UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
 	

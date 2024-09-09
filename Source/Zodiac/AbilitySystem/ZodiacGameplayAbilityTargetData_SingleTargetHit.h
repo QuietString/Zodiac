@@ -9,7 +9,6 @@
 class FArchive;
 struct FGameplayEffectContextHandle;
 
-
 /** Game-specific additions to SingleTargetHit tracking */
 USTRUCT()
 struct FZodiacGameplayAbilityTargetData_SingleTargetHit : public FGameplayAbilityTargetData_SingleTargetHit

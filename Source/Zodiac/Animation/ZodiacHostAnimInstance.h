@@ -58,6 +58,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector Velocity_LastNonZero;
 
+	// Predicted velocity by trajectory. Doesn't work with root motion.
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FVector FutureVelocity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsMoving;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float Speed2D;
 	
@@ -81,6 +88,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsFocus;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsDead;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement;
@@ -89,7 +99,7 @@ public:
 	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement_Last;
 	
 	UPROPERTY( BlueprintReadWrite)
-	float AimYaw;
+	float AimYaw; 
 
 	UPROPERTY(BlueprintReadWrite)
 	float AimPitch;

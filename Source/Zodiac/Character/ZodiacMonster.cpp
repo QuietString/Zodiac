@@ -4,36 +4,68 @@
 #include "ZodiacMonster.h"
 
 #include "ZodiacAIController.h"
+#include "ZodiacGameplayTags.h"
 #include "ZodiacHealthComponent.h"
+#include "ZodiacHero.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
+#include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+}
+
+void AZodiacMonster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, AIState);
 }
 
 UAbilitySystemComponent* AZodiacMonster::GetAbilitySystemComponent() const
 {
+	return AbilitySystemComponent;
+}
+
+UZodiacHealthComponent* AZodiacMonster::GetHealthComponent() const
+{
+	return HealthComponent;
+}
+
+FGenericTeamId AZodiacMonster::GetGenericTeamId() const
+{
 	if (AZodiacAIController* ZodiacAC = GetController<AZodiacAIController>())
 	{
-		return ZodiacAC->GetAbilitySystemComponent();
+		return ZodiacAC->GetGenericTeamId();
 	}
-
-	return nullptr;
+	
+	return static_cast<uint8>(EZodiacTeam::NoTeam);
 }
 
 void AZodiacMonster::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
-	if (AZodiacAIController* ZodiacAC = Cast<AZodiacAIController>(NewController))
-	{
-		if (UZodiacAbilitySystemComponent* ZodiacASC = ZodiacAC->GetZodiacAbilitySystemComponent())
-		{
-			InitializeAbilitySystem(ZodiacASC, ZodiacAC);
-		}
-	}
+	InitializeAbilitySystem(AbilitySystemComponent, this);
+}
+
+void AZodiacMonster::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	UWorld* World = GetWorld();
+	
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.Owner = this;
+
+	AZodiacHero* Hero = World->SpawnActor<AZodiacHero>(HeroClass, Params);
 }
 
 void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner)
@@ -50,6 +82,6 @@ void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InAS
 			}
 		}
 	}
-
+	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 }

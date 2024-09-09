@@ -7,6 +7,7 @@
 #include "System/GameplayTagStack.h"
 #include "ZodiacGameplayAbility.generated.h"
 
+class AZodiacCharacter;
 class UZodiacAbilitySystemComponent;
 class UZodiacAbilityCost;
 class AZodiacPlayerController;
@@ -84,6 +85,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AZodiacHostCharacter* GetZodiacHostCharacterFromActorInfo() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
+	AZodiacCharacter* GetZodiacCharacterFromActorInfo() const;
+	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AController* GetControllerFromActorInfo() const;
 

@@ -11,39 +11,19 @@ class UPrimitiveComponent;
 
 namespace ZodiacConsoleVariables
 {
-	static TAutoConsoleVariable<bool> CVarTraversalEnableLogging(
-		TEXT("zodiac.Traversal.EnableLogging"),
+	static TAutoConsoleVariable<bool> CVarTraversalDrawDebug(
+		TEXT("zodiac.Traversal.DrawDebug"),
 		false,
 		TEXT(""));
 
-	static TAutoConsoleVariable<bool> CVarTraversalDrawFindBlockTrace(
-		TEXT("zodiac.Traversal.DrawFindBlockTrace"),
-		false,
+	static TAutoConsoleVariable<int> CVarTraversalDebugLevel(
+		TEXT("zodiac.Traversal.DebugLevel"),
+		0,
 		TEXT(""));
 
-	static TAutoConsoleVariable<bool> CVarTraversalDrawCeilingTrace(
-		TEXT("zodiac.Traversal.DrawCeilingTrace"),
-		false,
-		TEXT(""));
-
-	static TAutoConsoleVariable<bool> CVarTraversalDrawBackLedgeTrace(
-		TEXT("zodiac.Traversal.DrawBackLedgeTrace"),
-		false,
-		TEXT(""));
-	
-	static TAutoConsoleVariable<bool> CVarTraversalDrawFloorTrace(
-		TEXT("zodiac.Traversal.DrawFloorTrace"),
-		false,
-		TEXT(""));
-	
-	static TAutoConsoleVariable<float> CVarTraversalGroundForwardTraceDistance(
-		TEXT("zodiac.Traversal.GroundForwardTraceDistance"),
-		100.f,
-		TEXT(""));
-
-	static TAutoConsoleVariable<float> CVarTraversalInAirForwardTraceDistance(
-		TEXT("zodiac.Traversal.InAirForwardTraceDistance"),
-		50.f,
+	static TAutoConsoleVariable<float> CVarTraversalDrawDuration(
+		TEXT("zodiac.Traversal.DrawDuration"),
+		3,
 		TEXT(""));
 }
 

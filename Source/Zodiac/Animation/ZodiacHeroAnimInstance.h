@@ -24,13 +24,11 @@ class ZODIAC_API UZodiacHeroAnimInstance : public UAnimInstance
 public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
-	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe))
 	AZodiacCharacter* GetParentCharacter() const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe))
 	UZodiacHostAnimInstance* GetParentAnimInstance() const;
 
 	void OnAimingChanged(bool bHasActivated);
@@ -67,10 +65,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Aiming_Data)
 	FVector2D RootYawOffsetAngleClamp = FVector2D(-120.f, 100.f);
-
-	//UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
-	//FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
-
+	
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsADS;
 
@@ -78,10 +73,13 @@ protected:
 	bool bIsFocus;
 
 	UPROPERTY(BlueprintReadOnly)
+	bool bIsDead;
+	
+	UPROPERTY(BlueprintReadOnly)
 	bool bIsTraversal;
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bIsHostMoving;
+	bool bIsMoving;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsWeaponReady = false;

@@ -136,7 +136,7 @@ void UZodiacCameraMode_ThirdPerson::UpdatePreventPenetration(float DeltaTime)
 		FVector ClosestPointOnLineToCapsuleCenter;
 		FVector SafeLocation = PPActor->GetActorLocation();
 		FMath::PointDistToLine(SafeLocation, View.Rotation.Vector(), View.Location, ClosestPointOnLineToCapsuleCenter);
-
+		
 		// Adjust Safe distance height to be same as aim line, but within capsule.
 		float const PushInDistance = PenetrationAvoidanceFeelers[0].Extent + CollisionPushOutDistance;
 		float const MaxHalfHeight = PPActor->GetSimpleCollisionHalfHeight() - PushInDistance;
@@ -207,7 +207,7 @@ void UZodiacCameraMode_ThirdPerson::PreventCameraPenetration(class AActor const&
 				RotatedRay = RotatedRay.RotateAngleAxis(Feeler.AdjustmentRot.Pitch, BaseRayLocalRight);
 				RayTarget = SafeLoc + RotatedRay;
 			}
-
+			
 			// cast for world and pawn hits separately.  this is so we can safely ignore the 
 			// camera's target pawn
 			SphereShape.Sphere.Radius = Feeler.Extent;
@@ -222,8 +222,8 @@ void UZodiacCameraMode_ThirdPerson::PreventCameraPenetration(class AActor const&
 #if ENABLE_DRAW_DEBUG
 			if (World->TimeSince(LastDrawDebugTime) < 1.f)
 			{
-				DrawDebugSphere(World, SafeLoc, SphereShape.Sphere.Radius, 8, FColor::Red);
-				DrawDebugSphere(World, bHit ? Hit.Location : RayTarget, SphereShape.Sphere.Radius, 8, FColor::Red);
+				DrawDebugSphere(World, SafeLoc, SphereShape.Sphere.Radius, 8, bHit? FColor::Red : FColor::Green);
+				DrawDebugSphere(World, bHit ? Hit.Location : RayTarget, SphereShape.Sphere.Radius, 8, bHit ? FColor::Red : FColor::Green);
 				DrawDebugLine(World, SafeLoc, bHit ? Hit.Location : RayTarget, FColor::Red);
 			}
 #endif

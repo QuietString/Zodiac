@@ -45,6 +45,7 @@ namespace ZodiacGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_Damaged_Message, "Event.Damaged.Message");
 	UE_DEFINE_GAMEPLAY_TAG(Event_JustLanded, "Event.JustLanded");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Traversal, "Event.Traversal");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Death, "Event.Death", "Event that fires on death. This event only fires on the server.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Reset, "Event.Reset", "Event that fires once a player reset is executed.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_RequestReset, "Event.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");

@@ -393,7 +393,8 @@ void UZodiacSkillAbility_Ranged::PostEditChangeProperty(FPropertyChangedEvent& P
 	if (PropertyChangedEvent.Property->GetName() == GET_MEMBER_NAME_CHECKED(UZodiacSkillAbility_Ranged, FireInterval))
 	{
 		InvertValue(RateOfFire, FireInterval);
-	}}
+	}
+}
 
 void UZodiacSkillAbility_Ranged::InvertValue(float& A, float& B)
 {

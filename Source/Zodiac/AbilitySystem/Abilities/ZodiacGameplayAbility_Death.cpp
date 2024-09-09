@@ -7,7 +7,7 @@
 #include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Character/ZodiacHealthComponent.h"
-#include "Character/ZodiacHostCharacter.h"
+#include "Character/ZodiacCharacter.h"
 
 UZodiacGameplayAbility_Death::UZodiacGameplayAbility_Death(const FObjectInitializer& ObjectInitializer)
 {
@@ -64,9 +64,11 @@ void UZodiacGameplayAbility_Death::EndAbility(const FGameplayAbilitySpecHandle H
 
 void UZodiacGameplayAbility_Death::StartDeath()
 {
-	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetOwningActorFromActorInfo()))
+	UE_LOG(LogTemp, Warning, TEXT("start death"));
+	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetOwningActorFromActorInfo()))
 	{
-		if (UZodiacHealthComponent* HealthComponent = HostCharacter->GetHealthComponent())
+		UE_LOG(LogTemp, Warning, TEXT("owning actor: %s"), *ZodiacCharacter->GetName());
+		if (UZodiacHealthComponent* HealthComponent = ZodiacCharacter->GetHealthComponent())
 		{
 			if (HealthComponent->GetDeathState() == EZodiacDeathState::NotDead)
 			{
@@ -78,9 +80,9 @@ void UZodiacGameplayAbility_Death::StartDeath()
 
 void UZodiacGameplayAbility_Death::FinishDeath()
 {
-	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetOwningActorFromActorInfo()))
+	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetOwningActorFromActorInfo()))
 	{
-		if (UZodiacHealthComponent* HealthComponent = HostCharacter->GetHealthComponent())
+		if (UZodiacHealthComponent* HealthComponent = ZodiacCharacter->GetHealthComponent())
 		{
 			if (HealthComponent->GetDeathState() == EZodiacDeathState::DeathStarted)
 			{

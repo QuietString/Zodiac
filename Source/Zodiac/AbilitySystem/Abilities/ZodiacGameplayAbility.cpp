@@ -57,6 +57,11 @@ AZodiacHostCharacter* UZodiacGameplayAbility::GetZodiacHostCharacterFromActorInf
 	return (CurrentActorInfo ? Cast<AZodiacHostCharacter>(CurrentActorInfo->OwnerActor.Get()) : nullptr);
 }
 
+AZodiacCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<AZodiacCharacter>(CurrentActorInfo->OwnerActor.Get()) : nullptr);
+}
+
 AController* UZodiacGameplayAbility::GetControllerFromActorInfo() const
 {
 	if (CurrentActorInfo)

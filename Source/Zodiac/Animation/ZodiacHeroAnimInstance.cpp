@@ -10,7 +10,6 @@
 #include "Character/ZodiacHero.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAnimInstance)
 
@@ -85,25 +84,11 @@ void UZodiacHeroAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bActive)
 	}
 }
 
-void UZodiacHeroAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* InASC)
-{
-	check(InASC);
-	
-	//GameplayTagPropertyMap.Initialize(this, InASC);
-}
-
-void UZodiacHeroAnimInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	//DOREPLIFETIME(ThisClass, bShouldReveal_LeftPistol);
-	//DOREPLIFETIME(ThisClass, bShouldReveal_RightPistol);
-}
-
 void UZodiacHeroAnimInstance::UpdateMovementData()
 {
 	//bIsFocus = HostAnimInstance->bIsFocus;
 	bIsADS = ParentAnimInstance->bIsADS;
+	bIsMoving = ParentAnimInstance->bIsMoving; 
 	bIsTraversal = ParentAnimInstance->CustomMovement == MOVE_Traversal;
 }
 
@@ -139,25 +124,6 @@ void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 
 void UZodiacHeroAnimInstance::UpdateBlendData(float DeltaSeconds)
 {
-	// if (bIsWeaponReady)
-	// {
-	// 	PistolBlendAlpha = 0.0f;
-	// 	PistolScale = 1.0f;
-	// }
-	// else if (bIsADS) // when starts or leaving aiming movement
-	// {
-	// 	float ScaleCurve = GetCurveValue(TEXT("PistolScaleCurve"));
-	// 	PistolBlendAlpha = GetCurveValue(TEXT("PistolBlendAlpha"));
-	//
-	// 	PistolScale = ScaleCurve;
-	// }
-	// else
-	// {
-	// 	PistolBlendAlpha = 1.0f;
-	// 	PistolScale = 0.0f;
-	// }
-	//UE_LOG(LogTemp, Warning, TEXT("Alpha: %.1f, Scale: %.1f"), PistolBlendAlpha, PistolScale);
-
 	float RightPistolTargetAlpha = (bShouldReveal_RightPistol) ? 0 : 1;
 	RightPistolScaleAlpha = FMath::Lerp(RightPistolScaleAlpha, RightPistolTargetAlpha, DeltaSeconds * RightPistolAlphaSpeedMultiplier);
 	

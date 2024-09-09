@@ -37,13 +37,12 @@ void UZodiacHostAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 }
 
-
 void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
 	if (ZodiacCharMovComp)
 	{
-		UpdateMovementData();
 		UpdateVelocityData();
+		UpdateMovementData();
 		UpdateAccelerationData(DeltaSeconds);
 	}
 }
@@ -53,6 +52,7 @@ void UZodiacHostAnimInstance::UpdateMovementData()
 	CustomMovement_Last = CustomMovement;
 	CustomMovement = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
 	bIsADS = (CustomMovement == MOVE_ADS);
+	bIsMoving = !Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1);
 }
 
 void UZodiacHostAnimInstance::UpdateVelocityData()
@@ -78,6 +78,10 @@ void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 	if (Tag == ZodiacGameplayTags::Status_Focus)
 	{
 		bIsFocus = bHasTag;
+	}
+	else if (Tag == ZodiacGameplayTags::Status_Death)
+	{
+		bIsDead = bHasTag;
 	}
 }
 

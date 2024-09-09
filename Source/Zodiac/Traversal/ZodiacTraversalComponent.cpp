@@ -3,10 +3,14 @@
 
 #include "ZodiacTraversalComponent.h"
 
+#include "AbilitySystemComponent.h"
+#include "ZodiacGameplayTags.h"
 #include "ZodiacInteractionTransformInterface.h"
 #include "ZodiacLogChannels.h"
 #include "ZodiacTraversableActor.h"
 #include "ZodiacTraversalTypes.h"
+#include "Character/ZodiacCharacter.h"
+#include "Character/ZodiacCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -21,13 +25,14 @@
 UZodiacTraversalComponent::UZodiacTraversalComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	PrimaryComponentTick.bCanEverTick = true;
 	SetIsReplicatedByDefault(true);
 }
 
 void UZodiacTraversalComponent::OnRegister()
 {
 	Super::OnRegister();
-
+	
 	TObjectPtr<ACharacter> OwningCharacter = GetPawn<ACharacter>();
 	ensureMsgf(OwningCharacter, TEXT("Traversal component should be attached to an ACharacter"));
 }
@@ -39,43 +44,206 @@ void UZodiacTraversalComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(ThisClass, TraversalCheckResult);
 }
 
-bool UZodiacTraversalComponent::TryTraversalActionFromAbility(bool bIsInAir)
+void UZodiacTraversalComponent::BeginPlay()
 {
-	bool bTraversalActionCheckFailed;
-	bool bMontageSelectionFailed;
-	FText FailReason;
-	TryTraversalAction(bIsInAir, bTraversalActionCheckFailed, bMontageSelectionFailed, FailReason);
+	Super::BeginPlay();
 
-#if WITH_EDITOR
-	if (ZodiacConsoleVariables::CVarTraversalEnableLogging.GetValueOnAnyThread())
+	if (FindLedgeTickInterval > 0.0f && FindLedgeTickInterval <= 1.0f)
 	{
-		if (bMontageSelectionFailed || bTraversalActionCheckFailed)
-		{
-			UE_LOG(LogZodiacTraversal, Warning, TEXT("Traversal action failed reason: %s"), *FailReason.ToString());	
-		}
+		MaxTickCount = FMath::CeilToInt(1 / FindLedgeTickInterval);	
 	}
-#endif
-	
-	return !bTraversalActionCheckFailed && !bMontageSelectionFailed;
+	else
+	{
+		MaxTickCount = 0;
+	}
 }
 
-FZodiacTraversalCheckResult UZodiacTraversalComponent::TryTraversalAction(bool bIsInAr, bool& bTraversalCheckFailed, bool& bMontageSelectionFailed,
-                                                                          FText& FailReason)
+void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	FZodiacTraversalCheckResult CheckResult;
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (ACharacter* Character = GetPawn<ACharacter>())
+	{
+		if (bEnableFindLedgeOnTick && Character->IsLocallyViewed())
+		{
+			if ((MaxTickCount == 0) || (TickCount++ >= MaxTickCount))
+			{
+				bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
+				FText FailReason;
+				FZodiacTraversalCheckResult Result;
+				FVector LastLocation;
+				bool bLedgeFound = CheckFrontLedge(bIsInAir, Result, FailReason, LastLocation, true);
+			
+				DrawLedgeLocation(bLedgeFound, Result.FrontLedgeLocation, Result.FrontLedgeNormal);
+			
+				TickCount = 0;
+			}
+		}
+	}
+}
+
+bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
+{
+	ACharacter* Character = GetPawn<ACharacter>();
+	if (!Character)
+	{
+		return false;
+	}
+
+	UCharacterMovementComponent* CharMovComp = Character->GetCharacterMovement();
+	if (!CharMovComp)
+	{
+		return false;
+	}
+
+	if (CharMovComp->CustomMovementMode == MOVE_Traversal)
+	{
+		return false;
+	}
+
+	if (bHasCached)
+	{
+		return true;
+	}
 	
+	bool bDrawDebug = false;
+	bool bDrawBackLedgeTrace = false;
+	bool bDrawFloorTrace = false;
+	float DebugDuration = 0.0f;
+
+#if WITH_EDITOR
+	bDrawDebug = ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread();
+	int32 DebugLevel = ZodiacConsoleVariables::CVarTraversalDebugLevel.GetValueOnAnyThread();
+
+	bDrawBackLedgeTrace = bDrawDebug && DebugLevel > 2;
+	bDrawFloorTrace = bDrawDebug && DebugLevel > 3;
+	DebugDuration = ZodiacConsoleVariables::CVarTraversalDrawDuration.GetValueOnAnyThread();
+#endif
+	
+	FZodiacTraversalCheckResult Result;
+	
+	bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
+
+	FVector CeilingCheckEndLocation;
+	if (!CheckFrontLedge(bIsInAir,Result,FailReason, CeilingCheckEndLocation, false))
+	{
+		return false;
+	}
+	
+	TObjectPtr<ACharacter> OwningCharacter = GetPawn<ACharacter>();
+	float CapsuleRadius = OwningCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
+	float CapsuleHalfHeight = OwningCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	FVector ActorLocation = OwningCharacter->GetActorLocation();
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(OwningCharacter);
+	OwningCharacter->GetAttachedActors(ActorsToIgnore, false);
+
+	// Step 3.3: Save the height of the obstacle using the delta between the actor and front ledge transform.
+	Result.ObstacleHeight = FMath::Abs(((ActorLocation - FVector(0.0f, 0.0f, CapsuleHalfHeight)) - Result.FrontLedgeLocation).Z);
+
+	// Step 3.4: Perform a trace across the top of the obstacle from the front ledge to the back ledge to see if theres room for the actor to move across it.
+	FVector FrontRoomCheckStartLocation = CeilingCheckEndLocation;
+	FVector FrontRoomCheckEndLocation = Result.BackLedgeLocation
+										+ Result.BackLedgeNormal * (CapsuleRadius + 2)
+										+ FVector(0.0f, 0.0f, CapsuleHalfHeight + 2);
+	FHitResult BackLedgeHit;
+	if (CapsuleTrace(FrontRoomCheckStartLocation, FrontRoomCheckEndLocation, BackLedgeHit, CapsuleRadius, CapsuleHalfHeight, bDrawBackLedgeTrace, DebugDuration, false, ActorsToIgnore))
+	{
+		// Step 3.5: If there is not room, save the obstacle depth using the difference between the front ledge and the trace impact point, and invalidate the back ledge.
+		Result.ObstacleDepth = (BackLedgeHit.ImpactPoint - Result.FrontLedgeLocation).Length();
+		Result.bHasBackLedge = false;
+	}
+	else
+	{
+		// Step 3.5: If there is room, save the obstacle depth using the difference between the front and back ledge locations.
+		Result.ObstacleDepth = (Result.FrontLedgeLocation - Result.BackLedgeLocation).Length();
+	}
+
+	// Step 3.6: Trace downward from the back ledge location (using the height of the obstacle for the distance) to find the floor.
+	// If there is a floor, save its location and the back ledges height (using the distance between the back ledge and the floor).
+	// If no floor was found, invalidate the back floor.
+	FVector FloorCheckStartLocation = FrontRoomCheckEndLocation;
+	FVector FloorCheckEndLocation = Result.BackLedgeLocation
+									+ Result.BackLedgeNormal * (CapsuleRadius + 2)
+									- FVector(0.0f, 0.0f, Result.ObstacleHeight - CapsuleHalfHeight + 50.0f);
+	FHitResult FloorHit;
+	if (CapsuleTrace(FloorCheckStartLocation, FloorCheckEndLocation, FloorHit, OUT CapsuleRadius, CapsuleHalfHeight, bDrawFloorTrace, DebugDuration, false, ActorsToIgnore))
+	{
+		Result.bHasBackFloor = true;
+		Result.BackFloorLocation = FloorHit.ImpactPoint;
+		Result.BackLedgeHeight = FMath::Abs((FloorHit.ImpactPoint - Result.BackLedgeLocation).Z);
+	}
+	else
+	{
+		Result.bHasBackFloor = false;
+	}
+
+	if (!DetermineTraversalType(Result))
+	{
+		FailReason = LOCTEXT("TraversalCheckFailed", "Couldn't determine proper action type.");
+		return 	false;
+	}
+
+	Result.Speed = OwningCharacter->GetCharacterMovement()->Velocity.Length();
+	
+	if (!FindMatchingAnimMontage(Result))
+	{
+		FailReason = LOCTEXT("TraversalFailed", "Couldn't find matching anim montage");
+		return 	false;
+	}
+	
+	CheckResultCached = Result;
+	bHasCached = true;
+	
+	return true;
+}
+
+void UZodiacTraversalComponent::TryActivateTraversalAbility()
+{
+	// PerformTraversalActionFromAbility() will be called from ASC.
+	if (AZodiacCharacter* ZodiacCharacter = GetPawn<AZodiacCharacter>())
+	{
+		if (UAbilitySystemComponent* ASC = ZodiacCharacter->GetAbilitySystemComponent())
+		{
+			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+
+			FGameplayEventData Payload;
+			Payload.EventTag = ZodiacGameplayTags::Event_Traversal;
+			Payload.Instigator = nullptr;
+			Payload.Target = ASC->GetAvatarActor();
+			Payload.ContextHandle = ContextHandle;
+			Payload.EventMagnitude = 1;
+
+			FScopedPredictionWindow NewScopedWindow(ASC, true);
+			ASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+		}
+	}
+}
+
+void UZodiacTraversalComponent::PerformTraversalActionFromAbility()
+{
+	TraversalCheckResult = CheckResultCached;
+	PerformTraversalAction(TraversalCheckResult);
+
+	// Clear cache
+	CheckResultCached = FZodiacTraversalCheckResult();
+	bHasCached = false;
+}
+
+bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalCheckResult& Result, FText& FailReason, FVector& LastTraceLocation, bool bIsTicked)
+{
 	bool bDrawDebug = false;
 	bool bDrawFindBlockTrace = false;
 	bool bDrawCeilingTrace = false;
-	bool bDrawBackLedgeTrace = false;
-	bool bDrawFloorTrace = false;
-	
+	float DebugDuration = 0.0f;
+
 #if WITH_EDITOR
-	bDrawDebug = ZodiacConsoleVariables::CVarTraversalEnableLogging.GetValueOnAnyThread();
-	bDrawFindBlockTrace = bDrawDebug && ZodiacConsoleVariables::CVarTraversalDrawFindBlockTrace.GetValueOnAnyThread();
-	bDrawCeilingTrace = bDrawDebug && ZodiacConsoleVariables::CVarTraversalDrawCeilingTrace.GetValueOnAnyThread();
-	bDrawBackLedgeTrace = bDrawDebug && ZodiacConsoleVariables::CVarTraversalDrawBackLedgeTrace.GetValueOnAnyThread();
-	bDrawFloorTrace = bDrawDebug && ZodiacConsoleVariables::CVarTraversalDrawFloorTrace.GetValueOnAnyThread();
+	bDrawDebug = ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread();
+	int32 DebugLevel = ZodiacConsoleVariables::CVarTraversalDebugLevel.GetValueOnAnyThread();
+
+	bDrawFindBlockTrace = bDrawDebug && (DebugLevel > 0);
+	bDrawCeilingTrace = bDrawDebug && (DebugLevel > 1);
+	DebugDuration = ZodiacConsoleVariables::CVarTraversalDrawDuration.GetValueOnAnyThread();
 #endif
 
 	// Step 1: Cache some important values for use later in the function.
@@ -84,117 +252,55 @@ FZodiacTraversalCheckResult UZodiacTraversalComponent::TryTraversalAction(bool b
 	float CapsuleHalfHeight = OwningCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 	FVector ActorLocation = OwningCharacter->GetActorLocation();
 	FVector ActorForwardVector = OwningCharacter->GetActorForwardVector();
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(OwningCharacter);
+	OwningCharacter->GetAttachedActors(ActorsToIgnore, false);
 	
 	// Step 2.1: Find a Traversable Level Block. If found, set the Hit Component, if not, exit the function.
-	float TraceForwardDistance = GetTraversalForwardTraceDistance(bIsInAr);
+	float TraceForwardDistance = GetTraversalForwardTraceDistance(bIsInAir);
 	FVector TraceStart = ActorLocation;
 	FVector TraceEnd = ActorLocation + ActorForwardVector * TraceForwardDistance;
 	FHitResult TraversalObjectHit;
 	
-	if (!CapsuleTrace(TraceStart, TraceEnd, bDrawFindBlockTrace, OUT TraversalObjectHit, CapsuleRadius, CapsuleHalfHeight))
+	if (!CapsuleTrace(TraceStart, TraceEnd, TraversalObjectHit, OUT CapsuleRadius, CapsuleHalfHeight, bDrawFindBlockTrace, DebugDuration, bIsTicked, ActorsToIgnore))
 	{
 		FailReason = LOCTEXT("TraversalFailed", "No trace hit");
-		bTraversalCheckFailed = true;
-		return CheckResult;
+		return false;
 	}
 	
 	AZodiacTraversableActor* TraversableObject = Cast<AZodiacTraversableActor>(TraversalObjectHit.GetActor());
 	if (TraversableObject == nullptr)
 	{
 		FailReason = LOCTEXT("TraversalFailed", "No traversal object found");
-		bTraversalCheckFailed = true;
-		return CheckResult;
+		return false;
 	}
 
 	// Step 2.2: If a traversable level block was found, get the front and back ledge transforms from it.
-	TraversableObject->GetLedgeTransforms(TraversalObjectHit.ImpactPoint, ActorLocation, OUT CheckResult);
-	CheckResult.HitComponent = TraversalObjectHit.Component;
+	TraversableObject->GetLedgeTransforms(TraversalObjectHit.ImpactPoint, ActorLocation, OUT Result);
+	Result.HitComponent = TraversalObjectHit.Component;
 
 	// Step 3.1 If the traversable level block has a valid front ledge, continue the function. If not, exit early.
-	if (!CheckResult.bHasFrontLedge)
+	if (!Result.bHasFrontLedge)
 	{
 		FailReason = LOCTEXT("TraversalFailed", "No front ledge found");
-		bTraversalCheckFailed = true;
-		return CheckResult;
+		return false;
 	}
 
 	// Step 3.2: Check if there is enough room above for traversal action.
 	FVector CeilingCheckStartLocation = ActorLocation;
-	FVector CeilingCheckEndLocation = CheckResult.FrontLedgeLocation
+	FVector CeilingCheckEndLocation = Result.FrontLedgeLocation
 										+ FVector(0.0f, 0.0f, CapsuleHalfHeight + 2)
-										+ CheckResult.FrontLedgeNormal * (CapsuleRadius + 2); // end trace before capsule collide with FrontLedge
+										+ Result.FrontLedgeNormal * (CapsuleRadius + 2); // end trace before capsule collide with FrontLedge
 	FHitResult CeilingHit;
-	CapsuleTrace(CeilingCheckStartLocation, CeilingCheckEndLocation, bDrawCeilingTrace, CeilingHit, CapsuleRadius, CapsuleHalfHeight);
+	CapsuleTrace(CeilingCheckStartLocation, CeilingCheckEndLocation, CeilingHit, CapsuleRadius, CapsuleHalfHeight, bDrawCeilingTrace, DebugDuration, bIsTicked, ActorsToIgnore);
 	if (CeilingHit.bBlockingHit || CeilingHit.bStartPenetrating)
 	{
 		FailReason = LOCTEXT("TraversalFailed", "Too close ceiling for traversal action");
-		bTraversalCheckFailed = true;
-		return 	CheckResult;
-	}
-	
-	// Step 3.3: Save the height of the obstacle using the delta between the actor and front ledge transform.
-	CheckResult.ObstacleHeight = FMath::Abs(((ActorLocation - FVector(0.0f, 0.0f, CapsuleHalfHeight)) - CheckResult.FrontLedgeLocation).Z);
-
-	// Step 3.4: Perform a trace across the top of the obstacle from the front ledge to the back ledge to see if theres room for the actor to move across it.
-	FVector FrontRoomCheckStartLocation = CeilingCheckEndLocation;
-	FVector FrontRoomCheckEndLocation = CheckResult.BackLedgeLocation
-										+ CheckResult.BackLedgeNormal * (CapsuleRadius + 2)
-										+ FVector(0.0f, 0.0f, CapsuleHalfHeight + 2);
-	FHitResult BackLedgeHit;
-	if (CapsuleTrace(FrontRoomCheckStartLocation, FrontRoomCheckEndLocation, bDrawBackLedgeTrace, BackLedgeHit, CapsuleRadius, CapsuleHalfHeight))
-	{
-		// Step 3.5: If there is not room, save the obstacle depth using the difference between the front ledge and the trace impact point, and invalidate the back ledge.
-		CheckResult.ObstacleDepth = (BackLedgeHit.ImpactPoint - CheckResult.FrontLedgeLocation).Length();
-		CheckResult.bHasBackLedge = false;
-	}
-	else
-	{
-		// Step 3.5: If there is room, save the obstacle depth using the difference between the front and back ledge locations.
-		CheckResult.ObstacleDepth = (CheckResult.FrontLedgeLocation - CheckResult.BackLedgeLocation).Length();
+		return 	false;
 	}
 
-	// Step 3.6: Trace downward from the back ledge location (using the height of the obstacle for the distance) to find the floor.
-	// If there is a floor, save its location and the back ledges height (using the distance between the back ledge and the floor).
-	// If no floor was found, invalidate the back floor.
-	FVector FloorCheckStartLocation = FrontRoomCheckEndLocation;
-	FVector FloorCheckEndLocation = CheckResult.BackLedgeLocation
-									+ CheckResult.BackLedgeNormal * (CapsuleRadius + 2)
-									- FVector(0.0f, 0.0f, CheckResult.ObstacleHeight - CapsuleHalfHeight + 50.0f);
-	FHitResult FloorHit;
-	if (CapsuleTrace(FloorCheckStartLocation, FloorCheckEndLocation, bDrawFloorTrace, OUT FloorHit, CapsuleRadius, CapsuleHalfHeight))
-	{
-		CheckResult.bHasBackFloor = true;
-		CheckResult.BackFloorLocation = FloorHit.ImpactPoint;
-		CheckResult.BackLedgeHeight = FMath::Abs((FloorHit.ImpactPoint - CheckResult.BackLedgeLocation).Z);
-	}
-	else
-	{
-		CheckResult.bHasBackFloor = false;
-	}
-
-	if (!DetermineTraversalType(CheckResult))
-	{
-		FailReason = LOCTEXT("TraversalCheckFailed", "Couldn't determine proper action type.");
-		bTraversalCheckFailed = true;
-		return 	CheckResult;
-	}
-
-	CheckResult.Speed = OwningCharacter->GetCharacterMovement()->Velocity.Length();
-	
-	if (!FindMatchingAnimMontage(CheckResult))
-	{
-		FailReason = LOCTEXT("TraversalFailed", "Couldn't find matching anim montage");
-		bMontageSelectionFailed = true;
-		return 	CheckResult;
-	}
-
-	if (OwningCharacter->HasAuthority())
-	{
-		TraversalCheckResult = CheckResult;
-		PerformTraversalAction(TraversalCheckResult);
-	}
-
-	return 	CheckResult;
+	LastTraceLocation = CeilingCheckEndLocation; 
+	return true;
 }
 
 float UZodiacTraversalComponent::GetTraversalForwardTraceDistance(bool bIsInAir) const
@@ -214,15 +320,15 @@ float UZodiacTraversalComponent::GetTraversalForwardTraceDistance(bool bIsInAir)
 	}
 }
 
-bool UZodiacTraversalComponent::CapsuleTrace(const FVector& TraceStart, const FVector& TraceEnd, bool bDrawDebug, FHitResult& OutHit, float CapsuleRadius, float CapsuleHalfHeight)
+bool UZodiacTraversalComponent::CapsuleTrace(const FVector& TraceStart, const FVector& TraceEnd, FHitResult& OutHit, float CapsuleRadius, float CapsuleHalfHeight, bool bDrawDebug, float
+                                             DebugDuration, bool bIsTicked, TArray<AActor*> ActorsToIgnore)
 {
 	UWorld* World = GetWorld();
 	check(World);
 	
 	ETraceTypeQuery TraceTypeQuery = UEngineTypes::ConvertToTraceType(ECC_Visibility);
-	TArray<AActor*> ActorsToIgnore;
 	EDrawDebugTrace::Type DrawDebugType = bDrawDebug ? EDrawDebugTrace::Type::ForDuration : EDrawDebugTrace::Type::None;
-	float DrawTime = 10.0f;
+	float DrawTime = bIsTicked ? 0.0f : DebugDuration;
 	return UKismetSystemLibrary::CapsuleTraceSingle(World, TraceStart, TraceEnd, CapsuleRadius, CapsuleHalfHeight, TraceTypeQuery, false, ActorsToIgnore, DrawDebugType, OutHit, true, FLinearColor::Red, FLinearColor::Green, DrawTime);
 }
 
@@ -293,9 +399,22 @@ bool UZodiacTraversalComponent::FindMatchingAnimMontage(FZodiacTraversalCheckRes
 	return false;
 }
 
+void UZodiacTraversalComponent::K2_NotifyTraversalActionFinished()
+{
+	if (OnTraversalFinished.IsBound())
+	{
+		OnTraversalFinished.Execute();
+		OnTraversalFinished.Unbind();	
+	}
+}
+
 void UZodiacTraversalComponent::OnRepTraversalCheckResult()
 {
 	PerformTraversalAction(TraversalCheckResult);
+
+	// Clear cache
+	CheckResultCached = FZodiacTraversalCheckResult();
+	bHasCached = false;
 }
 
 #undef LOCTEXT_NAMESPACE

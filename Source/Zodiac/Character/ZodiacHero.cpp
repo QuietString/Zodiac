@@ -95,7 +95,7 @@ void AZodiacHero::InitializeAbilitySystem()
 
 	AbilitySystemComponent->InitAbilityActorInfo(Owner, this);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 
 	if (HeroData && HasAuthority())
 	{
@@ -141,6 +141,13 @@ void AZodiacHero::Activate()
 	{
 		if (UCapsuleComponent* Capsule = Character->GetCapsuleComponent())
 		{
+			if (USkeletalMeshComponent* HostMesh = Character->GetMesh())
+			{
+				// Prevent character feet floating when capsule height increases.
+				float OffsetAmount = CapsuleHalfHeight - Capsule->GetUnscaledCapsuleHalfHeight();
+				HostMesh->AddRelativeLocation(FVector(0.0f, 0.0f, -OffsetAmount));
+			}
+			
 			Capsule->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 		}
 	}
@@ -187,11 +194,6 @@ void AZodiacHero::OnHostAbilitySystemComponentInitialized(UAbilitySystemComponen
 	if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(HostASC))
 	{
 		AbilitySystemComponent->SetHostAbilitySystemComponent(ZodiacASC);	
-	}
-	
-	if (UZodiacHeroAnimInstance* HeroAnimInstance = Cast<UZodiacHeroAnimInstance>(GetMesh()->GetAnimInstance()))
-	{
-		HeroAnimInstance->InitializeWithAbilitySystem(AbilitySystemComponent);
 	}
 }
 

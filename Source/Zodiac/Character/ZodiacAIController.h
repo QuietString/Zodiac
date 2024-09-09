@@ -17,18 +17,14 @@ class ZODIAC_API AZodiacAIController : public AAIController, public IAbilitySyst
 
 public:
 	AZodiacAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
+	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	
 	//~IZodiacTeamAgentInterface interface
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
 	//~End of IZodiacTeamAgentInterface interface
 
 private:
-	UPROPERTY()
-	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
-
 	UPROPERTY()
 	EZodiacTeam MyTeam = EZodiacTeam::Monster;
 };
