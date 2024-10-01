@@ -4,25 +4,27 @@
 #include "ZodiacCharacter.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "KismetAnimationLibrary.h"
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
 #include "Animation/ZodiacHostAnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCharacter)
 
 namespace ZodiacConsoleVariables
 {
-	static TAutoConsoleVariable<bool> CVarHostMovementModeLoggingEnable(
-		TEXT("zodiac.HostMovement.EnableLogging"),
+	static TAutoConsoleVariable<bool> CVarMovementModeShowDebug(
+		TEXT("zodiac.MovementMode.ShowDebug"),
 		false,
-		TEXT("Enables log of host character movement mode"));
+		TEXT("Show log of character movement mode change"));
 	
 	bool LogEnabled()
 	{
-		return CVarHostMovementModeLoggingEnable.GetValueOnAnyThread();
+		return CVarMovementModeShowDebug.GetValueOnAnyThread();
 	}
 }
 
@@ -165,6 +167,48 @@ void AZodiacCharacter::CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySyste
 	{
 		OnAbilitySystemComponentInitialized.Add(MoveTemp(Delegate));
 	}
+}
+
+float AZodiacCharacter::CalculateMaxSpeed() const
+{
+	float MovementAngle = FMath::Abs(UKismetAnimationLibrary::CalculateDirection(GetCharacterMovement()->Velocity, GetActorRotation()));
+	float StrafeMap = StrafeSpeedMapCurve.Evaluate(MovementAngle);
+	
+	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
+	uint8 CustomMovementMode = GetCharacterMovement()->CustomMovementMode;
+	
+	EZodiacGait Gait;
+	switch (MovementMode)
+	{
+	case MOVE_Walking:
+		switch (CustomMovementMode)
+		{
+		case MOVE_ADS:
+			Gait = Gait_Walk;
+			break;
+				
+		case MOVE_Running:
+			Gait = Gait_Run;
+			break;
+
+		default:
+			break;
+		}
+	default:
+		Gait = Gait_Run;
+	}
+
+	FVector DesiredSpeeds = (Gait == Gait_Run) ? RunSpeeds : WalkSpeeds;
+	float MaxSpeed = (StrafeMap < 1.0f) ? DesiredSpeeds.X : DesiredSpeeds.Y;
+	float MinSpeed = (StrafeMap < 1.0f) ? DesiredSpeeds.Y : DesiredSpeeds.Z;
+	return UKismetMathLibrary::MapRangeClamped(StrafeMap, 0.0f, 1.0f, MaxSpeed, MinSpeed);
+}
+
+void AZodiacCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	GetCharacterMovement()->MaxWalkSpeed = CalculateMaxSpeed();
 }
 
 void AZodiacCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

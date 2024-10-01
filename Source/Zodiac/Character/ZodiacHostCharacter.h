@@ -24,14 +24,17 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const override;
 	UZodiacAbilitySystemComponent* GetHostAbilitySystemComponent() const;
-
 	
 	UFUNCTION(BlueprintCallable)
 	virtual UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
+
+	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
 	
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
 
 	void ChangeHero(const int32 Index);
+
+	void TryChangeMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode);
 	
 	/** Overrides the camera from an active gameplay ability */
 	void SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
@@ -71,7 +74,7 @@ protected:
 	const UZodiacHeroData* HostData;
 
 	UPROPERTY(EditDefaultsOnly, Category="Zodiac|Hero")
-	TArray<TSubclassOf<AZodiacHero>> HeroClasses;
+	TArray<TSubclassOf<AZodiacHeroActor>> HeroClasses;
 	
 	UPROPERTY(Replicated)
 	FZodiacHeroList HeroList;
@@ -82,4 +85,7 @@ protected:
 private:
 	UFUNCTION()
 	void OnRep_ActiveHeroIndex(int32 OldIndex);
+
+	UPROPERTY()
+	EZodiacTeam MyTeam = EZodiacTeam::Hero;
 };

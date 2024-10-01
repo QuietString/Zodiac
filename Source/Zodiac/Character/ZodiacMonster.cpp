@@ -4,12 +4,11 @@
 #include "ZodiacMonster.h"
 
 #include "ZodiacAIController.h"
-#include "ZodiacGameplayTags.h"
 #include "ZodiacHealthComponent.h"
-#include "ZodiacHero.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "PhysicsEngine/PhysicalAnimationComponent.h"
 
 AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -19,6 +18,7 @@ AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+	PhysicalAnimationComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicalAnimationComponent>(this, TEXT("PhysicalAnimationComponent"));
 }
 
 void AZodiacMonster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -53,19 +53,6 @@ void AZodiacMonster::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	InitializeAbilitySystem(AbilitySystemComponent, this);
-}
-
-void AZodiacMonster::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
-
-	UWorld* World = GetWorld();
-	
-	FActorSpawnParameters Params;
-	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	Params.Owner = this;
-
-	AZodiacHero* Hero = World->SpawnActor<AZodiacHero>(HeroClass, Params);
 }
 
 void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner)

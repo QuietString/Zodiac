@@ -7,7 +7,7 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHostAnimInstance.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
-#include "Character/ZodiacHero.h"
+#include "Character/ZodiacHeroActor.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -44,7 +44,7 @@ AZodiacCharacter* UZodiacHeroAnimInstance::GetParentCharacter() const
 		return ZodiacCharacter;
 	}
 	
-	if (AZodiacHero* Hero = Cast<AZodiacHero>(GetOwningActor()))
+	if (AZodiacHeroActor* Hero = Cast<AZodiacHeroActor>(GetOwningActor()))
 	{
 		return Hero->GetHostCharacter();
 	}

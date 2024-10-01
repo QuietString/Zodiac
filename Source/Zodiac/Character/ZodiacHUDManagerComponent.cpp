@@ -4,7 +4,7 @@
 #include "ZodiacHUDManagerComponent.h"
 
 #include "ZodiacGameplayTags.h"
-#include "ZodiacHero.h"
+#include "ZodiacHeroActor.h"
 #include "ZodiacHeroData.h"
 #include "ZodiacHostCharacter.h"
 #include "UI/Weapons/ZodiacReticleWidgetBase.h"
@@ -22,7 +22,7 @@ void UZodiacHUDManagerComponent::OnRegister()
 {
 	Super::OnRegister();
 
-	AZodiacHero* Hero = GetOwner<AZodiacHero>();
+	AZodiacHeroActor* Hero = GetOwner<AZodiacHeroActor>();
 	ensureMsgf(Hero, TEXT("HeroUIManagerComponent should be attached to AZodiacHero"));
 }
 
@@ -30,7 +30,7 @@ void UZodiacHUDManagerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	if (AZodiacHero* Hero = GetOwner<AZodiacHero>())
+	if (AZodiacHeroActor* Hero = GetOwner<AZodiacHeroActor>())
 	{
 		Hero->OnHeroActivated.AddUObject(this, &ThisClass::OnHeroActivated);
 	}
@@ -43,7 +43,7 @@ void UZodiacHUDManagerComponent::BeginPlay()
 
 void UZodiacHUDManagerComponent::OnHeroActivated()
 {
-	if (AZodiacHero* Hero = Cast<AZodiacHero>(GetOwner()))
+	if (AZodiacHeroActor* Hero = Cast<AZodiacHeroActor>(GetOwner()))
 	{
 		if (const UZodiacHeroData* HeroData = Hero->GetHeroData())
 		{
@@ -57,7 +57,7 @@ void UZodiacHUDManagerComponent::OnHeroActivated()
 
 void UZodiacHUDManagerComponent::SendChangeReticleMessage()
 {
-	if (AZodiacHero* Hero = GetOwner<AZodiacHero>())
+	if (AZodiacHeroActor* Hero = GetOwner<AZodiacHeroActor>())
 	{
 		if (const UZodiacHeroData* HeroData = Hero->GetHeroData())
 		{

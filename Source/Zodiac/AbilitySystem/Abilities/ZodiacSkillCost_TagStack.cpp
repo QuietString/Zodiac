@@ -4,7 +4,7 @@
 
 #include "NativeGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "AbilitySystem/Skills/ZodiacSkillAbility.h"
+#include "AbilitySystem/Skills/ZodiacHeroAbility.h"
 #include "AbilitySystem/Skills/ZodiacSkillSlot.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSkillCost_TagStack)
@@ -25,7 +25,7 @@ bool UZodiacSkillCost_TagStack::CheckCost(const UZodiacGameplayAbility* Ability,
 		const int32 NumStacks = FMath::TruncToInt(NumStacksReal);
 		
 		int32 NumStacksFound = 0;
-		if (const UZodiacSkillAbility* Skill = Cast<UZodiacSkillAbility>(Ability))
+		if (const UZodiacHeroAbility* Skill = Cast<UZodiacHeroAbility>(Ability))
 		{
 			if (const UZodiacSkillSlot* SkillSlot = Skill->GetSkillSlot())
 			{
@@ -53,7 +53,7 @@ void UZodiacSkillCost_TagStack::ApplyCost(const UZodiacGameplayAbility* Ability,
 		const float NumStacksReal = Quantity.GetValueAtLevel(1);
 		const int32 NumStacks = FMath::TruncToInt(NumStacksReal);
 
-		if (const UZodiacSkillAbility* Skill = Cast<UZodiacSkillAbility>(Ability))
+		if (const UZodiacHeroAbility* Skill = Cast<UZodiacHeroAbility>(Ability))
 		{
 			if (UZodiacSkillSlot* SkillSlot = Skill->GetSkillSlot())
 			{

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Skills/ZodiacSkillAbility.h"
+#include "AbilitySystem/Skills/ZodiacHeroAbility.h"
 #include "ZodiacSkillAbility_Traversal.generated.h"
 
 /**
@@ -11,7 +11,7 @@
  * Can be activated by player input or gameplay event.
  */
 UCLASS(Abstract)
-class ZODIAC_API UZodiacSkillAbility_Traversal : public UZodiacSkillAbility
+class ZODIAC_API UZodiacSkillAbility_Traversal : public UZodiacHeroAbility
 {
 	GENERATED_BODY()
 

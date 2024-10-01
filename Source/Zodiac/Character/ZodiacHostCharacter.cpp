@@ -3,7 +3,7 @@
 #include "ZodiacHostCharacter.h"
 
 #include "ZodiacGameplayTags.h"
-#include "ZodiacHero.h"
+#include "ZodiacHeroActor.h"
 #include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
@@ -103,7 +103,7 @@ UAbilitySystemComponent* AZodiacHostCharacter::GetAbilitySystemComponent() const
 
 UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetZodiacAbilitySystemComponent() const
 {
-	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
+	if (AZodiacHeroActor* Hero = HeroList.GetHero(ActiveHeroIndex))
 	{
 		return Hero->GetHeroAbilitySystemComponent();
 	}
@@ -118,7 +118,7 @@ UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetHostAbilitySystemCompone
 
 UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetHeroAbilitySystemComponent() const
 {
-	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
+	if (AZodiacHeroActor* Hero = HeroList.GetHero(ActiveHeroIndex))
 	{
 		return Hero->GetHeroAbilitySystemComponent();
 	}
@@ -128,7 +128,7 @@ UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetHeroAbilitySystemCompone
 
 UZodiacHealthComponent* AZodiacHostCharacter::GetHealthComponent() const
 {
-	if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
+	if (AZodiacHeroActor* Hero = HeroList.GetHero(ActiveHeroIndex))
 	{
 		return Hero->GetHealthComponent();
 	}
@@ -139,18 +139,18 @@ UZodiacHealthComponent* AZodiacHostCharacter::GetHealthComponent() const
 void AZodiacHostCharacter::InitializeHeroes()
 {
 	int i = 0;
-	for (TSubclassOf<AZodiacHero> HeroClass : HeroClasses)
+	for (TSubclassOf<AZodiacHeroActor> HeroClass : HeroClasses)
 	{
 		if (HeroClass)
 		{
-			AZodiacHero* Hero = HeroList.AddEntry(GetWorld(), HeroClass, i++);
+			AZodiacHeroActor* Hero = HeroList.AddEntry(GetWorld(), HeroClass, i++);
 		}
 	}
 }
 
 void AZodiacHostCharacter::ChangeHero(const int32 Index)
 {
-	if (AZodiacHero* Hero = HeroList.GetHero(Index))
+	if (AZodiacHeroActor* Hero = HeroList.GetHero(Index))
 	{
 		int32 OldIndex = ActiveHeroIndex;
 		ActiveHeroIndex = Index;
@@ -160,6 +160,11 @@ void AZodiacHostCharacter::ChangeHero(const int32 Index)
 			OnRep_ActiveHeroIndex(OldIndex);
 		}
 	}
+}
+
+void AZodiacHostCharacter::TryChangeMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode)
+{
+	GetCharacterMovement()->SetMovementMode(MovementMode, CustomMovementMode);
 }
 
 void AZodiacHostCharacter::SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle)
@@ -195,12 +200,12 @@ void AZodiacHostCharacter::OnRep_ActiveHeroIndex(int32 OldIndex)
 {
 	if (ActiveHeroIndex != OldIndex)
 	{
-		if (AZodiacHero* Hero = HeroList.GetHero(OldIndex))
+		if (AZodiacHeroActor* Hero = HeroList.GetHero(OldIndex))
 		{
 			Hero->Deactivate();
 		}
 
-		if (AZodiacHero* Hero = HeroList.GetHero(ActiveHeroIndex))
+		if (AZodiacHeroActor* Hero = HeroList.GetHero(ActiveHeroIndex))
 		{
 			Hero->Activate();
 		}	

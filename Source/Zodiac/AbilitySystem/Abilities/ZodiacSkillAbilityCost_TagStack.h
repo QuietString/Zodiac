@@ -18,8 +18,8 @@ public:
 	UZodiacSkillAbilityCost_TagStack();
 
 	//~UZodiacSkillAbilityCost interface
-	virtual bool CheckCost(const UZodiacSkillAbility* SkillAbility, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
-	virtual void ApplyCost(const UZodiacSkillAbility* SkillAbility, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+	virtual bool CheckCost(const UZodiacHeroAbility* SkillAbility, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
+	virtual void ApplyCost(const UZodiacHeroAbility* SkillAbility, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	//~End of UZodiacSkillAbilityCost interface
 
 	float GetQuantity() const { return Quantity.GetValueAtLevel(0); }

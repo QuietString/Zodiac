@@ -16,7 +16,7 @@ UZodiacSkillAbilityCost_TagStack::UZodiacSkillAbilityCost_TagStack()
 	FailureTag = TAG_ABILITY_FAIL_COST;
 }
 
-bool UZodiacSkillAbilityCost_TagStack::CheckCost(const UZodiacSkillAbility* SkillAbility,
+bool UZodiacSkillAbilityCost_TagStack::CheckCost(const UZodiacHeroAbility* SkillAbility,
 	const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	FGameplayTagContainer* OptionalRelevantTags) const
 {
@@ -26,7 +26,7 @@ bool UZodiacSkillAbilityCost_TagStack::CheckCost(const UZodiacSkillAbility* Skil
 		const int32 NumStacks = FMath::TruncToInt(NumStacksReal);
 		
 		int32 NumStacksFound = 0;
-		if (const UZodiacSkillAbility* Skill = Cast<UZodiacSkillAbility>(SkillAbility))
+		if (const UZodiacHeroAbility* Skill = Cast<UZodiacHeroAbility>(SkillAbility))
 		{
 			if (const UZodiacSkillSlot* SkillSlot = Skill->GetSkillSlot())
 			{
@@ -47,7 +47,7 @@ bool UZodiacSkillAbilityCost_TagStack::CheckCost(const UZodiacSkillAbility* Skil
 	return false;
 }
 
-void UZodiacSkillAbilityCost_TagStack::ApplyCost(const UZodiacSkillAbility* SkillAbility,
+void UZodiacSkillAbilityCost_TagStack::ApplyCost(const UZodiacHeroAbility* SkillAbility,
 	const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo)
 {
@@ -56,7 +56,7 @@ void UZodiacSkillAbilityCost_TagStack::ApplyCost(const UZodiacSkillAbility* Skil
 		const float NumStacksReal = Quantity.GetValueAtLevel(1);
 		const int32 NumStacks = FMath::TruncToInt(NumStacksReal);
 
-		if (const UZodiacSkillAbility* Skill = Cast<UZodiacSkillAbility>(SkillAbility))
+		if (const UZodiacHeroAbility* Skill = Cast<UZodiacHeroAbility>(SkillAbility))
 		{
 			if (UZodiacSkillSlot* SkillSlot = Skill->GetSkillSlot())
 			{

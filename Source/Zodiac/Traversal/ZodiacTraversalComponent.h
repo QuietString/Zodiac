@@ -58,10 +58,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Traversal")
 	bool bEnableFindLedgeOnTick;
 
-	// If below zero, find ledge every tick.
-	UPROPERTY(EditAnywhere, meta=(ForceUnits="Hz"), Category = "Traversal")
-	float FindLedgeTickInterval = 0.2;
-	
 	UPROPERTY(EditAnywhere, Category = "Traversal")
 	FVector2D VaultHeightRange = FVector2D(50.0f, 125.0f);
 
@@ -87,7 +83,4 @@ private:
 	// Used for not to call CanTraversalAction again when activating traversal ability.
 	FZodiacTraversalCheckResult CheckResultCached;
 	bool bHasCached;
-	
-	uint8 MaxTickCount = 0;
-	uint8 TickCount = 0;
 };

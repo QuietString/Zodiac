@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "ZodiacCharacterMovementComponent.h"
 
 #include "ZodiacHeroData.generated.h"
 
@@ -29,6 +30,9 @@ public:
 	// UPROPERTY(EditDefaultsOnly, Category = "Skills", meta=(DisplayName = "Skill Slots", Categories = "SkillSlot"))
 	// TMap<FGameplayTag, TObjectPtr<UZodiacSkillSlotDefinition>> SkillSlotDefinitions;
 
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	TEnumAsByte<EZodiacCustomMovementMode> DefaultMovementMode;
+	
 	UPROPERTY(EditAnywhere, Category = "Display")
 	TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;
 };

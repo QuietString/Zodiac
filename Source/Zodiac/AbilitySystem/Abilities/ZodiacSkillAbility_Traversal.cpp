@@ -4,8 +4,10 @@
 #include "ZodiacSkillAbility_Traversal.h"
 
 #include "ZodiacGameplayTags.h"
+#include "ZodiacLogChannels.h"
 #include "Character/ZodiacCharacter.h"
 #include "Traversal/ZodiacTraversalComponent.h"
+#include "Traversal/ZodiacTraversalTypes.h"
 #include "GameplayAbilities/Public/Abilities/Tasks/AbilityTask_WaitDelay.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSkillAbility_Traversal)
@@ -36,7 +38,14 @@ bool UZodiacSkillAbility_Traversal::CanActivateAbility(const FGameplayAbilitySpe
 		if (UZodiacTraversalComponent* TraversalComponent = ZodiacCharacter->FindComponentByClass<UZodiacTraversalComponent>())
 		{
 			FText FailReason;
-			return TraversalComponent->CanTraversalAction(FailReason);
+			bool Result = TraversalComponent->CanTraversalAction(FailReason);
+#if WITH_EDITOR
+			if (!Result && ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
+			{
+				UE_LOG(LogZodiacTraversal, Log, TEXT("Traversal Failed Reason: %s"), *FailReason.ToString());
+			}
+#endif
+			return Result;
 		}
 	}
 

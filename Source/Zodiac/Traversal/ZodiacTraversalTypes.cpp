@@ -5,6 +5,24 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacTraversalTypes)
 
+namespace ZodiacConsoleVariables
+{
+	TAutoConsoleVariable<bool> CVarTraversalDrawDebug(
+		TEXT("zodiac.Traversal.ShowDebug"),
+		false,
+		TEXT(""));
+
+	TAutoConsoleVariable<int> CVarTraversalDebugLevel(
+		TEXT("zodiac.Traversal.DebugLevel"),
+		5,
+		TEXT("1: front ledge\t2: ceiiing\t3: back ledge\t 4: floor"));
+
+	TAutoConsoleVariable<float> CVarTraversalDrawDuration(
+		TEXT("zodiac.Traversal.DrawDuration"),
+		2.5,
+		TEXT(""));
+}
+
 FZodiacTraversalCheckResult::FZodiacTraversalCheckResult()
 {
 	FMemory::Memzero(this, sizeof(FZodiacTraversalCheckResult));

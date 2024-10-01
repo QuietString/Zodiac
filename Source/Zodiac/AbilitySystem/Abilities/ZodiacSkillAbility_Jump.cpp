@@ -3,6 +3,7 @@
 #include "ZodiacSkillAbility_Jump.h"
 
 #include "ZodiacGameplayTags.h"
+#include "ZodiacLogChannels.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Character/ZodiacCharacter.h"
 #include "Traversal/ZodiacTraversalComponent.h"
@@ -60,6 +61,13 @@ void UZodiacSkillAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle 
 			}
 			else
 			{
+				bool Result = TraversalComponent->CanTraversalAction(FailReason);
+#if WITH_EDITOR
+				if (!Result && ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
+				{
+					UE_LOG(LogZodiacTraversal, Log, TEXT("Traversal Failed Reason: %s"), *FailReason.ToString());
+				}
+#endif
 				CharacterJumpStart();
 				return;
 			}

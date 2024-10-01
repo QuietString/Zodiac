@@ -6,8 +6,8 @@
 #include "ZodiacCharacter.h"
 #include "ZodiacMonster.generated.h"
 
+class UPhysicalAnimationComponent;
 class UZodiacHeroData;
-class AZodiacHero;
 
 UENUM(BlueprintType)
 enum EZodiacAIState : uint8
@@ -31,7 +31,6 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	
 	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner) override;
 
 	UFUNCTION(BlueprintCallable)
@@ -41,9 +40,6 @@ public:
 	EZodiacAIState GetAIState() { return AIState; }
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category="")
-	TSubclassOf<AZodiacHero> HeroClass;
-	
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	const UZodiacHeroData* HeroData;
 
@@ -53,4 +49,7 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	TObjectPtr<UPhysicalAnimationComponent> PhysicalAnimationComponent;
 };

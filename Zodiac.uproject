@@ -186,6 +186,14 @@
 		{
 			"Name": "MotionWarping",
 			"Enabled": true
+		},
+		{
+			"Name": "PCG",
+			"Enabled": true
+		},
+		{
+			"Name": "Traffic",
+			"Enabled": true
 		}
 	]
 }

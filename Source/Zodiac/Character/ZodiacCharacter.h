@@ -96,8 +96,14 @@ public:
 
 	// Last FSharedRepMovement we sent, to avoid sending repeatedly.
 	FSharedRepMovement LastSharedReplication;
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void SimulateOrPlayHitReact(FVector HitDirection, FName HitBone);
+
+	float CalculateMaxSpeed() const;
+	virtual void Tick(float DeltaSeconds) override;
 	
-protected:
+protected:	
 	//~AActor interface
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
@@ -127,6 +133,17 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
+	
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
+	FFloatCurve StrafeSpeedMapCurve;
+
+	// X: max speed, Y: mid speed, Z: min speed
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
+	FVector RunSpeeds = FVector(500.0f, 350.0f, 300.0f);
+
+	// X: max speed, Y: mid speed, Z: min speed
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
+	FVector WalkSpeeds = FVector(200.0f, 175.0f, 150.0f);
 	
 private:
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_ReplicatedAcceleration)

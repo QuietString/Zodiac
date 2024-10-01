@@ -8,7 +8,7 @@
 #include "AIController.h"
 #include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "Character/ZodiacHero.h"
+#include "Character/ZodiacHeroActor.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Physics/ZodiacCollisionChannels.h"
 
@@ -160,7 +160,7 @@ void UZodiacSkillAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbilit
 
 void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHits)
 {
-	AZodiacHero* HeroActor = Cast<AZodiacHero>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHeroActor* HeroActor = Cast<AZodiacHeroActor>(GetCurrentActorInfo()->AvatarActor);
 	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
 	
 	FRangedSkillTraceData TraceData;
@@ -209,7 +209,7 @@ void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHi
 
 FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(const EZodiacAbilityAimTraceRule TraceRule) const
 {
-	AZodiacHero* HeroActor = Cast<AZodiacHero>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHeroActor* HeroActor = Cast<AZodiacHeroActor>(GetCurrentActorInfo()->AvatarActor);
 	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
 	
 	return GetTargetingTransform(HostCharacter, HeroActor, TraceRule);
@@ -217,7 +217,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(const EZodiacAbilit
 
 FTransform UZodiacSkillAbility_Ranged::GetWeaponTargetingTransform() const
 {
-	AZodiacHero* HeroActor = Cast<AZodiacHero>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHeroActor* HeroActor = Cast<AZodiacHeroActor>(GetCurrentActorInfo()->AvatarActor);
 	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
 	
 	return GetTargetingTransform(HostCharacter, HeroActor, EZodiacAbilityAimTraceRule::WeaponTowardsFocus);

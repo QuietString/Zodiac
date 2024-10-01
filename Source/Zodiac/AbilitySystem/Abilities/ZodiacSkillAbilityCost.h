@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameplayAbilitySpecHandle.h"
-#include "AbilitySystem/Skills/ZodiacSkillAbility.h"
+#include "AbilitySystem/Skills/ZodiacHeroAbility.h"
 #include "UObject/Object.h"
 #include "ZodiacSkillAbilityCost.generated.h"
 
-class UZodiacSkillAbility;
+class UZodiacHeroAbility;
 /**
  * 
  */
@@ -32,7 +32,7 @@ public:
 	 * 
 	 * @return true if we can pay for the ability, false otherwise.
 	 */
-	virtual bool CheckCost(const UZodiacSkillAbility* SkillAbility, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
+	virtual bool CheckCost(const UZodiacHeroAbility* SkillAbility, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 	{
 		return true;
 	}
@@ -44,7 +44,7 @@ public:
 	 * - Your implementation don't need to check ShouldOnlyApplyCostOnHit(), the caller does that for you.
 	  * - Ability and ActorInfo are guaranteed to be non-null on entry.
 	 */
-	virtual void ApplyCost(const UZodiacSkillAbility* SkillAbility, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+	virtual void ApplyCost(const UZodiacHeroAbility* SkillAbility, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 	{
 	}
 

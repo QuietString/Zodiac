@@ -7,7 +7,7 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacInteractionTransformInterface.h"
 #include "ZodiacLogChannels.h"
-#include "ZodiacTraversableActor.h"
+#include "ZodiacTraversableActorComponent.h"
 #include "ZodiacTraversalTypes.h"
 #include "Character/ZodiacCharacter.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
@@ -47,15 +47,6 @@ void UZodiacTraversalComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 void UZodiacTraversalComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (FindLedgeTickInterval > 0.0f && FindLedgeTickInterval <= 1.0f)
-	{
-		MaxTickCount = FMath::CeilToInt(1 / FindLedgeTickInterval);	
-	}
-	else
-	{
-		MaxTickCount = 0;
-	}
 }
 
 void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -66,18 +57,23 @@ void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	{
 		if (bEnableFindLedgeOnTick && Character->IsLocallyViewed())
 		{
-			if ((MaxTickCount == 0) || (TickCount++ >= MaxTickCount))
+			bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
+			FText FailReason;
+			FZodiacTraversalCheckResult Result;
+			FVector LastLocation;
+			bool bLedgeFound = CheckFrontLedge(bIsInAir, Result, FailReason, LastLocation, true);
+			
+			DrawLedgeLocation(bLedgeFound, Result.FrontLedgeLocation, Result.FrontLedgeNormal);
+
+#if WITH_EDITOR
+			if (ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
 			{
-				bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
-				FText FailReason;
-				FZodiacTraversalCheckResult Result;
-				FVector LastLocation;
-				bool bLedgeFound = CheckFrontLedge(bIsInAir, Result, FailReason, LastLocation, true);
-			
-				DrawLedgeLocation(bLedgeFound, Result.FrontLedgeLocation, Result.FrontLedgeNormal);
-			
-				TickCount = 0;
+				if (GEngine)
+				{
+					GEngine->AddOnScreenDebugMessage(9135, 0, FColor::Green, FailReason.ToString());
+				}
 			}
+#endif
 		}
 	}
 }
@@ -136,6 +132,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 	FVector ActorLocation = OwningCharacter->GetActorLocation();
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(OwningCharacter);
+	ActorsToIgnore.Add(Result.HitComponent->GetOwner());
 	OwningCharacter->GetAttachedActors(ActorsToIgnore, false);
 
 	// Step 3.3: Save the height of the obstacle using the delta between the actor and front ledge transform.
@@ -147,7 +144,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 										+ Result.BackLedgeNormal * (CapsuleRadius + 2)
 										+ FVector(0.0f, 0.0f, CapsuleHalfHeight + 2);
 	FHitResult BackLedgeHit;
-	if (CapsuleTrace(FrontRoomCheckStartLocation, FrontRoomCheckEndLocation, BackLedgeHit, CapsuleRadius, CapsuleHalfHeight, bDrawBackLedgeTrace, DebugDuration, false, ActorsToIgnore))
+	if (Result.bHasBackLedge && CapsuleTrace(FrontRoomCheckStartLocation, FrontRoomCheckEndLocation, BackLedgeHit, CapsuleRadius, CapsuleHalfHeight, bDrawBackLedgeTrace, DebugDuration, false, ActorsToIgnore))
 	{
 		// Step 3.5: If there is not room, save the obstacle depth using the difference between the front ledge and the trace impact point, and invalidate the back ledge.
 		Result.ObstacleDepth = (BackLedgeHit.ImpactPoint - Result.FrontLedgeLocation).Length();
@@ -267,18 +264,29 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 		FailReason = LOCTEXT("TraversalFailed", "No trace hit");
 		return false;
 	}
-	
-	AZodiacTraversableActor* TraversableObject = Cast<AZodiacTraversableActor>(TraversalObjectHit.GetActor());
-	if (TraversableObject == nullptr)
+
+	AActor* HitActor = TraversalObjectHit.GetActor();
+	if (HitActor)
+	{
+		if (UZodiacTraversableActorComponent* TraversableActorComponent = Cast<UZodiacTraversableActorComponent>(TraversalObjectHit.GetActor()->GetComponentByClass(UZodiacTraversableActorComponent::StaticClass())))
+		{
+			// Step 2.2: If a traversable level block was found, get the front and back ledge transforms from it.
+			TraversableActorComponent->GetLedgeTransforms(TraversalObjectHit.ImpactPoint, ActorLocation, OUT Result);
+			Result.HitComponent = TraversalObjectHit.Component;
+			ActorsToIgnore.Add(HitActor);
+		}
+		else
+		{
+			FailReason = LOCTEXT("TraversalFailed", "No traversal object found");
+			return false;
+		}
+	}
+	else
 	{
 		FailReason = LOCTEXT("TraversalFailed", "No traversal object found");
 		return false;
 	}
-
-	// Step 2.2: If a traversable level block was found, get the front and back ledge transforms from it.
-	TraversableObject->GetLedgeTransforms(TraversalObjectHit.ImpactPoint, ActorLocation, OUT Result);
-	Result.HitComponent = TraversalObjectHit.Component;
-
+	
 	// Step 3.1 If the traversable level block has a valid front ledge, continue the function. If not, exit early.
 	if (!Result.bHasFrontLedge)
 	{
@@ -295,7 +303,7 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	CapsuleTrace(CeilingCheckStartLocation, CeilingCheckEndLocation, CeilingHit, CapsuleRadius, CapsuleHalfHeight, bDrawCeilingTrace, DebugDuration, bIsTicked, ActorsToIgnore);
 	if (CeilingHit.bBlockingHit || CeilingHit.bStartPenetrating)
 	{
-		FailReason = LOCTEXT("TraversalFailed", "Too close ceiling for traversal action");
+		FailReason = FText::Format(LOCTEXT("TraversalFailed", "Too close ceiling for traversal action. Hit component: {0}"), FText::FromString(CeilingHit.Component->GetName()));
 		return 	false;
 	}
 

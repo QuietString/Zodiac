@@ -48,9 +48,7 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 {
 #if WITH_SERVER_CODE
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
-
-	float SkillMultiplier = Spec.GetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_SkillMultiplier, false, 1.0f);
-
+	
 	FGameplayEffectContext* TypedContext = Spec.GetContext().Get();
 	check(TypedContext);
 
@@ -63,8 +61,7 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 
 	float BaseDamage = 0.0f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BaseDamageDef, EvaluateParameters, BaseDamage);
-
-
+	
 	const AActor* EffectCauser = TypedContext->GetEffectCauser();
 	const FHitResult* HitActorResult = TypedContext->GetHitResult();
 
@@ -112,43 +109,11 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 		}
 	}
 
-	{
-		
-	}
-	// Determine distance
-	// double Distance = WORLD_MAX;
-	//
-	// if (TypedContext->HasOrigin())
-	// {
-	// 	Distance = FVector::Dist(TypedContext->GetOrigin(), ImpactLocation);
-	// }
-	// else if (EffectCauser)
-	// {
-	// 	Distance = FVector::Dist(EffectCauser->GetActorLocation(), ImpactLocation);
-	// }
-	// else
-	// {
-	// 	ensureMsgf(false, TEXT("Damage Calculation cannot deduce a source location for damage coming from %s; Falling back to WORLD_MAX dist!"), *GetPathNameSafe(Spec.Def));
-	// }
-
 	// Apply ability source modifiers
 	float PhysicalMaterialAttenuation = 1.0f;
-	float DistanceAttenuation = 1.0f;
 	
-	// if (const IZodiacAbilitySourceInterface* AbilitySource = TypedContext->GetAbilitySource())
-	// {
-	// 	if (const UPhysicalMaterial* PhysMat = TypedContext->GetPhysicalMaterial())
-	// 	{
-	// 		PhysicalMaterialAttenuation = AbilitySource->GetPhysicalMaterialAttenuation(PhysMat, SourceTags, TargetTags);
-	// 	}
-	//
-	// 	DistanceAttenuation = AbilitySource->GetDistanceAttenuation(Distance, SourceTags, TargetTags);
-	// }
-	DistanceAttenuation = FMath::Max(DistanceAttenuation, 0.0f);
-
 	// Clamping is done when damage is converted to -health
-	const float DamageDone = FMath::Max(BaseDamage * SkillMultiplier * DistanceAttenuation * PhysicalMaterialAttenuation * DamageInteractionAllowedMultiplier, 0.0f);
-
+	const float DamageDone = FMath::Max(BaseDamage * PhysicalMaterialAttenuation * DamageInteractionAllowedMultiplier, 0.0f);
 	if (DamageDone > 0.0f)
 	{
 		// Apply a damage modifier, this gets turned into - health on the target
@@ -162,4 +127,3 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	}
 #endif
 }
-

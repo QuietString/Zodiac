@@ -3,7 +3,7 @@
 #include "ZodiacMMC_SkillCost.h"
 
 #include "AbilitySystemComponent.h"
-#include "AbilitySystem/Skills/ZodiacSkillAbility.h"
+#include "AbilitySystem/Skills/ZodiacHeroAbility.h"
 
 float UZodiacMMC_SkillCost::CalculateBaseMagnitude_Implementation(const FGameplayEffectSpec& Spec) const
 {

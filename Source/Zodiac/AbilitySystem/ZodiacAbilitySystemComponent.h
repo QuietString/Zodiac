@@ -8,7 +8,7 @@
 #include "Abilities/ZodiacGameplayAbility.h"
 #include "ZodiacAbilitySystemComponent.generated.h"
 
-class UZodiacSkillAbility;
+class UZodiacHeroAbility;
 struct FGameplayTag;
 struct FGameplayAbilitySpec;
 

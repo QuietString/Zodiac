@@ -11,20 +11,11 @@ class UPrimitiveComponent;
 
 namespace ZodiacConsoleVariables
 {
-	static TAutoConsoleVariable<bool> CVarTraversalDrawDebug(
-		TEXT("zodiac.Traversal.DrawDebug"),
-		false,
-		TEXT(""));
+	extern TAutoConsoleVariable<bool> CVarTraversalDrawDebug;
 
-	static TAutoConsoleVariable<int> CVarTraversalDebugLevel(
-		TEXT("zodiac.Traversal.DebugLevel"),
-		0,
-		TEXT(""));
+	extern TAutoConsoleVariable<int> CVarTraversalDebugLevel;
 
-	static TAutoConsoleVariable<float> CVarTraversalDrawDuration(
-		TEXT("zodiac.Traversal.DrawDuration"),
-		3,
-		TEXT(""));
+	extern TAutoConsoleVariable<float> CVarTraversalDrawDuration;
 }
 
 UENUM(BlueprintType, DisplayName="Traversal Action Type")
