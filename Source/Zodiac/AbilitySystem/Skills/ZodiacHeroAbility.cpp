@@ -4,11 +4,13 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "ZodiacGameplayTags.h"
-#include "ZodiacSkillSlot.h"
+#include "Item/ZodiacHeroItemSlot.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "AbilitySystem/Abilities/ZodiacAbilityCost.h"
 #include "AbilitySystem/Abilities/ZodiacSkillAbilityCost.h"
-#include "Character/ZodiacHeroActor.h"
+#include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
+#include "Item/ZodiacSkillInstance.h"
 #include "Player/ZodiacPlayerController.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbility)
@@ -31,16 +33,16 @@ AZodiacPlayerController* UZodiacHeroAbility::GetHostPlayerControllerFromActorInf
 	return (CurrentActorInfo ? Cast<AZodiacPlayerController>(GetZodiacHostCharacterFromActorInfo()->GetController()) : nullptr);
 }
 
-AZodiacHeroActor* UZodiacHeroAbility::GetHeroActorFromActorInfo() const
+AZodiacHeroCharacter* UZodiacHeroAbility::GetHeroActorFromActorInfo() const
 {
-	return (CurrentActorInfo ? Cast<AZodiacHeroActor>(GetAvatarActorFromActorInfo()) : nullptr);
+	return (CurrentActorInfo ? Cast<AZodiacHeroCharacter>(GetAvatarActorFromActorInfo()) : nullptr);
 }
 
-UZodiacSkillSlot* UZodiacHeroAbility::GetSkillSlot() const
+UZodiacHeroItemSlot* UZodiacHeroAbility::GetAssociatedSlot() const
 {
 	if (FGameplayAbilitySpec* Spec = GetCurrentAbilitySpec())
 	{
-		return Cast<UZodiacSkillSlot>(Spec->SourceObject.Get());
+		return Cast<UZodiacHeroItemSlot>(Spec->SourceObject.Get());
 	}
 
 	return nullptr;
@@ -51,9 +53,9 @@ const FGameplayTagContainer* UZodiacHeroAbility::GetCooldownTags() const
 	FGameplayTagContainer* MutableTags = const_cast<FGameplayTagContainer*>(&TempCooldownTags);
 	MutableTags->Reset();
 	
-	if (UZodiacSkillSlot* SkillSlot = GetSkillSlot())
+	if (UZodiacHeroItemSlot* ItemSlot = GetAssociatedSlot())
 	{
-		MutableTags->AddTag(SkillSlot->GetSlotType());
+		MutableTags->AddTag(ItemSlot->GetSlotType());
 	}
 	
 	return MutableTags;
@@ -116,18 +118,30 @@ bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		return false;
 	}
-	//
-	// // Verify we can afford any additional costs
-	// for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.GetCurrentAdditionalCostData(bIsFirstActivation))
+
+	// UE_LOG(LogTemp, Warning, TEXT("check cost"));
+	// if (UObject* Object = GetItemSlot())
 	// {
-	// 	if (AdditionalCost != nullptr)
+	// 	UE_LOG(LogTemp, Warning, TEXT("source object: %s"), *Object->GetName());
+	// 	if (UZodiacHeroItemSlot* ItemSlot = Cast<UZodiacHeroItemSlot>(Object))
 	// 	{
-	// 		if (!AdditionalCost->CheckCost(this, Handle, ActorInfo, OUT OptionalRelevantTags))
-	// 		{
-	// 			return false;
-	// 		}
+	// 		FGameplayTag Tag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Ability.Stack.MagazineAmmo"));
+	// 		int32 Count = ItemSlot->GetStatTagStackCount(Tag);
+	// 		UE_LOG(LogTemp, Warning, TEXT("tag count: %d"), Count);
 	// 	}
 	// }
+	
+	// Verify we can afford any additional costs
+	for (const TObjectPtr<UZodiacAbilityCost>& AdditionalCost : AdditionalCosts)
+	{
+		if (AdditionalCost != nullptr)
+		{
+			if (!AdditionalCost->CheckCost(this, Handle, ActorInfo, OUT OptionalRelevantTags))
+			{
+				return false;
+			}
+		}
+	}
 
 	return true;
 }
@@ -159,30 +173,30 @@ void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, cons
 		return false;
 	};
 	
-	// Pay any additional costs
-	// bool bAbilityHitTarget = false;
-	// bool bHasDeterminedIfAbilityHitTarget = false;
-	// for (TObjectPtr<UZodiacSkillAbilityCost> AdditionalCost : CostData.GetCurrentAdditionalCostData(bIsFirstActivation))
-	// {
-	// 	if (AdditionalCost != nullptr)
-	// 	{
-	// 		if (AdditionalCost->ShouldOnlyApplyCostOnHit())
-	// 		{
-	// 			if (!bHasDeterminedIfAbilityHitTarget)
-	// 			{
-	// 				bAbilityHitTarget = DetermineIfAbilityHitTarget();
-	// 				bHasDeterminedIfAbilityHitTarget = true;
-	// 			}
-	//
-	// 			if (!bAbilityHitTarget)
-	// 			{
-	// 				continue;
-	// 			}
-	// 		}
-	//
-	// 		AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
-	// 	}
-	// }
+	//Pay any additional costs
+	bool bAbilityHitTarget = false;
+	bool bHasDeterminedIfAbilityHitTarget = false;
+	for (const TObjectPtr<UZodiacAbilityCost>& AdditionalCost : AdditionalCosts)
+	{
+		if (AdditionalCost != nullptr)
+		{
+			if (AdditionalCost->ShouldOnlyApplyCostOnHit())
+			{
+				if (!bHasDeterminedIfAbilityHitTarget)
+				{
+					bAbilityHitTarget = DetermineIfAbilityHitTarget();
+					bHasDeterminedIfAbilityHitTarget = true;
+				}
+	
+				if (!bAbilityHitTarget)
+				{
+					continue;
+				}
+			}
+	
+			AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
+		}
+	}
 }
 
 void UZodiacHeroAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
@@ -193,7 +207,7 @@ void UZodiacHeroAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(CooldownGE->GetClass(), GetAbilityLevel());
 		if (FGameplayEffectSpec* EffectSpec = SpecHandle.Data.Get())
 		{
-			if (UZodiacSkillSlot* SkillSlot = Cast<UZodiacSkillSlot>(GetSourceObject(Handle, CurrentActorInfo)))
+			if (UZodiacSkillInstance* SkillSlot = Cast<UZodiacSkillInstance>(GetSourceObject(Handle, CurrentActorInfo)))
 			{
 				EffectSpec->DynamicGrantedTags.AddTag(SkillSlot->GetSlotType());
 			}

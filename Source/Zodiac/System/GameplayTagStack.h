@@ -52,6 +52,8 @@ struct FGameplayTagStackContainer : public FFastArraySerializer
 	}
 
 public:
+	void SetStack(FGameplayTag Tag, int32 StackCount);
+	
 	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
 	void AddStack(FGameplayTag Tag, int32 StackCount);
 

@@ -3,6 +3,8 @@
 
 #include "ZodiacReticleWidgetBase.h"
 
+#include "Item/ZodiacWeaponSlot.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacReticleWidgetBase)
 
 UZodiacReticleWidgetBase::UZodiacReticleWidgetBase(const FObjectInitializer& ObjectInitializer)

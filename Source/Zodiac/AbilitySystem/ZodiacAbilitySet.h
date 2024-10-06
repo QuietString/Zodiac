@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameplayTags.h"
 #include "GameplayAbilitySpecHandle.h"
-#include "Character/ZodiacHeroData.h"
 #include "Engine/DataAsset.h"
 #include "ZodiacAbilitySet.generated.h"
 

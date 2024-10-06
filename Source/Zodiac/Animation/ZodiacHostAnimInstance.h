@@ -6,6 +6,7 @@
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility_Sprint.h"
 #include "Animation/AnimInstance.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "ZodiacHostAnimInstance.generated.h"
 
 class UZodiacCharacterMovementComponent;
@@ -31,9 +32,6 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 	
-	void UpdateVelocityData();
-	void UpdateAccelerationData(float DeltaSeconds);
-	void UpdateMovementData();
 	bool GetIsAiming() const { return bIsADS; }
 	
 	void OnStatusChanged(FGameplayTag Tag, bool bHasTag);
@@ -42,6 +40,14 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void UpdateGait();
 
+private:
+	void UpdateLocationData(float DeltaSeconds);
+	void UpdateVelocityData();
+	void UpdateAccelerationData(float DeltaSeconds);
+	void UpdateAimingData();
+	
+	void UpdateMovementData();
+
 public:
 	UPROPERTY(BlueprintReadOnly, meta=(DisplayName = CharacterMovement))
 	TObjectPtr<UZodiacCharacterMovementComponent> ZodiacCharMovComp;
@@ -49,6 +55,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FTransform RootTransform;
 
+	UPROPERTY(BlueprintReadOnly, Category = Location_Data)
+	FVector WorldLocation;
+
+	UPROPERTY(BlueprintReadOnly, Category = Location_Data)
+	float DisplacementSinceLastUpdate;
+
+	UPROPERTY(BlueprintReadOnly, Category = Location_Data)
+	float DisplacementSpeed;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector Velocity;
 
@@ -97,7 +112,19 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement_Last;
+
+
 	
+	UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
+	FRotator WorldRotation;
+
+	UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
+	float YawDeltaSinceLastUpdate;
+
+	// how much angle character should lean toward left or right
+	// UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
+	// float AdditiveLeanAngle;
+
 	UPROPERTY( BlueprintReadWrite)
 	float AimYaw; 
 

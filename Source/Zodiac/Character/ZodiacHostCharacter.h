@@ -74,7 +74,7 @@ protected:
 	const UZodiacHeroData* HostData;
 
 	UPROPERTY(EditDefaultsOnly, Category="Zodiac|Hero")
-	TArray<TSubclassOf<AZodiacHeroActor>> HeroClasses;
+	TArray<TSubclassOf<AZodiacHeroCharacter>> HeroClasses;
 	
 	UPROPERTY(Replicated)
 	FZodiacHeroList HeroList;

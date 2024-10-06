@@ -27,7 +27,6 @@ enum class EZodiacDeathState : uint8
 	DeathFinished
 };
 
-
 /**
  *	An actor component used to handle anything related to health.
  */

@@ -9,6 +9,7 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
 #include "Animation/ZodiacHostAnimInstance.h"
+#include "Engine/Canvas.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -20,7 +21,7 @@ namespace ZodiacConsoleVariables
 	static TAutoConsoleVariable<bool> CVarMovementModeShowDebug(
 		TEXT("zodiac.MovementMode.ShowDebug"),
 		false,
-		TEXT("Show log of character movement mode change"));
+		TEXT(""));
 	
 	bool LogEnabled()
 	{
@@ -171,36 +172,29 @@ void AZodiacCharacter::CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySyste
 
 float AZodiacCharacter::CalculateMaxSpeed() const
 {
-	float MovementAngle = FMath::Abs(UKismetAnimationLibrary::CalculateDirection(GetCharacterMovement()->Velocity, GetActorRotation()));
-	float StrafeMap = StrafeSpeedMapCurve.Evaluate(MovementAngle);
-	
 	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
 	uint8 CustomMovementMode = GetCharacterMovement()->CustomMovementMode;
-	
-	EZodiacGait Gait;
-	switch (MovementMode)
-	{
-	case MOVE_Walking:
-		switch (CustomMovementMode)
-		{
-		case MOVE_ADS:
-			Gait = Gait_Walk;
-			break;
-				
-		case MOVE_Running:
-			Gait = Gait_Run;
-			break;
 
-		default:
-			break;
-		}
+	float MovementAngle = FMath::Abs(UKismetAnimationLibrary::CalculateDirection(GetCharacterMovement()->Velocity, GetActorRotation()));
+	float StrafeMap = StrafeSpeedMapCurve ? StrafeSpeedMapCurve->GetFloatValue(MovementAngle) : 1.0f;
+		
+	FVector DesiredSpeedRange;
+
+	switch (CustomMovementMode)
+	{
+	case MOVE_Standard: 
+	case MOVE_ADS:
+		DesiredSpeedRange = WalkSpeeds;
+		break;
+				
+	case MOVE_Running:
+		DesiredSpeedRange = RunSpeeds;
 	default:
-		Gait = Gait_Run;
+		break;
 	}
 
-	FVector DesiredSpeeds = (Gait == Gait_Run) ? RunSpeeds : WalkSpeeds;
-	float MaxSpeed = (StrafeMap < 1.0f) ? DesiredSpeeds.X : DesiredSpeeds.Y;
-	float MinSpeed = (StrafeMap < 1.0f) ? DesiredSpeeds.Y : DesiredSpeeds.Z;
+	float MaxSpeed = (StrafeMap < 1.0f) ? DesiredSpeedRange.X : DesiredSpeedRange.Y;
+	float MinSpeed = (StrafeMap < 1.0f) ? DesiredSpeedRange.Y : DesiredSpeedRange.Z;
 	return UKismetMathLibrary::MapRangeClamped(StrafeMap, 0.0f, 1.0f, MaxSpeed, MinSpeed);
 }
 
@@ -208,7 +202,32 @@ void AZodiacCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	GetCharacterMovement()->MaxWalkSpeed = CalculateMaxSpeed();
+	if (GetCharacterMovement()->MovementMode == MOVE_Walking)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = CalculateMaxSpeed();
+		GetCharacterMovement()->MaxCustomMovementSpeed = CalculateMaxSpeed();
+		if (GetCharacterMovement()->HasAnimRootMotion())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("has root motion"));
+		}
+	}
+}
+
+void AZodiacCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
+{
+	check(Canvas);
+
+	Super::DisplayDebug(Canvas, DebugDisplay, YL, YPos);
+
+	if (IsLocallyControlled())
+	{
+		FDisplayDebugManager& DisplayDebugManager = Canvas->DisplayDebugManager;
+
+		DisplayDebugManager.SetFont(GEngine->GetSmallFont());
+		DisplayDebugManager.SetDrawColor(FColor::Yellow);
+		DisplayDebugManager.DrawString(FString::Printf(TEXT("ZodiacCharacter: %s"), *GetNameSafe(this)));
+		DisplayDebugManager.DrawString(FString::Printf(TEXT("MovementMode: %d, CustomMovementMode: %d"), GetCharacterMovement()->MovementMode.GetValue(), GetCharacterMovement()->CustomMovementMode));
+	}
 }
 
 void AZodiacCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -449,10 +468,10 @@ void AZodiacCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 #if WITH_EDITOR
 	if (ZodiacConsoleVariables::LogEnabled())
 	{
-		UE_LOG(LogZodiacMovement, Warning, TEXT("MovementMode: %d, Custom: %d on %s"), MovementMode, CustomMovementMode,  HasAuthority() ? TEXT("server") : TEXT("Client"));	
+		UE_LOG(LogZodiacMovement, Log, TEXT("Prev mode: (%d, %d), New mode: (%d, %d"), PrevMovementMode, PreviousCustomMode, MovementMode, CustomMovementMode);
 	}
 #endif
-	}
+}
 
 void AZodiacCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled)
 {

@@ -26,7 +26,8 @@ class ZODIAC_API UZodiacSkillAbility_Ranged : public UZodiacHeroAbility
 
 public:
 	UZodiacSkillAbility_Ranged(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-	
+
+	virtual void PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
@@ -92,6 +93,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayCueParameters GCNParameters;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsAlreadyFiring;
 	
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;

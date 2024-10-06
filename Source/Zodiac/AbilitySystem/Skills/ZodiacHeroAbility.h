@@ -6,9 +6,10 @@
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
 #include "ZodiacHeroAbility.generated.h"
 
-class AZodiacHeroActor;
+class UZodiacHeroItemSlot;
+class AZodiacHeroCharacter;
 class UZodiacSkillAbilityCost;
-class UZodiacSkillSlot;
+class UZodiacSkillInstance;
 
 /**
  * Gameplay ability belongs to a hero character
@@ -26,11 +27,25 @@ public:
 	AZodiacPlayerController* GetHostPlayerControllerFromActorInfo() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	AZodiacHeroActor* GetHeroActorFromActorInfo() const;
+	AZodiacHeroCharacter* GetHeroActorFromActorInfo() const;
 	
 	UFUNCTION(BlueprintCallable)
-	UZodiacSkillSlot* GetSkillSlot() const;
+	UZodiacHeroItemSlot* GetAssociatedSlot() const;
 	
+	template<typename T>
+	T* GetAssociatedSlot() const
+	{
+		if (UZodiacHeroItemSlot* Slot = GetAssociatedSlot())
+		{
+			if (T* TypedSlot = Cast<T>(Slot))
+			{
+				return TypedSlot;
+			}
+		}
+
+		return nullptr;
+	}
+
 	UFUNCTION(BlueprintCallable)
 	float GetCooldownDuration() const { return CooldownDuration.GetValueAtLevel(GetAbilityLevel()); }
 
@@ -73,6 +88,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "FX")
 	uint8 ComboIndex = 0;
 
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = Costs)
+	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;
+	
 private:
 	bool bIsFirstActivation = false;
 	

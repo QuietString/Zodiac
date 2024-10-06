@@ -39,11 +39,15 @@ void UZodiacHostAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
-	if (ZodiacCharMovComp)
+	if (OwningCharacter && ZodiacCharMovComp)
 	{
+		UpdateLocationData(DeltaSeconds);
+		
 		UpdateVelocityData();
 		UpdateMovementData();
 		UpdateAccelerationData(DeltaSeconds);
+
+		UpdateAimingData();
 	}
 }
 
@@ -73,6 +77,11 @@ void UZodiacHostAnimInstance::UpdateAccelerationData(float DeltaSeconds)
 	bHasAcceleration = AccelerationAmount > 0;
 }
 
+void UZodiacHostAnimInstance::UpdateAimingData()
+{
+	AimPitch = UKismetMathLibrary::NormalizeAxis(TryGetPawnOwner()->GetBaseAimRotation().Pitch);
+}
+
 void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 {
 	if (Tag == ZodiacGameplayTags::Status_Focus)
@@ -99,6 +108,7 @@ void UZodiacHostAnimInstance::UpdateGait()
 		case MOVE_Walking:
 			switch (CustomMovementMode)
 			{
+			case MOVE_Standard:
 			case MOVE_ADS:
 				Gait = Gait_Walk;
 				return;
@@ -114,4 +124,14 @@ void UZodiacHostAnimInstance::UpdateGait()
 			Gait = Gait_Run;
 		}
 	}
+}
+
+void UZodiacHostAnimInstance::UpdateLocationData(float DeltaSeconds)
+{
+	const FVector PositionDiff = OwningCharacter->GetActorLocation() - WorldLocation;
+	DisplacementSinceLastUpdate = UKismetMathLibrary::VSizeXY(PositionDiff);
+
+	WorldLocation = OwningCharacter->GetActorLocation();
+	
+	DisplacementSpeed = UKismetMathLibrary::SafeDivide(DisplacementSinceLastUpdate, DeltaSeconds);
 }

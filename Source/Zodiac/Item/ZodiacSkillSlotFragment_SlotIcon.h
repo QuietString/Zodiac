@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZodiacSkillSlotDefinition.h"
+#include "ZodiacSkillInstance.h"
 #include "ZodiacSkillSlotFragment_SlotIcon.generated.h"
 
 /**

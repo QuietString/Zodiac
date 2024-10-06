@@ -79,6 +79,9 @@ class ZODIAC_API AZodiacCharacter : public ACharacter, public IAbilitySystemInte
 public:
 	AZodiacCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
+	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UZodiacHealthComponent* GetHealthComponent() const;
@@ -97,12 +100,11 @@ public:
 	// Last FSharedRepMovement we sent, to avoid sending repeatedly.
 	FSharedRepMovement LastSharedReplication;
 
+	float CalculateMaxSpeed() const;
+	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SimulateOrPlayHitReact(FVector HitDirection, FName HitBone);
 
-	float CalculateMaxSpeed() const;
-	virtual void Tick(float DeltaSeconds) override;
-	
 protected:	
 	//~AActor interface
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -135,8 +137,8 @@ protected:
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
-	FFloatCurve StrafeSpeedMapCurve;
-
+	TObjectPtr<UCurveFloat> StrafeSpeedMapCurve;
+	
 	// X: max speed, Y: mid speed, Z: min speed
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
 	FVector RunSpeeds = FVector(500.0f, 350.0f, 300.0f);

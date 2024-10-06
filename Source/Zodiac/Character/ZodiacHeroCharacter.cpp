@@ -1,6 +1,6 @@
 ﻿// the.quiet.string@gmail.com
 
-#include "ZodiacHeroActor.h"
+#include "ZodiacHeroCharacter.h"
 
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroData.h"
@@ -10,69 +10,62 @@
 #include "ZodiacHostCharacter.h"
 #include "AbilitySystem/ZodiacHeroAbilitySystemComponent.h"
 #include "Animation/ZodiacHeroAnimInstance.h"
+#include "ZodiacHeroAbilityManagerComponent.h"
+#include "ZodiacHeroSkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "ZodiacHUDManagerComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Item/ZodiacHeroItemSlot.h"
+#include "Item/ZodiacWeaponSlot.h"
 #include "Net/UnrealNetwork.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroActor)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroCharacter)
 
-AZodiacHeroActor::AZodiacHeroActor(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+AZodiacHeroCharacter::AZodiacHeroCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacHeroSkeletalMeshComponent>(MeshComponentName))
 {
 	bReplicates = true;
+
+	UZodiacHeroSkeletalMeshComponent* HeroMesh = CastChecked<UZodiacHeroSkeletalMeshComponent>(GetMesh());
+	HeroMesh->bIsHeroHidden = true;
 	
-	Mesh = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("Mesh"));
-	Mesh->AlwaysLoadOnClient = true;
-	Mesh->AlwaysLoadOnServer = false;
-	Mesh->bOwnerNoSee = false;
-	Mesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
-	Mesh->bCastDynamicShadow = true;
-	Mesh->bAffectDynamicIndirectLighting = true;
-	Mesh->PrimaryComponentTick.TickGroup = TG_PrePhysics;
-	Mesh->SetGenerateOverlapEvents(false);
-	Mesh->SetCanEverAffectNavigation(false);
-	Mesh->CanCharacterStepUpOn = ECB_No;
-	Mesh->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
-	Mesh->SetVisibility(false);
-	RootComponent = Mesh;
-	
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHeroAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
+	
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
-
-	HUDManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHUDManagerComponent>(this, TEXT("HUD Manager"));
+	
+	AbilityManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHeroAbilityManagerComponent>(this, TEXT("Ability Manager"));
 }
 
-void AZodiacHeroActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void AZodiacHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ThisClass, bIsActive, COND_InitialOnly);
 }
 
-void AZodiacHeroActor::PostInitializeComponents()
+void AZodiacHeroCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	
 	if (HasAuthority())
 	{
-		Initialize();
+		InitializeWithHostCharacter();
 	}
 }
 
-void AZodiacHeroActor::BeginPlay()
+void AZodiacHeroCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void AZodiacHeroActor::OnRep_Owner()
+void AZodiacHeroCharacter::OnRep_Owner()
 {
-	Initialize();
+	InitializeWithHostCharacter();
 }
 
-FGenericTeamId AZodiacHeroActor::GetGenericTeamId() const
+FGenericTeamId AZodiacHeroCharacter::GetGenericTeamId() const
 {
 	if (HostCharacter)
 	{
@@ -82,22 +75,22 @@ FGenericTeamId AZodiacHeroActor::GetGenericTeamId() const
 	return FGenericTeamId::NoTeam;
 }
 
-UAbilitySystemComponent* AZodiacHeroActor::GetAbilitySystemComponent() const
+UAbilitySystemComponent* AZodiacHeroCharacter::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
 
-UZodiacAbilitySystemComponent* AZodiacHeroActor::GetHeroAbilitySystemComponent() const
+UZodiacAbilitySystemComponent* AZodiacHeroCharacter::GetHeroAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
 
-AZodiacHostCharacter* AZodiacHeroActor::GetHostCharacter() const
+AZodiacHostCharacter* AZodiacHeroCharacter::GetHostCharacter() const
 {
 	return HostCharacter;
 }
 
-void AZodiacHeroActor::InitializeAbilitySystem()
+void AZodiacHeroCharacter::InitializeAbilitySystem()
 {
 	check(AbilitySystemComponent);
 
@@ -105,13 +98,29 @@ void AZodiacHeroActor::InitializeAbilitySystem()
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 
-	if (HeroData && HasAuthority())
+	if (HeroData)
 	{
-		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
+		AbilityManagerComponent->InitializeWithAbilitySystem(AbilitySystemComponent, HeroData);
+
+		if (HasAuthority())
 		{
-			if (AbilitySet)
+			for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
 			{
-				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
+				if (AbilitySet)
+				{
+					AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
+				}
+			}
+
+			
+			// initialize skills
+			for (const FZodiacHeroItemDefinition& SlotDefinition : HeroData->SkillSlots)
+			{
+				if (UZodiacAbilitySet* AbilitySet = SlotDefinition.SkillSetToGrant)
+				{
+					AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+					SlotDefinition.CreateInstance(this);
+				}
 			}
 		}
 	}
@@ -119,7 +128,7 @@ void AZodiacHeroActor::InitializeAbilitySystem()
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 }
 
-void AZodiacHeroActor::OnStatusTagChanged(FGameplayTag Tag, int Count)
+void AZodiacHeroCharacter::OnStatusTagChanged(FGameplayTag Tag, int Count)
 {
 	check(HostCharacter);
 	
@@ -130,23 +139,47 @@ void AZodiacHeroActor::OnStatusTagChanged(FGameplayTag Tag, int Count)
 		
 		HostASC->SetLooseGameplayTagCount(Tag, NewCount);
 		
-		if (UZodiacHeroAnimInstance* HeroAnimInstance = Cast<UZodiacHeroAnimInstance>(Mesh->GetAnimInstance()))
+		if (UZodiacHeroAnimInstance* HeroAnimInstance = GetHeroAnimInstance())
 		{
 			HeroAnimInstance->OnStatusChanged(Tag, bHasTag);
 		}
 	}
 }
 
-UZodiacHealthComponent* AZodiacHeroActor::GetHealthComponent() const
+UZodiacHealthComponent* AZodiacHeroCharacter::GetHealthComponent() const
 {
 	return HealthComponent;
 }
 
-void AZodiacHeroActor::Activate()
+UZodiacHeroAnimInstance* AZodiacHeroCharacter::GetHeroAnimInstance() const
+{
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		// Look for linked anim layer first
+		if (UZodiacHeroAnimInstance* HeroAnimInstance = Cast<UZodiacHeroAnimInstance>(AnimInstance->GetLinkedAnimLayerInstanceByClass(UZodiacHeroAnimInstance::StaticClass(), true)))
+		{
+			return HeroAnimInstance;
+		}
+
+		if (UZodiacHeroAnimInstance* HeroAnimInstance = Cast<UZodiacHeroAnimInstance>(AnimInstance))
+		{
+			return HeroAnimInstance;
+		}
+	}
+	
+	return nullptr;
+}
+
+void AZodiacHeroCharacter::Activate()
 {
 	bIsActive =  true;
 
-	Mesh->SetVisibility(true);
+	if (UZodiacHeroSkeletalMeshComponent* HeroMesh = Cast<UZodiacHeroSkeletalMeshComponent>(GetMesh()))
+	{
+		HeroMesh->SetVisibility(true);
+		HeroMesh->bIsHeroHidden = false;
+	}
+	
 	if (HostCharacter)
 	{
 		if (UCapsuleComponent* Capsule = HostCharacter->GetCapsuleComponent())
@@ -171,13 +204,20 @@ void AZodiacHeroActor::Activate()
 	//Mesh->VisibilityBasedAnimTickOption = 
 }
 
-void AZodiacHeroActor::Deactivate()
+void AZodiacHeroCharacter::Deactivate()
 {
-	Mesh->SetVisibility(false);
+	if (UZodiacHeroSkeletalMeshComponent* HeroMesh = Cast<UZodiacHeroSkeletalMeshComponent>(GetMesh()))
+	{
+		HeroMesh->SetVisibility(false);
+		HeroMesh->bIsHeroHidden = true;
+	}
+	
 	bIsActive = false;
+
+	OnHeroDeactivated.Broadcast();
 }
 
-void AZodiacHeroActor::Initialize()
+void AZodiacHeroCharacter::InitializeWithHostCharacter()
 {
 	HostCharacter = Cast<AZodiacHostCharacter>(Owner);
 	if (HostCharacter)
@@ -186,10 +226,12 @@ void AZodiacHeroActor::Initialize()
 		
 		AttachToOwner();
 		InitializeAbilitySystem();
+		
+		return;
 	}
 }
 
-void AZodiacHeroActor::AttachToOwner()
+void AZodiacHeroCharacter::AttachToOwner()
 {
 	if (ACharacter* Character = Cast<ACharacter>(Owner))
 	{
@@ -201,7 +243,7 @@ void AZodiacHeroActor::AttachToOwner()
 	}
 }
 
-void AZodiacHeroActor::OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* HostASC)
+void AZodiacHeroCharacter::OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* HostASC)
 {
 	if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(HostASC))
 	{
@@ -209,7 +251,7 @@ void AZodiacHeroActor::OnHostAbilitySystemComponentInitialized(UAbilitySystemCom
 	}
 }
 
-void AZodiacHeroActor::OnRep_bIsActive(bool OldValue)
+void AZodiacHeroCharacter::OnRep_bIsActive(bool OldValue)
 {
 	if (bIsActive != OldValue)
 	{

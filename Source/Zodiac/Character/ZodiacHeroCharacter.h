@@ -5,11 +5,12 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayTagContainer.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Character.h"
 #include "Teams/ZodiacTeamAgentInterface.h"
-#include "ZodiacHeroActor.generated.h"
+#include "ZodiacHeroCharacter.generated.h"
 
-class UZodiacHUDManagerComponent;
+class UZodiacHeroAnimInstance;
+class UZodiacHeroAbilityManagerComponent;
 struct FZodiacHeroList;
 class UInputMappingContext;
 class UZodiacHeroAbilitySystemComponent;
@@ -20,12 +21,12 @@ class UZodiacHeroData;
 class UZodiacAbilitySystemComponent;
 
 UCLASS(Abstract)
-class ZODIAC_API AZodiacHeroActor : public AActor, public IAbilitySystemInterface, public IZodiacTeamAgentInterface
+class ZODIAC_API AZodiacHeroCharacter : public ACharacter, public IAbilitySystemInterface, public IZodiacTeamAgentInterface
 {
 	GENERATED_BODY()
 
 public:
-	AZodiacHeroActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	AZodiacHeroCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	//~AActor interface
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -43,16 +44,19 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	AZodiacHostCharacter* GetHostCharacter() const;
+	
 	UZodiacHealthComponent* GetHealthComponent() const;
-
-	int32 GetIndex() const { return Index; }
+	
+	UZodiacHeroAnimInstance* GetHeroAnimInstance() const;
 	
 	void Activate();
 	void Deactivate();
+	
 	FSimpleMulticastDelegate OnHeroActivated;
+	FSimpleMulticastDelegate OnHeroDeactivated;
 	
 protected:
-	void Initialize();
+	void InitializeWithHostCharacter();
 	
 	void InitializeAbilitySystem();
 
@@ -70,11 +74,8 @@ protected:
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
 
 	UPROPERTY()
-	TObjectPtr<UZodiacHUDManagerComponent> HUDManagerComponent;
+	TObjectPtr<UZodiacHeroAbilityManagerComponent> AbilityManagerComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<USkeletalMeshComponent> Mesh;
-	
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	const UZodiacHeroData* HeroData;
 
@@ -84,9 +85,6 @@ private:
 	UPROPERTY()
 	TObjectPtr<AZodiacHostCharacter> HostCharacter;
 
-	UPROPERTY()
-	int32 Index = INDEX_NONE;
-	
 	// Initial use only for initialization on a client.
 	UPROPERTY(ReplicatedUsing=OnRep_bIsActive)
 	bool bIsActive = false;

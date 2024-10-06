@@ -8,7 +8,7 @@
 #include "AIController.h"
 #include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "Character/ZodiacHeroActor.h"
+#include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Physics/ZodiacCollisionChannels.h"
 
@@ -52,8 +52,20 @@ UZodiacSkillAbility_Ranged::UZodiacSkillAbility_Ranged(const FObjectInitializer&
 {
 }
 
+void UZodiacSkillAbility_Ranged::PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate,
+	const FGameplayEventData* TriggerEventData)
+{
+	if (UAbilitySystemComponent* HeroASC = GetHeroAbilitySystemComponentFromActorInfo())
+	{
+		bIsAlreadyFiring = HeroASC->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Weapon_Firing);
+	}
+	
+	Super::PreActivate(Handle, ActorInfo, ActivationInfo, OnGameplayAbilityEndedDelegate, TriggerEventData);
+}
+
 void UZodiacSkillAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+                                                 const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
@@ -160,7 +172,7 @@ void UZodiacSkillAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbilit
 
 void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHits)
 {
-	AZodiacHeroActor* HeroActor = Cast<AZodiacHeroActor>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHeroCharacter* HeroActor = Cast<AZodiacHeroCharacter>(GetCurrentActorInfo()->AvatarActor);
 	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
 	
 	FRangedSkillTraceData TraceData;
@@ -209,7 +221,7 @@ void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHi
 
 FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(const EZodiacAbilityAimTraceRule TraceRule) const
 {
-	AZodiacHeroActor* HeroActor = Cast<AZodiacHeroActor>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHeroCharacter* HeroActor = Cast<AZodiacHeroCharacter>(GetCurrentActorInfo()->AvatarActor);
 	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
 	
 	return GetTargetingTransform(HostCharacter, HeroActor, TraceRule);
@@ -217,7 +229,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(const EZodiacAbilit
 
 FTransform UZodiacSkillAbility_Ranged::GetWeaponTargetingTransform() const
 {
-	AZodiacHeroActor* HeroActor = Cast<AZodiacHeroActor>(GetCurrentActorInfo()->AvatarActor);
+	AZodiacHeroCharacter* HeroActor = Cast<AZodiacHeroCharacter>(GetCurrentActorInfo()->AvatarActor);
 	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
 	
 	return GetTargetingTransform(HostCharacter, HeroActor, EZodiacAbilityAimTraceRule::WeaponTowardsFocus);

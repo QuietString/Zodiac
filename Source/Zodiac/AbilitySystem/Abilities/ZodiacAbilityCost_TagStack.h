@@ -6,7 +6,7 @@
 #include "ZodiacAbilityCost.h"
 #include "ScalableFloat.h"
 
-#include "ZodiacSkillCost_TagStack.generated.h"
+#include "ZodiacAbilityCost_TagStack.generated.h"
 
 struct FGameplayAbilityActivationInfo;
 struct FGameplayAbilitySpecHandle;
@@ -19,12 +19,12 @@ struct FGameplayAbilityActorInfo;
  * Represents a cost that requires expending a quantity of a tag stack
  */
 UCLASS(meta=(DisplayName="Tag Stack"))
-class UZodiacSkillCost_TagStack : public UZodiacAbilityCost
+class UZodiacAbilityCost_TagStack : public UZodiacAbilityCost
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacSkillCost_TagStack();
+	UZodiacAbilityCost_TagStack();
 
 	//~UZodiacAbilityCost interface
 	virtual bool CheckCost(const UZodiacGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;

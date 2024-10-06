@@ -17,6 +17,36 @@ FString FGameplayTagStack::GetDebugString() const
 //////////////////////////////////////////////////////////////////////
 // FGameplayTagStackContainer
 
+void FGameplayTagStackContainer::SetStack(FGameplayTag Tag, int32 StackCount)
+{
+	if (!Tag.IsValid())
+	{
+		FFrame::KismetExecutionMessage(TEXT("An invalid tag was passed to SetStack"), ELogVerbosity::Warning);
+		return;
+	}
+
+	if (StackCount > 0)
+	{
+		for (FGameplayTagStack& Stack : Stacks)
+		{
+			if (Stack.Tag == Tag)
+			{
+				const int32 OldCount = Stack.StackCount;
+				Stack.StackCount = StackCount;
+				TagToCountMap[Tag] = StackCount;
+
+				MarkItemDirty(Stack);
+				OnStackChanged.ExecuteIfBound(Tag, OldCount, StackCount);
+				return;
+			}
+		}
+
+		FGameplayTagStack& NewStack = Stacks.Emplace_GetRef(Tag, StackCount);
+		MarkItemDirty(NewStack);
+		TagToCountMap.Add(Tag, StackCount);
+	}
+}
+
 void FGameplayTagStackContainer::AddStack(FGameplayTag Tag, int32 StackCount)
 {
 	if (!Tag.IsValid())
@@ -113,7 +143,7 @@ void FGameplayTagStackContainer::PostReplicatedAdd(const TArrayView<int32> Added
 		const int32 NewCount = TagToCountMap.Add(Stack.Tag, Stack.StackCount);
 
 		OnStackChanged.ExecuteIfBound(Stack.Tag, OldCount, NewCount);
-		UE_LOG(LogTemp, Warning, TEXT("post replicated add tag: %s, count: %d"), *Stack.Tag.ToString(), Stack.StackCount);
+		//UE_LOG(LogTemp, Warning, TEXT("post replicated add tag: %s, count: %d"), *Stack.Tag.ToString(), Stack.StackCount);
 	}
 }
 
@@ -126,6 +156,6 @@ void FGameplayTagStackContainer::PostReplicatedChange(const TArrayView<int32> Ch
 		const int32 NewCount = TagToCountMap[Stack.Tag] = Stack.StackCount;
 
 		OnStackChanged.ExecuteIfBound(Stack.Tag, OldCount, NewCount);
-		UE_LOG(LogTemp, Warning, TEXT("post replicated changed tag: %s, count: %d, index: %d"), *Stack.Tag.ToString(), Stack.StackCount, Index);
+		//UE_LOG(LogTemp, Warning, TEXT("post replicated changed tag: %s, count: %d, index: %d"), *Stack.Tag.ToString(), Stack.StackCount, Index);
 	}
 }

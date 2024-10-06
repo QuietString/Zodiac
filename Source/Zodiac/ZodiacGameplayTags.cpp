@@ -20,10 +20,10 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Type_Action_Jump, "Ability.Type.Action.Jump");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Cost_Stack, "Ability.Cost.Stack");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Cost_Stack_MagazineAmmo, "Ability.Cost.Stack.MagazineAmmo");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Cost_Stack_MagazineSize, "Ability.Cost.Stack.MagazineSize");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Cost_Cooldown, "Ability.Cost.Cooldown");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Cost_Attribute, "Ability.Cost.Attribute");
-	
-	UE_DEFINE_GAMEPLAY_TAG(Ability_Stack, "Ability.Stack");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
 
@@ -61,6 +61,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_UnlimitedHealth, "Cheat.UnlimitedHealth", "UnlimitedHealth cheat is active on the owner.");
 
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Attacking , "Status.Movement.Attacking");
+	UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Firing, "Status.Weapon.Firing");
 	UE_DEFINE_GAMEPLAY_TAG(Status_WeaponReady , "Status.WeaponReady");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Focus , "Status.Focus");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status__MovementAutoRunning, "Status.Movement.AutoRunning", "Target is auto-running.");
@@ -74,6 +75,11 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_GameMenu, "UI.Layer.GameMenu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Modal, "UI.Layer.Modal");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Action_Escape, "UI.Action.Escape");
+
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Type_SkillSlot_Primary, "HUD.Type.SkillSlot.Primary");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Type_SkillSlot_Secondary, "HUD.Type.SkillSlot.Secondary");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Type_SkillSlot_Ultimate, "HUD.Type.SkillSlot.Ultimate");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Type_SkillSlot_Evade, "HUD.Type.SkillSlot.Evade");
 	
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HeroChanged_SkillSlot, "HUD.Message.HeroChanged.SkillSlot");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HeroChanged, "HUD.Message.HeroChanged");
@@ -84,6 +90,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillSlot_Created, "HUD.Message.SkillSlot.Created");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AttributeChanged_Ultimate, "HUD.Message.AttributeChanged.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_ReticleChanged, "HUD.Message.ReticleChanged");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HealthChanged, "HUD.Message.HealthChanged");
 	
 	// Tags for GameplayCue
 	UE_DEFINE_GAMEPLAY_TAG(GameplayCue_Weapon_Rifle_Fire, "GameplayCue.Weapon.Rifle.Fire");

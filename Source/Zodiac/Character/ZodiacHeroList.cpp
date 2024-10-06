@@ -1,13 +1,13 @@
 ﻿// the.quiet.string@gmail.com
 
 #include "ZodiacHeroList.h"
-#include "ZodiacHeroActor.h"
+#include "ZodiacHeroCharacter.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroList)
 
-AZodiacHeroActor* FZodiacHeroList::AddEntry(UWorld* World, TSubclassOf<AZodiacHeroActor> HeroClass, int Index)
+AZodiacHeroCharacter* FZodiacHeroList::AddEntry(UWorld* World, TSubclassOf<AZodiacHeroCharacter> HeroClass, int Index)
 {
-	AZodiacHeroActor* Result = nullptr;
+	AZodiacHeroCharacter* Result = nullptr;
 	check(HeroClass);
 	check(World);
 
@@ -15,8 +15,7 @@ AZodiacHeroActor* FZodiacHeroList::AddEntry(UWorld* World, TSubclassOf<AZodiacHe
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	Params.Owner = Owner;
 
-	AZodiacHeroActor* Hero = World->SpawnActor<AZodiacHeroActor>(HeroClass, Params);
-	Hero->Index = Index;
+	AZodiacHeroCharacter* Hero = World->SpawnActor<AZodiacHeroCharacter>(HeroClass, Params);
 	
 	FZodiacHeroEntry& NewEntry = Heroes.AddDefaulted_GetRef();
 	NewEntry.Actor = Hero;
@@ -27,11 +26,11 @@ AZodiacHeroActor* FZodiacHeroList::AddEntry(UWorld* World, TSubclassOf<AZodiacHe
 	return Result;
 }
 
-void FZodiacHeroList::RemoveEntry(AZodiacHeroActor* Instance)
+void FZodiacHeroList::RemoveEntry(AZodiacHeroCharacter* Instance)
 {
 }
 
-AZodiacHeroActor* FZodiacHeroList::GetHero(const int32 Index) const
+AZodiacHeroCharacter* FZodiacHeroList::GetHero(const int32 Index) const
 {
 	if (Heroes.IsValidIndex(Index))
 	{
@@ -41,9 +40,9 @@ AZodiacHeroActor* FZodiacHeroList::GetHero(const int32 Index) const
 	return nullptr;
 }
 
-TArray<AZodiacHeroActor*> FZodiacHeroList::GetHeroes()
+TArray<AZodiacHeroCharacter*> FZodiacHeroList::GetHeroes()
 {
-	TArray<AZodiacHeroActor*> Results;
+	TArray<AZodiacHeroCharacter*> Results;
 	Results.Reserve(Heroes.Num());
 	
 	for (const FZodiacHeroEntry& Entry : Heroes)

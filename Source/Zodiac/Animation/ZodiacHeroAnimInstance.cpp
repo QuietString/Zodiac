@@ -7,7 +7,7 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHostAnimInstance.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
-#include "Character/ZodiacHeroActor.h"
+#include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -44,7 +44,7 @@ AZodiacCharacter* UZodiacHeroAnimInstance::GetParentCharacter() const
 		return ZodiacCharacter;
 	}
 	
-	if (AZodiacHeroActor* Hero = Cast<AZodiacHeroActor>(GetOwningActor()))
+	if (AZodiacHeroCharacter* Hero = Cast<AZodiacHeroCharacter>(GetOwningActor()))
 	{
 		return Hero->GetHostCharacter();
 	}
@@ -116,8 +116,8 @@ void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 		
 		bApplyAimOffSet = (bShouldRaise_LeftArm | bShouldRaise_RightArm | bIsADS);
 
-		AimPitch = (bApplyAimOffSet) ? Delta.Pitch : FMath::Lerp(AimPitch, 0.0f, DeltaSeconds * 5.0f);
-		AimYaw = FMath::Lerp(Delta.Yaw, AimYaw, DeltaSeconds * AimYawBlendSpeed);
+		AimPitch = Delta.Pitch;
+		AimYaw = Delta.Yaw;
 		FMath::Clamp(AimYaw, AimYawClampRange.X, AimYawClampRange.Y);
 	}
 }

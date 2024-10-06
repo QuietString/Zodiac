@@ -3,42 +3,66 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZodiacSkillSlotDefinition.h"
+#include "GameplayTagContainer.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "System/GameplayTagStack.h"
 #include "UObject/Object.h"
-#include "ZodiacSkillSlot.generated.h"
+#include "ZodiacHeroItemSlot.generated.h"
 
-class UZodiacSkillSlotDefinition;
-class UZodiacSkillSlotFragment;
-class UZodiacAbilitySystemComponent;
-class UZodiacSkillSlot;
-class UZodiacSkillSet;
+class UZodiacSkillSlotWidgetBase;
+class UZodiacAbilitySet;
+class UZodiacHeroItemSlot;
 
-/**
- * 
- */
-UCLASS(BlueprintType)
-class ZODIAC_API UZodiacSkillSlot : public UObject
+USTRUCT(BlueprintType)
+struct FZodiacHeroItemDefinition
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacSkillSlot(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	template<typename T = UZodiacHeroItemSlot>
+	T* CreateInstance(AActor* InOwner) const;
+
+public:
+	UPROPERTY(EditDefaultsOnly, meta=(Categories="HUD.Type.SkillSlot"))
+	FGameplayTag SlotType;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UZodiacAbilitySet> SkillSetToGrant;
+	
+	UPROPERTY(EditDefaultsOnly, meta=(Categories="Ability.Cost.Stack"))
+	TMap<FGameplayTag, int32> InitialTagStack;
+};
+
+template <typename T>
+T* FZodiacHeroItemDefinition::CreateInstance(AActor* InOwner) const
+{
+	T* Item = NewObject<T>(InOwner, T::StaticClass());
+	Item->InitializeItem(*this);
+	
+	return Item;
+}
+
+/**
+ * Contains data for associated abilities of a slot. 
+ */
+UCLASS(BlueprintType)
+class ZODIAC_API UZodiacHeroItemSlot : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	UZodiacHeroItemSlot(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
 	//~UObject interface
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	//~End of UObject interface
 
-	// Set up slot data, authority only.
-	void InitializeSlot(const UZodiacSkillSlotDefinition* InDef, FGameplayTag InType);
-	
-	void CreateSlotWidget();
-	UUserWidget* GetSlotWidget();
-	
+	// Set up data, authority only.
+	virtual void InitializeItem(const FZodiacHeroItemDefinition& InData);
+
 	FGameplayTag GetSlotType() const { return SlotType; }
-	const UZodiacSkillSlotDefinition* GetSlotDefinition() const { return Definition; }
+	const FZodiacHeroItemDefinition& GetSlotDefinition() const { return Definition; }
 
 	template <typename ResultClass>
 	const ResultClass* FindFragment() const { return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass()); }
@@ -46,7 +70,10 @@ public:
 	// Returns the stack count of the specified tag (or 0 if the tag is not present)
 	UFUNCTION(BlueprintCallable)
 	int32 GetStatTagStackCount(FGameplayTag Tag) const;
-
+	
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
+	void SetStatTagStack(FGameplayTag Tag, int32 StackCount);
+	
 	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void AddStatTagStack(FGameplayTag Tag, int32 StackCount);
@@ -58,29 +85,17 @@ public:
 	UPROPERTY(Replicated)
 	FZodiacAbilitySet_GrantedHandles GrantedHandles;
 
-	UFUNCTION()
-	void OnTagStackChanged_Internal(FGameplayTag Tag, const int32 OldValue, const int32 NewValue);
-
-public:
-	// Create slot widget instance.
-	UFUNCTION()
-	void OnRep_Definition();
-	
 protected:
-	UFUNCTION()
-	void OnRep_StatTag();
-
-protected:
-	UPROPERTY(ReplicatedUsing = OnRep_Definition)
-	const UZodiacSkillSlotDefinition* Definition = nullptr;
+	UPROPERTY()
+	FZodiacHeroItemDefinition Definition;
 
 	UPROPERTY(Replicated)
 	FGameplayTag SlotType;
 
-	UPROPERTY()
+	UPROPERTY()	
 	TObjectPtr<UZodiacSkillSlotWidgetBase> Widget;
 	
 private:
-	UPROPERTY(ReplicatedUsing = OnRep_StatTag)
+	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTag;
 };

@@ -9,7 +9,7 @@
 
 struct FZodiacHeroList;
 class UZodiacAbilitySystemComponent;
-class AZodiacHeroActor;
+class AZodiacHeroCharacter;
 class UGameplayAbility;
 
 /** A single entry of HeroList */
@@ -25,7 +25,7 @@ private:
 	friend FZodiacHeroList;
 
 	UPROPERTY()
-	TObjectPtr<AZodiacHeroActor> Actor = nullptr;
+	TObjectPtr<AZodiacHeroCharacter> Actor = nullptr;
 };
 
 /** List of Heroes */
@@ -45,11 +45,11 @@ struct FZodiacHeroList : public FFastArraySerializer
 	}
 	
 public:
-	AZodiacHeroActor* AddEntry(UWorld* World, TSubclassOf<AZodiacHeroActor> HeroClass, int Index);
-	void RemoveEntry(AZodiacHeroActor* Instance);
+	AZodiacHeroCharacter* AddEntry(UWorld* World, TSubclassOf<AZodiacHeroCharacter> HeroClass, int Index);
+	void RemoveEntry(AZodiacHeroCharacter* Instance);
 
-	AZodiacHeroActor* GetHero(const int32 Index) const;
-	TArray<AZodiacHeroActor*> GetHeroes();
+	AZodiacHeroCharacter* GetHero(const int32 Index) const;
+	TArray<AZodiacHeroCharacter*> GetHeroes();
 
 public:
 	//~FFastArraySerializer contract
