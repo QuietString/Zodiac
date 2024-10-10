@@ -32,7 +32,7 @@ public:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 protected:
-	struct FRangedSkillTraceData
+	struct FRangedAbilityTraceData
 	{
 		// Start of the trace
 		FVector StartTrace;
@@ -46,7 +46,7 @@ protected:
 		// Can we play bullet FX for hits during this trace
 		bool bCanPlayBulletFX = false;
 
-		FRangedSkillTraceData()
+		FRangedAbilityTraceData()
 			: StartTrace(ForceInitToZero)
 			, EndAim(ForceInitToZero)
 			, AimDir(ForceInitToZero)
@@ -94,9 +94,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayCueParameters GCNParameters;
 
-	UPROPERTY(BlueprintReadOnly)
-	bool bIsAlreadyFiring;
-	
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
 

@@ -106,6 +106,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsDead;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsWeaponReady;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement;

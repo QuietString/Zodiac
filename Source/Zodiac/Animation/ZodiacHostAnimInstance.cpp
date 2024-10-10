@@ -55,7 +55,7 @@ void UZodiacHostAnimInstance::UpdateMovementData()
 {
 	CustomMovement_Last = CustomMovement;
 	CustomMovement = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
-	bIsADS = (CustomMovement == MOVE_ADS);
+	bIsADS = (CustomMovement == Move_Custom_ADS);
 	bIsMoving = !Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1);
 }
 
@@ -92,6 +92,10 @@ void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 	{
 		bIsDead = bHasTag;
 	}
+	else if (Tag == ZodiacGameplayTags::Status_WeaponReady)
+	{
+		bIsWeaponReady = bHasTag;
+	}
 }
 
 void UZodiacHostAnimInstance::UpdateGait()
@@ -103,25 +107,17 @@ void UZodiacHostAnimInstance::UpdateGait()
 		EMovementMode MovementMode = ZodiacCharMovComp->MovementMode;
 		uint8 CustomMovementMode = ZodiacCharMovComp->CustomMovementMode;
 
-		switch (MovementMode)
+		if (MovementMode == MOVE_Walking)
 		{
-		case MOVE_Walking:
 			switch (CustomMovementMode)
 			{
-			case MOVE_Standard:
-			case MOVE_ADS:
-				Gait = Gait_Walk;
-				return;
-			
-			case MOVE_Running:
+			case Move_Custom_Running:
 				Gait = Gait_Run;
 				return;
-				
 			default:
-				break;
+				Gait = Gait_Walk;
+				return;
 			}
-		default:
-			Gait = Gait_Run;
 		}
 	}
 }

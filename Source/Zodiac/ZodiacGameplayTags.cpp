@@ -125,11 +125,11 @@ namespace ZodiacGameplayTags
 	// Custom Movement Modes
 	const TMap<uint8, FGameplayTag> CustomMovementModeTagMap =
 	{
-		{MOVE_Standard, Movement_Mode_None},
-		{MOVE_ADS, Movement_Mode_ADS},
-		{MOVE_Focus, Movement_Mode_Focus},
-		{MOVE_Running, Movement_Mode_Running},
-		{MOVE_Traversal, Movement_Mode_Traversal}
+		{Move_Custom_Walking, Movement_Mode_None},
+		{Move_Custom_ADS, Movement_Mode_ADS},
+		{Move_Custom_Focus, Movement_Mode_Focus},
+		{Move_Custom_Running, Movement_Mode_Running},
+		{Move_Custom_Traversal, Movement_Mode_Traversal}
 	};
 
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)

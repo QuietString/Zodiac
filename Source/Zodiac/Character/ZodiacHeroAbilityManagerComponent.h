@@ -7,6 +7,9 @@
 #include "Components/ActorComponent.h"
 #include "ZodiacHeroAbilityManagerComponent.generated.h"
 
+class UZodiacAbilitySystemComponent;
+class UZodiacHeroAbilitySlot_RangedWeapon;
+class UZodiacHeroAbilitySlot_Weapon;
 class UAbilitySystemComponent;
 class UZodiacHeroItemSlot;
 class UZodiacWeaponSlot;
@@ -28,7 +31,7 @@ public:
 	TObjectPtr<AController> Controller = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<UZodiacWeaponSlot> Weapon;
+	TObjectPtr<UZodiacHeroAbilitySlot_Weapon> Weapon;
 	
 	UPROPERTY(BlueprintReadWrite)
 	TArray<TSubclassOf<UZodiacReticleWidgetBase>> Widgets;
@@ -74,14 +77,15 @@ public:
 	virtual void OnRegister() override;
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
-
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
 	void InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InAbilitySystemComponent, const UZodiacHeroData* InHeroData);
 	
 	void OnHeroActivated();
 	void OnHeroDeactivated();
 
 	AController* GetHostController();
-	UZodiacWeaponSlot* GetWeaponSlot();
+	UZodiacHeroAbilitySlot_RangedWeapon* GetWeaponSlot();
 	
 protected:
 	void SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets);
@@ -97,7 +101,7 @@ private:
 	UZodiacAbilitySystemComponent* AbilitySystemComponent;
 	
 	bool bIsHeroActive = false;
-	
+
 	UPROPERTY(Replicated)
-	TArray<TObjectPtr<UZodiacHeroItemSlot>> Slots;
+	TArray<TObjectPtr<UZodiacHeroAbilitySlot>> Slots;
 };

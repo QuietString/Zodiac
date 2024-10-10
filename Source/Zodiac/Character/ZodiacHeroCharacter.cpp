@@ -14,8 +14,6 @@
 #include "ZodiacHeroSkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Item/ZodiacHeroItemSlot.h"
-#include "Item/ZodiacWeaponSlot.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroCharacter)
@@ -36,6 +34,7 @@ AZodiacHeroCharacter::AZodiacHeroCharacter(const FObjectInitializer& ObjectIniti
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
 	
 	AbilityManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHeroAbilityManagerComponent>(this, TEXT("Ability Manager"));
+	AbilityManagerComponent->SetComponentTickEnabled(true);
 }
 
 void AZodiacHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -96,7 +95,7 @@ void AZodiacHeroCharacter::InitializeAbilitySystem()
 
 	AbilitySystemComponent->InitAbilityActorInfo(Owner, this);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
+	//AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 
 	if (HeroData)
 	{
@@ -109,17 +108,6 @@ void AZodiacHeroCharacter::InitializeAbilitySystem()
 				if (AbilitySet)
 				{
 					AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
-				}
-			}
-
-			
-			// initialize skills
-			for (const FZodiacHeroItemDefinition& SlotDefinition : HeroData->SkillSlots)
-			{
-				if (UZodiacAbilitySet* AbilitySet = SlotDefinition.SkillSetToGrant)
-				{
-					AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
-					SlotDefinition.CreateInstance(this);
 				}
 			}
 		}
@@ -138,11 +126,6 @@ void AZodiacHeroCharacter::OnStatusTagChanged(FGameplayTag Tag, int Count)
 		int32 NewCount = bHasTag ? 1 : 0;
 		
 		HostASC->SetLooseGameplayTagCount(Tag, NewCount);
-		
-		if (UZodiacHeroAnimInstance* HeroAnimInstance = GetHeroAnimInstance())
-		{
-			HeroAnimInstance->OnStatusChanged(Tag, bHasTag);
-		}
 	}
 }
 
@@ -195,13 +178,10 @@ void AZodiacHeroCharacter::Activate()
 		}
 		
 		HostCharacter->TryChangeMovementMode(MOVE_Walking, HeroData->DefaultMovementMode);
+		HostCharacter->SetMovementSpeeds(HeroData->WalkSpeeds, HeroData->RunSpeeds);
 	}
 	
 	OnHeroActivated.Broadcast();
-
-	
-	// @TODO: change tick option for optimization.
-	//Mesh->VisibilityBasedAnimTickOption = 
 }
 
 void AZodiacHeroCharacter::Deactivate()
@@ -226,8 +206,6 @@ void AZodiacHeroCharacter::InitializeWithHostCharacter()
 		
 		AttachToOwner();
 		InitializeAbilitySystem();
-		
-		return;
 	}
 }
 

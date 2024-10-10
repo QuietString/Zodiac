@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "ZodiacCharacterMovementComponent.h"
-#include "Item/ZodiacHeroItemSlot.h"
+#include "Hero/ZodiacHeroAbilityDefinition.h"
 
 #include "ZodiacHeroData.generated.h"
 
+struct FZodiacHeroAbilityDefinition;
 class UZodiacAbilitySet;
 struct FAttributeDefaults;
 class UZodiacReticleWidgetBase;
@@ -28,13 +28,18 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	TEnumAsByte<EZodiacCustomMovementMode> DefaultMovementMode;
+
+	// X: max speed, Y: mid speed, Z: min speed
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	FVector WalkSpeeds = FVector(200.0f, 175.0f, 150.0f);
+	
+	// X: max speed, Y: mid speed, Z: min speed
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	FVector RunSpeeds = FVector(500.0f, 350.0f, 300.0f);
 	
 	UPROPERTY(EditAnywhere, Category = "Display")
 	TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;
 
-	UPROPERTY(EditAnywhere, Category = "Item")
-	FZodiacHeroItemDefinition WeaponDefinition;
-	
-	UPROPERTY(EditAnywhere, Category = "Item")
-	TArray<FZodiacHeroItemDefinition> SkillSlots;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	TArray<FZodiacHeroAbilityDefinition> AbilitySlots;
 };

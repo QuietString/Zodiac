@@ -10,7 +10,8 @@
 #include "ZodiacHostCharacter.h"
 #include "ZodiacHealthComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
-#include "Item/ZodiacWeaponSlot.h"
+#include "Hero/ZodiacHeroAbilitySlot.h"
+#include "Hero/ZodiacHeroAbilitySlot_RangedWeapon.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbilityManagerComponent)
@@ -18,7 +19,8 @@
 UZodiacHeroAbilityManagerComponent::UZodiacHeroAbilityManagerComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PrimaryComponentTick.bStartWithTickEnabled = false;
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = true;
 	bWantsInitializeComponent = true;
 	bReplicateUsingRegisteredSubObjectList = true;
 	SetIsReplicatedByDefault(true);
@@ -73,14 +75,14 @@ void UZodiacHeroAbilityManagerComponent::BeginPlay()
 
 	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
 	{
-		if (Hero->HasAuthority() && HeroData)
+		if (Hero->HasAuthority())
 		{
-			if (UZodiacWeaponSlot* WeaponSlot = GetWeaponSlot())
+			for (auto& Slot : Slots)
 			{
-				for (auto& [Tag, Count] : HeroData->WeaponDefinition.InitialTagStack)
+				for (auto& [Tag, Count] : Slot->GetSlotDefinition().InitialTagStack)
 				{
-					WeaponSlot->AddStatTagStack(Tag, Count);
-				}						
+					Slot->AddStatTagStack(Tag, Count);
+				}
 			}
 		}
 	
@@ -88,6 +90,16 @@ void UZodiacHeroAbilityManagerComponent::BeginPlay()
 		{
 			HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::SendChangeHealthMessage);
 		}
+	}
+}
+
+void UZodiacHeroAbilityManagerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	for (auto& Slot : Slots)
+	{
+		Slot->Tick(DeltaTime);
 	}
 }
 
@@ -103,19 +115,29 @@ void UZodiacHeroAbilityManagerComponent::InitializeWithAbilitySystem(UZodiacAbil
 
 	if (GetOwner()->HasAuthority())
 	{
-		// initialize weapon
-		if (UZodiacAbilitySet* AbilitySet = HeroData->WeaponDefinition.SkillSetToGrant)
+		if (!HeroData->AbilitySlots.IsEmpty())
 		{
-			UZodiacHeroItemSlot* Slot = Slots.Add_GetRef(NewObject<UZodiacWeaponSlot>(GetOwner(), UZodiacWeaponSlot::StaticClass()));
-			Slot->InitializeItem(HeroData->WeaponDefinition);
-			
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, Slot);
-			
-			if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && Slot)
+			for (auto& SlotDef : HeroData->AbilitySlots)
 			{
-				AddReplicatedSubObject(Slot);
+				if (TSubclassOf<UZodiacHeroAbilitySlot> SlotClass = SlotDef.SlotClass)
+				{
+					if (UZodiacHeroAbilitySlot* Slot = Slots.Add_GetRef(NewObject<UZodiacHeroAbilitySlot>(GetOwner(), SlotClass)))
+					{
+						Slot->InitializeSlot(SlotDef);
+
+						if (UZodiacAbilitySet* AbilitySet = SlotDef.SkillSetToGrant)
+						{
+							AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, Slot);	
+						}
+			
+						if (IsUsingRegisteredSubObjectList() && IsReadyForReplication())
+						{
+							AddReplicatedSubObject(Slot);
+						}
+					}
+				}
 			}
-		}	
+		}
 	}
 }
 
@@ -158,11 +180,11 @@ AController* UZodiacHeroAbilityManagerComponent::GetHostController()
 	return nullptr;
 }
 
-UZodiacWeaponSlot* UZodiacHeroAbilityManagerComponent::GetWeaponSlot()
+UZodiacHeroAbilitySlot_RangedWeapon* UZodiacHeroAbilityManagerComponent::GetWeaponSlot()
 {
 	for (auto& Slot : Slots)
 	{
-		if (UZodiacWeaponSlot* WeaponSlot = Cast<UZodiacWeaponSlot>(Slot))
+		if (UZodiacHeroAbilitySlot_RangedWeapon* WeaponSlot = Cast<UZodiacHeroAbilitySlot_RangedWeapon>(Slot))
 		{
 			return WeaponSlot;
 		}

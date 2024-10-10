@@ -4,68 +4,41 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "ZodiacHeroAbilityDefinition.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "System/GameplayTagStack.h"
 #include "UObject/Object.h"
-#include "ZodiacHeroItemSlot.generated.h"
-
-class UZodiacSkillSlotWidgetBase;
-class UZodiacAbilitySet;
-class UZodiacHeroItemSlot;
-
-USTRUCT(BlueprintType)
-struct FZodiacHeroItemDefinition
-{
-	GENERATED_BODY()
-
-public:
-	template<typename T = UZodiacHeroItemSlot>
-	T* CreateInstance(AActor* InOwner) const;
-
-public:
-	UPROPERTY(EditDefaultsOnly, meta=(Categories="HUD.Type.SkillSlot"))
-	FGameplayTag SlotType;
-	
-	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<UZodiacAbilitySet> SkillSetToGrant;
-	
-	UPROPERTY(EditDefaultsOnly, meta=(Categories="Ability.Cost.Stack"))
-	TMap<FGameplayTag, int32> InitialTagStack;
-};
-
-template <typename T>
-T* FZodiacHeroItemDefinition::CreateInstance(AActor* InOwner) const
-{
-	T* Item = NewObject<T>(InOwner, T::StaticClass());
-	Item->InitializeItem(*this);
-	
-	return Item;
-}
+#include "ZodiacHeroAbilitySlot.generated.h"
 
 /**
  * Contains data for associated abilities of a slot. 
  */
-UCLASS(BlueprintType)
-class ZODIAC_API UZodiacHeroItemSlot : public UObject
+UCLASS(BlueprintType, Blueprintable)
+class ZODIAC_API UZodiacHeroAbilitySlot : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacHeroItemSlot(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UZodiacHeroAbilitySlot(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
 	//~UObject interface
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	//~End of UObject interface
 
-	// Set up data, authority only.
-	virtual void InitializeItem(const FZodiacHeroItemDefinition& InData);
+	virtual void Tick(float DeltaTime) {};
+	virtual void InitializeSlot(const FZodiacHeroAbilityDefinition& InDef);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void UpdateActivationTime();
+	
+	UFUNCTION(BlueprintPure)
+	APawn* GetPawn() const;
 
 	FGameplayTag GetSlotType() const { return SlotType; }
-	const FZodiacHeroItemDefinition& GetSlotDefinition() const { return Definition; }
+	const FZodiacHeroAbilityDefinition& GetSlotDefinition() const { return Definition; }
 
-	template <typename ResultClass>
-	const ResultClass* FindFragment() const { return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass()); }
+	const UZodiacHeroAbilityFragment* FindFragmentByClass(const TSubclassOf<UZodiacHeroAbilityFragment>& FragmentClass) const;
 	
 	// Returns the stack count of the specified tag (or 0 if the tag is not present)
 	UFUNCTION(BlueprintCallable)
@@ -84,18 +57,17 @@ public:
 
 	UPROPERTY(Replicated)
 	FZodiacAbilitySet_GrantedHandles GrantedHandles;
-
+	
 protected:
 	UPROPERTY()
-	FZodiacHeroItemDefinition Definition;
-
+	FZodiacHeroAbilityDefinition Definition;
+	
 	UPROPERTY(Replicated)
 	FGameplayTag SlotType;
 
-	UPROPERTY()	
-	TObjectPtr<UZodiacSkillSlotWidgetBase> Widget;
-	
 private:
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTag;
+
+	double TimeLastFired = 0.0;
 };

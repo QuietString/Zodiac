@@ -4,8 +4,7 @@
 #include "ZodiacHeroAbility_Reload.h"
 
 #include "ZodiacGameplayTags.h"
-#include "Item/ZodiacHeroItemSlot.h"
-#include "Item/ZodiacWeaponSlot.h"
+#include "Hero/ZodiacHeroAbilitySlot_Weapon.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbility_Reload)
 
@@ -17,7 +16,7 @@ bool UZodiacHeroAbility_Reload::CanActivateAbility(const FGameplayAbilitySpecHan
 		return false;
 	}
 
-	if (UZodiacWeaponSlot* Slot = GetAssociatedSlot<UZodiacWeaponSlot>())
+	if (UZodiacHeroAbilitySlot_Weapon* Slot = GetAssociatedSlot<UZodiacHeroAbilitySlot_Weapon>())
 	{
 		int32 CurrentAmmo = Slot->GetStatTagStackCount(ZodiacGameplayTags::Ability_Cost_Stack_MagazineAmmo);
 		int32 MaxAmmo = Slot->GetStatTagStackCount(ZodiacGameplayTags::Ability_Cost_Stack_MagazineSize);

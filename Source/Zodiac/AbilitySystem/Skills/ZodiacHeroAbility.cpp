@@ -3,14 +3,13 @@
 #include "AbilitySystem/Skills/ZodiacHeroAbility.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemGlobals.h"
 #include "ZodiacGameplayTags.h"
-#include "Item/ZodiacHeroItemSlot.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/ZodiacAbilityCost.h"
-#include "AbilitySystem/Abilities/ZodiacSkillAbilityCost.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
-#include "Item/ZodiacSkillInstance.h"
+#include "Hero/ZodiacHeroAbilitySlot.h"
 #include "Player/ZodiacPlayerController.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbility)
@@ -38,11 +37,11 @@ AZodiacHeroCharacter* UZodiacHeroAbility::GetHeroActorFromActorInfo() const
 	return (CurrentActorInfo ? Cast<AZodiacHeroCharacter>(GetAvatarActorFromActorInfo()) : nullptr);
 }
 
-UZodiacHeroItemSlot* UZodiacHeroAbility::GetAssociatedSlot() const
+UZodiacHeroAbilitySlot* UZodiacHeroAbility::GetAssociatedSlot() const
 {
 	if (FGameplayAbilitySpec* Spec = GetCurrentAbilitySpec())
 	{
-		return Cast<UZodiacHeroItemSlot>(Spec->SourceObject.Get());
+		return Cast<UZodiacHeroAbilitySlot>(Spec->SourceObject.Get());
 	}
 
 	return nullptr;
@@ -53,7 +52,7 @@ const FGameplayTagContainer* UZodiacHeroAbility::GetCooldownTags() const
 	FGameplayTagContainer* MutableTags = const_cast<FGameplayTagContainer*>(&TempCooldownTags);
 	MutableTags->Reset();
 	
-	if (UZodiacHeroItemSlot* ItemSlot = GetAssociatedSlot())
+	if (UZodiacHeroAbilitySlot* ItemSlot = GetAssociatedSlot())
 	{
 		MutableTags->AddTag(ItemSlot->GetSlotType());
 	}
@@ -69,9 +68,51 @@ bool UZodiacHeroAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Han
 		return false;
 	}
 
+	UAbilitySystemGlobals& AbilitySystemGlobals = UAbilitySystemGlobals::Get();
+	const FGameplayTag& BlockedTag = AbilitySystemGlobals.ActivateFailTagsBlockedTag;
+	const FGameplayTag& MissingTag = AbilitySystemGlobals.ActivateFailTagsMissingTag;
+
+	bool bBlocked = false;
+	bool bMissing = false;
+	
 	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
 	{
-		return DoesAbilitySatisfyTagRequirements(*HostASC, SourceTags, TargetTags, OptionalRelevantTags);	
+		// Check to see the required/blocked tags of host for this ability
+		if (ActivationBlockedTagsHost.Num() || ActivationRequiredTagsHost.Num())
+		{
+			static FGameplayTagContainer AbilitySystemComponentTags;
+			AbilitySystemComponentTags.Reset();
+
+			HostASC->GetOwnedGameplayTags(AbilitySystemComponentTags);
+
+			if (AbilitySystemComponentTags.HasAny(ActivationBlockedTagsHost))
+			{
+				bBlocked = true;
+			}
+
+			if (!AbilitySystemComponentTags.HasAll(ActivationRequiredTagsHost))
+			{
+				bMissing = true;
+			}
+
+			if (bBlocked)
+			{
+				if (OptionalRelevantTags && BlockedTag.IsValid())
+				{
+					OptionalRelevantTags->AddTag(BlockedTag);
+				}
+				return false;
+			}
+			
+			if (bMissing)
+			{
+				if (OptionalRelevantTags && MissingTag.IsValid())
+				{
+					OptionalRelevantTags->AddTag(MissingTag);
+				}
+				return false;
+			}
+		}
 	}
 	
 	return true;
@@ -82,11 +123,6 @@ void UZodiacHeroAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, co
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::PreActivate(Handle, ActorInfo, ActivationInfo, OnGameplayAbilityEndedDelegate, TriggerEventData);
-
-	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
-	{
-		HostASC->AddLooseGameplayTags(ActivationOwnedTags);
-	}
 }
 
 void UZodiacHeroAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -207,9 +243,9 @@ void UZodiacHeroAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(CooldownGE->GetClass(), GetAbilityLevel());
 		if (FGameplayEffectSpec* EffectSpec = SpecHandle.Data.Get())
 		{
-			if (UZodiacSkillInstance* SkillSlot = Cast<UZodiacSkillInstance>(GetSourceObject(Handle, CurrentActorInfo)))
+			if (UZodiacHeroAbilitySlot* AbilitySlot = Cast<UZodiacHeroAbilitySlot>(GetSourceObject(Handle, CurrentActorInfo)))
 			{
-				EffectSpec->DynamicGrantedTags.AddTag(SkillSlot->GetSlotType());
+				EffectSpec->DynamicGrantedTags.AddTag(AbilitySlot->GetSlotType());
 			}
 		
 			EffectSpec->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Cooldown, CooldownDuration.GetValueAtLevel(GetAbilityLevel()));

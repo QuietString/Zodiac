@@ -3,10 +3,12 @@
 #include "ZodiacCharacterMovementComponent.h"
 
 #include "AbilitySystemComponent.h"
+#include "KismetAnimationLibrary.h"
 #include "ZodiacGameplayTags.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCharacterMovementComponent)
 
@@ -20,8 +22,6 @@ namespace ZodiacCharacter
 UZodiacCharacterMovementComponent::UZodiacCharacterMovementComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	MaxRunningSpeed = 800;
-	MaxADSSpeed = 300.0f;
 }
 
 namespace PackedMovementModeConstants
@@ -52,7 +52,7 @@ void UZodiacCharacterMovementComponent::UnpackNetworkMovementMode(const uint8 Re
 void UZodiacCharacterMovementComponent::SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode)
 {
 	// Almost same as UCharacterMovementComponent's implementation but
-	// 1. without NewMovementMode == MOVE_CUSTOM check
+	// 1. removed checking (NewMovementMode == MOVE_CUSTOM)
 	// 2. allowing custom mode even when MovementMode is not MOVE_CUSTOM 
 	
 	// If trying to use NavWalking but there is no navmesh, use walking instead.
@@ -73,8 +73,12 @@ void UZodiacCharacterMovementComponent::SetMovementMode(EMovementMode NewMovemen
 	const EMovementMode PrevMovementMode = MovementMode;
 	const uint8 PrevCustomMode = CustomMovementMode;
 
+	// Changing custom movement mode is only allowed when MOVE_Walking or MOVE_NavWalking
+	if (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_NavWalking)
+	{
+		CustomMovementMode = NewCustomMode;
+	}
 	MovementMode = NewMovementMode;
-	CustomMovementMode = NewCustomMode;
 
 	// We allow setting movement mode before we have a component to update, in case this happens at startup.
 	if (!HasValidData())
@@ -129,7 +133,7 @@ void UZodiacCharacterMovementComponent::JumpOff(AActor* MovementBaseActor)
 				Velocity.Z = JumpOffJumpZFactor * JumpZVelocity;
 			}
 
-			if (CustomMovementMode != MOVE_Traversal)
+			if (CustomMovementMode != Move_Custom_Traversal)
 			{
 				SetMovementMode(MOVE_Falling);	
 			}
@@ -147,20 +151,10 @@ float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 			return 0.0f;
 		}		
 	}
-
+	
 	if (MovementMode == MOVE_Walking)
 	{
-		switch (CustomMovementMode)
-		{
-		case MOVE_Standard:
-			return MaxWalkSpeed;
-		case MOVE_ADS:
-			return MaxADSSpeed;
-		case MOVE_Running:
-			return MaxRunningSpeed;
-		default:
-			return MaxWalkSpeed;
-		}
+		return CalculateMaxSpeed();
 	}
 	
 	return Super::GetMaxSpeed();
@@ -171,11 +165,6 @@ bool UZodiacCharacterMovementComponent::CanAttemptJump() const
 	// Same as UCharacterMovementComponent's implementation but without the crouch check
 	return IsJumpAllowed() &&
 		(IsMovingOnGround() || IsFalling()); // Falling included for double-jump and non-zero jump hold time, but validated by character.
-}
-
-void UZodiacCharacterMovementComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
 }
 
 const FZodiacCharacterGroundInfo& UZodiacCharacterMovementComponent::GetGroundInfo()
@@ -229,4 +218,29 @@ void UZodiacCharacterMovementComponent::SetReplicatedAcceleration(const FVector&
 {
 	bHasReplicatedAcceleration = true;
 	Acceleration = InAcceleration;
+}
+
+float UZodiacCharacterMovementComponent::CalculateMaxSpeed() const
+{
+	FRotator Rotation = GetPawnOwner() ? GetPawnOwner()->GetActorRotation() : FRotator();
+	float MovementAngle = FMath::Abs(UKismetAnimationLibrary::CalculateDirection(Velocity, Rotation));
+	float StrafeMap = StrafeSpeedMapCurve ? StrafeSpeedMapCurve->GetFloatValue(MovementAngle) : 1.0f;
+	
+	FVector DesiredSpeedRange;
+
+	switch (CustomMovementMode)
+	{
+	case Move_Custom_Running:
+		DesiredSpeedRange = RunSpeeds;
+		break;
+
+	default:
+		DesiredSpeedRange = WalkSpeeds;
+		break;
+	}
+
+	// Min value is used when strafing or moving backward.
+	float MaxSpeed = (StrafeMap < 1.0f) ? DesiredSpeedRange.X : DesiredSpeedRange.Y;
+	float MinSpeed = (StrafeMap < 1.0f) ? DesiredSpeedRange.Y : DesiredSpeedRange.Z;
+	return UKismetMathLibrary::MapRangeClamped(StrafeMap, 0.0f, 1.0f, MaxSpeed, MinSpeed);
 }

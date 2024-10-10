@@ -3,6 +3,7 @@
 #include "ZodiacHostCharacter.h"
 
 #include "DelayAction.h"
+#include "DisplayDebugHelpers.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroCharacter.h"
 #include "ZodiacLogChannels.h"
@@ -10,6 +11,7 @@
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Animation/ZodiacHostAnimInstance.h"
 #include "Camera/ZodiacCameraComponent.h"
+#include "Engine/Canvas.h"
 #include "Player/ZodiacPlayerState.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/ZodiacPlayerController.h"
@@ -79,6 +81,52 @@ void AZodiacHostCharacter::BeginPlay()
 	if (HasAuthority())
 	{
 		ChangeHero(0);	
+	}
+}
+
+void AZodiacHostCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
+{
+	Super::DisplayDebug(Canvas, DebugDisplay, YL, YPos);
+
+	if (DebugDisplay.IsDisplayOn(FName("AZodiacHostCharacter")))
+	{
+		if (IsLocallyControlled())
+		{
+			FDisplayDebugManager& DisplayDebugManager = Canvas->DisplayDebugManager;
+
+			DisplayDebugManager.SetFont(GEngine->GetSmallFont());
+			DisplayDebugManager.SetDrawColor(FColor::Yellow);
+			DisplayDebugManager.DrawString(FString::Printf(TEXT("ZodiacHostCharacter: %s"), *GetNameSafe(this)));
+
+			{
+				FGameplayTagContainer Container;
+				GetHostAbilitySystemComponent()->GetOwnedGameplayTags(Container);
+				TArray<FGameplayTag> TagsInArray;
+				Container.GetGameplayTagArray(TagsInArray);
+				FString AppendedTags = FString("Host Tags: ");
+		
+				for (auto& Tag : TagsInArray)
+				{
+					AppendedTags.Append(FString::Printf(TEXT("%s, "), *Tag.GetTagName().ToString()));
+				}
+
+				DisplayDebugManager.DrawString(AppendedTags);
+			}
+		
+			{
+				FGameplayTagContainer Container;
+				GetHeroAbilitySystemComponent()->GetOwnedGameplayTags(Container);
+				TArray<FGameplayTag> TagsInArray;
+				Container.GetGameplayTagArray(TagsInArray);
+				FString AppendedTags = FString("Hero Tags: ");
+		
+				for (auto& Tag : TagsInArray)
+				{
+					AppendedTags.Append(FString::Printf(TEXT("%s, "), *Tag.GetTagName().ToString()));
+				}
+				DisplayDebugManager.DrawString(AppendedTags);
+			}
+		}
 	}
 }
 

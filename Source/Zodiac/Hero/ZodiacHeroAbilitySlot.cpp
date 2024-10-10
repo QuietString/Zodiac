@@ -1,0 +1,80 @@
+﻿// the.quiet.string@gmail.com
+
+
+#include "ZodiacHeroAbilitySlot.h"
+
+#include "Net/UnrealNetwork.h"
+
+UZodiacHeroAbilitySlot::UZodiacHeroAbilitySlot(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+}
+
+void UZodiacHeroAbilitySlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, StatTag);
+	DOREPLIFETIME_CONDITION(ThisClass, GrantedHandles, COND_InitialOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, SlotType, COND_InitialOnly);
+}
+
+void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& InDef)
+{
+	Definition = InDef;
+	SlotType = InDef.SlotType;
+
+	for (auto& Fragment : Definition.Fragments)
+	{
+		Fragment->OnSlotCreated(this);
+		UE_LOG(LogTemp, Warning, TEXT("fragment: %s"), *Fragment->GetName());
+	}
+}
+
+void UZodiacHeroAbilitySlot::UpdateActivationTime()
+{
+	UWorld* World = GetWorld();
+	check(World);
+	TimeLastFired = World->GetTimeSeconds();
+}
+
+APawn* UZodiacHeroAbilitySlot::GetPawn() const
+{
+	return Cast<APawn>(GetOuter());
+}
+
+const UZodiacHeroAbilityFragment* UZodiacHeroAbilitySlot::FindFragmentByClass(const TSubclassOf<UZodiacHeroAbilityFragment>& FragmentClass) const
+{
+	if (FragmentClass != nullptr)
+	{
+		for (UZodiacHeroAbilityFragment* Fragment : Definition.Fragments)
+		{
+			if (Fragment && Fragment->IsA(FragmentClass))
+			{
+				return Fragment;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+int32 UZodiacHeroAbilitySlot::GetStatTagStackCount(FGameplayTag Tag) const
+{
+	return StatTag.GetStackCount(Tag);
+}
+
+void UZodiacHeroAbilitySlot::SetStatTagStack(FGameplayTag Tag, int32 StackCount)
+{
+	StatTag.SetStack(Tag, StackCount);
+}
+
+void UZodiacHeroAbilitySlot::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
+{
+	StatTag.AddStack(Tag, StackCount);
+}
+
+void UZodiacHeroAbilitySlot::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
+{
+	StatTag.RemoveStack(Tag, StackCount);
+}

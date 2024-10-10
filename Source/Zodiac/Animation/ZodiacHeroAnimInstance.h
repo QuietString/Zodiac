@@ -32,8 +32,6 @@ public:
 	UZodiacHostAnimInstance* GetParentAnimInstance() const;
 
 	void OnAimingChanged(bool bHasActivated);
-	void OnIsWeaponReadyChanged(bool InIsReady);
-	void OnStatusChanged(FGameplayTag Tag, bool bActive);
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayHideOrRevealGunsMontage(bool bReveal);
@@ -95,15 +93,6 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bShouldReveal_RightPistol;
-
-	UPROPERTY(BlueprintReadWrite)
-	bool bShouldRaise_RightArm;
-
-	UPROPERTY(BlueprintReadOnly)
-	bool bShouldRaise_LeftArm;
-	
-	UPROPERTY(BlueprintReadOnly)
-	bool bApplyAimOffSet;
 
 	// 0 to hide right pistol, 1 to reveal right pistol 
 	UPROPERTY(BlueprintReadOnly)

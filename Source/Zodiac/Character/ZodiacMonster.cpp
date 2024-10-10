@@ -5,6 +5,7 @@
 
 #include "ZodiacAIController.h"
 #include "ZodiacHealthComponent.h"
+#include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"

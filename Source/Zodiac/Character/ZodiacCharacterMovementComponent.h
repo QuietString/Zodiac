@@ -15,11 +15,11 @@ ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gameplay_MovementStopped);
 UENUM(BlueprintType)
 enum EZodiacCustomMovementMode
 {
-	MOVE_Standard = 0, // not using custom movement, same value as MOVE_None
-	MOVE_ADS, // Slow walking movement with weapon fire
-	MOVE_Focus, // Standard walking movement with light weapon fire
-	MOVE_Running, 
-	MOVE_Traversal
+	Move_Custom_Running = 0			UMETA(DisplayName="Running"), 
+	Move_Custom_Walking				UMETA(DisplayName="Walking"), // not using custom movement, same value as MOVE_None 
+	Move_Custom_ADS					UMETA(DisplayName="ADS"),  // Slow walking movement with weapon fire
+	Move_Custom_Focus				UMETA(DisplayName="Focus"),  // Standard walking movement with light weapon fire
+	Move_Custom_Traversal			UMETA(DisplayName="Traversal")
 };
 
 /**
@@ -63,6 +63,7 @@ public:
 	virtual void JumpOff(AActor* MovementBaseActor) override;
 	virtual float GetMaxSpeed() const override;
 	virtual bool CanAttemptJump() const override;
+
 	
 	// Returns the current ground info.  Calling this will update the ground info if it's out of date.
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|CharacterMovement")
@@ -71,14 +72,20 @@ public:
 	void SetReplicatedAcceleration(const FVector& InAcceleration);
 
 protected:
-	virtual void InitializeComponent() override;
+	float CalculateMaxSpeed() const;
+
+public:
+	// X: max speed, Y: mid speed, Z: min speed
+	UPROPERTY()
+	FVector RunSpeeds = FVector(500.0f, 350.0f, 300.0f);
+
+	// X: max speed, Y: mid speed, Z: min speed
+	UPROPERTY()
+	FVector WalkSpeeds = FVector(200.0f, 175.0f, 150.0f);
 	
 protected:
-	UPROPERTY(Category="Character Movement: Running", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
-	float MaxRunningSpeed;
-
-	UPROPERTY(Category="Character Movement: ADS", EditAnywhere, BlueprintReadOnly, meta=(ClampMin="0", UIMin="0", ForceUnits="cm/s"))
-	float MaxADSSpeed;
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
+	TObjectPtr<UCurveFloat> StrafeSpeedMapCurve;
 	
 	// Cached ground info for the character.  Do not access this directly!  It's only updated when accessed via GetGroundInfo().
 	FZodiacCharacterGroundInfo CachedGroundInfo;

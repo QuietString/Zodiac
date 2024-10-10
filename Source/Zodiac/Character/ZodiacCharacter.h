@@ -99,11 +99,11 @@ public:
 
 	// Last FSharedRepMovement we sent, to avoid sending repeatedly.
 	FSharedRepMovement LastSharedReplication;
-
-	float CalculateMaxSpeed() const;
 	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SimulateOrPlayHitReact(FVector HitDirection, FName HitBone);
+
+	void SetMovementSpeeds(const FVector& InWalkSpeeds, const FVector& InRunSpeeds);
 
 protected:	
 	//~AActor interface
@@ -128,7 +128,7 @@ protected:
 	
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 	void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled);
-	
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
 	FZodiacInputConfig InputConfig;
@@ -136,17 +136,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 	
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
-	TObjectPtr<UCurveFloat> StrafeSpeedMapCurve;
-	
-	// X: max speed, Y: mid speed, Z: min speed
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
-	FVector RunSpeeds = FVector(500.0f, 350.0f, 300.0f);
 
-	// X: max speed, Y: mid speed, Z: min speed
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
-	FVector WalkSpeeds = FVector(200.0f, 175.0f, 150.0f);
-	
 private:
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_ReplicatedAcceleration)
 	FZodiacReplicatedAcceleration ReplicatedAcceleration;

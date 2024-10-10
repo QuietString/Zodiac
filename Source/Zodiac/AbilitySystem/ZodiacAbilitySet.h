@@ -9,7 +9,6 @@
 #include "ZodiacAbilitySet.generated.h"
 
 class UInputMappingContext;
-class UZodiacSkillManagerComponent;
 class UZodiacGameplayAbility;
 struct FActiveGameplayEffectHandle;
 class UZodiacAbilitySystemComponent;
@@ -69,9 +68,6 @@ public:
 	//void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddAttributeSet(UAttributeSet* Set);
 
-private:
-	friend UZodiacSkillManagerComponent;
-	
 protected:
 
 	// Handles to the granted abilities.

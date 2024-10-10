@@ -4,30 +4,15 @@
 #include "ZodiacCharacter.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "KismetAnimationLibrary.h"
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
 #include "Animation/ZodiacHostAnimInstance.h"
 #include "Engine/Canvas.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCharacter)
-
-namespace ZodiacConsoleVariables
-{
-	static TAutoConsoleVariable<bool> CVarMovementModeShowDebug(
-		TEXT("zodiac.MovementMode.ShowDebug"),
-		false,
-		TEXT(""));
-	
-	bool LogEnabled()
-	{
-		return CVarMovementModeShowDebug.GetValueOnAnyThread();
-	}
-}
 
 /////////////////////////////////////////////////////////////////
 ///
@@ -170,47 +155,9 @@ void AZodiacCharacter::CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySyste
 	}
 }
 
-float AZodiacCharacter::CalculateMaxSpeed() const
-{
-	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
-	uint8 CustomMovementMode = GetCharacterMovement()->CustomMovementMode;
-
-	float MovementAngle = FMath::Abs(UKismetAnimationLibrary::CalculateDirection(GetCharacterMovement()->Velocity, GetActorRotation()));
-	float StrafeMap = StrafeSpeedMapCurve ? StrafeSpeedMapCurve->GetFloatValue(MovementAngle) : 1.0f;
-		
-	FVector DesiredSpeedRange;
-
-	switch (CustomMovementMode)
-	{
-	case MOVE_Standard: 
-	case MOVE_ADS:
-		DesiredSpeedRange = WalkSpeeds;
-		break;
-				
-	case MOVE_Running:
-		DesiredSpeedRange = RunSpeeds;
-	default:
-		break;
-	}
-
-	float MaxSpeed = (StrafeMap < 1.0f) ? DesiredSpeedRange.X : DesiredSpeedRange.Y;
-	float MinSpeed = (StrafeMap < 1.0f) ? DesiredSpeedRange.Y : DesiredSpeedRange.Z;
-	return UKismetMathLibrary::MapRangeClamped(StrafeMap, 0.0f, 1.0f, MaxSpeed, MinSpeed);
-}
-
 void AZodiacCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	if (GetCharacterMovement()->MovementMode == MOVE_Walking)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = CalculateMaxSpeed();
-		GetCharacterMovement()->MaxCustomMovementSpeed = CalculateMaxSpeed();
-		if (GetCharacterMovement()->HasAnimRootMotion())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("has root motion"));
-		}
-	}
 }
 
 void AZodiacCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
@@ -262,7 +209,8 @@ void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* In
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwner, this);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Death, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	
 	OnAbilitySystemComponentInitialized.Broadcast(AbilitySystemComponent);
@@ -374,6 +322,7 @@ void AZodiacCharacter::OnStatusTagChanged(FGameplayTag Tag, int Count)
 	int32 NewCount = bHasTag ? 1 : 0;
 
 	UZodiacHostAnimInstance* HostAnimInstance = CastChecked<UZodiacHostAnimInstance>(GetMesh()->GetAnimInstance());
+
 	HostAnimInstance->OnStatusChanged(Tag, bHasTag);
 }
 
@@ -384,11 +333,11 @@ void AZodiacCharacter::OnMovementTagChanged(FGameplayTag Tag, int Count)
 		uint8 CustomMode_Candidate;
 		if (Tag == ZodiacGameplayTags::Movement_Mode_ADS)
 		{
-			CustomMode_Candidate = MOVE_ADS;
+			CustomMode_Candidate = Move_Custom_ADS;
 		}
 		else if (Tag == ZodiacGameplayTags::Movement_Mode_Focus)
 		{
-			CustomMode_Candidate = MOVE_Focus;
+			CustomMode_Candidate = Move_Custom_Focus;
 		}
 		else
 		{
@@ -464,13 +413,6 @@ void AZodiacCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 			OnJustLifted();
 		}
 	}
-
-#if WITH_EDITOR
-	if (ZodiacConsoleVariables::LogEnabled())
-	{
-		UE_LOG(LogZodiacMovement, Log, TEXT("Prev mode: (%d, %d), New mode: (%d, %d"), PrevMovementMode, PreviousCustomMode, MovementMode, CustomMovementMode);
-	}
-#endif
 }
 
 void AZodiacCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled)
@@ -488,7 +430,7 @@ void AZodiacCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 Cust
 				ASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
 			}
 		}
-		else if (CustomMovementMode == MOVE_Traversal)
+		else if (CustomMovementMode == Move_Custom_Traversal)
 		{
 			MovementModeTag = ZodiacGameplayTags::CustomMovementModeTagMap.Find(CustomMovementMode);
 			if (MovementModeTag && MovementModeTag->IsValid())
@@ -496,6 +438,15 @@ void AZodiacCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 Cust
 				ASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
 			}
 		}
+	}
+}
+
+void AZodiacCharacter::SetMovementSpeeds(const FVector& InWalkSpeeds, const FVector& InRunSpeeds)
+{
+	if (UZodiacCharacterMovementComponent* ZodiacCharMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		ZodiacCharMoveComp->WalkSpeeds = InWalkSpeeds;
+		ZodiacCharMoveComp->RunSpeeds = InRunSpeeds;
 	}
 }
 

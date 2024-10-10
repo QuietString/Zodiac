@@ -5,8 +5,7 @@
 #include "NativeGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Skills/ZodiacHeroAbility.h"
-#include "Item/ZodiacHeroItemSlot.h"
-#include "Item/ZodiacSkillInstance.h"
+#include "Hero/ZodiacHeroAbilitySlot.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilityCost_TagStack)
 
@@ -28,9 +27,9 @@ bool UZodiacAbilityCost_TagStack::CheckCost(const UZodiacGameplayAbility* Abilit
 		int32 NumStacksFound = 0;
 		if (const UZodiacHeroAbility* Skill = Cast<UZodiacHeroAbility>(Ability))
 		{
-			if (UZodiacHeroItemSlot* ItemSlot = Skill->GetAssociatedSlot())
+			if (UZodiacHeroAbilitySlot* AbilitySlot = Skill->GetAssociatedSlot())
 			{
-				NumStacksFound = ItemSlot->GetStatTagStackCount(Tag);
+				NumStacksFound = AbilitySlot->GetStatTagStackCount(Tag);
 			}
 		}
 		
@@ -56,9 +55,9 @@ void UZodiacAbilityCost_TagStack::ApplyCost(const UZodiacGameplayAbility* Abilit
 
 		if (const UZodiacHeroAbility* Skill = Cast<UZodiacHeroAbility>(Ability))
 		{
-			if (UZodiacHeroItemSlot* SkillSlot = Skill->GetAssociatedSlot())
+			if (UZodiacHeroAbilitySlot* AbilitySlot = Skill->GetAssociatedSlot())
 			{
-				SkillSlot->RemoveStatTagStack(Tag, NumStacks);		
+				AbilitySlot->RemoveStatTagStack(Tag, NumStacks);		
 			}
 		}
 	}

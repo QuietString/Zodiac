@@ -28,12 +28,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
 
+	AZodiacHeroCharacter* GetHero() const { return HeroList.GetHero(ActiveHeroIndex); }
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
 	
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
 
 	void ChangeHero(const int32 Index);
-
+	
 	void TryChangeMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode);
 	
 	/** Overrides the camera from an active gameplay ability */
@@ -49,6 +50,7 @@ protected:
 	virtual void OnRep_PlayerState() override;
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
+	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	//~End of AActor interface
 
 	virtual void OnJustLanded() override;

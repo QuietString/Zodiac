@@ -6,9 +6,9 @@
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
 #include "ZodiacHeroAbility.generated.h"
 
+class UZodiacHeroAbilitySlot;
 class UZodiacHeroItemSlot;
 class AZodiacHeroCharacter;
-class UZodiacSkillAbilityCost;
 class UZodiacSkillInstance;
 
 /**
@@ -30,12 +30,12 @@ public:
 	AZodiacHeroCharacter* GetHeroActorFromActorInfo() const;
 	
 	UFUNCTION(BlueprintCallable)
-	UZodiacHeroItemSlot* GetAssociatedSlot() const;
+	UZodiacHeroAbilitySlot* GetAssociatedSlot() const;
 	
 	template<typename T>
 	T* GetAssociatedSlot() const
 	{
-		if (UZodiacHeroItemSlot* Slot = GetAssociatedSlot())
+		if (UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot())
 		{
 			if (T* TypedSlot = Cast<T>(Slot))
 			{
@@ -90,7 +90,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = Costs)
 	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category = Tags)
+	FGameplayTagContainer ActivationRequiredTagsHost;
+
+	UPROPERTY(EditDefaultsOnly, Category = Tags)
+	FGameplayTagContainer ActivationBlockedTagsHost;
+
 private:
 	bool bIsFirstActivation = false;
 	

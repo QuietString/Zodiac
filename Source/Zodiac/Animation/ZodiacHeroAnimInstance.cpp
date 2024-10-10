@@ -67,29 +67,13 @@ void UZodiacHeroAnimInstance::OnAimingChanged(bool bHasActivated)
 	PlayHideOrRevealGunsMontage(bHasActivated);
 }
 
-void UZodiacHeroAnimInstance::OnIsWeaponReadyChanged(bool InIsReady)
-{
-	bIsWeaponReady = InIsReady;
-}
-
-void UZodiacHeroAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bActive)
-{
-	if (Tag == ZodiacGameplayTags::Status_WeaponReady)
-	{
-		bIsWeaponReady = bActive;
-	}
-	else if (Tag == ZodiacGameplayTags::Status_Focus)
-	{
-		bIsFocus = bActive;
-	}
-}
-
 void UZodiacHeroAnimInstance::UpdateMovementData()
 {
-	//bIsFocus = HostAnimInstance->bIsFocus;
+	bIsFocus = ParentAnimInstance->bIsFocus;
 	bIsADS = ParentAnimInstance->bIsADS;
 	bIsMoving = ParentAnimInstance->bIsMoving; 
-	bIsTraversal = ParentAnimInstance->CustomMovement == MOVE_Traversal;
+	bIsTraversal = ParentAnimInstance->CustomMovement == Move_Custom_Traversal;
+	bIsWeaponReady = ParentAnimInstance->bIsWeaponReady;
 }
 
 void UZodiacHeroAnimInstance::UpdateRotationData(float DeltaSeconds, AActor* OwningActor)
@@ -104,9 +88,6 @@ void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 		FRotator AimRotation = ParentCharacter->GetBaseAimRotation();
 		FRotator RootTransform = ParentAnimInstance->RootTransform.Rotator();
 		FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
-
-		bShouldRaise_RightArm = (!bIsTraversal) && bIsFocus;
-		bShouldRaise_LeftArm = (!bIsTraversal) && bIsADS;
 		
 		bool bIsSlotActive = IsSlotActive(FName("Weapon_Additive"));
 		bool bIsRightPistolSlotActive = IsSlotActive(FName("Weapon_RightPistolAdditive"));
@@ -114,8 +95,6 @@ void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 		bShouldReveal_LeftPistol = bAnimNotify_RevealLeftPistol || (bIsADS && bIsWeaponReady);
 		bShouldReveal_RightPistol = (bAnimNotify_RevealRightPistol && bIsFocus) || (bIsFocus && bIsWeaponReady) || bIsRightPistolSlotActive || bShouldReveal_LeftPistol;
 		
-		bApplyAimOffSet = (bShouldRaise_LeftArm | bShouldRaise_RightArm | bIsADS);
-
 		AimPitch = Delta.Pitch;
 		AimYaw = Delta.Yaw;
 		FMath::Clamp(AimYaw, AimYawClampRange.X, AimYawClampRange.Y);
