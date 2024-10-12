@@ -370,14 +370,16 @@ void UZodiacSkillAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(co
 	{
 		const FHitResult* HitResult = SingleTargetData->GetHitResult();
 
-		GCNParameters = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
-		if (UZodiacAbilitySystemComponent* ZodiacASC = GetHeroAbilitySystemComponentFromActorInfo())
+		GCNParameters_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
+		GCNParameters_Firing.SourceObject = GetAssociatedSlot();
+		if (UZodiacAbilitySystemComponent* HeroASC = GetHeroAbilitySystemComponentFromActorInfo())
 		{
-			ZodiacASC->GameplayCueReadyData.SetGameplayTagCue(GameplayCueTag_Firing);
-			ZodiacASC->GameplayCueReadyData.SetGCNParameters(GCNParameters);
-			ZodiacASC->CheckAndExecuteGameplayCue();
+			HeroASC->ExecuteGameplayCue(GCNTag_Firing, GCNParameters_Firing);
+			// HeroASC->GameplayCueReadyData.SetGameplayTagCue(GameplayCueTag_Firing);
+			//HeroASC->GameplayCueReadyData.SetGCNParameters(GCNParameters);
+			// HeroASC->CheckAndExecuteGameplayCue();
 		}
-
+		
 		// if (ChargeUltimateEffect)
 		// {
 		// 	for (auto& Actor : SingleTargetData->GetActors())
@@ -395,10 +397,10 @@ void UZodiacSkillAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(co
 		// }
 	}
 	
-	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect, 1);
-	EffectSpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_SkillMultiplier, GetAbilityLevel());
+	//FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect, 1);
+	//EffectSpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_SkillMultiplier, GetAbilityLevel());
 	
-	ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetData);
+	//ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetData);
 }
 
 #if WITH_EDITOR

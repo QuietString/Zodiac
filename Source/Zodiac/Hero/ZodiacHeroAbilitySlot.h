@@ -6,6 +6,7 @@
 #include "GameplayTagContainer.h"
 #include "ZodiacHeroAbilityDefinition.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
+#include "AbilitySystem/ZodiacAbilitySourceInterface.h"
 #include "System/GameplayTagStack.h"
 #include "UObject/Object.h"
 #include "ZodiacHeroAbilitySlot.generated.h"
@@ -14,7 +15,7 @@
  * Contains data for associated abilities of a slot. 
  */
 UCLASS(BlueprintType, Blueprintable)
-class ZODIAC_API UZodiacHeroAbilitySlot : public UObject
+class ZODIAC_API UZodiacHeroAbilitySlot : public UObject, public IZodiacAbilitySourceInterface
 {
 	GENERATED_BODY()
 
@@ -26,6 +27,13 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	//~End of UObject interface
 
+	//~IZodiacAbilitySourceInterface interface
+	UFUNCTION(BlueprintCallable)
+	virtual FVector GetSourceLocation() const override;
+	virtual float GetDistanceAttenuation(float Distance, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags) const override { return 1.0f; }
+	virtual float GetPhysicalMaterialAttenuation(const UPhysicalMaterial* PhysicalMaterial, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags) const override { return 1.0f; }
+	//~End of IZodiacAbilitySourceInterface interface
+	
 	virtual void Tick(float DeltaTime) {};
 	virtual void InitializeSlot(const FZodiacHeroAbilityDefinition& InDef);
 
@@ -59,12 +67,12 @@ public:
 	FZodiacAbilitySet_GrantedHandles GrantedHandles;
 	
 protected:
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	FZodiacHeroAbilityDefinition Definition;
 	
 	UPROPERTY(Replicated)
 	FGameplayTag SlotType;
-
+	
 private:
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTag;

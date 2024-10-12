@@ -5,14 +5,13 @@
 #include "Curves/CurveFloat.h"
 
 #include "ZodiacHeroAbilitySlot_Weapon.h"
-#include "AbilitySystem/ZodiacAbilitySourceInterface.h"
 
 #include "ZodiacHeroAbilitySlot_RangedWeapon.generated.h"
 
 class UPhysicalMaterial;
 
 UCLASS()
-class UZodiacHeroAbilitySlot_RangedWeapon : public UZodiacHeroAbilitySlot_Weapon, public IZodiacAbilitySourceInterface
+class UZodiacHeroAbilitySlot_RangedWeapon : public UZodiacHeroAbilitySlot_Weapon
 {
 	GENERATED_BODY()
 

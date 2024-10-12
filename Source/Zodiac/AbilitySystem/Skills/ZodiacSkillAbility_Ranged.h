@@ -86,13 +86,13 @@ protected:
 	TSubclassOf<UGameplayEffect> DamageEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues")
-	FGameplayTag GameplayCueTag_Firing;
+	FGameplayTag GCNTag_Firing;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues")
-	FGameplayTag GameplayCueTag_Impact;
+	FGameplayTag GCNTag_Impact;
 
 	UPROPERTY(BlueprintReadOnly)
-	FGameplayCueParameters GCNParameters;
+	FGameplayCueParameters GCNParameters_Firing;
 
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;

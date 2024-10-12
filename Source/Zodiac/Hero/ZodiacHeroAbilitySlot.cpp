@@ -3,6 +3,7 @@
 
 #include "ZodiacHeroAbilitySlot.h"
 
+#include "Character/ZodiacHeroCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 UZodiacHeroAbilitySlot::UZodiacHeroAbilitySlot(const FObjectInitializer& ObjectInitializer)
@@ -15,8 +16,22 @@ void UZodiacHeroAbilitySlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, StatTag);
+	DOREPLIFETIME_CONDITION(ThisClass, Definition, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, GrantedHandles, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, SlotType, COND_InitialOnly);
+}
+
+FVector UZodiacHeroAbilitySlot::GetSourceLocation() const
+{
+	if (AZodiacHeroCharacter* Hero = Cast<AZodiacHeroCharacter>(GetPawn()))
+	{
+		if (!Definition.SourceSockets.IsEmpty())
+		{
+			return Hero->GetMesh()->GetSocketLocation(Definition.SourceSockets.Top());
+		}
+	}
+
+	return FVector();
 }
 
 void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& InDef)
@@ -24,11 +39,11 @@ void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& 
 	Definition = InDef;
 	SlotType = InDef.SlotType;
 
-	for (auto& Fragment : Definition.Fragments)
-	{
-		Fragment->OnSlotCreated(this);
-		UE_LOG(LogTemp, Warning, TEXT("fragment: %s"), *Fragment->GetName());
-	}
+	// for (auto& Fragment : Definition.Fragments)
+	// {
+	// 	Fragment->OnSlotCreated(this);
+	// 	UE_LOG(LogTemp, Warning, TEXT("fragment: %s"), *Fragment->GetName());
+	// }
 }
 
 void UZodiacHeroAbilitySlot::UpdateActivationTime()

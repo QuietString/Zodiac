@@ -11,7 +11,7 @@ class UPhysicalMaterial;
 struct FGameplayTagContainer;
 
 /** Base interface for anything acting as a ability calculation source */
-UINTERFACE()
+UINTERFACE(BlueprintType, MinimalAPI, meta=(CannotImplementInterfaceInBlueprint))
 class UZodiacAbilitySourceInterface : public UInterface
 {
 	GENERATED_UINTERFACE_BODY()
@@ -33,4 +33,7 @@ class IZodiacAbilitySourceInterface
 	virtual float GetDistanceAttenuation(float Distance, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr) const = 0;
 
 	virtual float GetPhysicalMaterialAttenuation(const UPhysicalMaterial* PhysicalMaterial, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr) const = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual FVector GetSourceLocation() const = 0;
 };
