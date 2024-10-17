@@ -119,7 +119,7 @@ bool UZodiacHeroAbilitySlot_Weapon::UpdateSpread(float DeltaSeconds)
 	
 	float MinSpread;
 	float MaxSpread;
-	ComputeSpreadRange(/*out*/ MinSpread, /*out*/ MaxSpread);
+	ComputeSpreadRange(OUT MinSpread, OUT MaxSpread);
 
 	return FMath::IsNearlyEqual(CurrentSpreadAngle, MinSpread, KINDA_SMALL_NUMBER);
 }

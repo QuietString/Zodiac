@@ -28,12 +28,10 @@ public:
 	//~End of UObject interface
 
 	//~IZodiacAbilitySourceInterface interface
-	UFUNCTION(BlueprintCallable)
-	virtual FVector GetSourceLocation() const override;
 	virtual float GetDistanceAttenuation(float Distance, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags) const override { return 1.0f; }
 	virtual float GetPhysicalMaterialAttenuation(const UPhysicalMaterial* PhysicalMaterial, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags) const override { return 1.0f; }
 	//~End of IZodiacAbilitySourceInterface interface
-	
+
 	virtual void Tick(float DeltaTime) {};
 	virtual void InitializeSlot(const FZodiacHeroAbilityDefinition& InDef);
 
@@ -72,7 +70,7 @@ protected:
 	
 	UPROPERTY(Replicated)
 	FGameplayTag SlotType;
-	
+
 private:
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTag;

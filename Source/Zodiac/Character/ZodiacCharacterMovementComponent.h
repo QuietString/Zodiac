@@ -25,7 +25,7 @@ enum EZodiacCustomMovementMode
 /**
  *	Information about the ground under the character.  It only gets updated as needed.
  */
-USTRUCT(BlueprintType)
+USTRUCT(BlueprintType) 
 struct FZodiacCharacterGroundInfo
 {
 	GENERATED_BODY()
@@ -63,7 +63,6 @@ public:
 	virtual void JumpOff(AActor* MovementBaseActor) override;
 	virtual float GetMaxSpeed() const override;
 	virtual bool CanAttemptJump() const override;
-
 	
 	// Returns the current ground info.  Calling this will update the ground info if it's out of date.
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|CharacterMovement")
@@ -76,11 +75,11 @@ protected:
 
 public:
 	// X: max speed, Y: mid speed, Z: min speed
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	FVector RunSpeeds = FVector(500.0f, 350.0f, 300.0f);
 
 	// X: max speed, Y: mid speed, Z: min speed
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	FVector WalkSpeeds = FVector(200.0f, 175.0f, 150.0f);
 	
 protected:

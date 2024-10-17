@@ -18,20 +18,9 @@ class UZodiacHeroAbilitySlot_RangedWeapon : public UZodiacHeroAbilitySlot_Weapon
 public:
 	virtual void PostLoad() override;
 	
-	int32 GetBulletsPerCartridge() const
-	{
-		return BulletsPerCartridge;
-	}
-
-	float GetMaxDamageRange() const
-	{
-		return MaxDamageRange;
-	}
-
-	float GetBulletTraceSweepRadius() const
-	{
-		return BulletTraceSweepRadius;
-	}
+	int32 GetBulletsPerCartridge() const { return BulletsPerCartridge; }
+	float GetMaxDamageRange() const { return MaxDamageRange; }
+	float GetBulletTraceSweepRadius() const { return BulletTraceSweepRadius; }
 
 protected:
 	

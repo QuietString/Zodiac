@@ -42,7 +42,6 @@ void UZodiacNumberPopComponent_NiagaraText::AddNumberPop(const FZodiacNumberPopR
 	NiagaraComp->Activate(false);
 	NiagaraComp->SetWorldLocation(NewRequest.WorldLocation);
 
-	UE_LOG(LogZodiac, Log, TEXT("DamageHit location : %s"), *(NewRequest.WorldLocation.ToString()));
 	//Add Damage information to the current Niagara list - Damage information is packed inside a FVector4 where XYZ = Position, W = Damage
 	TArray<FVector4> DamageList = UNiagaraDataInterfaceArrayFunctionLibrary::GetNiagaraArrayVector4(NiagaraComp, Style->NiagaraArrayName);
 	DamageList.Add(FVector4(NewRequest.WorldLocation.X, NewRequest.WorldLocation.Y, NewRequest.WorldLocation.Z, LocalDamage));

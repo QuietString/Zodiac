@@ -37,9 +37,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, meta=(Categories="Ability.Cost.Stack"), NotReplicated)
 	TMap<FGameplayTag, int32> InitialTagStack;
 
-	UPROPERTY(EditDefaultsOnly)
-	TArray<FName> SourceSockets;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced)
 	TArray<UZodiacHeroAbilityFragment*> Fragments;
 };

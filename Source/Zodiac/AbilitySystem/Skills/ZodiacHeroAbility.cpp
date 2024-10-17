@@ -47,6 +47,16 @@ UZodiacHeroAbilitySlot* UZodiacHeroAbility::GetAssociatedSlot() const
 	return nullptr;
 }
 
+FName UZodiacHeroAbility::GetCurrentComboSocket()
+{
+	if (Sockets.IsValidIndex(ComboIndex))
+	{
+		return Sockets[ComboIndex]->SocketName;
+	}
+
+	return NAME_None;
+}
+
 const FGameplayTagContainer* UZodiacHeroAbility::GetCooldownTags() const
 {
 	FGameplayTagContainer* MutableTags = const_cast<FGameplayTagContainer*>(&TempCooldownTags);
@@ -123,6 +133,11 @@ void UZodiacHeroAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, co
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::PreActivate(Handle, ActorInfo, ActivationInfo, OnGameplayAbilityEndedDelegate, TriggerEventData);
+
+	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
+	{
+		HostASC->AddLooseGameplayTags(ActivationOwnedTagsHost);
+	}
 }
 
 void UZodiacHeroAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -263,7 +278,7 @@ void UZodiacHeroAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 
 	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
 	{
-		HostASC->RemoveLooseGameplayTags(ActivationOwnedTags);
+		HostASC->RemoveLooseGameplayTags(ActivationOwnedTagsHost);
 	}
 }
 
@@ -271,9 +286,9 @@ FVector UZodiacHeroAbility::GetWeaponLocation() const
 {
 	if (USkeletalMeshComponent* MeshComponent =  GetOwningComponentFromActorInfo())
 	{
-		if (ComboSockets.IsValidIndex(ComboIndex))
+		if (Sockets.IsValidIndex(ComboIndex))
 		{
-			return MeshComponent->GetSocketLocation(ComboSockets[ComboIndex]);	
+			return MeshComponent->GetSocketLocation(Sockets[ComboIndex]->SocketName);	
 		}
 
 		return MeshComponent->GetSocketLocation(FName());
@@ -292,10 +307,31 @@ void UZodiacHeroAbility::ApplyAimingEffect()
 	}
 }
 
-void UZodiacHeroAbility::AdvanceComboIndex()
+void UZodiacHeroAbility::AdvanceCombo()
 {
-	if (++ComboIndex >= ComboSockets.Num())
+	if (++ComboIndex >= Sockets.Num())
 	{
 		ComboIndex = 0;
 	}
+}
+
+FVector UZodiacHeroAbility::GetSourceLocation() const
+{
+	FVector Location = FVector();
+	if (AZodiacHeroCharacter* Hero =  GetHeroActorFromActorInfo())
+	{
+		Location = Hero->GetMesh()->GetSocketLocation(GetSocket()->SocketName);
+	}
+
+	return Location;
+}
+
+UZodiacAbilitySourceSocket* UZodiacHeroAbility::GetSocket() const
+{
+	if (Sockets.IsValidIndex(ComboIndex))
+	{
+		return Sockets[ComboIndex];
+	}
+
+	return nullptr;
 }

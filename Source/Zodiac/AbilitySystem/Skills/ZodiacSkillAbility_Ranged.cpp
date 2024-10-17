@@ -46,6 +46,33 @@ namespace ZodiacConsoleVariables
 		ECVF_Default);
 }
 
+FVector VRandConeNormalDistribution(const FVector& Dir, const float ConeHalfAngleRad, const float Exponent)
+{
+	if (ConeHalfAngleRad > 0.f)
+	{
+		const float ConeHalfAngleDegrees = FMath::RadiansToDegrees(ConeHalfAngleRad);
+
+		// consider the cone a concatenation of two rotations. one "away" from the center line, and another "around" the circle
+		// apply the exponent to the away-from-center rotation. a larger exponent will cluster points more tightly around the center
+		const float FromCenter = FMath::Pow(FMath::FRand(), Exponent);
+		const float AngleFromCenter = FromCenter * ConeHalfAngleDegrees;
+		const float AngleAround = FMath::FRand() * 360.0f;
+
+		FRotator Rot = Dir.Rotation();
+		FQuat DirQuat(Rot);
+		FQuat FromCenterQuat(FRotator(0.0f, AngleFromCenter, 0.0f));
+		FQuat AroundQuat(FRotator(0.0f, 0.0, AngleAround));
+		FQuat FinalDirectionQuat = DirQuat * AroundQuat * FromCenterQuat;
+		FinalDirectionQuat.Normalize();
+
+		return FinalDirectionQuat.RotateVector(FVector::ForwardVector);
+	}
+	else
+	{
+		return Dir.GetSafeNormal();
+	}
+}
+
 UZodiacSkillAbility_Ranged::UZodiacSkillAbility_Ranged(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, RateOfFire(1)
@@ -65,7 +92,7 @@ void UZodiacSkillAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	UZodiacHeroAbilitySlot_RangedWeapon* WeaponSlot = GetAssociatedSlot<UZodiacHeroAbilitySlot_RangedWeapon>();
+	UZodiacHeroAbilitySlot_Weapon* WeaponSlot = GetAssociatedSlot<UZodiacHeroAbilitySlot_Weapon>();
 	check(WeaponSlot);
 	WeaponSlot->UpdateActivationTime();
 	
@@ -87,6 +114,92 @@ void UZodiacSkillAbility_Ranged::EndAbility(const FGameplayAbilitySpecHandle Han
 		MyASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 
 		Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	}
+}
+
+int32 UZodiacSkillAbility_Ranged::FindFirstPawnHitResult(const TArray<FHitResult>& HitResults)
+{
+	for (int32 Idx = 0; Idx < HitResults.Num(); ++Idx)
+	{
+		const FHitResult& CurHitResult = HitResults[Idx];
+		if (CurHitResult.HitObjectHandle.DoesRepresentClass(APawn::StaticClass()))
+		{
+			// If we hit a pawn, we're good
+			return Idx;
+		}
+		else
+		{
+			AActor* HitActor = CurHitResult.HitObjectHandle.FetchActor();
+			if ((HitActor != nullptr) && (HitActor->GetAttachParentActor() != nullptr) && (Cast<APawn>(HitActor->GetAttachParentActor()) != nullptr))
+			{
+				// If we hit something attached to a pawn, we're good
+				return Idx;
+			}
+		}
+	}
+
+	return INDEX_NONE;
+}
+
+FHitResult UZodiacSkillAbility_Ranged::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated,
+	TArray<FHitResult>& OutHitResults) const
+{
+	TArray<FHitResult> HitResults;
+	
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/ GetAvatarActorFromActorInfo());
+	TraceParams.bReturnPhysicalMaterial = true;
+	AddAdditionalTraceIgnoreActors(TraceParams);
+	//TraceParams.bDebugQuery = true;
+	
+	const ECollisionChannel TraceChannel = ZODIAC_TRACE_CHANNEL_WEAPON;
+	
+	if (SweepRadius > 0.0f)
+	{
+		GetWorld()->SweepMultiByChannel(HitResults, StartTrace, EndTrace, FQuat::Identity, TraceChannel, FCollisionShape::MakeSphere(SweepRadius), TraceParams);
+	}
+	else
+	{
+		GetWorld()->LineTraceMultiByChannel(HitResults, StartTrace, EndTrace, TraceChannel, TraceParams);
+	}
+
+	FHitResult Hit(ForceInit);
+	if (HitResults.Num() > 0)
+	{
+		// Filter the output list to prevent multiple hits on the same actor;
+		// this is to prevent a single bullet dealing damage multiple times to
+		// a single actor if using an overlap trace
+		for (FHitResult& CurHitResult : HitResults)
+		{
+			auto Pred = [&CurHitResult](const FHitResult& Other)
+			{
+				return Other.HitObjectHandle == CurHitResult.HitObjectHandle;
+			};
+
+			if (!OutHitResults.ContainsByPredicate(Pred))
+			{
+				OutHitResults.Add(CurHitResult);
+			}
+		}
+
+		Hit = OutHitResults.Last();
+	}
+	else
+	{
+		Hit.TraceStart = StartTrace;
+		Hit.TraceEnd = EndTrace;
+	}
+
+	return Hit;
+}
+
+void UZodiacSkillAbility_Ranged::AddAdditionalTraceIgnoreActors(FCollisionQueryParams& TraceParams) const
+{
+	if (AActor* Avatar = GetAvatarActorFromActorInfo())
+	{
+		// Ignore any actors attached to the avatar doing the shooting
+		TArray<AActor*> AttachedActors;
+		Avatar->GetAttachedActors(OUT AttachedActors);
+		TraceParams.AddIgnoredActors(AttachedActors);
 	}
 }
 
@@ -184,48 +297,143 @@ void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHi
 	if (HeroActor && HostCharacter->IsLocallyControlled() && WeaponSlot)
 	{
 		FRangedAbilityTraceData TraceData;
+		TraceData.WeaponData = WeaponSlot;
 		TraceData.bCanPlayBulletFX = (HeroActor->GetNetMode() != NM_DedicatedServer);
 
-		const FTransform TargetTransform = GetTargetingTransform(HostCharacter, HeroActor, AimTraceRule);
+		const FTransform TargetTransform = GetTargetingTransform(HostCharacter, HeroActor, EZodiacAbilityAimTraceRule::CameraTowardsFocus);
 		TraceData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
 		TraceData.StartTrace = TargetTransform.GetTranslation();
 		const FVector EndTrace = TraceData.StartTrace + TraceData.AimDir * 100000.f;
-	
-		FHitResult HitResult;
-		FCollisionQueryParams Params;
-		Params.bReturnPhysicalMaterial = true;
-		Params.AddIgnoredActor(HeroActor);
-		Params.bTraceComplex = true;
-
-		const ECollisionChannel TraceChannel = ZODIAC_TRACE_CHANNEL_WEAPON;
-
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, TraceData.StartTrace, EndTrace, TraceChannel, Params);
 
 #if ENABLE_DRAW_DEBUG
-
-		const FColor DebugColor = bHit ? FColor::Red : FColor::Green;
-		const FVector EndLocation = bHit ? HitResult.Location : EndTrace;
-	
 		if (ZodiacConsoleVariables::DrawBulletTracesDuration > 0.0f)
 		{
-			DrawDebugLine(GetWorld(), TraceData.StartTrace, EndLocation, DebugColor, false, ZodiacConsoleVariables::DrawBulletTracesDuration, 0, 1.5f);	
+			static float DebugThickness = 2.0f;
+			DrawDebugLine(GetWorld(), TraceData.StartTrace, TraceData.StartTrace + (TraceData.AimDir * 100.0f), FColor::Yellow, false, ZodiacConsoleVariables::DrawBulletTracesDuration, 0, DebugThickness);
 		}
-	
-		if (ZodiacConsoleVariables::DrawBulletHitDuration > 0.0f)
-		{
-			DrawDebugPoint(GetWorld(), EndLocation, ZodiacConsoleVariables::DrawBulletHitRadius, DebugColor, false, ZodiacConsoleVariables::DrawBulletHitDuration);
-		}
-	
 #endif
 
-		if (!HitResult.bBlockingHit)
+		TraceBulletsInCartridge(TraceData, OUT OutHits);
+	}
+}
+
+void UZodiacSkillAbility_Ranged::TraceBulletsInCartridge(const FRangedAbilityTraceData& InputData, TArray<FHitResult>& OutHits)
+{
+	UZodiacHeroAbilitySlot_RangedWeapon* WeaponData = InputData.WeaponData;
+	check(WeaponData);
+
+	const int32 BulletsPerCartridge = WeaponData->GetBulletsPerCartridge();
+
+	for (int32 BulletIndex = 0; BulletIndex < BulletsPerCartridge; ++BulletIndex)
+	{
+		const float BaseSpreadAngle = WeaponData->GetCalculatedSpreadAngle();
+		const float SpreadAngleMultiplier = WeaponData->GetCalculatedSpreadAngleMultiplier();
+		const float ActualSpreadAngle = BaseSpreadAngle * SpreadAngleMultiplier;
+
+		const float HalfSpreadAngleInRadians = FMath::DegreesToRadians(ActualSpreadAngle * 0.5f);
+
+		const FVector BulletDir = VRandConeNormalDistribution(InputData.AimDir, HalfSpreadAngleInRadians, WeaponData->GetSpreadExponent());
+
+		const FVector EndTrace = InputData.StartTrace + (BulletDir * WeaponData->GetMaxDamageRange());
+		FVector HitLocation = EndTrace;
+
+		TArray<FHitResult> AllImpacts;
+
+		FHitResult Impact = DoSingleBulletTrace(InputData.StartTrace, EndTrace, WeaponData->GetBulletTraceSweepRadius(), false, OUT AllImpacts);
+
+		const AActor* HitActor = Impact.GetActor();
+
+		if (HitActor)
 		{
-			HitResult.Location = EndTrace;
-			HitResult.ImpactPoint = EndTrace;
+#if ENABLE_DRAW_DEBUG
+			if (ZodiacConsoleVariables::DrawBulletHitDuration > 0.0f)
+			{
+				DrawDebugPoint(GetWorld(), Impact.ImpactPoint, ZodiacConsoleVariables::DrawBulletHitRadius, FColor::Red, false, ZodiacConsoleVariables::DrawBulletHitRadius);
+			}
+#endif
+
+			if (AllImpacts.Num() > 0)
+			{
+				OutHits.Append(AllImpacts);
+			}
+
+			HitLocation = Impact.ImpactPoint;
 		}
 
-		OutHits.Add(HitResult);
+		// Make sure there's always an entry in OutHits so the direction can be used for tracers, etc...
+		if (OutHits.Num() == 0)
+		{
+			if (!Impact.bBlockingHit)
+			{
+				// Locate the fake 'impact' at the end of the trace
+				Impact.Location = EndTrace;
+				Impact.ImpactPoint = EndTrace;
+			}
+
+			OutHits.Add(Impact);
+		}
 	}
+}
+
+FHitResult UZodiacSkillAbility_Ranged::DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated,
+	TArray<FHitResult>& OutHits) const
+{
+#if ENABLE_DRAW_DEBUG
+	if (ZodiacConsoleVariables::DrawBulletTracesDuration > 0.0f)
+	{
+		static float DebugThickness = 1.0f;
+		DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Red, false, ZodiacConsoleVariables::DrawBulletTracesDuration, 0, DebugThickness);
+	}
+#endif
+
+	FHitResult Impact;
+
+	// Trace and process instant hit if something was hit
+	// First trace without using sweep radius
+	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)
+	{
+		Impact = WeaponTrace(StartTrace, EndTrace, /*SweepRadius=*/ 0.0f, bIsSimulated, /*out*/ OutHits);
+	}
+
+	if (FindFirstPawnHitResult(OutHits) == INDEX_NONE)
+	{
+		// If this weapon didn't hit anything with a line trace and supports a sweep radius, try that
+		if (SweepRadius > 0.0f)
+		{
+			TArray<FHitResult> SweepHits;
+			Impact = WeaponTrace(StartTrace, EndTrace, SweepRadius, bIsSimulated, /*out*/ SweepHits);
+
+			// If the trace with sweep radius enabled hit a pawn, check if we should use its hit results
+			const int32 FirstPawnIdx = FindFirstPawnHitResult(SweepHits);
+			if (SweepHits.IsValidIndex(FirstPawnIdx))
+			{
+				// If we had a blocking hit in our line trace that occurs in SweepHits before our
+				// hit pawn, we should just use our initial hit results since the Pawn hit should be blocked
+				bool bUseSweepHits = true;
+				for (int32 Idx = 0; Idx < FirstPawnIdx; ++Idx)
+				{
+					const FHitResult& CurHitResult = SweepHits[Idx];
+
+					auto Pred = [&CurHitResult](const FHitResult& Other)
+					{
+						return Other.HitObjectHandle == CurHitResult.HitObjectHandle;
+					};
+					if (CurHitResult.bBlockingHit && OutHits.ContainsByPredicate(Pred))
+					{
+						bUseSweepHits = false;
+						break;
+					}
+				}
+
+				if (bUseSweepHits)
+				{
+					OutHits = SweepHits;
+				}
+			}
+		}
+	}
+
+	return Impact;
 }
 
 FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(const EZodiacAbilityAimTraceRule TraceRule) const
@@ -366,41 +574,47 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, 
 
 void UZodiacSkillAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(const FGameplayAbilityTargetDataHandle& TargetData)
 {
-	for (auto& SingleTargetData : TargetData.Data)
+	if (UZodiacAbilitySystemComponent* HostASC = Cast<UZodiacAbilitySystemComponent>(GetHostAbilitySystemComponent()))
 	{
-		const FHitResult* HitResult = SingleTargetData->GetHitResult();
+		UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot();
 
-		GCNParameters_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
-		GCNParameters_Firing.SourceObject = GetAssociatedSlot();
-		if (UZodiacAbilitySystemComponent* HeroASC = GetHeroAbilitySystemComponentFromActorInfo())
+		const FHitResult* FirstHitResult = TargetData.Get(0)->GetHitResult();
+		GameplayCueParams_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*FirstHitResult);
+		GameplayCueParams_Firing.SourceObject = GetSocket();
+		HostASC->ExecuteGameplayCue(GameplayCueTag_Firing, GameplayCueParams_Firing);
+		AdvanceCombo();
+
+		for (auto& SingleTargetData : TargetData.Data)
 		{
-			HeroASC->ExecuteGameplayCue(GCNTag_Firing, GCNParameters_Firing);
-			// HeroASC->GameplayCueReadyData.SetGameplayTagCue(GameplayCueTag_Firing);
-			//HeroASC->GameplayCueReadyData.SetGCNParameters(GCNParameters);
-			// HeroASC->CheckAndExecuteGameplayCue();
-		}
+			const FHitResult* HitResult = SingleTargetData->GetHitResult();
+			if (HitResult->bBlockingHit)
+			{
+				GameplayCueParams_Impact = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
+				GameplayCueParams_Impact.SourceObject = Slot;
+				HostASC->ExecuteGameplayCue(GameplayCueTag_Impact, GameplayCueParams_Impact);
+			}
 		
-		// if (ChargeUltimateEffect)
-		// {
-		// 	for (auto& Actor : SingleTargetData->GetActors())
-		// 	{
-		// 		if (AZodiacMonster* Monster = Cast<AZodiacMonster>(Actor))
-		// 		{
-		// 			if (!Monster->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Death_Dying))
-		// 			{
-		// 				// charge ultimate when any enemies is hit
-		// 				ChargeUltimate();
-		// 				break;
-		// 			}
-		// 		}
-		// 	}
-		// }
+			// if (ChargeUltimateEffect)
+			// {
+			// 	for (auto& Actor : SingleTargetData->GetActors())
+			// 	{
+			// 		if (AZodiacMonster* Monster = Cast<AZodiacMonster>(Actor))
+			// 		{
+			// 			if (!Monster->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Death_Dying))
+			// 			{
+			// 				// charge ultimate when any enemies is hit
+			// 				ChargeUltimate();
+			// 				break;
+			// 			}
+			// 		}
+			// 	}
+			// }
+		}
 	}
 	
-	//FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect, 1);
+	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect, 1);
 	//EffectSpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_SkillMultiplier, GetAbilityLevel());
-	
-	//ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetData);
+	ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetData);
 }
 
 #if WITH_EDITOR

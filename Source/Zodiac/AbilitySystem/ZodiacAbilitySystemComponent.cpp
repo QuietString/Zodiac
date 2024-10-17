@@ -21,8 +21,6 @@ UZodiacAbilitySystemComponent::UZodiacAbilitySystemComponent(const FObjectInitia
 	InputHeldSpecHandles.Reset();
 
 	FMemory::Memset(ActivationGroupCounts, 0, sizeof(ActivationGroupCounts));
-
-	MuzzleSocketData = CreateDefaultSubobject<USkillMuzzleSocketData>(TEXT("MuzzleSocketData"));
 }
 
 void UZodiacAbilitySystemComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -355,21 +353,6 @@ void UZodiacAbilitySystemComponent::GetAbilityTargetData(const FGameplayAbilityS
 	if (ReplicatedData.IsValid())
 	{
 		OutTargetDataHandle = ReplicatedData->TargetData;
-	}
-}
-
-void UZodiacAbilitySystemComponent::SetMuzzleSocketData(FName NewMuzzleSocketName)
-{
-	MuzzleSocketData->MuzzleSocket = NewMuzzleSocketName;
-	GameplayCueReadyData.SetMuzzleSocket(MuzzleSocketData);
-}
-
-void UZodiacAbilitySystemComponent::CheckAndExecuteGameplayCue()
-{
-	if (GameplayCueReadyData.IsReady())
-	{
-		ExecuteGameplayCue(GameplayCueReadyData.GameplayCueTag, GameplayCueReadyData.GCNParameters);
-		GameplayCueReadyData.Reset();
 	}
 }
 

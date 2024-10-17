@@ -8,8 +8,9 @@
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "Net/UnrealNetwork.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
+
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacMonster)
 
 AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -20,13 +21,6 @@ AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
 	PhysicalAnimationComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicalAnimationComponent>(this, TEXT("PhysicalAnimationComponent"));
-}
-
-void AZodiacMonster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ThisClass, AIState);
 }
 
 UAbilitySystemComponent* AZodiacMonster::GetAbilitySystemComponent() const

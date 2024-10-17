@@ -39,7 +39,8 @@ public:
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
-
+	UZodiacAbilitySystemComponent* GetHostAbilitySystemComponent() const;
+	
 	const UZodiacHeroData* GetHeroData() const { return HeroData; }
 
 	UFUNCTION(BlueprintCallable)

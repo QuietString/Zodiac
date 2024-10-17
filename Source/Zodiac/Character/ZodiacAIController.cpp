@@ -21,6 +21,6 @@ UAbilitySystemComponent* AZodiacAIController::GetAbilitySystemComponent() const
 	{
 		return ZodiacCharacter->GetAbilitySystemComponent();
 	}
-	GetFocusActor();
+	
 	return nullptr;
 }

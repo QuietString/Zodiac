@@ -74,7 +74,7 @@ void UZodiacCharacterMovementComponent::SetMovementMode(EMovementMode NewMovemen
 	const uint8 PrevCustomMode = CustomMovementMode;
 
 	// Changing custom movement mode is only allowed when MOVE_Walking or MOVE_NavWalking
-	if (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_NavWalking)
+	//if (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_NavWalking)
 	{
 		CustomMovementMode = NewCustomMode;
 	}

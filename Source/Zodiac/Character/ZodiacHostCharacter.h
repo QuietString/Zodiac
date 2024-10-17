@@ -28,6 +28,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
 
+	UFUNCTION(BlueprintCallable)
 	AZodiacHeroCharacter* GetHero() const { return HeroList.GetHero(ActiveHeroIndex); }
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
 	

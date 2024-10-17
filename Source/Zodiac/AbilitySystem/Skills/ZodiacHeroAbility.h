@@ -11,6 +11,18 @@ class UZodiacHeroItemSlot;
 class AZodiacHeroCharacter;
 class UZodiacSkillInstance;
 
+UCLASS(BlueprintType, Const, DefaultToInstanced, EditInlineNew, DisplayName = "Socket Object")
+class UZodiacAbilitySourceSocket : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	virtual bool IsSupportedForNetworking() const override { return true; }
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FName SocketName;
+};
+
 /**
  * Gameplay ability belongs to a hero character
  */
@@ -46,6 +58,8 @@ public:
 		return nullptr;
 	}
 
+	FName GetCurrentComboSocket();
+	
 	UFUNCTION(BlueprintCallable)
 	float GetCooldownDuration() const { return CooldownDuration.GetValueAtLevel(GetAbilityLevel()); }
 
@@ -64,13 +78,16 @@ public:
 protected:
 	void ApplyAimingEffect();
 
-	// Activate next part of this ability
 	UFUNCTION(BlueprintCallable)
-	void AdvanceComboIndex();
-
+	void AdvanceCombo();
+	
 	UFUNCTION(BlueprintCallable)
 	void ResetCombo() { ComboIndex = 0; }
+
+	UFUNCTION(BlueprintCallable)
+	FVector GetSourceLocation() const;
 	
+	UZodiacAbilitySourceSocket* GetSocket() const;
 protected:
 	// Apply MOVE_Aiming movement mode when it's activated
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
@@ -82,9 +99,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Cooldowns")
 	FScalableFloat CooldownDuration;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "FX")
-	TArray<FName> ComboSockets;
-	
 	UPROPERTY(BlueprintReadOnly, Category = "FX")
 	uint8 ComboIndex = 0;
 
@@ -92,10 +106,16 @@ protected:
 	TArray<TObjectPtr<UZodiacAbilityCost>> AdditionalCosts;
 
 	UPROPERTY(EditDefaultsOnly, Category = Tags)
+	FGameplayTagContainer ActivationOwnedTagsHost;
+
+	UPROPERTY(EditDefaultsOnly, Category = Tags)
 	FGameplayTagContainer ActivationRequiredTagsHost;
 
 	UPROPERTY(EditDefaultsOnly, Category = Tags)
 	FGameplayTagContainer ActivationBlockedTagsHost;
+
+	UPROPERTY(EditAnywhere, Instanced, Category = "FX")
+	TArray<UZodiacAbilitySourceSocket*> Sockets;
 
 private:
 	bool bIsFirstActivation = false;

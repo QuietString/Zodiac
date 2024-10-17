@@ -6,6 +6,8 @@
 #include "Character/ZodiacHeroCharacter.h"
 #include "Net/UnrealNetwork.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbilitySlot)
+
 UZodiacHeroAbilitySlot::UZodiacHeroAbilitySlot(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -19,19 +21,6 @@ void UZodiacHeroAbilitySlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME_CONDITION(ThisClass, Definition, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, GrantedHandles, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, SlotType, COND_InitialOnly);
-}
-
-FVector UZodiacHeroAbilitySlot::GetSourceLocation() const
-{
-	if (AZodiacHeroCharacter* Hero = Cast<AZodiacHeroCharacter>(GetPawn()))
-	{
-		if (!Definition.SourceSockets.IsEmpty())
-		{
-			return Hero->GetMesh()->GetSocketLocation(Definition.SourceSockets.Top());
-		}
-	}
-
-	return FVector();
 }
 
 void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& InDef)

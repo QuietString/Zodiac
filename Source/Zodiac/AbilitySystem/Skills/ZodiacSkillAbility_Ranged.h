@@ -6,6 +6,7 @@
 #include "AbilitySystem/Skills/ZodiacHeroAbility.h"
 #include "ZodiacSkillAbility_Ranged.generated.h"
 
+class UZodiacHeroAbilitySlot_RangedWeapon;
 /** Defines where an ability starts its trace from and where it should face */
 UENUM(BlueprintType)
 enum class EZodiacAbilityAimTraceRule : uint8
@@ -43,6 +44,9 @@ protected:
 		// The direction of the trace if aim were perfect
 		FVector AimDir;
 
+		// The weapon instance / source of weapon data
+		UZodiacHeroAbilitySlot_RangedWeapon* WeaponData = nullptr;
+
 		// Can we play bullet FX for hits during this trace
 		bool bCanPlayBulletFX = false;
 
@@ -53,7 +57,14 @@ protected:
 		{
 		}
 	};
-	
+
+	static int32 FindFirstPawnHitResult(const TArray<FHitResult>& HitResults);
+
+	// Does a single weapon trace, either sweeping or ray depending on if SweepRadius is above zero
+	FHitResult WeaponTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated, OUT TArray<FHitResult>& OutHitResults) const;
+
+	virtual void AddAdditionalTraceIgnoreActors(FCollisionQueryParams& TraceParams) const;
+
 	UFUNCTION(BlueprintCallable)
 	void StartRangedWeaponTargeting();
 
@@ -63,6 +74,12 @@ protected:
 	void OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 	
 	void PerformLocalTargeting(OUT TArray<FHitResult>& OutHits);
+
+	// Traces all of the bullets in a single cartridge
+	void TraceBulletsInCartridge(const FRangedAbilityTraceData& InputData, OUT TArray<FHitResult>& OutHits);
+
+	// Wrapper around WeaponTrace to handle trying to do a ray trace before falling back to a sweep trace if there were no hits and SweepRadius is above zero 
+	FHitResult DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated, OUT TArray<FHitResult>& OutHits) const;
 	
 	UFUNCTION(BlueprintCallable)
 	FTransform GetTargetingTransform(EZodiacAbilityAimTraceRule TraceRule) const;
@@ -85,15 +102,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
 	TSubclassOf<UGameplayEffect> DamageEffect;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues")
-	FGameplayTag GCNTag_Firing;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues", meta = (Categories = "GameplayCue"))
+	FGameplayTag GameplayCueTag_Firing;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues")
-	FGameplayTag GCNTag_Impact;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues", meta = (Categories = "GameplayCue"))
+	FGameplayTag GameplayCueTag_Impact;
 
 	UPROPERTY(BlueprintReadOnly)
-	FGameplayCueParameters GCNParameters_Firing;
+	FGameplayCueParameters GameplayCueParams_Firing;
 
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayCueParameters GameplayCueParams_Impact;
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
 

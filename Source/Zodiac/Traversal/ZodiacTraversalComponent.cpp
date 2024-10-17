@@ -266,20 +266,12 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	}
 
 	AActor* HitActor = TraversalObjectHit.GetActor();
-	if (HitActor)
+	if (UZodiacTraversableActorComponent* TraversableActorComponent = Cast<UZodiacTraversableActorComponent>(TraversalObjectHit.GetActor()->GetComponentByClass(UZodiacTraversableActorComponent::StaticClass())))
 	{
-		if (UZodiacTraversableActorComponent* TraversableActorComponent = Cast<UZodiacTraversableActorComponent>(TraversalObjectHit.GetActor()->GetComponentByClass(UZodiacTraversableActorComponent::StaticClass())))
-		{
-			// Step 2.2: If a traversable level block was found, get the front and back ledge transforms from it.
-			TraversableActorComponent->GetLedgeTransforms(TraversalObjectHit.ImpactPoint, ActorLocation, OUT Result);
-			Result.HitComponent = TraversalObjectHit.Component;
-			ActorsToIgnore.Add(HitActor);
-		}
-		else
-		{
-			FailReason = LOCTEXT("TraversalFailed", "No traversal object found");
-			return false;
-		}
+		// Step 2.2: If a traversable level block was found, get the front and back ledge transforms from it.
+		TraversableActorComponent->GetLedgeTransforms(TraversalObjectHit.ImpactPoint, ActorLocation, OUT Result);
+		Result.HitComponent = TraversalObjectHit.Component;
+		ActorsToIgnore.Add(HitActor);
 	}
 	else
 	{
@@ -293,7 +285,13 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 		FailReason = LOCTEXT("TraversalFailed", "No front ledge found");
 		return false;
 	}
-
+	
+	if (Result.FrontLedgeNormal.Dot(ActorForwardVector) > -0.7f)
+	{
+		FailReason = LOCTEXT("TraversalFailed", "Character is not facing toward a front ledge");
+		return false;
+	}
+	
 	// Step 3.2: Check if there is enough room above for traversal action.
 	FVector CeilingCheckStartLocation = ActorLocation;
 	FVector CeilingCheckEndLocation = Result.FrontLedgeLocation

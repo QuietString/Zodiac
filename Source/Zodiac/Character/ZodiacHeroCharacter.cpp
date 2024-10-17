@@ -84,6 +84,16 @@ UZodiacAbilitySystemComponent* AZodiacHeroCharacter::GetHeroAbilitySystemCompone
 	return AbilitySystemComponent;
 }
 
+UZodiacAbilitySystemComponent* AZodiacHeroCharacter::GetHostAbilitySystemComponent() const
+{
+	if (HostCharacter)
+	{
+		return HostCharacter->GetHostAbilitySystemComponent();
+	}
+
+	return nullptr;
+}
+
 AZodiacHostCharacter* AZodiacHeroCharacter::GetHostCharacter() const
 {
 	return HostCharacter;
@@ -206,6 +216,8 @@ void AZodiacHeroCharacter::InitializeWithHostCharacter()
 		
 		AttachToOwner();
 		InitializeAbilitySystem();
+
+		GetMesh()->AddTickPrerequisiteComponent(HostCharacter->GetMesh());
 	}
 }
 

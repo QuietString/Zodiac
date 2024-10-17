@@ -58,7 +58,6 @@ protected:
 	float Debug_CurrentSpreadAngleMultiplier = 1.0f;
 
 #endif
-	
 	// Spread exponent, affects how tightly shots will cluster around the center line
 	// when the weapon has spread (non-perfect accuracy). Higher values will cause shots
 	// to be closer to the center (default is 1.0 which means uniformly within the spread range)
