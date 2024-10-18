@@ -1,19 +1,20 @@
 ﻿// the.quiet.string@gmail.com
 
 
-#include "ZodiacSkillAbility_Ranged.h"
+#include "ZodiacHeroAbility_Ranged.h"
 
 #include "GameplayCueFunctionLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AIController.h"
 #include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "AbilitySystem/ZodiacGameplayAbilityTargetData_SingleTargetHit.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Hero/ZodiacHeroAbilitySlot_RangedWeapon.h"
 #include "Physics/ZodiacCollisionChannels.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSkillAbility_Ranged)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbility_Ranged)
 
 namespace ZodiacConsoleVariables
 {
@@ -73,21 +74,21 @@ FVector VRandConeNormalDistribution(const FVector& Dir, const float ConeHalfAngl
 	}
 }
 
-UZodiacSkillAbility_Ranged::UZodiacSkillAbility_Ranged(const FObjectInitializer& ObjectInitializer)
+UZodiacHeroAbility_Ranged::UZodiacHeroAbility_Ranged(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, RateOfFire(1)
 	, FireInterval(1)
 {
 }
 
-void UZodiacSkillAbility_Ranged::PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UZodiacHeroAbility_Ranged::PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate,
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::PreActivate(Handle, ActorInfo, ActivationInfo, OnGameplayAbilityEndedDelegate, TriggerEventData);
 }
 
-void UZodiacSkillAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UZodiacHeroAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                                  const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -101,7 +102,7 @@ void UZodiacSkillAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandl
 	OnTargetDataReadyCallbackDelegateHandle = MyASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).AddUObject(this, &ThisClass::OnTargetDataReadyCallback);
 }
 
-void UZodiacSkillAbility_Ranged::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UZodiacHeroAbility_Ranged::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	if (IsEndAbilityValid(Handle, ActorInfo))
@@ -117,7 +118,7 @@ void UZodiacSkillAbility_Ranged::EndAbility(const FGameplayAbilitySpecHandle Han
 	}
 }
 
-int32 UZodiacSkillAbility_Ranged::FindFirstPawnHitResult(const TArray<FHitResult>& HitResults)
+int32 UZodiacHeroAbility_Ranged::FindFirstPawnHitResult(const TArray<FHitResult>& HitResults)
 {
 	for (int32 Idx = 0; Idx < HitResults.Num(); ++Idx)
 	{
@@ -141,7 +142,7 @@ int32 UZodiacSkillAbility_Ranged::FindFirstPawnHitResult(const TArray<FHitResult
 	return INDEX_NONE;
 }
 
-FHitResult UZodiacSkillAbility_Ranged::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated,
+FHitResult UZodiacHeroAbility_Ranged::WeaponTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated,
 	TArray<FHitResult>& OutHitResults) const
 {
 	TArray<FHitResult> HitResults;
@@ -192,7 +193,7 @@ FHitResult UZodiacSkillAbility_Ranged::WeaponTrace(const FVector& StartTrace, co
 	return Hit;
 }
 
-void UZodiacSkillAbility_Ranged::AddAdditionalTraceIgnoreActors(FCollisionQueryParams& TraceParams) const
+void UZodiacHeroAbility_Ranged::AddAdditionalTraceIgnoreActors(FCollisionQueryParams& TraceParams) const
 {
 	if (AActor* Avatar = GetAvatarActorFromActorInfo())
 	{
@@ -203,7 +204,7 @@ void UZodiacSkillAbility_Ranged::AddAdditionalTraceIgnoreActors(FCollisionQueryP
 	}
 }
 
-void UZodiacSkillAbility_Ranged::StartRangedWeaponTargeting()
+void UZodiacHeroAbility_Ranged::StartRangedWeaponTargeting()
 {
 	check(CurrentActorInfo);
 
@@ -226,7 +227,7 @@ void UZodiacSkillAbility_Ranged::StartRangedWeaponTargeting()
 	{
 		for (const FHitResult& FoundHit : FoundHits)
 		{
-			FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
+			FZodiacGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FZodiacGameplayAbilityTargetData_SingleTargetHit();
 			NewTargetData->HitResult = FoundHit;
 
 			TargetData.Add(NewTargetData);
@@ -237,7 +238,7 @@ void UZodiacSkillAbility_Ranged::StartRangedWeaponTargeting()
 	OnTargetDataReadyCallback(TargetData, FGameplayTag());	
 }
 
-void UZodiacSkillAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag)
+void UZodiacHeroAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag)
 {
 	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(MyASC);
@@ -288,7 +289,7 @@ void UZodiacSkillAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbilit
 	MyASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 }
 
-void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHits)
+void UZodiacHeroAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHits)
 {
 	AZodiacHeroCharacter* HeroActor = Cast<AZodiacHeroCharacter>(GetCurrentActorInfo()->AvatarActor);
 	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
@@ -300,7 +301,7 @@ void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHi
 		TraceData.WeaponData = WeaponSlot;
 		TraceData.bCanPlayBulletFX = (HeroActor->GetNetMode() != NM_DedicatedServer);
 
-		const FTransform TargetTransform = GetTargetingTransform(HostCharacter, HeroActor, EZodiacAbilityAimTraceRule::CameraTowardsFocus);
+		const FTransform TargetTransform = GetTargetingTransform(HostCharacter, HeroActor, AimTraceRule);
 		TraceData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
 		TraceData.StartTrace = TargetTransform.GetTranslation();
 		const FVector EndTrace = TraceData.StartTrace + TraceData.AimDir * 100000.f;
@@ -317,7 +318,7 @@ void UZodiacSkillAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHi
 	}
 }
 
-void UZodiacSkillAbility_Ranged::TraceBulletsInCartridge(const FRangedAbilityTraceData& InputData, TArray<FHitResult>& OutHits)
+void UZodiacHeroAbility_Ranged::TraceBulletsInCartridge(const FRangedAbilityTraceData& InputData, TArray<FHitResult>& OutHits)
 {
 	UZodiacHeroAbilitySlot_RangedWeapon* WeaponData = InputData.WeaponData;
 	check(WeaponData);
@@ -375,7 +376,7 @@ void UZodiacSkillAbility_Ranged::TraceBulletsInCartridge(const FRangedAbilityTra
 	}
 }
 
-FHitResult UZodiacSkillAbility_Ranged::DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated,
+FHitResult UZodiacHeroAbility_Ranged::DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated,
 	TArray<FHitResult>& OutHits) const
 {
 #if ENABLE_DRAW_DEBUG
@@ -436,7 +437,7 @@ FHitResult UZodiacSkillAbility_Ranged::DoSingleBulletTrace(const FVector& StartT
 	return Impact;
 }
 
-FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(const EZodiacAbilityAimTraceRule TraceRule) const
+FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(const EZodiacAbilityAimTraceRule TraceRule) const
 {
 	AZodiacHeroCharacter* HeroActor = Cast<AZodiacHeroCharacter>(GetCurrentActorInfo()->AvatarActor);
 	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
@@ -444,7 +445,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(const EZodiacAbilit
 	return GetTargetingTransform(HostCharacter, HeroActor, TraceRule);
 }
 
-FTransform UZodiacSkillAbility_Ranged::GetWeaponTargetingTransform() const
+FTransform UZodiacHeroAbility_Ranged::GetWeaponTargetingTransform() const
 {
 	AZodiacHeroCharacter* HeroActor = Cast<AZodiacHeroCharacter>(GetCurrentActorInfo()->AvatarActor);
 	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
@@ -452,7 +453,7 @@ FTransform UZodiacSkillAbility_Ranged::GetWeaponTargetingTransform() const
 	return GetTargetingTransform(HostCharacter, HeroActor, EZodiacAbilityAimTraceRule::WeaponTowardsFocus);
 }
 
-FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, AActor* SourceActor, EZodiacAbilityAimTraceRule Source) const
+FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, AActor* SourceActor, EZodiacAbilityAimTraceRule Source) const
 {
 	check(OwningPawn);
 	check(SourceActor);
@@ -572,7 +573,7 @@ FTransform UZodiacSkillAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, 
 	return FTransform(AimQuat, SourceLoc);
 }
 
-void UZodiacSkillAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(const FGameplayAbilityTargetDataHandle& TargetData)
+void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(const FGameplayAbilityTargetDataHandle& TargetData)
 {
 	if (UZodiacAbilitySystemComponent* HostASC = Cast<UZodiacAbilitySystemComponent>(GetHostAbilitySystemComponent()))
 	{
@@ -618,22 +619,22 @@ void UZodiacSkillAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(co
 }
 
 #if WITH_EDITOR
-void UZodiacSkillAbility_Ranged::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UZodiacHeroAbility_Ranged::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	if (PropertyChangedEvent.Property->GetName() == GET_MEMBER_NAME_CHECKED(UZodiacSkillAbility_Ranged, RateOfFire))
+	if (PropertyChangedEvent.Property->GetName() == GET_MEMBER_NAME_CHECKED(UZodiacHeroAbility_Ranged, RateOfFire))
 	{
 		InvertValue(FireInterval, RateOfFire);
 	}
 
-	if (PropertyChangedEvent.Property->GetName() == GET_MEMBER_NAME_CHECKED(UZodiacSkillAbility_Ranged, FireInterval))
+	if (PropertyChangedEvent.Property->GetName() == GET_MEMBER_NAME_CHECKED(UZodiacHeroAbility_Ranged, FireInterval))
 	{
 		InvertValue(RateOfFire, FireInterval);
 	}
 }
 
-void UZodiacSkillAbility_Ranged::InvertValue(float& A, float& B)
+void UZodiacHeroAbility_Ranged::InvertValue(float& A, float& B)
 {
 	if (B > 0)
 	{

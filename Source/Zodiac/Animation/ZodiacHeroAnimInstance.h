@@ -48,6 +48,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blends")
 	float PistolBlendAlpha;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Blends")
+	float RootYawOffset;
 	
 	UPROPERTY(BlueprintReadOnly, Category = Aiming_Data)
 	float AimYaw;

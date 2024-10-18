@@ -94,9 +94,10 @@ void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 
 		bShouldReveal_LeftPistol = bAnimNotify_RevealLeftPistol || (bIsADS && bIsWeaponReady);
 		bShouldReveal_RightPistol = (bAnimNotify_RevealRightPistol && bIsFocus) || (bIsFocus && bIsWeaponReady) || bIsRightPistolSlotActive || bShouldReveal_LeftPistol;
-		
-		AimPitch = Delta.Pitch;
+
+		RootYawOffset = - Delta.Yaw;
 		AimYaw = Delta.Yaw;
+		AimPitch = Delta.Pitch;
 		FMath::Clamp(AimYaw, AimYawClampRange.X, AimYawClampRange.Y);
 	}
 }

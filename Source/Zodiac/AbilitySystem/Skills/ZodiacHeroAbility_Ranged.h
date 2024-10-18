@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Skills/ZodiacHeroAbility.h"
-#include "ZodiacSkillAbility_Ranged.generated.h"
+#include "ZodiacHeroAbility_Ranged.generated.h"
 
 class UZodiacHeroAbilitySlot_RangedWeapon;
 /** Defines where an ability starts its trace from and where it should face */
@@ -21,12 +21,12 @@ enum class EZodiacAbilityAimTraceRule : uint8
 };
 
 UCLASS()
-class ZODIAC_API UZodiacSkillAbility_Ranged : public UZodiacHeroAbility
+class ZODIAC_API UZodiacHeroAbility_Ranged : public UZodiacHeroAbility
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacSkillAbility_Ranged(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UZodiacHeroAbility_Ranged(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual void PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -70,6 +70,7 @@ protected:
 
 	void OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag);
 
+	// override it in blueprint to not call this function.
 	UFUNCTION(BlueprintNativeEvent)
 	void OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 	
@@ -98,6 +99,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Skill")
 	EZodiacAbilityAimTraceRule AimTraceRule;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Skill")
+	EZodiacAbilityAimTraceRule EffectTraceRule;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
 	TSubclassOf<UGameplayEffect> DamageEffect;

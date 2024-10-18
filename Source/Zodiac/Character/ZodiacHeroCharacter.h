@@ -49,6 +49,12 @@ public:
 	UZodiacHealthComponent* GetHealthComponent() const;
 	
 	UZodiacHeroAnimInstance* GetHeroAnimInstance() const;
+
+	UFUNCTION(BlueprintCallable)
+	void SetModularMesh(TSubclassOf<USkeletalMeshComponent> SkeletalMeshCompClass, FName Socket);
+	
+	UFUNCTION(BlueprintCallable)
+	void ClearModularMesh();
 	
 	void Activate();
 	void Deactivate();
@@ -77,9 +83,15 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UZodiacHeroAbilityManagerComponent> AbilityManagerComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USkeletalMeshComponent> ModularMeshComponent;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	const UZodiacHeroData* HeroData;
 
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	TSubclassOf<UAnimInstance> AnimLayerClass;
+	
 private:
 	friend FZodiacHeroList;
 	

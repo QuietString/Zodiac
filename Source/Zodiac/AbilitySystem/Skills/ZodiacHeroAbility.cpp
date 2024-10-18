@@ -288,7 +288,14 @@ FVector UZodiacHeroAbility::GetWeaponLocation() const
 	{
 		if (Sockets.IsValidIndex(ComboIndex))
 		{
-			return MeshComponent->GetSocketLocation(Sockets[ComboIndex]->SocketName);	
+			FName Socket = Sockets[ComboIndex]->SocketName;
+			UE_LOG(LogTemp, Warning, TEXT("Socket: %s, Location: %s"), *Sockets[ComboIndex]->SocketName.ToString(), *MeshComponent->GetSocketLocation(Sockets[ComboIndex]->SocketName).ToString());
+			
+			FVector Location;
+			FRotator Rotator;
+			MeshComponent->GetSocketWorldLocationAndRotation(Socket, Location, Rotator);
+			//return MeshComponent->GetSocketLocation(Sockets[ComboIndex]->SocketName);
+			return Location;
 		}
 
 		return MeshComponent->GetSocketLocation(FName());

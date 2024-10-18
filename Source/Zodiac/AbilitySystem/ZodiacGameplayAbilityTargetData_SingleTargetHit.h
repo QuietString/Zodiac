@@ -20,11 +20,11 @@ struct FZodiacGameplayAbilityTargetData_SingleTargetHit : public FGameplayAbilit
 	{ }
 
 	virtual void AddTargetDataToContext(FGameplayEffectContextHandle& Context, bool bIncludeActorArray) const override;
-
+	
 	/** ID to allow the identification of multiple bullets that were part of the same cartridge */
 	UPROPERTY()
 	int32 CartridgeID;
-
+	
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 
 	virtual UScriptStruct* GetScriptStruct() const override

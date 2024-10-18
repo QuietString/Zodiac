@@ -57,6 +57,8 @@ void AZodiacHeroCharacter::PostInitializeComponents()
 void AZodiacHeroCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GetMesh()->LinkAnimClassLayers(AnimLayerClass);
 }
 
 void AZodiacHeroCharacter::OnRep_Owner()
@@ -161,6 +163,35 @@ UZodiacHeroAnimInstance* AZodiacHeroCharacter::GetHeroAnimInstance() const
 	}
 	
 	return nullptr;
+}
+
+void AZodiacHeroCharacter::SetModularMesh(TSubclassOf<USkeletalMeshComponent> SkeletalMeshCompClass, FName Socket)
+{
+	if (ModularMeshComponent)
+	{
+		ModularMeshComponent->UnregisterComponent();
+	}
+	
+	USkeletalMeshComponent* NewMeshComp = NewObject<USkeletalMeshComponent>(this, SkeletalMeshCompClass);
+	ModularMeshComponent = NewMeshComp;
+	ModularMeshComponent->LeaderPoseComponent = GetMesh();
+	ModularMeshComponent->bUseBoundsFromLeaderPoseComponent = true;
+	ModularMeshComponent->AddTickPrerequisiteComponent(GetMesh());
+	ModularMeshComponent->SetVisibility(false);
+	ModularMeshComponent->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, Socket);
+	ModularMeshComponent->SetIsReplicated(false);
+	ModularMeshComponent->RegisterComponent();
+	ModularMeshComponent->GetAnimInstance()->LinkAnimClassLayers(AnimLayerClass);
+	ModularMeshComponent->SetVisibility(true);
+}
+
+void AZodiacHeroCharacter::ClearModularMesh()
+{
+	if  (ModularMeshComponent)
+	{
+		ModularMeshComponent->SetVisibility(false);
+		ModularMeshComponent->UnregisterComponent();	
+	}
 }
 
 void AZodiacHeroCharacter::Activate()
