@@ -10,6 +10,7 @@
 #include "ZodiacHostCharacter.h"
 #include "ZodiacHealthComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Hero/ZodiacHeroAbilityFragment_Reticle.h"
 #include "Hero/ZodiacHeroAbilitySlot.h"
 #include "Hero/ZodiacHeroAbilitySlot_RangedWeapon.h"
 #include "Net/UnrealNetwork.h"
@@ -75,15 +76,18 @@ void UZodiacHeroAbilityManagerComponent::BeginPlay()
 
 	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
 	{
-		if (Hero->HasAuthority())
+		for (auto& Slot : Slots)
 		{
-			for (auto& Slot : Slots)
+			if (Hero->HasAuthority())
 			{
 				for (auto& [Tag, Count] : Slot->GetSlotDefinition().InitialTagStack)
 				{
 					Slot->AddStatTagStack(Tag, Count);
 				}
 			}
+				
+			Slot->OnReticleApplied.BindUObject(this, &ThisClass::SendChangeReticleMessage);
+			Slot->OnReticleCleared.BindUObject(this, &ThisClass::ClearAbilityReticle);
 		}
 	
 		if (UZodiacHealthComponent* HealthComponent = Hero->GetComponentByClass<UZodiacHealthComponent>())
@@ -91,6 +95,17 @@ void UZodiacHeroAbilityManagerComponent::BeginPlay()
 			HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::SendChangeHealthMessage);
 		}
 	}
+}
+
+void UZodiacHeroAbilityManagerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	for (auto& Slot : Slots)
+	{
+		Slot->OnReticleApplied.Unbind();
+		Slot->OnReticleCleared.Unbind();
+	}
+	
+	Super::EndPlay(EndPlayReason);
 }
 
 void UZodiacHeroAbilityManagerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -143,21 +158,25 @@ void UZodiacHeroAbilityManagerComponent::InitializeWithAbilitySystem(UZodiacAbil
 
 void UZodiacHeroAbilityManagerComponent::OnHeroActivated()
 {
-	if (AZodiacHeroCharacter* Hero = Cast<AZodiacHeroCharacter>(GetOwner()))
+	bIsHeroActive = true;
+
+	for (auto& Slot : Slots)
 	{
-		bIsHeroActive = true;
-		
-		if (HeroData)
+		if (UZodiacHeroAbilityFragment_Reticle* ReticleFragment = Slot->FindFragmentByClass<UZodiacHeroAbilityFragment_Reticle>())
 		{
-			if (!HeroData->ReticleWidgets.IsEmpty())
+			if (ReticleFragment->bIsMainReticle)
 			{
-				SendChangeReticleMessage(HeroData->ReticleWidgets);
+				SendChangeReticleMessage(ReticleFragment->ReticleWidgets, Slot);
+				break;
 			}
 		}
-
-		if (UZodiacHealthComponent* HealthComponent = Hero->FindComponentByClass<UZodiacHealthComponent>())
+	}
+	
+	if (AZodiacHeroCharacter* Hero = Cast<AZodiacHeroCharacter>(GetOwner()))
+	{
+		if (UZodiacHealthComponent* HealthComponent = GetOwner()->FindComponentByClass<UZodiacHealthComponent>())
 		{
-			SendChangeHealthMessage(HealthComponent, HealthComponent->GetHealth(), HealthComponent->GetHealth(), Hero);
+			SendChangeHealthMessage(HealthComponent, HealthComponent->GetHealth(), HealthComponent->GetHealth(), nullptr);
 		}
 	}
 }
@@ -180,33 +199,29 @@ AController* UZodiacHeroAbilityManagerComponent::GetHostController()
 	return nullptr;
 }
 
-UZodiacHeroAbilitySlot_RangedWeapon* UZodiacHeroAbilityManagerComponent::GetWeaponSlot()
+void UZodiacHeroAbilityManagerComponent::SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets,
+                                                                  UZodiacHeroAbilitySlot* Slot)
+{
+	FZodiacHUDMessage_ReticleChanged Message;
+	Message.Controller = GetHostController();
+	Message.Slot = Slot;
+	Message.Widgets = Widgets;
+	const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_ReticleChanged;
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(Channel, Message);
+}
+
+void UZodiacHeroAbilityManagerComponent::ClearAbilityReticle()
 {
 	for (auto& Slot : Slots)
 	{
-		if (UZodiacHeroAbilitySlot_RangedWeapon* WeaponSlot = Cast<UZodiacHeroAbilitySlot_RangedWeapon>(Slot))
+		if (UZodiacHeroAbilityFragment_Reticle* ReticleFragment = Slot->FindFragmentByClass<UZodiacHeroAbilityFragment_Reticle>())
 		{
-			return WeaponSlot;
-		}
-	}
-
-	return nullptr;
-}
-
-void UZodiacHeroAbilityManagerComponent::SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets)
-{
-	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
-	{
-		if (HeroData)
-		{
-			FZodiacHUDMessage_ReticleChanged Message;
-			Message.Controller = GetHostController();
-			Message.Weapon = GetWeaponSlot();
-			Message.Widgets = Widgets;
-	
-			const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_ReticleChanged;
-			UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-			MessageSubsystem.BroadcastMessage(Channel, Message);
+			if (ReticleFragment->bIsMainReticle)
+			{
+				SendChangeReticleMessage(ReticleFragment->ReticleWidgets, Slot);
+				break;
+			}
 		}
 	}
 }

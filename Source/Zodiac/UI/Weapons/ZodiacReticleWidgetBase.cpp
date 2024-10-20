@@ -13,14 +13,14 @@ UZodiacReticleWidgetBase::UZodiacReticleWidgetBase(const FObjectInitializer& Obj
 	
 }
 
-void UZodiacReticleWidgetBase::InitializeFromWeaponSlot(UZodiacHeroAbilitySlot_Weapon* InSlot)
+void UZodiacReticleWidgetBase::InitializeFromAbilitySlot(UZodiacHeroAbilitySlot* InSlot)
 {
-	WeaponSlot = InSlot;
+	AbilitySlot = InSlot;
 }
 
 float UZodiacReticleWidgetBase::ComputeSpreadAngle() const
 {
-	if (WeaponSlot)
+	if (UZodiacHeroAbilitySlot_Weapon* WeaponSlot = Cast<UZodiacHeroAbilitySlot_Weapon>(AbilitySlot))
 	{
 		const float BaseSpreadAngle = WeaponSlot->GetCalculatedSpreadAngle();
 		const float SpreadAngleMultiplier = WeaponSlot->GetCalculatedSpreadAngleMultiplier();
@@ -77,7 +77,7 @@ float UZodiacReticleWidgetBase::ComputeMaxScreenspaceSpreadRadius() const
 
 bool UZodiacReticleWidgetBase::HasFirstShotAccuracy() const
 {
-	if (WeaponSlot)
+	if (UZodiacHeroAbilitySlot_Weapon* WeaponSlot = Cast<UZodiacHeroAbilitySlot_Weapon>(AbilitySlot))
 	{
 		return WeaponSlot->HasFirstShotAccuracy();
 	}

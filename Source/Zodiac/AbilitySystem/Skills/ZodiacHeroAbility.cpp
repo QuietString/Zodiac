@@ -64,7 +64,7 @@ const FGameplayTagContainer* UZodiacHeroAbility::GetCooldownTags() const
 	
 	if (UZodiacHeroAbilitySlot* ItemSlot = GetAssociatedSlot())
 	{
-		MutableTags->AddTag(ItemSlot->GetSlotType());
+		//MutableTags->AddTag(ItemSlot->GetSlotType());
 	}
 	
 	return MutableTags;
@@ -260,7 +260,7 @@ void UZodiacHeroAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 		{
 			if (UZodiacHeroAbilitySlot* AbilitySlot = Cast<UZodiacHeroAbilitySlot>(GetSourceObject(Handle, CurrentActorInfo)))
 			{
-				EffectSpec->DynamicGrantedTags.AddTag(AbilitySlot->GetSlotType());
+			//	EffectSpec->DynamicGrantedTags.AddTag(AbilitySlot->GetSlotType());
 			}
 		
 			EffectSpec->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Cooldown, CooldownDuration.GetValueAtLevel(GetAbilityLevel()));
@@ -289,8 +289,6 @@ FVector UZodiacHeroAbility::GetWeaponLocation() const
 		if (Sockets.IsValidIndex(ComboIndex))
 		{
 			FName Socket = Sockets[ComboIndex]->SocketName;
-			UE_LOG(LogTemp, Warning, TEXT("Socket: %s, Location: %s"), *Sockets[ComboIndex]->SocketName.ToString(), *MeshComponent->GetSocketLocation(Sockets[ComboIndex]->SocketName).ToString());
-			
 			FVector Location;
 			FRotator Rotator;
 			MeshComponent->GetSocketWorldLocationAndRotation(Socket, Location, Rotator);
@@ -311,6 +309,22 @@ void UZodiacHeroAbility::ApplyAimingEffect()
 		FGameplayEffectContextHandle ContextHandle = HostASC->MakeEffectContext();
 		FGameplayEffectSpecHandle SpecHandle = HostASC->MakeOutgoingSpec(AimingEffect, 1.0f, ContextHandle);
 		FActiveGameplayEffectHandle ActiveGameplayEffect = HostASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	}
+}
+
+void UZodiacHeroAbility::ApplySlotReticle()
+{
+	if (UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot())
+	{
+		Slot->ChangeReticle();
+	}
+}
+
+void UZodiacHeroAbility::ClearSlotReticle()
+{
+	if (UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot())
+	{
+		Slot->ClearReticle();
 	}
 }
 

@@ -232,10 +232,10 @@ void UZodiacHeroAbility_Ranged::StartRangedWeaponTargeting()
 
 			TargetData.Add(NewTargetData);
 		}
+
+		// Process the target data immediately
+		OnTargetDataReadyCallback(TargetData, FGameplayTag());	
 	}
-	
-	// Process the target data immediately
-	OnTargetDataReadyCallback(TargetData, FGameplayTag());	
 }
 
 void UZodiacHeroAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbilityTargetDataHandle& InData, FGameplayTag ApplicationTag)
@@ -575,6 +575,11 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, A
 
 void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(const FGameplayAbilityTargetDataHandle& TargetData)
 {
+	if (TargetData.Data.IsEmpty())
+	{
+		return;
+	}
+	
 	if (UZodiacAbilitySystemComponent* HostASC = Cast<UZodiacAbilitySystemComponent>(GetHostAbilitySystemComponent()))
 	{
 		UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot();

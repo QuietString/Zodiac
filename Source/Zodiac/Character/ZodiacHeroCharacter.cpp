@@ -190,7 +190,10 @@ void AZodiacHeroCharacter::ClearModularMesh()
 	if  (ModularMeshComponent)
 	{
 		ModularMeshComponent->SetVisibility(false);
-		ModularMeshComponent->UnregisterComponent();	
+		if (ModularMeshComponent->IsRegistered())
+		{
+			ModularMeshComponent->UnregisterComponent();	
+		}
 	}
 }
 

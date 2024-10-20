@@ -6,6 +6,7 @@
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
 #include "ZodiacHeroAbility.generated.h"
 
+class UNiagaraSystem;
 class UZodiacHeroAbilitySlot;
 class UZodiacHeroItemSlot;
 class AZodiacHeroCharacter;
@@ -21,6 +22,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FName SocketName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UNiagaraSystem> SocketEffect;
 };
 
 /**
@@ -78,6 +82,12 @@ public:
 protected:
 	void ApplyAimingEffect();
 
+	UFUNCTION(BlueprintCallable)
+	void ApplySlotReticle();
+
+	UFUNCTION(BlueprintCallable)
+	void ClearSlotReticle();
+	
 	UFUNCTION(BlueprintCallable)
 	void AdvanceCombo();
 	

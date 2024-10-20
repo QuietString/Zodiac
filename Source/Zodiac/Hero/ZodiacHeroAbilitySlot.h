@@ -8,8 +8,11 @@
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySourceInterface.h"
 #include "System/GameplayTagStack.h"
+#include "UI/Weapons/ZodiacReticleWidgetBase.h"
 #include "UObject/Object.h"
 #include "ZodiacHeroAbilitySlot.generated.h"
+
+DECLARE_DELEGATE_TwoParams(FOnReticleChanged, const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& , UZodiacHeroAbilitySlot*);
 
 /**
  * Contains data for associated abilities of a slot. 
@@ -26,25 +29,47 @@ public:
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	//~End of UObject interface
-
+	
 	//~IZodiacAbilitySourceInterface interface
 	virtual float GetDistanceAttenuation(float Distance, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags) const override { return 1.0f; }
 	virtual float GetPhysicalMaterialAttenuation(const UPhysicalMaterial* PhysicalMaterial, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags) const override { return 1.0f; }
 	//~End of IZodiacAbilitySourceInterface interface
 
-	virtual void Tick(float DeltaTime) {};
+	virtual void Tick(float DeltaTime) {}
 	virtual void InitializeSlot(const FZodiacHeroAbilityDefinition& InDef);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void UpdateActivationTime();
+
+	void ChangeReticle();
+	void ClearReticle();
 	
 	UFUNCTION(BlueprintPure)
 	APawn* GetPawn() const;
 
-	FGameplayTag GetSlotType() const { return SlotType; }
+	//FGameplayTag GetSlotType() const { return SlotType; }
 	const FZodiacHeroAbilityDefinition& GetSlotDefinition() const { return Definition; }
 
 	const UZodiacHeroAbilityFragment* FindFragmentByClass(const TSubclassOf<UZodiacHeroAbilityFragment>& FragmentClass) const;
+
+	template<typename T>
+	T* FindFragmentByClass() const
+	{
+		static_assert(TIsDerivedFrom<T, UZodiacHeroAbilityFragment>::IsDerived, "T must be derived from UZodiacHeroAbilityFragment");
+
+		for (UZodiacHeroAbilityFragment* Fragment : Definition.Fragments)
+		{
+			if (Fragment)
+			{
+				T* TypedFragment = Cast<T>(Fragment);
+				if (TypedFragment)
+				{
+					return TypedFragment;
+				}
+			}
+		}
+		return nullptr;
+	}
 	
 	// Returns the stack count of the specified tag (or 0 if the tag is not present)
 	UFUNCTION(BlueprintCallable)
@@ -63,14 +88,17 @@ public:
 
 	UPROPERTY(Replicated)
 	FZodiacAbilitySet_GrantedHandles GrantedHandles;
+
+	FOnReticleChanged OnReticleApplied;
+	FSimpleDelegate OnReticleCleared;
 	
 protected:
 	UPROPERTY(Replicated)
 	FZodiacHeroAbilityDefinition Definition;
 	
-	UPROPERTY(Replicated)
-	FGameplayTag SlotType;
-
+	//UPROPERTY(Replicated)
+	//FGameplayTag SlotType;
+	
 private:
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTag;

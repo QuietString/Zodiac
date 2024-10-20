@@ -6,7 +6,7 @@
 #include "CommonUserWidget.h"
 #include "ZodiacReticleWidgetBase.generated.h"
 
-class UZodiacHeroAbilitySlot_Weapon;
+class UZodiacHeroAbilitySlot;
 
 /**
  * 
@@ -20,7 +20,7 @@ public:
 	UZodiacReticleWidgetBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	UFUNCTION(BlueprintCallable)
-	void InitializeFromWeaponSlot(UZodiacHeroAbilitySlot_Weapon* InSlot);
+	void InitializeFromAbilitySlot(UZodiacHeroAbilitySlot* InSlot);
 	
 	/** Returns the current weapon's diametrical spread angle, in degrees */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -39,5 +39,5 @@ public:
 
 protected:
 	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<UZodiacHeroAbilitySlot_Weapon> WeaponSlot;
+	TObjectPtr<UZodiacHeroAbilitySlot> AbilitySlot;
 };

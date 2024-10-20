@@ -31,7 +31,7 @@ public:
 	TObjectPtr<AController> Controller = nullptr;
 
 	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<UZodiacHeroAbilitySlot_Weapon> Weapon;
+	TObjectPtr<UZodiacHeroAbilitySlot> Slot;
 	
 	UPROPERTY(BlueprintReadWrite)
 	TArray<TSubclassOf<UZodiacReticleWidgetBase>> Widgets;
@@ -63,7 +63,7 @@ public:
 };
 
 // Responsible for communication between HUD widgets to display info like health, skill slot and etc.
-UCLASS()
+UCLASS(BlueprintType)
 class ZODIAC_API UZodiacHeroAbilityManagerComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -77,6 +77,7 @@ public:
 	virtual void OnRegister() override;
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	void InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InAbilitySystemComponent, const UZodiacHeroData* InHeroData);
@@ -85,10 +86,10 @@ public:
 	void OnHeroDeactivated();
 
 	AController* GetHostController();
-	UZodiacHeroAbilitySlot_RangedWeapon* GetWeaponSlot();
-	
-protected:
-	void SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets);
+
+public:
+	void SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets, UZodiacHeroAbilitySlot* Slot);
+	void ClearAbilityReticle();
 
 	UFUNCTION()
 	void SendChangeHealthMessage(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);

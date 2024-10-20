@@ -6,6 +6,7 @@
 #include "GameplayTagContainer.h"
 #include "ZodiacHeroAbilityDefinition.generated.h"
 
+class UZodiacHeroAbilityFragment_Reticle;
 class UZodiacHeroAbilityFragment;
 class UZodiacAbilitySet;
 class UZodiacHeroAbilitySlot;
@@ -16,6 +17,9 @@ class ZODIAC_API UZodiacHeroAbilityFragment : public UObject
 	GENERATED_BODY()
 	
 public:
+
+	UZodiacHeroAbilityFragment(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
 	virtual void OnSlotCreated(UZodiacHeroAbilitySlot* InSlot) const {}
 };
 

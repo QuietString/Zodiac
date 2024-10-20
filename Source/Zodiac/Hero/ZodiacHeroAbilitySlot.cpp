@@ -3,10 +3,16 @@
 
 #include "ZodiacHeroAbilitySlot.h"
 
+#include "ZodiacHeroAbilityFragment_Reticle.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbilitySlot)
+
+UZodiacHeroAbilityFragment::UZodiacHeroAbilityFragment(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+}
 
 UZodiacHeroAbilitySlot::UZodiacHeroAbilitySlot(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -20,13 +26,13 @@ void UZodiacHeroAbilitySlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME(ThisClass, StatTag);
 	DOREPLIFETIME_CONDITION(ThisClass, Definition, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, GrantedHandles, COND_InitialOnly);
-	DOREPLIFETIME_CONDITION(ThisClass, SlotType, COND_InitialOnly);
+	//DOREPLIFETIME_CONDITION(ThisClass, SlotType, COND_InitialOnly);
 }
 
 void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& InDef)
 {
 	Definition = InDef;
-	SlotType = InDef.SlotType;
+	//SlotType = InDef.SlotType;
 
 	// for (auto& Fragment : Definition.Fragments)
 	// {
@@ -40,6 +46,22 @@ void UZodiacHeroAbilitySlot::UpdateActivationTime()
 	UWorld* World = GetWorld();
 	check(World);
 	TimeLastFired = World->GetTimeSeconds();
+}
+
+void UZodiacHeroAbilitySlot::ChangeReticle()
+{
+	if (UZodiacHeroAbilityFragment_Reticle* Fragment_Reticle = FindFragmentByClass<UZodiacHeroAbilityFragment_Reticle>())
+	{
+		OnReticleApplied.ExecuteIfBound(Fragment_Reticle->ReticleWidgets, this);	
+	}
+}
+
+void UZodiacHeroAbilitySlot::ClearReticle()
+{
+	if (UZodiacHeroAbilityFragment_Reticle* Fragment_Reticle = FindFragmentByClass<UZodiacHeroAbilityFragment_Reticle>())
+	{
+		OnReticleCleared.ExecuteIfBound();	
+	}
 }
 
 APawn* UZodiacHeroAbilitySlot::GetPawn() const
