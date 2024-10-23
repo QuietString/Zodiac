@@ -7,6 +7,7 @@
 #include "Components/ActorComponent.h"
 #include "ZodiacHeroAbilityManagerComponent.generated.h"
 
+class UZodiacAbilitySlotWidgetBase;
 class UZodiacAbilitySystemComponent;
 class UZodiacHeroAbilitySlot_RangedWeapon;
 class UZodiacHeroAbilitySlot_Weapon;
@@ -20,6 +21,22 @@ class UZodiacReticleWidgetBase;
 class UZodiacHealthComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthComponentInitialized, UZodiacHealthComponent*);
+
+USTRUCT(BlueprintType, DisplayName = "HUD Message Widget Changed")
+struct FZodiacHUDMessage_WidgetChanged
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AController> Controller = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UZodiacHeroAbilitySlot> Slot;
+	
+	UPROPERTY(BlueprintReadWrite)
+	TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
+};
 
 USTRUCT(BlueprintType, DisplayName = "HUD Message Reticle Changed")
 struct FZodiacHUDMessage_ReticleChanged
@@ -89,6 +106,8 @@ public:
 
 public:
 	void SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets, UZodiacHeroAbilitySlot* Slot);
+	void SendChangeWidgetMessage(const TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>>& Widgets, UZodiacHeroAbilitySlot* Slot);
+
 	void ClearAbilityReticle();
 
 	UFUNCTION()

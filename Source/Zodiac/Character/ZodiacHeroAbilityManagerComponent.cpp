@@ -11,6 +11,7 @@
 #include "ZodiacHealthComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Hero/ZodiacHeroAbilityFragment_Reticle.h"
+#include "Hero/ZodiacHeroAbilityFragment_SlotWidget.h"
 #include "Hero/ZodiacHeroAbilitySlot.h"
 #include "Hero/ZodiacHeroAbilitySlot_RangedWeapon.h"
 #include "Net/UnrealNetwork.h"
@@ -160,14 +161,38 @@ void UZodiacHeroAbilityManagerComponent::OnHeroActivated()
 {
 	bIsHeroActive = true;
 
+	bool bHasReticleSet = false;
+	
 	for (auto& Slot : Slots)
 	{
-		if (UZodiacHeroAbilityFragment_Reticle* ReticleFragment = Slot->FindFragmentByClass<UZodiacHeroAbilityFragment_Reticle>())
+		if (!bHasReticleSet)
 		{
-			if (ReticleFragment->bIsMainReticle)
+			if (UZodiacHeroAbilityFragment_Reticle* ReticleFragment = Slot->FindFragmentByClass<UZodiacHeroAbilityFragment_Reticle>())
 			{
-				SendChangeReticleMessage(ReticleFragment->ReticleWidgets, Slot);
-				break;
+				if (ReticleFragment->bIsMainReticle)
+				{
+					SendChangeReticleMessage(ReticleFragment->ReticleWidgets, Slot);
+					bHasReticleSet = true;
+				}
+			}
+		}
+
+		// UZodiacHeroAbilityFragment_SlotWidget* SlotWidgetFragment = Slot->FindFragmentByClass<UZodiacHeroAbilityFragment_SlotWidget>();
+		// TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
+		// if (SlotWidgetFragment)
+		// {
+		// 	Widgets.Add(SlotWidgetFragment->Widget);
+		// }
+		//
+		// // Send message even when Widget is empty to update HUD.
+		// SendChangeWidgetMessage(Widgets, Slot);
+		
+		if (UZodiacHeroAbilityFragment_SlotWidget* SlotWidgetFragment = Slot->FindFragmentByClass<UZodiacHeroAbilityFragment_SlotWidget>())
+		{
+			TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
+			if (Widgets.Add_GetRef(SlotWidgetFragment->Widget))
+			{
+				SendChangeWidgetMessage(Widgets, Slot);
 			}
 		}
 	}
@@ -207,6 +232,18 @@ void UZodiacHeroAbilityManagerComponent::SendChangeReticleMessage(const TArray<T
 	Message.Slot = Slot;
 	Message.Widgets = Widgets;
 	const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_ReticleChanged;
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(Channel, Message);
+}
+
+void UZodiacHeroAbilityManagerComponent::SendChangeWidgetMessage(const TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>>& Widgets,
+                                                                 UZodiacHeroAbilitySlot* Slot)
+{
+	FZodiacHUDMessage_WidgetChanged Message;
+	Message.Controller = GetHostController();
+	Message.Slot = Slot;
+	Message.Widgets = Widgets;
+	const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_WidgetChanged;
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 	MessageSubsystem.BroadcastMessage(Channel, Message);
 }

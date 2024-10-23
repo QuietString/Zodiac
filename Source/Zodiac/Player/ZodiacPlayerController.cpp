@@ -4,6 +4,8 @@
 #include "ZodiacPlayerController.h"
 
 #include "ZodiacPlayerState.h"
+#include "ZodiacCheatManager.h"
+#include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Camera/ZodiacPlayerCameraManager.h"
 #include "Character/ZodiacHostCharacter.h"
@@ -14,6 +16,10 @@ AZodiacPlayerController::AZodiacPlayerController(const FObjectInitializer& Objec
 	: Super(ObjectInitializer)
 {
 	PlayerCameraManagerClass = AZodiacPlayerCameraManager::StaticClass();
+
+#if USING_CHEAT_MANAGER
+	CheatClass = UZodiacCheatManager::StaticClass();
+#endif
 }
 
 AZodiacPlayerState* AZodiacPlayerController::GetZodiacPlayerState() const
@@ -34,6 +40,22 @@ UZodiacAbilitySystemComponent* AZodiacPlayerController::GetZodiacAbilitySystemCo
 FGenericTeamId AZodiacPlayerController::GetGenericTeamId() const
 {
 	return GetZodiacPlayerState()->GetGenericTeamId();
+}
+
+void AZodiacPlayerController::ServerCheat_Implementation(const FString& Msg)
+{
+#if USING_CHEAT_MANAGER
+	if (CheatManager)
+	{
+		UE_LOG(LogZodiac, Warning, TEXT("ServerCheat: %s"), *Msg);
+		ClientMessage(ConsoleCommand(Msg));
+	}
+#endif 
+}
+
+bool AZodiacPlayerController::ServerCheat_Validate(const FString& Msg)
+{
+	return true;
 }
 
 void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)

@@ -29,7 +29,7 @@ struct FZodiacHeroAbilityDefinition
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, meta=(Categories="HUD.Type.SkillSlot"))
+	UPROPERTY(EditDefaultsOnly, meta=(Categories="HUD.Type.AbilitySlot"))
 	FGameplayTag SlotType;
 
 	UPROPERTY(EditDefaultsOnly)

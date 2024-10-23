@@ -7,17 +7,6 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacReticleWidgetBase)
 
-UZodiacReticleWidgetBase::UZodiacReticleWidgetBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	
-}
-
-void UZodiacReticleWidgetBase::InitializeFromAbilitySlot(UZodiacHeroAbilitySlot* InSlot)
-{
-	AbilitySlot = InSlot;
-}
-
 float UZodiacReticleWidgetBase::ComputeSpreadAngle() const
 {
 	if (UZodiacHeroAbilitySlot_Weapon* WeaponSlot = Cast<UZodiacHeroAbilitySlot_Weapon>(AbilitySlot))

@@ -7,6 +7,7 @@
 #include "ZodiacLogChannels.h"
 #include "Abilities/ZodiacGameplayAbility.h"
 #include "Skills/ZodiacHeroAbility.h"
+#include "System/ZodiacAssetManager.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilitySystemComponent)
 

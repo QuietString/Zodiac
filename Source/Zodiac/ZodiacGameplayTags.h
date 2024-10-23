@@ -93,6 +93,8 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_AttributeChanged_Ultimate);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_ReticleChanged);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_HealthChanged);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_AbilitySlotChanged);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_WidgetChanged);
 	
 	// Hero Ability Cooldown
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cooldown);

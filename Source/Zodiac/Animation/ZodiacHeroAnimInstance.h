@@ -109,7 +109,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	float LeftPistolAlphaSpeedMultiplier = 5.0f;
-	
+
 private:
 	UPROPERTY()
 	TObjectPtr<AZodiacCharacter> ParentCharacter;

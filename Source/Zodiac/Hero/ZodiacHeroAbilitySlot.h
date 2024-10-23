@@ -39,6 +39,9 @@ public:
 	virtual void InitializeSlot(const FZodiacHeroAbilityDefinition& InDef);
 
 	UFUNCTION(BlueprintCallable)
+	FGameplayTag GetSlotType() const;
+	
+	UFUNCTION(BlueprintCallable)
 	virtual void UpdateActivationTime();
 
 	void ChangeReticle();
@@ -46,7 +49,7 @@ public:
 	
 	UFUNCTION(BlueprintPure)
 	APawn* GetPawn() const;
-
+	
 	//FGameplayTag GetSlotType() const { return SlotType; }
 	const FZodiacHeroAbilityDefinition& GetSlotDefinition() const { return Definition; }
 
@@ -95,10 +98,7 @@ public:
 protected:
 	UPROPERTY(Replicated)
 	FZodiacHeroAbilityDefinition Definition;
-	
-	//UPROPERTY(Replicated)
-	//FGameplayTag SlotType;
-	
+
 private:
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTag;

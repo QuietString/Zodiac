@@ -27,6 +27,10 @@ public:
 	//~IZodiacTeamAgentInterface interface
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	//~End of IZodiacTeamAgentInterface interface
+
+	// Run a cheat command on the server.
+	UFUNCTION(Reliable, Server, WithValidation)
+	void ServerCheat(const FString& Msg);
 	
 	//~APlayerController interface
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;

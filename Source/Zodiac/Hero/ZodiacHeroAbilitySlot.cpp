@@ -26,7 +26,6 @@ void UZodiacHeroAbilitySlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 	DOREPLIFETIME(ThisClass, StatTag);
 	DOREPLIFETIME_CONDITION(ThisClass, Definition, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, GrantedHandles, COND_InitialOnly);
-	//DOREPLIFETIME_CONDITION(ThisClass, SlotType, COND_InitialOnly);
 }
 
 void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& InDef)
@@ -39,6 +38,11 @@ void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& 
 	// 	Fragment->OnSlotCreated(this);
 	// 	UE_LOG(LogTemp, Warning, TEXT("fragment: %s"), *Fragment->GetName());
 	// }
+}
+
+FGameplayTag UZodiacHeroAbilitySlot::GetSlotType() const
+{
+	return Definition.SlotType;
 }
 
 void UZodiacHeroAbilitySlot::UpdateActivationTime()
