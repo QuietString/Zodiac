@@ -8,12 +8,12 @@
 
 class UZodiacAbilitySlotWidgetBase;
 
-UCLASS()
+UCLASS(DisplayName = "Slot Widget")
 class ZODIAC_API UZodiacHeroAbilityFragment_SlotWidget : public UZodiacHeroAbilityFragment
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Reticle)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UZodiacAbilitySlotWidgetBase> Widget;
 };

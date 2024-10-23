@@ -53,6 +53,8 @@ public:
 	//FGameplayTag GetSlotType() const { return SlotType; }
 	const FZodiacHeroAbilityDefinition& GetSlotDefinition() const { return Definition; }
 
+	//void SetCostAttribute(const FGameplayAttribute& InAttribute) { CostAttribute = InAttribute; }
+	
 	const UZodiacHeroAbilityFragment* FindFragmentByClass(const TSubclassOf<UZodiacHeroAbilityFragment>& FragmentClass) const;
 
 	template<typename T>
@@ -103,5 +105,8 @@ private:
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTag;
 
+	// UPROPERTY()
+	// FGameplayAttribute CostAttribute;
+	
 	double TimeLastFired = 0.0;
 };

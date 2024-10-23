@@ -24,7 +24,8 @@ class ZODIAC_API AZodiacMonster : public AZodiacCharacter
 
 public:
 	AZodiacMonster(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-	
+
+	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
 	virtual FGenericTeamId GetGenericTeamId() const override;

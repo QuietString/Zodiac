@@ -8,10 +8,7 @@
 
 class UZodiacReticleWidgetBase;
 
-/**
- * 
- */
-UCLASS()
+UCLASS(DisplayName = "Reticle Widget")
 class ZODIAC_API UZodiacHeroAbilityFragment_Reticle : public UZodiacHeroAbilityFragment
 {
 	GENERATED_BODY()

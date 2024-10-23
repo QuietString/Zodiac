@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpecHandle.h"
 #include "ZodiacCharacter.h"
 #include "Camera/ZodiacCameraMode.h"
@@ -28,6 +27,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
 
+	/** Delegate fired when the ability system component of this actor initialized */
+	FOnAbilitySystemComponentInitialized OnAbilitySystemComponentInitialized;
+	
 	UFUNCTION(BlueprintCallable)
 	AZodiacHeroCharacter* GetHero() const { return HeroList.GetHero(ActiveHeroIndex); }
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }

@@ -80,8 +80,6 @@ public:
 	FVector GetWeaponLocation() const;
 	
 protected:
-	void ApplyAimingEffect();
-
 	UFUNCTION(BlueprintCallable)
 	void ApplySlotReticle();
 
@@ -95,17 +93,14 @@ protected:
 	void ResetCombo() { ComboIndex = 0; }
 
 	UFUNCTION(BlueprintCallable)
+	void ChargeUltimate();
+	
+	UFUNCTION(BlueprintCallable)
 	FVector GetSourceLocation() const;
 	
 	UZodiacAbilitySourceSocket* GetSocket() const;
 protected:
-	// Apply MOVE_Aiming movement mode when it's activated
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
-	bool bAimWhenActivated;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
-	TSubclassOf<UGameplayEffect> AimingEffect;
-	
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Cooldowns")
 	FScalableFloat CooldownDuration;
 
@@ -127,6 +122,12 @@ protected:
 	UPROPERTY(EditAnywhere, Instanced, Category = "FX")
 	TArray<UZodiacAbilitySourceSocket*> Sockets;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate")
+	TSubclassOf<UGameplayEffect> ChargeUltimateEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultimate")
+	FScalableFloat UltimateChargeAmount;
+	
 private:
 	bool bIsFirstActivation = false;
 	

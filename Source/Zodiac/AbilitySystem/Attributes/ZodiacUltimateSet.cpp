@@ -5,9 +5,11 @@
 
 #include "Net/UnrealNetwork.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacUltimateSet)
+
 UZodiacUltimateSet::UZodiacUltimateSet()
-	: UltimateGauge(0.0f)
-	, MaxUltimateGauge(100.0f)
+	: Ultimate(0.0f)
+	, MaxUltimate(100.0f)
 {
 }
 
@@ -15,11 +17,11 @@ void UZodiacUltimateSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION_NOTIFY(UZodiacUltimateSet, UltimateGauge, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UZodiacUltimateSet, MaxUltimateGauge, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UZodiacUltimateSet, Ultimate, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UZodiacUltimateSet, MaxUltimate, COND_None, REPNOTIFY_Always);
 }
 
-void UZodiacUltimateSet::OnRep_UltimateGauge(const FGameplayAttributeData& OldValue)
+void UZodiacUltimateSet::OnRep_Ultimate(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UZodiacUltimateSet, UltimateGauge, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UZodiacUltimateSet, Ultimate, OldValue);
 }

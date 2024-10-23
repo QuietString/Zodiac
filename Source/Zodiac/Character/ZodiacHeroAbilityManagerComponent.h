@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
 #include "ZodiacHeroData.h"
 #include "Components/ActorComponent.h"
 #include "ZodiacHeroAbilityManagerComponent.generated.h"
@@ -21,6 +22,39 @@ class UZodiacReticleWidgetBase;
 class UZodiacHealthComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthComponentInitialized, UZodiacHealthComponent*);
+
+USTRUCT(BlueprintType, DisplayName = "HUD Message Attribute Value Changed")
+struct FZodiacHUDMessage_AttributeValueChanged
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AController> Controller = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayAttribute Attribute;
+	
+	UPROPERTY(BlueprintReadWrite)
+	float OldValue = 0.0f;
+
+	UPROPERTY(BlueprintReadWrite)
+	float NewValue = 0.0f;
+};
+
+
+USTRUCT(BlueprintType, DisplayName = "HUD Message Widget Changed")
+struct FZodiacHUDMessage_WidgetChangedBatch
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AController> Controller = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
+};
 
 USTRUCT(BlueprintType, DisplayName = "HUD Message Widget Changed")
 struct FZodiacHUDMessage_WidgetChanged
@@ -88,30 +122,34 @@ class ZODIAC_API UZodiacHeroAbilityManagerComponent : public UActorComponent
 public:
 	UZodiacHeroAbilityManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	//~ UActorComponent interface
 	virtual void ReadyForReplication() override;
-	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnRegister() override;
 	virtual void InitializeComponent() override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	//~ End of UActorComponent interface
+
+	AController* GetHostController();
 	
 	void InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InAbilitySystemComponent, const UZodiacHeroData* InHeroData);
-	
+	void BindMessageDelegates();
+
 	void OnHeroActivated();
 	void OnHeroDeactivated();
 
-	AController* GetHostController();
-
-public:
+protected:
 	void SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets, UZodiacHeroAbilitySlot* Slot);
 	void SendChangeWidgetMessage(const TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>>& Widgets, UZodiacHeroAbilitySlot* Slot);
-
+	void SendChangeSlotWidgetsMessage(TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets);
+	
 	void ClearAbilityReticle();
 
 	UFUNCTION()
 	void SendChangeHealthMessage(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
+	void SendAttributeValueChangedMessage(const FOnAttributeChangeData& OnAttributeChangeData);
 
 private:
 	UPROPERTY()

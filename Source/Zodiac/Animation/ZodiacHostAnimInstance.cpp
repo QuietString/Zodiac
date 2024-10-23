@@ -13,6 +13,8 @@
 void UZodiacHostAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* InASC)
 {
 	check(InASC);
+
+	GameplayTagPropertyMap.Initialize(this, InASC);
 }
 
 void UZodiacHostAnimInstance::NativeInitializeAnimation()

@@ -9,7 +9,9 @@
 #include "ZodiacHeroData.h"
 #include "ZodiacHostCharacter.h"
 #include "ZodiacHealthComponent.h"
+#include "AbilitySystem/Attributes/ZodiacUltimateSet.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Hero/ZodiacHeroAbilityFragment_CostAttribute.h"
 #include "Hero/ZodiacHeroAbilityFragment_Reticle.h"
 #include "Hero/ZodiacHeroAbilityFragment_SlotWidget.h"
 #include "Hero/ZodiacHeroAbilitySlot.h"
@@ -49,7 +51,7 @@ void UZodiacHeroAbilityManagerComponent::GetLifetimeReplicatedProps(TArray<FLife
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass, Slots);
+	DOREPLIFETIME_CONDITION(ThisClass, Slots, COND_InitialOnly);
 }
 
 void UZodiacHeroAbilityManagerComponent::OnRegister()
@@ -90,11 +92,6 @@ void UZodiacHeroAbilityManagerComponent::BeginPlay()
 			Slot->OnReticleApplied.BindUObject(this, &ThisClass::SendChangeReticleMessage);
 			Slot->OnReticleCleared.BindUObject(this, &ThisClass::ClearAbilityReticle);
 		}
-	
-		if (UZodiacHealthComponent* HealthComponent = Hero->GetComponentByClass<UZodiacHealthComponent>())
-		{
-			HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::SendChangeHealthMessage);
-		}
 	}
 }
 
@@ -119,6 +116,19 @@ void UZodiacHeroAbilityManagerComponent::TickComponent(float DeltaTime, ELevelTi
 	}
 }
 
+AController* UZodiacHeroAbilityManagerComponent::GetHostController()
+{
+	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
+	{
+		if (AZodiacHostCharacter* Host = Hero->GetHostCharacter())
+		{
+			return Host->GetController();
+		}
+	}
+
+	return nullptr;
+}
+
 void UZodiacHeroAbilityManagerComponent::InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InAbilitySystemComponent, const UZodiacHeroData* InHeroData)
 {
 	if (!InAbilitySystemComponent || !InHeroData)
@@ -131,19 +141,22 @@ void UZodiacHeroAbilityManagerComponent::InitializeWithAbilitySystem(UZodiacAbil
 
 	if (GetOwner()->HasAuthority())
 	{
+		TArray<TObjectPtr<UZodiacHeroAbilitySlot>> AbilitySlots;
+
 		if (!HeroData->AbilitySlots.IsEmpty())
 		{
 			for (auto& SlotDef : HeroData->AbilitySlots)
 			{
 				if (TSubclassOf<UZodiacHeroAbilitySlot> SlotClass = SlotDef.SlotClass)
 				{
-					if (UZodiacHeroAbilitySlot* Slot = Slots.Add_GetRef(NewObject<UZodiacHeroAbilitySlot>(GetOwner(), SlotClass)))
+					if (UZodiacHeroAbilitySlot* Slot = AbilitySlots.Add_GetRef(NewObject<UZodiacHeroAbilitySlot>(GetOwner(), SlotClass)))
 					{
 						Slot->InitializeSlot(SlotDef);
 
 						if (UZodiacAbilitySet* AbilitySet = SlotDef.SkillSetToGrant)
 						{
-							AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, Slot);	
+							FZodiacAbilitySet_GrantedHandles Handles;
+							AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, &Handles, Slot);
 						}
 			
 						if (IsUsingRegisteredSubObjectList() && IsReadyForReplication())
@@ -154,6 +167,21 @@ void UZodiacHeroAbilityManagerComponent::InitializeWithAbilitySystem(UZodiacAbil
 				}
 			}
 		}
+
+		Slots = AbilitySlots;
+	}
+}
+
+void UZodiacHeroAbilityManagerComponent::BindMessageDelegates()
+{
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UZodiacUltimateSet::GetUltimateAttribute()).AddUObject(this, &ThisClass::SendAttributeValueChangedMessage);
+
+	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
+	{
+	if (UZodiacHealthComponent* HealthComponent = Hero->GetComponentByClass<UZodiacHealthComponent>())
+    	{
+    		HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::SendChangeHealthMessage);
+    	}	
 	}
 }
 
@@ -162,6 +190,8 @@ void UZodiacHeroAbilityManagerComponent::OnHeroActivated()
 	bIsHeroActive = true;
 
 	bool bHasReticleSet = false;
+
+	TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
 	
 	for (auto& Slot : Slots)
 	{
@@ -176,26 +206,14 @@ void UZodiacHeroAbilityManagerComponent::OnHeroActivated()
 				}
 			}
 		}
-
-		// UZodiacHeroAbilityFragment_SlotWidget* SlotWidgetFragment = Slot->FindFragmentByClass<UZodiacHeroAbilityFragment_SlotWidget>();
-		// TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
-		// if (SlotWidgetFragment)
-		// {
-		// 	Widgets.Add(SlotWidgetFragment->Widget);
-		// }
-		//
-		// // Send message even when Widget is empty to update HUD.
-		// SendChangeWidgetMessage(Widgets, Slot);
 		
-		if (UZodiacHeroAbilityFragment_SlotWidget* SlotWidgetFragment = Slot->FindFragmentByClass<UZodiacHeroAbilityFragment_SlotWidget>())
+		if (UZodiacHeroAbilityFragment_SlotWidget* Fragment_SlotWidget = Slot->FindFragmentByClass<UZodiacHeroAbilityFragment_SlotWidget>())
 		{
-			TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
-			if (Widgets.Add_GetRef(SlotWidgetFragment->Widget))
-			{
-				SendChangeWidgetMessage(Widgets, Slot);
-			}
+			Widgets.Add(Slot, Fragment_SlotWidget->Widget);
 		}
 	}
+	
+	SendChangeSlotWidgetsMessage(Widgets);
 	
 	if (AZodiacHeroCharacter* Hero = Cast<AZodiacHeroCharacter>(GetOwner()))
 	{
@@ -209,19 +227,6 @@ void UZodiacHeroAbilityManagerComponent::OnHeroActivated()
 void UZodiacHeroAbilityManagerComponent::OnHeroDeactivated()
 {
 	bIsHeroActive = false;
-}
-
-AController* UZodiacHeroAbilityManagerComponent::GetHostController()
-{
-	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
-	{
-		if (AZodiacHostCharacter* Host = Hero->GetHostCharacter())
-		{
-			return Host->GetController();
-		}
-	}
-
-	return nullptr;
 }
 
 void UZodiacHeroAbilityManagerComponent::SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets,
@@ -242,6 +247,16 @@ void UZodiacHeroAbilityManagerComponent::SendChangeWidgetMessage(const TArray<TS
 	FZodiacHUDMessage_WidgetChanged Message;
 	Message.Controller = GetHostController();
 	Message.Slot = Slot;
+	Message.Widgets = Widgets;
+	const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_WidgetChanged;
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(Channel, Message);
+}
+
+void UZodiacHeroAbilityManagerComponent::SendChangeSlotWidgetsMessage(TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets)
+{
+	FZodiacHUDMessage_WidgetChangedBatch Message;
+	Message.Controller = GetHostController();
 	Message.Widgets = Widgets;
 	const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_WidgetChanged;
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
@@ -279,4 +294,22 @@ void UZodiacHeroAbilityManagerComponent::SendChangeHealthMessage(UZodiacHealthCo
 		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 		MessageSubsystem.BroadcastMessage(Channel, Message);
 	}
+}
+
+void UZodiacHeroAbilityManagerComponent::SendAttributeValueChangedMessage(const FOnAttributeChangeData& OnAttributeChangeData)
+{
+	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
+	{
+		FZodiacHUDMessage_AttributeValueChanged Message;
+		Message.Controller = GetHostController();
+		Message.Attribute = OnAttributeChangeData.Attribute;
+		Message.OldValue = OnAttributeChangeData.OldValue;
+		Message.NewValue = OnAttributeChangeData.NewValue;
+		
+		const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_AttributeValueChanged;
+		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+		MessageSubsystem.BroadcastMessage(Channel, Message);
+	}
+	
+	OnAttributeChangeData.Attribute;
 }

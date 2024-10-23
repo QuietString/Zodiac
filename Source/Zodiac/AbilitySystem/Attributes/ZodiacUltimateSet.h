@@ -15,21 +15,20 @@ public:
 
 	UZodiacUltimateSet();
 
-	ATTRIBUTE_ACCESSORS(UZodiacUltimateSet, UltimateGauge);
-	ATTRIBUTE_ACCESSORS(UZodiacUltimateSet, MaxUltimateGauge);
+	ATTRIBUTE_ACCESSORS(UZodiacUltimateSet, Ultimate);
+	ATTRIBUTE_ACCESSORS(UZodiacUltimateSet, MaxUltimate);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
-
 	UFUNCTION()
-	void OnRep_UltimateGauge(const FGameplayAttributeData& OldValue);
+	void OnRep_Ultimate(const FGameplayAttributeData& OldValue);
 
 private:
 
-	UPROPERTY(ReplicatedUsing=OnRep_UltimateGauge, BlueprintReadOnly, meta=(AllowPrivateAccess = true))
-	FGameplayAttributeData UltimateGauge;
+	UPROPERTY(ReplicatedUsing=OnRep_Ultimate, BlueprintReadOnly, meta=(AllowPrivateAccess = true))
+	FGameplayAttributeData Ultimate;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, meta=(AllowPrivateAccess = true))
-	FGameplayAttributeData MaxUltimateGauge;
+	FGameplayAttributeData MaxUltimate;
 };

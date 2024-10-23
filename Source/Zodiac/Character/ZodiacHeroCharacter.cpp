@@ -47,7 +47,7 @@ void AZodiacHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 void AZodiacHeroCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	
+
 	if (HasAuthority())
 	{
 		InitializeWithHostCharacter();
@@ -252,6 +252,11 @@ void AZodiacHeroCharacter::InitializeWithHostCharacter()
 		InitializeAbilitySystem();
 
 		GetMesh()->AddTickPrerequisiteComponent(HostCharacter->GetMesh());
+
+		if (HostCharacter->IsLocallyControlled())
+		{
+			AbilityManagerComponent->BindMessageDelegates();	
+		}
 	}
 }
 

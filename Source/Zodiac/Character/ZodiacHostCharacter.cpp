@@ -41,7 +41,6 @@ void AZodiacHostCharacter::PossessedBy(AController* NewController)
 	{
 		if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(ZodiacPS->GetAbilitySystemComponent()))
 		{
-			//InitializeHostAbilitySystem(ZodiacASC);
 			InitializeAbilitySystem(ZodiacASC, ZodiacPS);
 		}
 	}

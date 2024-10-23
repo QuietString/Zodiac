@@ -115,8 +115,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement_Last;
-
-
 	
 	UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
 	FRotator WorldRotation;
@@ -143,4 +141,7 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<AZodiacCharacter> OwningCharacter;
+
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
+	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
 };

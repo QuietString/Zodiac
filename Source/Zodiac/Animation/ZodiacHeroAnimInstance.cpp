@@ -32,9 +32,7 @@ void UZodiacHeroAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 	}
 
 	UpdateMovementData();
-	//UpdateRotationData(DeltaSeconds, OwningActor);
 	UpdateAimingData(DeltaSeconds);
-	UpdateBlendData(DeltaSeconds);
 }
 
 AZodiacCharacter* UZodiacHeroAnimInstance::GetParentCharacter() const
@@ -76,11 +74,6 @@ void UZodiacHeroAnimInstance::UpdateMovementData()
 	bIsWeaponReady = ParentAnimInstance->bIsWeaponReady;
 }
 
-void UZodiacHeroAnimInstance::UpdateRotationData(float DeltaSeconds, AActor* OwningActor)
-{
-	
-}
-
 void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 {
 	if (ParentAnimInstance)
@@ -89,24 +82,15 @@ void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 		FRotator RootTransform = ParentAnimInstance->RootTransform.Rotator();
 		FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
 		
-		bool bIsSlotActive = IsSlotActive(FName("Weapon_Additive"));
-		bool bIsRightPistolSlotActive = IsSlotActive(FName("Weapon_RightPistolAdditive"));
+		//bool bIsSlotActive = IsSlotActive(FName("Weapon_Additive"));
+		//bool bIsRightPistolSlotActive = IsSlotActive(FName("Weapon_RightPistolAdditive"));
 
-		bShouldReveal_LeftPistol = bAnimNotify_RevealLeftPistol || (bIsADS && bIsWeaponReady);
-		bShouldReveal_RightPistol = (bAnimNotify_RevealRightPistol && bIsFocus) || (bIsFocus && bIsWeaponReady) || bIsRightPistolSlotActive || bShouldReveal_LeftPistol;
+		//bShouldReveal_LeftPistol = bAnimNotify_RevealLeftPistol || (bIsADS && bIsWeaponReady);
+		//bShouldReveal_RightPistol = (bAnimNotify_RevealRightPistol && bIsFocus) || (bIsFocus && bIsWeaponReady) || bIsRightPistolSlotActive || bShouldReveal_LeftPistol;
 
 		RootYawOffset = - Delta.Yaw;
 		AimYaw = Delta.Yaw;
 		AimPitch = Delta.Pitch;
 		FMath::Clamp(AimYaw, AimYawClampRange.X, AimYawClampRange.Y);
 	}
-}
-
-void UZodiacHeroAnimInstance::UpdateBlendData(float DeltaSeconds)
-{
-	float RightPistolTargetAlpha = (bShouldReveal_RightPistol) ? 0 : 1;
-	RightPistolScaleAlpha = FMath::Lerp(RightPistolScaleAlpha, RightPistolTargetAlpha, DeltaSeconds * RightPistolAlphaSpeedMultiplier);
-	
-	float LeftPistolTargetAlpha = (bShouldReveal_LeftPistol) ? 0 : 1;
-	LeftPistolScaleAlpha = FMath::Lerp(LeftPistolScaleAlpha, LeftPistolTargetAlpha, DeltaSeconds * LeftPistolAlphaSpeedMultiplier);
 }

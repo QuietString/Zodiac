@@ -38,9 +38,7 @@ public:
 	
 protected:
 	void UpdateMovementData();
-	void UpdateRotationData(float DeltaSeconds, AActor* OwningActor);
 	void UpdateAimingData(float DeltaSeconds);
-	void UpdateBlendData(float DeltaSeconds);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blends")
@@ -90,25 +88,6 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bAnimNotify_RevealRightPistol;
-	
-	UPROPERTY(BlueprintReadOnly)
-	bool bShouldReveal_LeftPistol;
-
-	UPROPERTY(BlueprintReadOnly)
-	bool bShouldReveal_RightPistol;
-
-	// 0 to hide right pistol, 1 to reveal right pistol 
-	UPROPERTY(BlueprintReadOnly)
-	float RightPistolScaleAlpha;
-
-	UPROPERTY(EditDefaultsOnly)
-	float RightPistolAlphaSpeedMultiplier = 5.0f;
-
-	UPROPERTY(BlueprintReadOnly)
-	float LeftPistolScaleAlpha;
-
-	UPROPERTY(EditDefaultsOnly)
-	float LeftPistolAlphaSpeedMultiplier = 5.0f;
 
 private:
 	UPROPERTY()
