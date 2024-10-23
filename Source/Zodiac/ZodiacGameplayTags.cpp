@@ -54,7 +54,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_SkillMultiplier, "SetByCaller.SkillMultiplier", "SetByCaller tag used to apply skill multiplier.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Heal, "SetByCaller.Heal", "SetByCaller tag used by healing gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Cooldown, "SetByCaller.Cooldown", "SetByCaller tag used to apply cooldown gameplay effects.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_UltimateGauge, "SetByCaller.Ultimate.Charge", "SetByCaller tag used to apply charge ultimate gauge gameplay effects.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Ultimate, "SetByCaller.Ultimate", "SetByCaller tag used to change ultimate attribute value.");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Ultimate_Cost, "SetByCaller.Ultimate.Cost");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_GodMode, "Cheat.GodMode", "GodMode cheat is active on the owner.");
@@ -91,6 +91,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AttributeChanged_Ultimate, "HUD.Message.AttributeChanged.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_ReticleChanged, "HUD.Message.ReticleChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HealthChanged, "HUD.Message.HealthChanged");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AttributeValueChanged, "HUD.Message.AttributeValueChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AbilitySlotChanged, "HUD.Message.AbilitySlotChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_WidgetChanged, "HUD.Message.WidgetChanged");
 	

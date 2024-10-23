@@ -145,11 +145,6 @@ void UZodiacHeroAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
                                           const FGameplayEventData* TriggerEventData)
 {
 	bIsFirstActivation = true;
-
-	if (AimingEffect && bAimWhenActivated)
-	{
-		ApplyAimingEffect();
-	}
 	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
@@ -302,15 +297,6 @@ FVector UZodiacHeroAbility::GetWeaponLocation() const
 	return  FVector();
 }
 
-void UZodiacHeroAbility::ApplyAimingEffect()
-{
-	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
-	{
-		FGameplayEffectContextHandle ContextHandle = HostASC->MakeEffectContext();
-		FGameplayEffectSpecHandle SpecHandle = HostASC->MakeOutgoingSpec(AimingEffect, 1.0f, ContextHandle);
-		FActiveGameplayEffectHandle ActiveGameplayEffect = HostASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-	}
-}
 
 void UZodiacHeroAbility::ApplySlotReticle()
 {
@@ -334,6 +320,15 @@ void UZodiacHeroAbility::AdvanceCombo()
 	{
 		ComboIndex = 0;
 	}
+}
+
+void UZodiacHeroAbility::ChargeUltimate()
+{
+	UE_LOG(LogTemp, Warning, TEXT("charge ult"))
+	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ChargeUltimateEffect, GetAbilityLevel());
+	EffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Ultimate, UltimateChargeAmount.GetValueAtLevel(GetAbilityLevel()));
+
+	ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 }
 
 FVector UZodiacHeroAbility::GetSourceLocation() const

@@ -1,4 +1,5 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// the.quiet.string@gmail.com
 
 #pragma once
 
@@ -8,9 +9,8 @@
 #include "Engine/DataAsset.h"
 #include "ZodiacAbilitySet.generated.h"
 
-class UInputMappingContext;
+class UZodiacHeroAbilityManagerComponent;
 class UZodiacGameplayAbility;
-struct FActiveGameplayEffectHandle;
 class UZodiacAbilitySystemComponent;
 class UAttributeSet;
 
@@ -68,8 +68,10 @@ public:
 	//void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddAttributeSet(UAttributeSet* Set);
 
+private:
+	friend UZodiacHeroAbilityManagerComponent;
+	
 protected:
-
 	// Handles to the granted abilities.
 	UPROPERTY()
 	TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;

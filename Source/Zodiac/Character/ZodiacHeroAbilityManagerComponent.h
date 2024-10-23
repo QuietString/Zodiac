@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
 #include "ZodiacHeroData.h"
 #include "Components/ActorComponent.h"
 #include "ZodiacHeroAbilityManagerComponent.generated.h"
@@ -21,6 +22,39 @@ class UZodiacReticleWidgetBase;
 class UZodiacHealthComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthComponentInitialized, UZodiacHealthComponent*);
+
+USTRUCT(BlueprintType, DisplayName = "HUD Message Attribute Value Changed")
+struct FZodiacHUDMessage_AttributeValueChanged
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AController> Controller = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayAttribute Attribute;
+	
+	UPROPERTY(BlueprintReadWrite)
+	float OldValue;
+
+	UPROPERTY(BlueprintReadWrite)
+	float NewValue;
+};
+
+
+USTRUCT(BlueprintType, DisplayName = "HUD Message Widget Changed")
+struct FZodiacHUDMessage_WidgetChangedBatch
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AController> Controller = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
+};
 
 USTRUCT(BlueprintType, DisplayName = "HUD Message Widget Changed")
 struct FZodiacHUDMessage_WidgetChanged
@@ -104,15 +138,20 @@ public:
 
 	AController* GetHostController();
 
-public:
+protected:
 	void SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets, UZodiacHeroAbilitySlot* Slot);
 	void SendChangeWidgetMessage(const TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>>& Widgets, UZodiacHeroAbilitySlot* Slot);
-
+	void SendChangeSlotWidgetsMessage(TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets);
+	
 	void ClearAbilityReticle();
 
 	UFUNCTION()
 	void SendChangeHealthMessage(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
 
+	void SendAttributeValueChangedMessage(const FOnAttributeChangeData& OnAttributeChangeData);
+	
+	void BindAttributeValueChangedDelegate();
+	
 private:
 	UPROPERTY()
 	const UZodiacHeroData* HeroData;
@@ -122,6 +161,9 @@ private:
 	
 	bool bIsHeroActive = false;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Slots)
 	TArray<TObjectPtr<UZodiacHeroAbilitySlot>> Slots;
+
+	UFUNCTION()
+	void OnRep_Slots();
 };

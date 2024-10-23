@@ -143,6 +143,44 @@ FGenericTeamId AZodiacCharacter::GetGenericTeamId() const
 	return IZodiacTeamAgentInterface::GetGenericTeamId();
 }
 
+void AZodiacCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (const UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	{
+		ZodiacASC->GetOwnedGameplayTags(TagContainer);
+	}
+}
+
+bool AZodiacCharacter::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
+{
+	if (const UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	{
+		return ZodiacASC->HasMatchingGameplayTag(TagToCheck);
+	}
+
+	return false;
+}
+
+bool AZodiacCharacter::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (const UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	{
+		return ZodiacASC->HasAllMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
+bool AZodiacCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (const UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	{
+		return ZodiacASC->HasAnyMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
 void AZodiacCharacter::CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySystemComponentInitialized::FDelegate&& Delegate)
 {
 	if (AbilitySystemComponent)

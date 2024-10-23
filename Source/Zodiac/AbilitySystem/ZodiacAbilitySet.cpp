@@ -29,7 +29,7 @@ void UZodiacAbilitySet::GiveToAbilitySystem(UZodiacAbilitySystemComponent* Zodia
                                             FZodiacAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
 {
 	check(ZodiacASC);
-
+	
 	if (!ZodiacASC->IsOwnerActorAuthoritative())
 	{
 		// Must be authoritative to give or take ability sets.

@@ -23,6 +23,11 @@ AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	PhysicalAnimationComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicalAnimationComponent>(this, TEXT("PhysicalAnimationComponent"));
 }
 
+UZodiacAbilitySystemComponent* AZodiacMonster::GetZodiacAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
 UAbilitySystemComponent* AZodiacMonster::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;

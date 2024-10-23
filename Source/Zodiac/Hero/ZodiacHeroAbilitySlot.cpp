@@ -31,13 +31,11 @@ void UZodiacHeroAbilitySlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& InDef)
 {
 	Definition = InDef;
-	//SlotType = InDef.SlotType;
 
-	// for (auto& Fragment : Definition.Fragments)
-	// {
-	// 	Fragment->OnSlotCreated(this);
-	// 	UE_LOG(LogTemp, Warning, TEXT("fragment: %s"), *Fragment->GetName());
-	// }
+	for (auto& Fragment : Definition.Fragments)
+	{
+		Fragment->OnSlotCreated(this);
+	}
 }
 
 FGameplayTag UZodiacHeroAbilitySlot::GetSlotType() const

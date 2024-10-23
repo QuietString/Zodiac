@@ -11,8 +11,11 @@
 #include "AbilitySystem/ZodiacGameplayAbilityTargetData_SingleTargetHit.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
+#include "Character/ZodiacMonster.h"
 #include "Hero/ZodiacHeroAbilitySlot_RangedWeapon.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Physics/ZodiacCollisionChannels.h"
+#include "Teams/ZodiacTeamSubsystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbility_Ranged)
 
@@ -600,21 +603,25 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 				HostASC->ExecuteGameplayCue(GameplayCueTag_Impact, GameplayCueParams_Impact);
 			}
 		
-			// if (ChargeUltimateEffect)
-			// {
-			// 	for (auto& Actor : SingleTargetData->GetActors())
-			// 	{
-			// 		if (AZodiacMonster* Monster = Cast<AZodiacMonster>(Actor))
-			// 		{
-			// 			if (!Monster->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Death_Dying))
-			// 			{
-			// 				// charge ultimate when any enemies is hit
-			// 				ChargeUltimate();
-			// 				break;
-			// 			}
-			// 		}
-			// 	}
-			// }
+			if (ChargeUltimateEffect)
+			{
+				for (auto& Actor : SingleTargetData->GetActors())
+				{
+					UZodiacTeamSubsystem* TeamSubsystem = GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
+					if (TeamSubsystem->CanCauseDamage(GetZodiacHostCharacterFromActorInfo(), Actor.Get(), false))
+					{
+						if (IGameplayTagAssetInterface* TagAssetInterface = Cast<IGameplayTagAssetInterface>(Actor))
+						{
+							if (!TagAssetInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Death_Dying))
+							{
+								// charge ultimate when any enemies is hit
+								ChargeUltimate();
+								break;
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	

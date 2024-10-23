@@ -14,6 +14,6 @@ class ZODIAC_API UZodiacHeroAbilityFragment_SlotWidget : public UZodiacHeroAbili
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Reticle)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UZodiacAbilitySlotWidgetBase> Widget;
 };

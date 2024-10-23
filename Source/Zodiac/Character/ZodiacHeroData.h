@@ -19,10 +19,6 @@ class UZodiacHeroData : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	
-	UPROPERTY(EditAnywhere, Category = "Display")
-	FName HeroName = TEXT("NoHeroName");
-	
 	UPROPERTY(EditAnywhere, Category = "Ability")
 	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
 
