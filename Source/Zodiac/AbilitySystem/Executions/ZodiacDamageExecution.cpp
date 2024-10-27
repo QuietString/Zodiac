@@ -4,6 +4,7 @@
 
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
+#include "AbilitySystem/ZodiacAbilitySourceInterface.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "AbilitySystem/Attributes/ZodiacCombatSet.h"
 #include "AbilitySystem/ZodiacGameplayEffectContext.h"
@@ -51,17 +52,19 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	
 	FGameplayEffectContext* TypedContext = Spec.GetContext().Get();
 	check(TypedContext);
-
+	
 	const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
 	const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
 
 	FAggregatorEvaluateParameters EvaluateParameters;
 	EvaluateParameters.SourceTags = SourceTags;
 	EvaluateParameters.TargetTags = TargetTags;
-
+	
 	float BaseDamage = 0.0f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BaseDamageDef, EvaluateParameters, BaseDamage);
-	
+
+	float DamageMultiplier = Spec.GetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_DamageMultiplier, false, 1.0f);
+
 	const AActor* EffectCauser = TypedContext->GetEffectCauser();
 	const FHitResult* HitActorResult = TypedContext->GetHitResult();
 
@@ -98,6 +101,18 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 		}
 	}
 
+	float PhysicalMaterialAttenuation = 1.0f;
+	if (UObject* Source = TypedContext->GetSourceObject())
+	{
+		if (IZodiacAbilitySourceInterface* SourceInterface = Cast<IZodiacAbilitySourceInterface>(Source))
+		{
+			if (const UPhysicalMaterial* PhysMat = TypedContext->GetHitResult()->PhysMaterial.Get())
+			{
+				PhysicalMaterialAttenuation = SourceInterface->GetPhysicalMaterialAttenuation(PhysMat);
+			}
+		}
+	}
+	
 	// Apply rules for team damage/self damage/etc...
 	float DamageInteractionAllowedMultiplier = 0.0f;
 	if (HitActor)
@@ -109,9 +124,6 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 		}
 	}
 
-	// Apply ability source modifiers
-	float PhysicalMaterialAttenuation = 1.0f;
-	
 	// Clamping is done when damage is converted to -health
 	const float DamageDone = FMath::Max(BaseDamage * PhysicalMaterialAttenuation * DamageInteractionAllowedMultiplier, 0.0f);
 	if (DamageDone > 0.0f)

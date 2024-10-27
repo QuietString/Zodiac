@@ -20,6 +20,6 @@ public:
 	virtual void InitializeFromAbilitySlot(UZodiacHeroAbilitySlot* InSlot);
 
 protected:
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category = "Slot")
 	TObjectPtr<UZodiacHeroAbilitySlot> AbilitySlot;
 };

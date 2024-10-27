@@ -91,25 +91,28 @@ protected:
 	FTransform GetTargetingTransform(APawn* OwningPawn, AActor* SourceActor, EZodiacAbilityAimTraceRule Source) const;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Skill")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Gameplay")
 	float RateOfFire;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits=s), Category = "Skill")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits=s), Category = "Gameplay")
 	float FireInterval;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Skill")
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	EZodiacAbilityAimTraceRule AimTraceRule;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Skill")
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	EZodiacAbilityAimTraceRule EffectTraceRule;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Skill")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
 	TSubclassOf<UGameplayEffect> DamageEffect;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues", meta = (Categories = "GameplayCue"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
+	FScalableFloat DamagePerBullet;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX|Cues", meta = (Categories = "GameplayCue"))
 	FGameplayTag GameplayCueTag_Firing;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Cues", meta = (Categories = "GameplayCue"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX|Cues", meta = (Categories = "GameplayCue"))
 	FGameplayTag GameplayCueTag_Impact;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -117,6 +120,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayCueParameters GameplayCueParams_Impact;
+	
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
 

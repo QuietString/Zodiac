@@ -32,6 +32,9 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<AController> Controller = nullptr;
 
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<AActor> Hero = nullptr;
+	
 	UPROPERTY(BlueprintReadWrite)
 	FGameplayAttribute Attribute;
 	
@@ -147,6 +150,8 @@ protected:
 	
 	void ClearAbilityReticle();
 
+	void HandleUltimateChanged(AActor* Instigator, AActor* Causer, const FGameplayEffectSpec* EffectSpec, float Magnitude, float OldValue, float NewValue);
+	
 	UFUNCTION()
 	void SendChangeHealthMessage(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
 	void SendAttributeValueChangedMessage(const FOnAttributeChangeData& OnAttributeChangeData);

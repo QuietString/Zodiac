@@ -22,6 +22,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
 
+	UPROPERTY(EditAnywhere, Category = "Ability")
+	TArray<FZodiacHeroAbilityDefinition> AbilitySlots;
+	
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	TEnumAsByte<EZodiacCustomMovementMode> DefaultMovementMode;
 
@@ -32,10 +35,4 @@ public:
 	// X: max speed, Y: mid speed, Z: min speed
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	FVector RunSpeeds = FVector(500.0f, 350.0f, 300.0f);
-	
-	UPROPERTY(EditAnywhere, Category = "Display")
-	TArray<TSubclassOf<UZodiacReticleWidgetBase>> ReticleWidgets;
-
-	UPROPERTY(EditAnywhere, Category = "Ability")
-	TArray<FZodiacHeroAbilityDefinition> AbilitySlots;
 };

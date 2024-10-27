@@ -18,10 +18,8 @@ class UZodiacDamageExecution : public UGameplayEffectExecutionCalculation
 	GENERATED_BODY()
 
 public:
-
 	UZodiacDamageExecution();
 
 protected:
-
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 };

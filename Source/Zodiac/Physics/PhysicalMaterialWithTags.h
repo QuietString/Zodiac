@@ -1,4 +1,4 @@
-﻿// the.quiet.string@gmail.com
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -7,9 +7,6 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "PhysicalMaterialWithTags.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class ZODIAC_API UPhysicalMaterialWithTags : public UPhysicalMaterial
 {

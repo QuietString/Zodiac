@@ -1,7 +1,6 @@
-﻿// the.quiet.string@gmail.com
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
-
 
 /**
  * when you modify this, please note that this information can be saved with instances

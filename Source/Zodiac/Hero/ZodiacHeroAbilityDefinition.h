@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AttributeSet.h"
 #include "GameplayTagContainer.h"
 #include "ZodiacHeroAbilityDefinition.generated.h"
 
@@ -12,7 +11,7 @@ class UZodiacHeroAbilityFragment;
 class UZodiacAbilitySet;
 class UZodiacHeroAbilitySlot;
 
-UCLASS(DefaultToInstanced, EditInlineNew, Abstract)
+UCLASS(DefaultToInstanced, EditInlineNew, Abstract, CollapseCategories)
 class ZODIAC_API UZodiacHeroAbilityFragment : public UObject
 {
 	GENERATED_BODY()

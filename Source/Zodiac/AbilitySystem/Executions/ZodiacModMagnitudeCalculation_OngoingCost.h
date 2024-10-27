@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameplayModMagnitudeCalculation.h"
-#include "ZodiacMMC_SkillCost.generated.h"
+#include "ZodiacModMagnitudeCalculation_OngoingCost.generated.h"
 
 UCLASS()
-class ZODIAC_API UZodiacMMC_SkillCost : public UGameplayModMagnitudeCalculation
+class ZODIAC_API UZodiacModMagnitudeCalculation_OngoingCost : public UGameplayModMagnitudeCalculation
 {
 	GENERATED_BODY()
 

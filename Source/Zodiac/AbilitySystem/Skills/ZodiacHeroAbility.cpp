@@ -61,11 +61,12 @@ const FGameplayTagContainer* UZodiacHeroAbility::GetCooldownTags() const
 {
 	FGameplayTagContainer* MutableTags = const_cast<FGameplayTagContainer*>(&TempCooldownTags);
 	MutableTags->Reset();
-	
-	if (UZodiacHeroAbilitySlot* ItemSlot = GetAssociatedSlot())
+	const FGameplayTagContainer* ParentTags = Super::GetCooldownTags();
+	if (ParentTags)
 	{
-		//MutableTags->AddTag(ItemSlot->GetSlotType());
+		MutableTags->AppendTags(*ParentTags);
 	}
+	MutableTags->AppendTags(CooldownTags);
 	
 	return MutableTags;
 }
@@ -144,8 +145,6 @@ void UZodiacHeroAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
                                           const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                           const FGameplayEventData* TriggerEventData)
 {
-	bIsFirstActivation = true;
-	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
@@ -154,7 +153,7 @@ void UZodiacHeroAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::CommitExecute(Handle, ActorInfo, ActivationInfo);
 
-	bIsFirstActivation = false;
+	bHasCommitted = true;
 }
 
 bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -164,18 +163,11 @@ bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		return false;
 	}
-
-	// UE_LOG(LogTemp, Warning, TEXT("check cost"));
-	// if (UObject* Object = GetItemSlot())
-	// {
-	// 	UE_LOG(LogTemp, Warning, TEXT("source object: %s"), *Object->GetName());
-	// 	if (UZodiacHeroItemSlot* ItemSlot = Cast<UZodiacHeroItemSlot>(Object))
-	// 	{
-	// 		FGameplayTag Tag = UGameplayTagsManager::Get().RequestGameplayTag(FName("Ability.Stack.MagazineAmmo"));
-	// 		int32 Count = ItemSlot->GetStatTagStackCount(Tag);
-	// 		UE_LOG(LogTemp, Warning, TEXT("tag count: %d"), Count);
-	// 	}
-	// }
+	
+	if (!bHasCommitted && !CheckFirstCost(Handle, ActorInfo, OptionalRelevantTags))
+	{
+		return false;
+	}
 	
 	// Verify we can afford any additional costs
 	for (const TObjectPtr<UZodiacAbilityCost>& AdditionalCost : AdditionalCosts)
@@ -195,6 +187,12 @@ bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, cons
 void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                     const FGameplayAbilityActivationInfo ActivationInfo) const
 {
+	if (!bHasCommitted)
+	{
+		ApplyFirstCost(Handle, ActorInfo, ActivationInfo);
+		return;
+	}
+	
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
 	
 	// Used to determine if the ability actually hit a target (as some costs are only spent on successful attempts)
@@ -218,7 +216,7 @@ void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, cons
 
 		return false;
 	};
-	
+
 	//Pay any additional costs
 	bool bAbilityHitTarget = false;
 	bool bHasDeterminedIfAbilityHitTarget = false;
@@ -248,22 +246,14 @@ void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, cons
 void UZodiacHeroAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
                                         const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
-	if (UGameplayEffect* CooldownGE = GetCooldownGameplayEffect())
+	UGameplayEffect* CooldownGE = GetCooldownGameplayEffect();
+	if (CooldownGE)
 	{
 		FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(CooldownGE->GetClass(), GetAbilityLevel());
-		if (FGameplayEffectSpec* EffectSpec = SpecHandle.Data.Get())
-		{
-			if (UZodiacHeroAbilitySlot* AbilitySlot = Cast<UZodiacHeroAbilitySlot>(GetSourceObject(Handle, CurrentActorInfo)))
-			{
-			//	EffectSpec->DynamicGrantedTags.AddTag(AbilitySlot->GetSlotType());
-			}
-		
-			EffectSpec->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Cooldown, CooldownDuration.GetValueAtLevel(GetAbilityLevel()));
-			ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
-		}
+		SpecHandle.Data.Get()->DynamicGrantedTags.AppendTags(CooldownTags);
+		SpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Cooldown, CooldownDuration.GetValueAtLevel(GetAbilityLevel()));
+		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, SpecHandle);
 	}
-	
-	Super::ApplyCooldown(Handle, ActorInfo, ActivationInfo);
 }
 
 void UZodiacHeroAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -274,6 +264,49 @@ void UZodiacHeroAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
 	{
 		HostASC->RemoveLooseGameplayTags(ActivationOwnedTagsHost);
+	}
+
+	bHasCommitted = false;
+}
+
+UGameplayEffect* UZodiacHeroAbility::GetFirstCostGameplayEffect() const
+{
+	if (FirstCostEffectClass)
+	{
+		return FirstCostEffectClass->GetDefaultObject<UGameplayEffect>();
+	}
+
+	return nullptr;
+}
+
+bool UZodiacHeroAbility::CheckFirstCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+                                          FGameplayTagContainer* OptionalRelevantTags) const
+{
+	if (UGameplayEffect* OnGoingCost = GetFirstCostGameplayEffect())
+	{
+		UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+		check(AbilitySystemComponent != nullptr);
+		if (!AbilitySystemComponent->CanApplyAttributeModifiers(OnGoingCost, GetAbilityLevel(Handle, ActorInfo), MakeEffectContext(Handle, ActorInfo)))
+		{
+			const FGameplayTag& CostTag = UAbilitySystemGlobals::Get().ActivateFailCostTag;
+
+			if (OptionalRelevantTags && CostTag.IsValid())
+			{
+				OptionalRelevantTags->AddTag(CostTag);
+			}
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+void UZodiacHeroAbility::ApplyFirstCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	if (UGameplayEffect* OnGoingCost = GetFirstCostGameplayEffect())
+	{
+		ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, OnGoingCost, GetAbilityLevel(Handle, ActorInfo));
 	}
 }
 
@@ -324,7 +357,7 @@ void UZodiacHeroAbility::AdvanceCombo()
 
 void UZodiacHeroAbility::ChargeUltimate()
 {
-	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ChargeUltimateEffect, GetAbilityLevel());
+	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ChargeUltimateEffectClass, GetAbilityLevel());
 	EffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Ultimate, UltimateChargeAmount.GetValueAtLevel(GetAbilityLevel()));
 
 	ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);

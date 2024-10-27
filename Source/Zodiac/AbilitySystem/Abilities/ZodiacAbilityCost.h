@@ -10,7 +10,7 @@
 /**
  * Base class for costs that a ZodiacGameplayAbility has (e.g., ammo or charges)
  */
-UCLASS(DefaultToInstanced, EditInlineNew, Abstract)
+UCLASS(DefaultToInstanced, EditInlineNew, Abstract, CollapseCategories)
 class ZODIAC_API UZodiacAbilityCost : public UObject
 {
 	GENERATED_BODY()

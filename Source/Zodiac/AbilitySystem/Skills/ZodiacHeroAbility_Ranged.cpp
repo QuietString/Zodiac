@@ -217,8 +217,7 @@ void UZodiacHeroAbility_Ranged::StartRangedWeaponTargeting()
 	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(MyASC);
 
-	// @TODO: Prediction Key?
-	//FScopedPredictionWindow ScopedPrediction(MyASC, CurrentActivationInfo.GetActivationPredictionKey());
+	FScopedPredictionWindow ScopedPrediction(MyASC, CurrentActivationInfo.GetActivationPredictionKey());
 
 	TArray<FHitResult> FoundHits;
 	PerformLocalTargeting(OUT FoundHits);
@@ -235,7 +234,7 @@ void UZodiacHeroAbility_Ranged::StartRangedWeaponTargeting()
 
 			TargetData.Add(NewTargetData);
 		}
-
+		
 		// Process the target data immediately
 		OnTargetDataReadyCallback(TargetData, FGameplayTag());	
 	}
@@ -248,7 +247,7 @@ void UZodiacHeroAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbility
 
 	if (const FGameplayAbilitySpec* AbilitySpec = MyASC->FindAbilitySpecFromHandle(CurrentSpecHandle))
 	{
-		//FScopedPredictionWindow	ScopedPrediction(MyASC);
+		FScopedPredictionWindow	ScopedPrediction(MyASC);
 
 		// Take ownership of the target data to make sure no callbacks into game code invalidate it out from under us
 		FGameplayAbilityTargetDataHandle LocalTargetDataHandle(MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
@@ -282,7 +281,7 @@ void UZodiacHeroAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbility
 			{
 				WeaponSlot->AddSpread();
 			}
-			
+
 			// Apply effects to the targets
 			OnRangedWeaponTargetDataReady(LocalTargetDataHandle);
 		}
@@ -582,11 +581,11 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 	{
 		return;
 	}
+
+	UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot();
 	
 	if (UZodiacAbilitySystemComponent* HostASC = Cast<UZodiacAbilitySystemComponent>(GetHostAbilitySystemComponent()))
 	{
-		UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot();
-
 		const FHitResult* FirstHitResult = TargetData.Get(0)->GetHitResult();
 		GameplayCueParams_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*FirstHitResult);
 		GameplayCueParams_Firing.SourceObject = GetSocket();
@@ -603,7 +602,7 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 				HostASC->ExecuteGameplayCue(GameplayCueTag_Impact, GameplayCueParams_Impact);
 			}
 		
-			if (ChargeUltimateEffect && HasAuthority(&CurrentActivationInfo))
+			if (ChargeUltimateEffectClass && HasAuthority(&CurrentActivationInfo))
 			{
 				for (auto& Actor : SingleTargetData->GetActors())
 				{
@@ -626,7 +625,8 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 	}
 	
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect, 1);
-	//EffectSpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_SkillMultiplier, GetAbilityLevel());
+	EffectSpecHandle.Data.Get()->GetContext().AddSourceObject(Slot);
+	EffectSpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Damage, DamagePerBullet.GetValue());
 	ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetData);
 }
 

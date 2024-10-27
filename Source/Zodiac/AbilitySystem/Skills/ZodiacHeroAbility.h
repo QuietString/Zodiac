@@ -10,9 +10,27 @@ class UNiagaraSystem;
 class UZodiacHeroAbilitySlot;
 class UZodiacHeroItemSlot;
 class AZodiacHeroCharacter;
-class UZodiacSkillInstance;
 
-UCLASS(BlueprintType, Const, DefaultToInstanced, EditInlineNew, DisplayName = "Socket Object")
+USTRUCT(BlueprintType)
+struct FZodiacImpactParticles
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UParticleSystem> Default;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UParticleSystem> Character;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UParticleSystem> Concrete;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UParticleSystem> Glass;
+};
+
+UCLASS(BlueprintType, Const, DefaultToInstanced, EditInlineNew, DisplayName = "Socket Object", CollapseCategories)
 class UZodiacAbilitySourceSocket : public UObject
 {
 	GENERATED_BODY()
@@ -24,7 +42,10 @@ public:
 	FName SocketName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UNiagaraSystem> SocketEffect;
+	TObjectPtr<UNiagaraSystem> Trace;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FZodiacImpactParticles Impacts;
 };
 
 /**
@@ -76,6 +97,11 @@ public:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
+	virtual UGameplayEffect* GetFirstCostGameplayEffect() const;
+	virtual bool CheckFirstCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const;
+	virtual void ApplyFirstCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const;
+	float GetOngoingCostAmount() const { return FirstCostAmount; }
 	
 	FVector GetWeaponLocation() const;
 	
@@ -101,9 +127,12 @@ protected:
 	UZodiacAbilitySourceSocket* GetSocket() const;
 protected:
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Cooldowns")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldowns")
 	FScalableFloat CooldownDuration;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldowns")
+	FGameplayTagContainer CooldownTags;
+	
 	UPROPERTY(BlueprintReadOnly, Category = "FX")
 	uint8 ComboIndex = 0;
 
@@ -123,13 +152,19 @@ protected:
 	TArray<UZodiacAbilitySourceSocket*> Sockets;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate")
-	TSubclassOf<UGameplayEffect> ChargeUltimateEffect;
+	TSubclassOf<UGameplayEffect> ChargeUltimateEffectClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultimate")
 	FScalableFloat UltimateChargeAmount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
+	TSubclassOf<UGameplayEffect> FirstCostEffectClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
+	float FirstCostAmount;
 	
 private:
-	bool bIsFirstActivation = false;
+	bool bHasCommitted = false;
 	
 	// Temp container that we will return the pointer to in GetCooldownTags().
 	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.

@@ -73,6 +73,7 @@ void UZodiacAbilitySet::GiveToAbilitySystem(UZodiacAbilitySystemComponent* Zodia
 
 		UAttributeSet* NewSet = NewObject<UAttributeSet>(ZodiacASC->GetOwner(), SetToGrant.AttributeSet);
 		ZodiacASC->AddAttributeSetSubobject(NewSet);
+		
 		NewSet->InitFromMetaDataTable(SetToGrant.Table);
 		
 		if (OutGrantedHandles)
