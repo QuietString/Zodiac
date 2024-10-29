@@ -76,6 +76,52 @@ UZodiacTraversableActorComponent::UZodiacTraversableActorComponent(const FObject
 {
 }
 
+void UZodiacTraversableActorComponent::SpawnSingleSpline(FName StartEdge, FTransform SocketWorldTransform1, FTransform SocketWorldTransform2, USplineComponent*& SplineComp)
+{
+	FVector Point1 = SocketWorldTransform1.GetLocation();
+	FVector Point2 = SocketWorldTransform2.GetLocation();
+
+	SplineComp = NewObject<USplineComponent>(this, USplineComponent::StaticClass());
+	SplineComp->RegisterComponent();
+	SplineComp->SetMobility(EComponentMobility::Movable);
+	SplineComp->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	SplineComp->ClearSplinePoints();
+
+	FQuat OriginalRotation = SocketWorldTransform1.GetRotation();
+	float RotationAmount = ZodiacTraversable::RotationAmount[StartEdge];
+	FQuat YAxisRotation = FQuat(FVector::UpVector, FMath::DegreesToRadians(RotationAmount));
+	FQuat RotatedRotation = YAxisRotation * OriginalRotation;
+						
+	// Add two spline points with location and rotation
+	SplineComp->AddSplinePointAtIndex(Point1, 0, ESplineCoordinateSpace::World, false);
+	SplineComp->SetSplinePointType(0, ESplinePointType::Linear, false);
+	SplineComp->SetTangentAtSplinePoint(0, RotatedRotation.GetForwardVector(), ESplineCoordinateSpace::World, false);
+	SplineComp->SetUpVectorAtSplinePoint(0, RotatedRotation.GetUpVector(), ESplineCoordinateSpace::World, false);
+						
+	SplineComp->AddSplinePointAtIndex(Point2, 1, ESplineCoordinateSpace::World, false);
+	SplineComp->SetSplinePointType(1, ESplinePointType::Linear, false);
+	SplineComp->SetTangentAtSplinePoint(1, RotatedRotation.GetForwardVector(), ESplineCoordinateSpace::World, false);
+	SplineComp->SetUpVectorAtSplinePoint(1, RotatedRotation.GetUpVector(), ESplineCoordinateSpace::World, false);
+
+	SplineComp->UpdateSpline();
+
+#if WITH_EDITOR
+	if (ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
+	{
+		// Calculate the end points for each axis arrow
+		FVector MidLocation = (Point1 + Point2) / 2;
+		FVector ForwardEnd = MidLocation + RotatedRotation.GetForwardVector() * 30;
+		FVector UpEnd = MidLocation + RotatedRotation.GetUpVector() * 30;
+		FVector RightEnd = MidLocation + RotatedRotation.GetRightVector() * 30;
+
+		// Draw lines representing each axis
+		DrawDebugLine(GetWorld(), MidLocation, ForwardEnd, FColor::Red, true);
+		DrawDebugLine(GetWorld(), MidLocation, UpEnd, FColor::Blue, true);
+		DrawDebugLine(GetWorld(), MidLocation, RightEnd, FColor::Green, true);
+	}
+#endif
+}
+
 void UZodiacTraversableActorComponent::SpawnLedgeSplines()
 {
 	Ledges.Empty();
@@ -84,81 +130,39 @@ void UZodiacTraversableActorComponent::SpawnLedgeSplines()
 	TArray<UActorComponent*> Components = GetOwner()->GetComponents().Array();
 	for (auto Comp : Components)
 	{
-		if (UInstancedStaticMeshComponent* Mesh = Cast<UInstancedStaticMeshComponent>(Comp))
+		// spawn splines for instanced meshes
+		if (UInstancedStaticMeshComponent* InstMesh = Cast<UInstancedStaticMeshComponent>(Comp))
 		{
-			int32 InstanceCount = Mesh->GetInstanceCount();
+			int32 InstanceCount = InstMesh->GetInstanceCount();
 			for (int32 InstanceIndex = 0; InstanceIndex < InstanceCount; ++InstanceIndex)
 			{
 				TMap<FName, USplineComponent*> NameToSpline;
 				TMap<USplineComponent*, FName> SplineToName;
 				
-				TMap<USplineComponent*, USplineComponent*> OppositeLedges_Instanced;
-				
 				for (const auto& [StartEdge, EndEdge] : ZodiacTraversable::Edges)
 				{
-					const UStaticMeshSocket* Socket1 = Mesh->GetStaticMesh()->FindSocket(StartEdge);
-					const UStaticMeshSocket* Socket2 = Mesh->GetStaticMesh()->FindSocket(EndEdge);
+					const UStaticMeshSocket* Socket1 = InstMesh->GetStaticMesh()->FindSocket(StartEdge);
+					const UStaticMeshSocket* Socket2 = InstMesh->GetStaticMesh()->FindSocket(EndEdge);
 					if (Socket1 && Socket2)
 					{
 						FTransform SocketTransform1;
-						SocketTransform1 = Mesh->GetSocketTransform(StartEdge, RTS_Component);
+						SocketTransform1 = InstMesh->GetSocketTransform(StartEdge, RTS_Component);
 						
 						FTransform SocketTransform2;
-						SocketTransform2 = Mesh->GetSocketTransform(EndEdge, RTS_Component);
+						SocketTransform2 = InstMesh->GetSocketTransform(EndEdge, RTS_Component);
 
 						FTransform InstanceTransform;
-						Mesh->GetInstanceTransform(InstanceIndex, InstanceTransform, true);
+						InstMesh->GetInstanceTransform(InstanceIndex, InstanceTransform, true);
 						
 						FTransform SocketWorldTransform1 = SocketTransform1 * InstanceTransform;
 						FTransform SocketWorldTransform2 = SocketTransform2 * InstanceTransform;
-						
-						FVector Point1 = SocketWorldTransform1.GetLocation();
-						FVector Point2 = SocketWorldTransform2.GetLocation();
-						
-						// Create and configure the spline component
-						USplineComponent* SplineComp = NewObject<USplineComponent>(this, USplineComponent::StaticClass());
-						SplineComp->RegisterComponent();
-						SplineComp->SetMobility(EComponentMobility::Movable);
-						SplineComp->AttachToComponent(GetOwner()->GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
-						SplineComp->ClearSplinePoints();
 
-						FQuat OriginalRotation = SocketWorldTransform1.GetRotation();
-						float RotationAmount = ZodiacTraversable::RotationAmount[StartEdge];
-						FQuat YAxisRotation = FQuat(FVector::UpVector, FMath::DegreesToRadians(RotationAmount));
-						FQuat RotatedRotation = YAxisRotation * OriginalRotation;
-						
-						// Add two spline points with location and rotation
-						SplineComp->AddSplinePointAtIndex(Point1, 0, ESplineCoordinateSpace::World, false);
-						SplineComp->SetSplinePointType(0, ESplinePointType::Linear, false);
-						SplineComp->SetTangentAtSplinePoint(0, RotatedRotation.GetForwardVector(), ESplineCoordinateSpace::World, false);
-						SplineComp->SetUpVectorAtSplinePoint(0, RotatedRotation.GetUpVector(), ESplineCoordinateSpace::World, false);
-						
-						SplineComp->AddSplinePointAtIndex(Point2, 1, ESplineCoordinateSpace::World, false);
-						SplineComp->SetSplinePointType(1, ESplinePointType::Linear, false);
-						SplineComp->SetTangentAtSplinePoint(1, RotatedRotation.GetForwardVector(), ESplineCoordinateSpace::World, false);
-						SplineComp->SetUpVectorAtSplinePoint(1, RotatedRotation.GetUpVector(), ESplineCoordinateSpace::World, false);
-
-						SplineComp->UpdateSpline();
+						USplineComponent* SplineComp;
+						SpawnSingleSpline(StartEdge, SocketWorldTransform1, SocketWorldTransform2, SplineComp);
 						
 						NameToSpline.Add(StartEdge, SplineComp);
 						SplineToName.Add(SplineComp, StartEdge);
 						Ledges.Add(SplineComp);
-
-#if WITH_EDITOR
-						if (ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
-						{
-							// Calculate the end points for each axis arrow
-							FVector MidLocation = (Point1 + Point2) / 2;
-							FVector ForwardEnd = MidLocation + RotatedRotation.GetForwardVector() * 30;
-							FVector UpEnd = MidLocation + RotatedRotation.GetUpVector() * 30;
-							FVector RightEnd = MidLocation + RotatedRotation.GetRightVector() * 30;
-
-							// Draw lines representing each axis
-							DrawDebugLine(GetWorld(), MidLocation, ForwardEnd, FColor::Red, true);
-							DrawDebugLine(GetWorld(), MidLocation, UpEnd, FColor::Blue, true);
-							DrawDebugLine(GetWorld(), MidLocation, RightEnd, FColor::Green, true);
-						}
-#endif
 					}
 				}
 				
@@ -175,6 +179,47 @@ void UZodiacTraversableActorComponent::SpawnLedgeSplines()
 						}
 					}	
 				}
+			}
+		}
+		// spawn splines for static meshes
+		else if (UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(Comp))
+		{
+			TMap<FName, USplineComponent*> NameToSpline;
+			TMap<USplineComponent*, FName> SplineToName;
+				
+			for (const auto& [StartEdge, EndEdge] : ZodiacTraversable::Edges)
+			{
+				const UStaticMeshSocket* Socket1 = Mesh->GetStaticMesh()->FindSocket(StartEdge);
+				const UStaticMeshSocket* Socket2 = Mesh->GetStaticMesh()->FindSocket(EndEdge);
+				if (Socket1 && Socket2)
+				{
+					FTransform SocketTransform1;
+					SocketTransform1 = Mesh->GetSocketTransform(StartEdge, RTS_World);
+						
+					FTransform SocketTransform2;
+					SocketTransform2 = Mesh->GetSocketTransform(EndEdge, RTS_World);
+
+					USplineComponent* SplineComp;
+					SpawnSingleSpline(StartEdge, SocketTransform1, SocketTransform2, SplineComp);
+						
+					NameToSpline.Add(StartEdge, SplineComp);
+					SplineToName.Add(SplineComp, StartEdge);
+					Ledges.Add(SplineComp);
+				}
+			}
+				
+			if (!SplineToName.IsEmpty())
+			{
+				for (auto& [Spline, Name] : SplineToName)
+				{
+					FName OppositeName = ZodiacTraversable::OppositeEdges[Name];
+					if (NameToSpline.Contains(OppositeName))
+					{
+						USplineComponent* Opposite = NameToSpline[OppositeName]; 
+						OppositeLedges.Add(Spline, Opposite);
+						OppositeLedges.Add(Opposite, Spline);
+					}
+				}	
 			}
 		}
 	}

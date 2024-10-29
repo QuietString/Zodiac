@@ -187,7 +187,7 @@ bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, cons
 void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                     const FGameplayAbilityActivationInfo ActivationInfo) const
 {
-	if (!bHasCommitted)
+	if (bUseInitiationCost && !bHasCommitted)
 	{
 		ApplyFirstCost(Handle, ActorInfo, ActivationInfo);
 		return;

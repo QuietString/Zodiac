@@ -66,11 +66,6 @@ void UZodiacHeroAbilitySlot::ClearReticle()
 	}
 }
 
-APawn* UZodiacHeroAbilitySlot::GetPawn() const
-{
-	return Cast<APawn>(GetOuter());
-}
-
 const UZodiacHeroAbilityFragment* UZodiacHeroAbilitySlot::FindFragmentByClass(const TSubclassOf<UZodiacHeroAbilityFragment>& FragmentClass) const
 {
 	if (FragmentClass != nullptr)

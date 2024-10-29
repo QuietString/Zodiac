@@ -35,26 +35,26 @@ public:
 protected:
 	
 #if WITH_EDITORONLY_DATA
-	UPROPERTY(VisibleAnywhere, Category = "Spread|Fire Params")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spread|Fire Params")
 	float Debug_MinHeat = 0.0f;
 
-	UPROPERTY(VisibleAnywhere, Category = "Spread|Fire Params")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spread|Fire Params")
 	float Debug_MaxHeat = 0.0f;
 
-	UPROPERTY(VisibleAnywhere, Category="Spread|Fire Params", meta=(ForceUnits=deg))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Spread|Fire Params", meta=(ForceUnits=deg))
 	float Debug_MinSpreadAngle = 0.0f;
 
-	UPROPERTY(VisibleAnywhere, Category="Spread|Fire Params", meta=(ForceUnits=deg))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Spread|Fire Params", meta=(ForceUnits=deg))
 	float Debug_MaxSpreadAngle = 0.0f;
 
-	UPROPERTY(VisibleAnywhere, Category="Spread Debugging")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Spread Debugging")
 	float Debug_CurrentHeat = 0.0f;
 
-	UPROPERTY(VisibleAnywhere, Category="Spread Debugging", meta = (ForceUnits=deg))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Spread Debugging", meta = (ForceUnits=deg))
 	float Debug_CurrentSpreadAngle = 0.0f;
 
 	// The current *combined* spread angle multiplier
-	UPROPERTY(VisibleAnywhere, Category = "Spread Debugging", meta=(ForceUnits=x))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spread Debugging", meta=(ForceUnits=x))
 	float Debug_CurrentSpreadAngleMultiplier = 1.0f;
 
 #endif
@@ -111,15 +111,7 @@ protected:
 	// Speeds no more than this above StandingStillSpeedThreshold are used to feather down the standing still bonus until it's back to 1.0
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spread|Player Params", meta=(ForceUnits="cm/s"))
 	float StandingStillToMovingSpeedRange = 20.0f;
-	
-	// Multiplier when crouching, smoothly blended to based on TransitionRate_Crouching
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spread|Player Params", meta=(ForceUnits=x))
-	float SpreadAngleMultiplier_Crouching = 1.0f;
 
-	// Rate at which we transition to/from the crouching accuracy (higher values are faster, though zero is instant; @see FInterpTo)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spread|Player Params")
-	float TransitionRate_Crouching = 5.0f;
-	
 	// Spread multiplier while jumping/falling, smoothly blended to based on TransitionRate_JumpingOrFalling
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Spread|Player Params", meta=(ForceUnits=x))
 	float SpreadAngleMultiplier_JumpingOrFalling = 1.0f;
@@ -149,9 +141,6 @@ private:
 
 	// The current jumping/falling multiplier
 	float JumpFallMultiplier = 1.0f;
-
-	// The current crouching multiplier
-	float CrouchingMultiplier = 1.0f;
 
 private:
 	void ComputeSpreadRange(float& MinSpread, float& MaxSpread);

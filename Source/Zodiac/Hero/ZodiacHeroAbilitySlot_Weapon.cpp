@@ -8,7 +8,7 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbilitySlot_Weapon)
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Zodiac_Weapon_SteadyAimingCamera, "Zodiac.Weapon.SteadyAimingCamera");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Camera_SteadyAiming, "Camera.SteadyAiming");
 
 UZodiacHeroAbilitySlot_Weapon::UZodiacHeroAbilitySlot_Weapon(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -49,7 +49,6 @@ void UZodiacHeroAbilitySlot_Weapon::InitializeSlot(const FZodiacHeroAbilityDefin
 	CurrentSpreadAngleMultiplier = 1.0f;
 	StandingStillMultiplier = 1.0f;
 	JumpFallMultiplier = 1.0f;
-	CrouchingMultiplier = 1.0f;
 }
 
 void UZodiacHeroAbilitySlot_Weapon::AddSpread()
@@ -75,8 +74,8 @@ void UZodiacHeroAbilitySlot_Weapon::PostEditChangeProperty(FPropertyChangedEvent
 
 void UZodiacHeroAbilitySlot_Weapon::UpdateDebugVisualization()
 {
-	ComputeHeatRange(/*out*/ Debug_MinHeat, /*out*/ Debug_MaxHeat);
-	ComputeSpreadRange(/*out*/ Debug_MinSpreadAngle, /*out*/ Debug_MaxSpreadAngle);
+	ComputeHeatRange(OUT Debug_MinHeat, OUT Debug_MaxHeat);
+	ComputeSpreadRange(OUT Debug_MinSpreadAngle, OUT Debug_MaxSpreadAngle);
 	Debug_CurrentHeat = CurrentHeat;
 	Debug_CurrentSpreadAngle = CurrentSpreadAngle;
 	Debug_CurrentSpreadAngleMultiplier = CurrentSpreadAngleMultiplier;
@@ -128,8 +127,12 @@ bool UZodiacHeroAbilitySlot_Weapon::UpdateMultipliers(float DeltaSeconds)
 {
 	const float MultiplierNearlyEqualThreshold = 0.05f;
 
-	APawn* Pawn = GetPawn();
-	check(Pawn != nullptr);
+	APawn* Pawn = GetHostPawn();
+	if (!Pawn)
+	{
+		return false;
+	}
+	
 	UCharacterMovementComponent* CharMovementComp = Cast<UCharacterMovementComponent>(Pawn->GetMovementComponent());
 
 	// See if we are standing still, and if so, smoothly apply the bonus
@@ -140,12 +143,6 @@ bool UZodiacHeroAbilitySlot_Weapon::UpdateMultipliers(float DeltaSeconds)
 		/*Alpha=*/ PawnSpeed);
 	StandingStillMultiplier = FMath::FInterpTo(StandingStillMultiplier, MovementTargetValue, DeltaSeconds, TransitionRate_StandingStill);
 	const bool bStandingStillMultiplierAtMin = FMath::IsNearlyEqual(StandingStillMultiplier, SpreadAngleMultiplier_StandingStill, SpreadAngleMultiplier_StandingStill*0.1f);
-
-	// See if we are crouching, and if so, smoothly apply the bonus
-	const bool bIsCrouching = (CharMovementComp != nullptr) && CharMovementComp->IsCrouching();
-	const float CrouchingTargetValue = bIsCrouching ? SpreadAngleMultiplier_Crouching : 1.0f;
-	CrouchingMultiplier = FMath::FInterpTo(CrouchingMultiplier, CrouchingTargetValue, DeltaSeconds, TransitionRate_Crouching);
-	const bool bCrouchingMultiplierAtTarget = FMath::IsNearlyEqual(CrouchingMultiplier, CrouchingTargetValue, MultiplierNearlyEqualThreshold);
 
 	// See if we are in the air (jumping/falling), and if so, smoothly apply the penalty
 	const bool bIsJumpingOrFalling = (CharMovementComp != nullptr) && CharMovementComp->IsFalling();
@@ -161,7 +158,7 @@ bool UZodiacHeroAbilitySlot_Weapon::UpdateMultipliers(float DeltaSeconds)
 		FGameplayTag TopCameraTag;
 		CameraComponent->GetBlendInfo(/*out*/ TopCameraWeight, /*out*/ TopCameraTag);
 
-		AimingAlpha = (TopCameraTag == TAG_Zodiac_Weapon_SteadyAimingCamera) ? TopCameraWeight : 0.0f;
+		AimingAlpha = (TopCameraTag == TAG_Camera_SteadyAiming) ? TopCameraWeight : 0.0f;
 	}
 	const float AimingMultiplier = FMath::GetMappedRangeValueClamped(
 		/*InputRange=*/ FVector2D(0.0f, 1.0f),
@@ -170,9 +167,9 @@ bool UZodiacHeroAbilitySlot_Weapon::UpdateMultipliers(float DeltaSeconds)
 	const bool bAimingMultiplierAtTarget = FMath::IsNearlyEqual(AimingMultiplier, SpreadAngleMultiplier_Aiming, KINDA_SMALL_NUMBER);
 
 	// Combine all the multipliers
-	const float CombinedMultiplier = AimingMultiplier * StandingStillMultiplier * CrouchingMultiplier * JumpFallMultiplier;
+	const float CombinedMultiplier = AimingMultiplier * StandingStillMultiplier * JumpFallMultiplier;
 	CurrentSpreadAngleMultiplier = CombinedMultiplier;
 
 	// need to handle these spread multipliers indicating we are not at min spread
-	return bStandingStillMultiplierAtMin && bCrouchingMultiplierAtTarget && bJumpFallMultiplierIs1 && bAimingMultiplierAtTarget;
+	return bStandingStillMultiplierAtMin && bJumpFallMultiplierIs1 && bAimingMultiplierAtTarget;
 }

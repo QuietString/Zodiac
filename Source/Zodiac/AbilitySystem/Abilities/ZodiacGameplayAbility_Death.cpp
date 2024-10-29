@@ -64,10 +64,8 @@ void UZodiacGameplayAbility_Death::EndAbility(const FGameplayAbilitySpecHandle H
 
 void UZodiacGameplayAbility_Death::StartDeath()
 {
-	UE_LOG(LogTemp, Warning, TEXT("start death"));
 	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetOwningActorFromActorInfo()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("owning actor: %s"), *ZodiacCharacter->GetName());
 		if (UZodiacHealthComponent* HealthComponent = ZodiacCharacter->GetHealthComponent())
 		{
 			if (HealthComponent->GetDeathState() == EZodiacDeathState::NotDead)

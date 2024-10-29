@@ -7,6 +7,8 @@
 #include "ZodiacHeroAbilityDefinition.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySourceInterface.h"
+#include "Character/ZodiacHeroCharacter.h"
+#include "Character/ZodiacHostCharacter.h"
 #include "System/GameplayTagStack.h"
 #include "UI/Weapons/ZodiacReticleWidgetBase.h"
 #include "UObject/Object.h"
@@ -48,8 +50,21 @@ public:
 	void ClearReticle();
 	
 	UFUNCTION(BlueprintPure)
-	APawn* GetPawn() const;
-	
+	APawn* GetPawn() const
+	{
+		return Cast<APawn>(GetOuter());
+	}
+
+	UFUNCTION(BlueprintPure)
+	APawn* GetHostPawn() const
+	{
+		if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(GetOuter()))
+		{
+			return HeroCharacter->GetHostCharacter();
+		}
+		return nullptr;
+	}
+
 	//FGameplayTag GetSlotType() const { return SlotType; }
 	const FZodiacHeroAbilityDefinition& GetSlotDefinition() const { return Definition; }
 

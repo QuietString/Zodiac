@@ -19,6 +19,7 @@ public:
 	
 	virtual void BeginPlay() override;
 	UZodiacTraversableActorComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	void SpawnSingleSpline(FName StartEdge, FTransform SocketWorldTransform1, FTransform SocketWorldTransform2, USplineComponent*& SplineComp);
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnLedgeSplines();

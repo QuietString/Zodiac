@@ -162,6 +162,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
 	float FirstCostAmount;
+
+	// use different amount of cost for initiation.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
+	bool bUseInitiationCost = false;
 	
 private:
 	bool bHasCommitted = false;
