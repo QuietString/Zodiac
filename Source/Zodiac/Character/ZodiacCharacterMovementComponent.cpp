@@ -144,19 +144,19 @@ void UZodiacCharacterMovementComponent::JumpOff(AActor* MovementBaseActor)
 
 float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 {
-	if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(CharacterOwner))
-	{
-		if (TagInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Stun))
-		{
-			return 0.0f;
-		}		
-	}
+	// if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(CharacterOwner))
+	// {
+	// 	if (TagInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Stun) || TagInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Movement_Disabled))
+	// 	{
+	// 		return 0.0f;
+	// 	}		
+	// }
 	
 	if (MovementMode == MOVE_Walking)
 	{
 		return CalculateMaxSpeed();
 	}
-	
+
 	return Super::GetMaxSpeed();
 }
 

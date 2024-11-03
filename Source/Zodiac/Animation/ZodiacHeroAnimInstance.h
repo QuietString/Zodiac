@@ -83,12 +83,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsWeaponReady = false;
 
-	UPROPERTY(BlueprintReadWrite)
-	bool bAnimNotify_RevealLeftPistol;
-
-	UPROPERTY(BlueprintReadWrite)
-	bool bAnimNotify_RevealRightPistol;
-
 private:
 	UPROPERTY()
 	TObjectPtr<AZodiacCharacter> ParentCharacter;

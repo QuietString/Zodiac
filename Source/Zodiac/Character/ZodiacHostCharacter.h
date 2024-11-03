@@ -57,6 +57,7 @@ protected:
 	//~End of AActor interface
 
 	virtual void OnJustLanded() override;
+	virtual void OnJustLifted() override;
 
 	void InitializeHeroes();
 	

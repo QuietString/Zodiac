@@ -143,9 +143,11 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
-	
 
 private:
+	UPROPERTY()
+	bool bMovementDisabled = false;
+	
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_ReplicatedAcceleration)
 	FZodiacReplicatedAcceleration ReplicatedAcceleration;
 

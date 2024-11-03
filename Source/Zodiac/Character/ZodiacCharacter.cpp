@@ -250,6 +250,8 @@ void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* In
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Death, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Movement_Disabled, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	
 	OnAbilitySystemComponentInitialized.Broadcast(AbilitySystemComponent);
 	OnAbilitySystemComponentInitialized.Clear();
@@ -322,6 +324,11 @@ void AZodiacCharacter::Input_Move(const FInputActionValue& InputActionValue)
 {
 	if (Controller)
 	{
+		if (HasMatchingGameplayTag(ZodiacGameplayTags::Status_Stun) || HasMatchingGameplayTag(ZodiacGameplayTags::Status_Movement_Disabled))
+		{
+			return;
+		}
+		
 		const FVector2D Value = InputActionValue.Get<FVector2D>();
 		const FRotator MovementRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 	
@@ -362,6 +369,11 @@ void AZodiacCharacter::OnStatusTagChanged(FGameplayTag Tag, int Count)
 	UZodiacHostAnimInstance* HostAnimInstance = CastChecked<UZodiacHostAnimInstance>(GetMesh()->GetAnimInstance());
 
 	HostAnimInstance->OnStatusChanged(Tag, bHasTag);
+
+	if (Tag == ZodiacGameplayTags::Status_Movement_Disabled || Tag == ZodiacGameplayTags::Status_Stun)
+	{
+		bMovementDisabled = bHasTag;
+	}
 }
 
 void AZodiacCharacter::OnMovementTagChanged(FGameplayTag Tag, int Count)
@@ -455,7 +467,7 @@ void AZodiacCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 
 void AZodiacCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled)
 {
-	// MOVE_Walking and MOVE_Traversal tags applied from CharMoveComp to ASC. 
+	// MOVE_Walking and MOVE_Traversal tags applied from CharMoveComp to ASC. for ZodiacHostCharacter, it's applied to HeroCharacter.
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
 		const FGameplayTag* MovementModeTag;

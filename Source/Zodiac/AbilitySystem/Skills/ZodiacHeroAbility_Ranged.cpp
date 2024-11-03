@@ -11,9 +11,7 @@
 #include "AbilitySystem/ZodiacGameplayAbilityTargetData_SingleTargetHit.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
-#include "Character/ZodiacMonster.h"
 #include "Hero/ZodiacHeroAbilitySlot_RangedWeapon.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Physics/ZodiacCollisionChannels.h"
 #include "Teams/ZodiacTeamSubsystem.h"
 
@@ -624,10 +622,13 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 		}
 	}
 	
-	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect, 1);
-	EffectSpecHandle.Data.Get()->GetContext().AddSourceObject(Slot);
-	EffectSpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Damage, DamagePerBullet.GetValue());
-	ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetData);
+	if (DamageEffect)
+	{
+		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect, 1);
+		EffectSpecHandle.Data.Get()->GetContext().AddSourceObject(Slot);
+		EffectSpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Damage, DamagePerBullet.GetValue());
+		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetData);	
+	}
 }
 
 #if WITH_EDITOR

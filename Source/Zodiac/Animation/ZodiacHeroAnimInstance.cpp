@@ -81,12 +81,6 @@ void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 		FRotator AimRotation = ParentCharacter->GetBaseAimRotation();
 		FRotator RootTransform = ParentAnimInstance->RootTransform.Rotator();
 		FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
-		
-		//bool bIsSlotActive = IsSlotActive(FName("Weapon_Additive"));
-		//bool bIsRightPistolSlotActive = IsSlotActive(FName("Weapon_RightPistolAdditive"));
-
-		//bShouldReveal_LeftPistol = bAnimNotify_RevealLeftPistol || (bIsADS && bIsWeaponReady);
-		//bShouldReveal_RightPistol = (bAnimNotify_RevealRightPistol && bIsFocus) || (bIsFocus && bIsWeaponReady) || bIsRightPistolSlotActive || bShouldReveal_LeftPistol;
 
 		RootYawOffset = - Delta.Yaw;
 		AimYaw = Delta.Yaw;

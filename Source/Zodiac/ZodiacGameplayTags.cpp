@@ -27,10 +27,6 @@ namespace ZodiacGameplayTags
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
 
-	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_PrimarySkill_Message , "Ability.HeroChanged.PrimarySkill.Message")
-	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_SecondarySkill_Message , "Ability.HeroChanged.SecondarySkill.Message")
-	UE_DEFINE_GAMEPLAY_TAG(Ability_HeroChanged_UltimateSkill_Message , "Ability.HeroChanged.Ultimate.Message")
-	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Move, "InputTag.Move", "Move input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Move_Sprint, "InputTag.Move.Sprint", "Sprint direction input");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Look_Mouse, "InputTag.Look.Mouse", "Look (mouse) input.");
@@ -40,6 +36,7 @@ namespace ZodiacGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_Damaged_Message, "Event.Damaged.Message");
 	UE_DEFINE_GAMEPLAY_TAG(Event_JustLanded, "Event.JustLanded");
+	UE_DEFINE_GAMEPLAY_TAG(Event_JustLifted, "Event.JustLifted");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Traversal, "Event.Traversal");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Death, "Event.Death", "Event that fires on death. This event only fires on the server.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Reset, "Event.Reset", "Event that fires once a player reset is executed.");
@@ -55,7 +52,8 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_GodMode, "Cheat.GodMode", "GodMode cheat is active on the owner.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_UnlimitedHealth, "Cheat.UnlimitedHealth", "UnlimitedHealth cheat is active on the owner.");
 
-	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Attacking , "Status.Movement.Attacking");
+	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Attacking, "Status.Movement.Attacking");
+	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Disabled, "Status.Movement.Disabled");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Firing, "Status.Weapon.Firing");
 	UE_DEFINE_GAMEPLAY_TAG(Status_WeaponReady , "Status.WeaponReady");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Focus , "Status.Focus");
@@ -71,8 +69,6 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Modal, "UI.Layer.Modal");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Action_Escape, "UI.Action.Escape");
 
-	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillDuration, "HUD.Message.SkillDuration");
-	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_SkillCommit, "HUD.Message.SkillCommit");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AttributeChanged_Ultimate, "HUD.Message.AttributeChanged.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_ReticleChanged, "HUD.Message.ReticleChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HealthChanged, "HUD.Message.HealthChanged");

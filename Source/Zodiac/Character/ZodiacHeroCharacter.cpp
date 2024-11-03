@@ -264,10 +264,10 @@ void AZodiacHeroCharacter::AttachToOwner()
 {
 	if (ACharacter* Character = Cast<ACharacter>(Owner))
 	{
-		if (USkeletalMeshComponent* CharacterMesh = Character->GetMesh())
+		if (USkeletalMeshComponent* HostMesh = Character->GetMesh())
 		{
-			AttachToComponent(CharacterMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, NAME_None);
-			AddTickPrerequisiteComponent(CharacterMesh);
+			AttachToComponent(HostMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, NAME_None);
+			AddTickPrerequisiteComponent(HostMesh);
 		}
 	}
 }

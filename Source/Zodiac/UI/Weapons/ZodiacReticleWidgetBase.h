@@ -14,7 +14,6 @@ class ZODIAC_API UZodiacReticleWidgetBase : public UZodiacAbilitySlotWidgetBase
 	GENERATED_BODY()
 
 public:
-
 	/** Returns the current weapon's diametrical spread angle, in degrees */
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	float ComputeSpreadAngle() const;
