@@ -74,6 +74,8 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	FVector StartTrace = FVector::ZeroVector;
 	FVector EndTrace = FVector::ZeroVector;
 
+	float PhysicalMaterialAttenuation = 1.0f;
+	
 	// Calculation of hit actor, surface, zone, and distance all rely on whether the calculation has a hit result or not.
 	// Effects just being added directly w/o having been targeted will always come in without a hit result, which must default
 	// to some fallback information.
@@ -88,6 +90,17 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 			StartTrace = CurHitResult.TraceStart;
 			EndTrace = CurHitResult.TraceEnd;
 		}
+
+		if (UObject* Source = TypedContext->GetSourceObject())
+		{
+			if (IZodiacAbilitySourceInterface* SourceInterface = Cast<IZodiacAbilitySourceInterface>(Source))
+			{
+				if (const UPhysicalMaterial* PhysMat = HitActorResult->PhysMaterial.Get())
+				{
+					PhysicalMaterialAttenuation = SourceInterface->GetPhysicalMaterialAttenuation(PhysMat);
+				}
+			}
+		}
 	}
 
 	// Handle case of no hit result or hit result not actually returning an actor
@@ -98,18 +111,6 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 		if (HitActor)
 		{
 			ImpactLocation = HitActor->GetActorLocation();
-		}
-	}
-
-	float PhysicalMaterialAttenuation = 1.0f;
-	if (UObject* Source = TypedContext->GetSourceObject())
-	{
-		if (IZodiacAbilitySourceInterface* SourceInterface = Cast<IZodiacAbilitySourceInterface>(Source))
-		{
-			if (const UPhysicalMaterial* PhysMat = TypedContext->GetHitResult()->PhysMaterial.Get())
-			{
-				PhysicalMaterialAttenuation = SourceInterface->GetPhysicalMaterialAttenuation(PhysMat);
-			}
 		}
 	}
 	

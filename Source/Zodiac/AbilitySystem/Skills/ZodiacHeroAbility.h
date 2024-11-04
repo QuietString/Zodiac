@@ -8,7 +8,6 @@
 
 class UNiagaraSystem;
 class UZodiacHeroAbilitySlot;
-class UZodiacHeroItemSlot;
 class AZodiacHeroCharacter;
 
 USTRUCT(BlueprintType)
@@ -68,6 +67,11 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	UZodiacHeroAbilitySlot* GetAssociatedSlot() const;
+
+	void AddSlotAsSourceObject(FGameplayEffectContextHandle& EffectContext);
+	
+	UFUNCTION(BlueprintCallable)
+	FGameplayEffectContextHandle AddSourceSlotToEffectContext(FGameplayEffectContextHandle EffectContext);
 	
 	template<typename T>
 	T* GetAssociatedSlot() const
@@ -104,7 +108,7 @@ public:
 	float GetOngoingCostAmount() const { return FirstCostAmount; }
 	
 	FVector GetWeaponLocation() const;
-	
+
 protected:
 	UFUNCTION(BlueprintCallable)
 	void ApplySlotReticle();

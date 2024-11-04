@@ -47,6 +47,20 @@ UZodiacHeroAbilitySlot* UZodiacHeroAbility::GetAssociatedSlot() const
 	return nullptr;
 }
 
+void UZodiacHeroAbility::AddSlotAsSourceObject(FGameplayEffectContextHandle& EffectContext)
+{
+	if (UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot())
+	{
+		EffectContext.AddSourceObject(Slot);
+	}
+}
+
+FGameplayEffectContextHandle UZodiacHeroAbility::AddSourceSlotToEffectContext(FGameplayEffectContextHandle EffectContext)
+{
+	AddSlotAsSourceObject(EffectContext);
+	return EffectContext;
+}
+
 FName UZodiacHeroAbility::GetCurrentComboSocket()
 {
 	if (Sockets.IsValidIndex(ComboIndex))
@@ -329,7 +343,6 @@ FVector UZodiacHeroAbility::GetWeaponLocation() const
 
 	return  FVector();
 }
-
 
 void UZodiacHeroAbility::ApplySlotReticle()
 {
