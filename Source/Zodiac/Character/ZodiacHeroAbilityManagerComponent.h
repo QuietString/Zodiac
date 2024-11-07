@@ -149,8 +149,6 @@ protected:
 	void SendChangeSlotWidgetsMessage(TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets);
 	
 	void ClearAbilityReticle();
-
-	void HandleUltimateChanged(AActor* Instigator, AActor* Causer, const FGameplayEffectSpec* EffectSpec, float Magnitude, float OldValue, float NewValue);
 	
 	UFUNCTION()
 	void SendChangeHealthMessage(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);

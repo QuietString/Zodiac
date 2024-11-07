@@ -111,6 +111,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SimulateOrPlayHitReact(FVector HitDirection, FName HitBone);
 
+	void SetDefaultCustomMovementMode(uint8 CustomMode);
 	void SetMovementSpeeds(const FVector& InWalkSpeeds, const FVector& InRunSpeeds);
 
 protected:	

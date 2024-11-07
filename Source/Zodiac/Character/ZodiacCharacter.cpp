@@ -246,7 +246,11 @@ void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* In
 
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwner, this);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Mode_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);	
+
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Custom_Walking, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Custom_Running, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);
+	
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Death, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
@@ -380,23 +384,13 @@ void AZodiacCharacter::OnMovementTagChanged(FGameplayTag Tag, int Count)
 {
 	if (UZodiacCharacterMovementComponent* ZodiacMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
 	{
-		uint8 CustomMode_Candidate;
-		if (Tag == ZodiacGameplayTags::Movement_Mode_ADS)
+		if (const uint8* CustomMovementPtr = ZodiacGameplayTags::TagCustomMovementModeMap.Find(Tag))
 		{
-			CustomMode_Candidate = Move_Custom_ADS;
+			uint8 CustomMovement = *CustomMovementPtr;
+			bool bHasTag = Count > 0;
+			uint8 CustomMode = bHasTag ? CustomMovement : Move_Custom_Running; // currently, use Move_Custom_Running as default mode.
+			ZodiacMoveComp->SetMovementMode(MOVE_Walking, CustomMode);
 		}
-		else if (Tag == ZodiacGameplayTags::Movement_Mode_Focus)
-		{
-			CustomMode_Candidate = Move_Custom_Focus;
-		}
-		else
-		{
-			CustomMode_Candidate = MOVE_None;
-		}
-
-		bool bHasTag = Count > 0;
-		uint8 CustomMode = bHasTag ? CustomMode_Candidate : MOVE_None;
-		ZodiacMoveComp->SetMovementMode(MOVE_Walking, CustomMode);
 	}
 }
 
@@ -488,6 +482,14 @@ void AZodiacCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 Cust
 				ASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
 			}
 		}
+	}
+}
+
+void AZodiacCharacter::SetDefaultCustomMovementMode(uint8 CustomMode)
+{
+	if (UZodiacCharacterMovementComponent* ZodiacCharacterMovementComponent = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		ZodiacCharacterMovementComponent->DefaultCustomMovementMode = EZodiacCustomMovementMode(CustomMode);
 	}
 }
 

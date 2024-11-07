@@ -101,11 +101,9 @@ public:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-	virtual UGameplayEffect* GetFirstCostGameplayEffect() const;
-	virtual bool CheckFirstCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const;
-	virtual void ApplyFirstCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const;
-	float GetOngoingCostAmount() const { return FirstCostAmount; }
+	
+	float GetCostToApply() const { return bUseInitialCost ? (bHasInitialCostApplied ? CostAmount : InitialCostAmount) : CostAmount; }
+	float GetCostAmount() const { return CostAmount; }
 	
 	FVector GetWeaponLocation() const;
 
@@ -160,19 +158,20 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultimate")
 	FScalableFloat UltimateChargeAmount;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
-	TSubclassOf<UGameplayEffect> FirstCostEffectClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
-	float FirstCostAmount;
-
+	
 	// use different amount of cost for initiation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
-	bool bUseInitiationCost = false;
-	
+	bool bUseInitialCost = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs", meta = (EditCondition = "bUseInitialCost"))
+	float InitialCostAmount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
+	float CostAmount;
+
 private:
-	bool bHasCommitted = false;
+	mutable float CostToApply;
+	mutable bool bHasInitialCostApplied = false;
 	
 	// Temp container that we will return the pointer to in GetCooldownTags().
 	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.

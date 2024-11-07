@@ -12,7 +12,7 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHealthComponent)
 
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Zodiac_Elimination_Message, "Zodiac.Elimination.Message");
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Elimination, "Event.Elimination");
 
 namespace ZodiacConsoleVariables
 {

@@ -65,7 +65,7 @@ void UZodiacCharacterMovementComponent::SetMovementMode(EMovementMode NewMovemen
 	}
 
 	// Do nothing if nothing is changing.
-	if (MovementMode == NewMovementMode && NewCustomMode == CustomMovementMode)
+	if (MovementMode == NewMovementMode && CustomMovementMode == NewCustomMode)
 	{
 		return;
 	}
@@ -144,14 +144,6 @@ void UZodiacCharacterMovementComponent::JumpOff(AActor* MovementBaseActor)
 
 float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 {
-	// if (IGameplayTagAssetInterface* TagInterface = Cast<IGameplayTagAssetInterface>(CharacterOwner))
-	// {
-	// 	if (TagInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Stun) || TagInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Movement_Disabled))
-	// 	{
-	// 		return 0.0f;
-	// 	}		
-	// }
-	
 	if (MovementMode == MOVE_Walking)
 	{
 		return CalculateMaxSpeed();
@@ -163,8 +155,61 @@ float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 bool UZodiacCharacterMovementComponent::CanAttemptJump() const
 {
 	// Same as UCharacterMovementComponent's implementation but without the crouch check
-	return IsJumpAllowed() &&
-		(IsMovingOnGround() || IsFalling()); // Falling included for double-jump and non-zero jump hold time, but validated by character.
+	return IsJumpAllowed() && (IsMovingOnGround() || IsFalling()); // Falling included for double-jump and non-zero jump hold time, but validated by character.
+}
+
+void UZodiacCharacterMovementComponent::SetDefaultMovementMode()
+{
+	// Same as UCharacterMovementComponent's implementation but with DefaultCustomMovementMode
+
+	// check for water volume
+	if (CanEverSwim() && IsInWater())
+	{
+		SetMovementMode(DefaultWaterMovementMode);
+	}
+	else if ( !CharacterOwner || MovementMode != DefaultLandMovementMode || CustomMovementMode != DefaultCustomMovementMode)
+	{
+		const float SavedVelocityZ = Velocity.Z;
+		SetMovementMode(DefaultLandMovementMode, DefaultCustomMovementMode);
+
+		// Avoid 1-frame delay if trying to walk but walking fails at this location.
+		if (MovementMode == MOVE_Walking && GetMovementBase() == NULL)
+		{
+			Velocity.Z = SavedVelocityZ; // Prevent temporary walking state from zeroing Z velocity.
+			SetMovementMode(MOVE_Falling);
+		}
+	}
+}
+
+void UZodiacCharacterMovementComponent::SetPostLandedPhysics(const FHitResult& Hit)
+{
+	// Same as UCharacterMovementComponent's implementation, but with DefaultCustomMovementMode
+	
+	if( CharacterOwner )
+	{
+		if (CanEverSwim() && IsInWater())
+		{
+			SetMovementMode(MOVE_Swimming);
+		}
+		else
+		{
+			const FVector PreImpactAccel = Acceleration + (IsFalling() ? -GetGravityDirection() * GetGravityZ() : FVector::ZeroVector);
+			const FVector PreImpactVelocity = Velocity;
+
+			if (DefaultLandMovementMode == MOVE_Walking ||
+				DefaultLandMovementMode == MOVE_NavWalking ||
+				DefaultLandMovementMode == MOVE_Falling)
+			{
+				SetMovementMode(GetGroundMovementMode(), DefaultCustomMovementMode);
+			}
+			else
+			{
+				SetDefaultMovementMode();
+			}
+			
+			ApplyImpactPhysicsForces(Hit, PreImpactAccel, PreImpactVelocity);
+		}
+	}
 }
 
 const FZodiacCharacterGroundInfo& UZodiacCharacterMovementComponent::GetGroundInfo()

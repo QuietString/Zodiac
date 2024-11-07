@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// the.quiet.string@gmail.com
 
 #include "ZodiacGameplayTags.h"
 
@@ -44,6 +44,8 @@ namespace ZodiacGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Damage, "SetByCaller.Damage", "SetByCaller tag used by damage gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_DamageMultiplier, "SetByCaller.DamageMultiplier", "SetByCaller tag used to apply damage multiplier.");
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Heal, "SetByCaller.Heal", "SetByCaller tag used by healing gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Cooldown, "SetByCaller.Cooldown", "SetByCaller tag used to apply cooldown gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Ultimate, "SetByCaller.Ultimate", "SetByCaller tag used to change ultimate attribute value.");
@@ -56,6 +58,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Disabled, "Status.Movement.Disabled");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Firing, "Status.Weapon.Firing");
 	UE_DEFINE_GAMEPLAY_TAG(Status_WeaponReady , "Status.WeaponReady");
+	UE_DEFINE_GAMEPLAY_TAG(Status_ADS, "Status.ADS");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Focus , "Status.Focus");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status__MovementAutoRunning, "Status.Movement.AutoRunning", "Target is auto-running.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death, "Status.Death", "Target has the death status.");
@@ -87,10 +90,10 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom, "Movement.Mode.Custom", "Default Character movement tag");
 
 	// These are mapped to the movement modes inside GetCustomMovementModeTagMap()
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Running, "Movement.Mode.Walking.Running", "Custom character running movement tag");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_ADS, "Movement.Mode.Walking.ADS", "Custom character aiming movement tag");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Focus, "Movement.Mode.Walking.Focus", "Custom character focused movement tag");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Traversal, "Movement.Mode.Walking.Traversal", "Custom character traversal movement tag");
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_None, "Movement.Custom.None");
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_Walking, "Movement.Custom.Walking");
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_Running, "Movement.Custom.Running");
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_Traversal, "Movement.Custom.Traversal");
 
 	// Unreal Movement Modes
 	const TMap<uint8, FGameplayTag> MovementModeTagMap =
@@ -106,13 +109,20 @@ namespace ZodiacGameplayTags
 	// Custom Movement Modes
 	const TMap<uint8, FGameplayTag> CustomMovementModeTagMap =
 	{
-		{Move_Custom_Walking, Movement_Mode_None},
-		{Move_Custom_ADS, Movement_Mode_ADS},
-		{Move_Custom_Focus, Movement_Mode_Focus},
-		{Move_Custom_Running, Movement_Mode_Running},
-		{Move_Custom_Traversal, Movement_Mode_Traversal}
+		{Move_Custom_None, Movement_Custom_None},
+		{Move_Custom_Walking, Movement_Custom_Walking},
+		{Move_Custom_Running, Movement_Custom_Running},
+		{Move_Custom_Traversal, Movement_Custom_Traversal}
 	};
 
+	const TMap<FGameplayTag, uint8> TagCustomMovementModeMap =
+	{
+		{Movement_Custom_None, Move_Custom_None},
+		{Movement_Custom_Walking, Move_Custom_Walking},
+		{Movement_Custom_Running, Move_Custom_Running},
+		{Movement_Custom_Traversal, Move_Custom_Traversal}
+	};
+	
 	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{
 		const UGameplayTagsManager& Manager = UGameplayTagsManager::Get();

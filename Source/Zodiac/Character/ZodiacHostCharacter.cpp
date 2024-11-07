@@ -86,15 +86,14 @@ void AZodiacHostCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo
 {
 	Super::DisplayDebug(Canvas, DebugDisplay, YL, YPos);
 
-	if (DebugDisplay.IsDisplayOn(FName("AZodiacHostCharacter")))
+	if (DebugDisplay.IsDisplayOn(FName("HostCharacter")))
 	{
 		if (IsLocallyControlled())
 		{
 			FDisplayDebugManager& DisplayDebugManager = Canvas->DisplayDebugManager;
 
 			DisplayDebugManager.SetFont(GEngine->GetSmallFont());
-			DisplayDebugManager.SetDrawColor(FColor::Yellow);
-			DisplayDebugManager.DrawString(FString::Printf(TEXT("ZodiacHostCharacter: %s"), *GetNameSafe(this)));
+			DisplayDebugManager.SetDrawColor(FColor::Green);
 
 			{
 				FGameplayTagContainer Container;

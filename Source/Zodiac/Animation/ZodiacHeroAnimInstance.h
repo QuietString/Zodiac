@@ -30,23 +30,14 @@ public:
 
 	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe))
 	UZodiacHostAnimInstance* GetParentAnimInstance() const;
+	
+	void OnStatusChanged(FGameplayTag Tag, bool bHasTag);
 
-	void OnAimingChanged(bool bHasActivated);
-	
-	UFUNCTION(BlueprintImplementableEvent)
-	void PlayHideOrRevealGunsMontage(bool bReveal);
-	
 protected:
 	void UpdateMovementData();
 	void UpdateAimingData(float DeltaSeconds);
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blends")
-	float PistolScale;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Blends")
-	float PistolBlendAlpha;
-
 	UPROPERTY(BlueprintReadOnly, Category = "Blends")
 	float RootYawOffset;
 	

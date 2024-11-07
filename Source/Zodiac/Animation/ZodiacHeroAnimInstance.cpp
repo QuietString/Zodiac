@@ -60,18 +60,27 @@ UZodiacHostAnimInstance* UZodiacHeroAnimInstance::GetParentAnimInstance() const
 	return nullptr;
 }
 
-void UZodiacHeroAnimInstance::OnAimingChanged(bool bHasActivated)
+void UZodiacHeroAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 {
-	PlayHideOrRevealGunsMontage(bHasActivated);
+	if (Tag == ZodiacGameplayTags::Status_Focus)
+	{
+		bIsFocus = bHasTag;
+	}
+	else if (Tag == ZodiacGameplayTags::Status_Death)
+	{
+		bIsDead = bHasTag;
+	}
+
+	else if (Tag == ZodiacGameplayTags::Status_ADS)
+	{
+		bIsADS = bHasTag;
+	}
 }
 
 void UZodiacHeroAnimInstance::UpdateMovementData()
 {
-	bIsFocus = ParentAnimInstance->bIsFocus;
-	bIsADS = ParentAnimInstance->bIsADS;
 	bIsMoving = ParentAnimInstance->bIsMoving; 
 	bIsTraversal = ParentAnimInstance->CustomMovement == Move_Custom_Traversal;
-	bIsWeaponReady = ParentAnimInstance->bIsWeaponReady;
 }
 
 void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)

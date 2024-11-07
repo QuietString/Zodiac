@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayTagAssetInterface.h"
 #include "GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "Teams/ZodiacTeamAgentInterface.h"
@@ -21,7 +22,7 @@ class UZodiacHeroData;
 class UZodiacAbilitySystemComponent;
 
 UCLASS(Abstract)
-class ZODIAC_API AZodiacHeroCharacter : public ACharacter, public IAbilitySystemInterface, public IZodiacTeamAgentInterface
+class ZODIAC_API AZodiacHeroCharacter : public ACharacter, public IAbilitySystemInterface, public IZodiacTeamAgentInterface, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
@@ -35,6 +36,13 @@ public:
 	virtual void OnRep_Owner() override;
 	//~End of AActor interface
 
+	//~IGameplayTagAssetInterface
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
+	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
+	virtual bool HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
+	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
+	//~End of IGameplayTagAssetInterface
+	
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;

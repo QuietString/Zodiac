@@ -177,12 +177,6 @@ void UZodiacHeroAbilityManagerComponent::BindMessageDelegates()
 {
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UZodiacUltimateSet::GetUltimateAttribute()).AddUObject(this, &ThisClass::SendAttributeValueChangedMessage);
 	
-	// const UZodiacUltimateSet* UltimateSet = AbilitySystemComponent->GetSet<UZodiacUltimateSet>();
-	// if (UltimateSet)
-	// {
-	// 	UltimateSet->OnUltimateChanged.AddUObject(this, &ThisClass::HandleUltimateChanged);
-	// }
-	
 	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
 	{
 		if (UZodiacHealthComponent* HealthComponent = Hero->GetComponentByClass<UZodiacHealthComponent>())
@@ -285,24 +279,6 @@ void UZodiacHeroAbilityManagerComponent::ClearAbilityReticle()
 	}
 }
 
-void UZodiacHeroAbilityManagerComponent::HandleUltimateChanged(AActor* Instigator, AActor* Causer, const FGameplayEffectSpec* EffectSpec,
-	float Magnitude, float OldValue, float NewValue)
-{
-	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
-	{
-		FZodiacHUDMessage_AttributeValueChanged Message;
-		Message.Controller = GetHostController();
-		Message.Hero = GetOwner();
-		Message.Attribute = UZodiacUltimateSet::GetUltimateAttribute();
-		Message.OldValue = OldValue;
-		Message.NewValue = NewValue;
-		
-		const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_AttributeValueChanged;
-		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-		MessageSubsystem.BroadcastMessage(Channel, Message);
-	}
-}
-
 void UZodiacHeroAbilityManagerComponent::SendChangeHealthMessage(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator)
 {
 	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
@@ -329,7 +305,8 @@ void UZodiacHeroAbilityManagerComponent::SendAttributeValueChangedMessage(const 
 
 	bool bIsPredicted = AbilitySystemComponent->ScopedPredictionKey.IsValidKey();
 	bool bIsLargeDifference = FMath::Abs(NewValue - OldValue) > Threshold;
-	
+
+	// bIsLargeDifference for initial attribute value change, which is not predicted.
 	if (bIsPredicted || bIsLargeDifference)
 	{
 		if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())

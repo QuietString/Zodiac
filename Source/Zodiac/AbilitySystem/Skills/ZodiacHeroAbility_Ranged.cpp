@@ -108,6 +108,11 @@ void UZodiacHeroAbility_Ranged::EndAbility(const FGameplayAbilitySpecHandle Hand
 {
 	if (IsEndAbilityValid(Handle, ActorInfo))
 	{
+		if (ScopeLockCount > 0)
+		{
+			WaitingToExecute.Add(FPostLockDelegate::CreateUObject(this, &ThisClass::EndAbility, Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled));
+		}
+		
 		UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
 		check(MyASC);
 
@@ -215,7 +220,7 @@ void UZodiacHeroAbility_Ranged::StartRangedWeaponTargeting()
 	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(MyASC);
 
-	FScopedPredictionWindow ScopedPrediction(MyASC, CurrentActivationInfo.GetActivationPredictionKey());
+	//FScopedPredictionWindow ScopedPrediction(MyASC, CurrentActivationInfo.GetActivationPredictionKey());
 
 	TArray<FHitResult> FoundHits;
 	PerformLocalTargeting(OUT FoundHits);
@@ -246,7 +251,7 @@ void UZodiacHeroAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbility
 	if (const FGameplayAbilitySpec* AbilitySpec = MyASC->FindAbilitySpecFromHandle(CurrentSpecHandle))
 	{
 		FScopedPredictionWindow	ScopedPrediction(MyASC);
-
+		
 		// Take ownership of the target data to make sure no callbacks into game code invalidate it out from under us
 		FGameplayAbilityTargetDataHandle LocalTargetDataHandle(MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
 
@@ -600,7 +605,7 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 				HostASC->ExecuteGameplayCue(GameplayCueTag_Impact, GameplayCueParams_Impact);
 			}
 		
-			if (ChargeUltimateEffectClass && HasAuthority(&CurrentActivationInfo))
+			if (ChargeUltimateEffectClass && HasAuthorityOrPredictionKey(CurrentActorInfo, &CurrentActivationInfo))
 			{
 				for (auto& Actor : SingleTargetData->GetActors())
 				{

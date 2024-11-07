@@ -57,7 +57,6 @@ void UZodiacHostAnimInstance::UpdateMovementData()
 {
 	CustomMovement_Last = CustomMovement;
 	CustomMovement = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
-	bIsADS = (CustomMovement == Move_Custom_ADS);
 	bIsMoving = !Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1);
 }
 
@@ -97,6 +96,10 @@ void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 	else if (Tag == ZodiacGameplayTags::Status_WeaponReady)
 	{
 		bIsWeaponReady = bHasTag;
+	}
+	else if (Tag == ZodiacGameplayTags::Status_ADS)
+	{
+		bIsADS = bHasTag;
 	}
 }
 

@@ -166,19 +166,12 @@ void UZodiacHeroAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
                                         const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	Super::CommitExecute(Handle, ActorInfo, ActivationInfo);
-
-	bHasCommitted = true;
 }
 
 bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                     FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags) || !ActorInfo)
-	{
-		return false;
-	}
-	
-	if (!bHasCommitted && !CheckFirstCost(Handle, ActorInfo, OptionalRelevantTags))
 	{
 		return false;
 	}
@@ -201,14 +194,9 @@ bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, cons
 void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                     const FGameplayAbilityActivationInfo ActivationInfo) const
 {
-	if (bUseInitiationCost && !bHasCommitted)
-	{
-		ApplyFirstCost(Handle, ActorInfo, ActivationInfo);
-		return;
-	}
-	
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
-	
+	bHasInitialCostApplied = true;
+
 	// Used to determine if the ability actually hit a target (as some costs are only spent on successful attempts)
 	auto DetermineIfAbilityHitTarget = [&]()
 	{
@@ -280,48 +268,7 @@ void UZodiacHeroAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 		HostASC->RemoveLooseGameplayTags(ActivationOwnedTagsHost);
 	}
 
-	bHasCommitted = false;
-}
-
-UGameplayEffect* UZodiacHeroAbility::GetFirstCostGameplayEffect() const
-{
-	if (FirstCostEffectClass)
-	{
-		return FirstCostEffectClass->GetDefaultObject<UGameplayEffect>();
-	}
-
-	return nullptr;
-}
-
-bool UZodiacHeroAbility::CheckFirstCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                          FGameplayTagContainer* OptionalRelevantTags) const
-{
-	if (UGameplayEffect* OnGoingCost = GetFirstCostGameplayEffect())
-	{
-		UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
-		check(AbilitySystemComponent != nullptr);
-		if (!AbilitySystemComponent->CanApplyAttributeModifiers(OnGoingCost, GetAbilityLevel(Handle, ActorInfo), MakeEffectContext(Handle, ActorInfo)))
-		{
-			const FGameplayTag& CostTag = UAbilitySystemGlobals::Get().ActivateFailCostTag;
-
-			if (OptionalRelevantTags && CostTag.IsValid())
-			{
-				OptionalRelevantTags->AddTag(CostTag);
-			}
-			return false;
-		}
-	}
-	
-	return true;
-}
-
-void UZodiacHeroAbility::ApplyFirstCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo) const
-{
-	if (UGameplayEffect* OnGoingCost = GetFirstCostGameplayEffect())
-	{
-		ApplyGameplayEffectToOwner(Handle, ActorInfo, ActivationInfo, OnGoingCost, GetAbilityLevel(Handle, ActorInfo));
-	}
+	bHasInitialCostApplied = false;
 }
 
 FVector UZodiacHeroAbility::GetWeaponLocation() const

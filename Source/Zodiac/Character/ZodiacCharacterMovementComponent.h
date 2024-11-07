@@ -15,13 +15,12 @@ ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gameplay_MovementStopped);
 UENUM(BlueprintType)
 enum EZodiacCustomMovementMode
 {
-	Move_Custom_Running = 0			UMETA(DisplayName="Running"), 
-	Move_Custom_Walking				UMETA(DisplayName="Walking"), // not using custom movement, same value as MOVE_None 
-	Move_Custom_ADS					UMETA(DisplayName="ADS"),  // Slow walking movement with weapon fire
-	Move_Custom_Focus				UMETA(DisplayName="Focus"),  // Standard walking movement with light weapon fire
+	Move_Custom_None = 0			UMETA(DisplayName="None"),
+	Move_Custom_Walking				UMETA(DisplayName="Walking"),
+	Move_Custom_Running				UMETA(DisplayName="Running"), 
 	Move_Custom_Traversal			UMETA(DisplayName="Traversal")
 };
-
+	
 /**
  *	Information about the ground under the character.  It only gets updated as needed.
  */
@@ -63,6 +62,8 @@ public:
 	virtual void JumpOff(AActor* MovementBaseActor) override;
 	virtual float GetMaxSpeed() const override;
 	virtual bool CanAttemptJump() const override;
+	virtual void SetDefaultMovementMode() override;
+	virtual void SetPostLandedPhysics(const FHitResult& Hit) override;
 	
 	// Returns the current ground info.  Calling this will update the ground info if it's out of date.
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|CharacterMovement")
@@ -81,6 +82,9 @@ public:
 	// X: max speed, Y: mid speed, Z: min speed
 	UPROPERTY(EditAnywhere)
 	FVector WalkSpeeds = FVector(200.0f, 175.0f, 150.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TEnumAsByte<EZodiacCustomMovementMode> DefaultCustomMovementMode;
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")

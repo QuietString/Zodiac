@@ -66,6 +66,44 @@ void AZodiacHeroCharacter::OnRep_Owner()
 	InitializeWithHostCharacter();
 }
 
+void AZodiacHeroCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+{
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		ASC->GetOwnedGameplayTags(TagContainer);
+	}
+}
+
+bool AZodiacHeroCharacter::HasMatchingGameplayTag(FGameplayTag TagToCheck) const
+{
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		return ASC->HasMatchingGameplayTag(TagToCheck);
+	}
+
+	return false;
+}
+
+bool AZodiacHeroCharacter::HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		return ASC->HasAllMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
+bool AZodiacHeroCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const
+{
+	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	{
+		return ASC->HasAnyMatchingGameplayTags(TagContainer);
+	}
+
+	return false;
+}
+
 FGenericTeamId AZodiacHeroCharacter::GetGenericTeamId() const
 {
 	if (HostCharacter)
@@ -107,7 +145,7 @@ void AZodiacHeroCharacter::InitializeAbilitySystem()
 
 	AbilitySystemComponent->InitAbilityActorInfo(Owner, this);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
-	//AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
 
 	if (HeroData)
 	{
@@ -130,14 +168,12 @@ void AZodiacHeroCharacter::InitializeAbilitySystem()
 
 void AZodiacHeroCharacter::OnStatusTagChanged(FGameplayTag Tag, int Count)
 {
-	check(HostCharacter);
-	
-	if (UAbilitySystemComponent* HostASC = HostCharacter->GetHostAbilitySystemComponent())
+	if (UZodiacHeroAnimInstance* HeroAnimInstance = GetHeroAnimInstance())
 	{
 		bool bHasTag = Count > 0;
 		int32 NewCount = bHasTag ? 1 : 0;
-		
-		HostASC->SetLooseGameplayTagCount(Tag, NewCount);
+	
+		HeroAnimInstance->OnStatusChanged(Tag, bHasTag);	
 	}
 }
 
@@ -167,7 +203,7 @@ UZodiacHeroAnimInstance* AZodiacHeroCharacter::GetHeroAnimInstance() const
 
 void AZodiacHeroCharacter::SetModularMesh(TSubclassOf<USkeletalMeshComponent> SkeletalMeshCompClass, FName Socket)
 {
-	if (ModularMeshComponent)
+	if (ModularMeshComponent && ModularMeshComponent->IsRegistered())
 	{
 		ModularMeshComponent->UnregisterComponent();
 	}
@@ -220,7 +256,8 @@ void AZodiacHeroCharacter::Activate()
 			
 			//Capsule->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
 		}
-		
+
+		HostCharacter->SetDefaultCustomMovementMode(HeroData->DefaultMovementMode);
 		HostCharacter->TryChangeMovementMode(MOVE_Walking, HeroData->DefaultMovementMode);
 		HostCharacter->SetMovementSpeeds(HeroData->WalkSpeeds, HeroData->RunSpeeds);
 	}

@@ -100,9 +100,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
 	EZodiacAbilityAimTraceRule AimTraceRule;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay")
-	EZodiacAbilityAimTraceRule EffectTraceRule;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
 	TSubclassOf<UGameplayEffect> DamageEffect;
 
@@ -120,7 +117,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayCueParameters GameplayCueParams_Impact;
-	
+
 private:
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
 

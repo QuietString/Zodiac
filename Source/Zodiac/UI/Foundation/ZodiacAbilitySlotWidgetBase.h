@@ -19,6 +19,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void InitializeFromAbilitySlot(UZodiacHeroAbilitySlot* InSlot);
 
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void OnHeroChanged();
+	
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Slot")
 	TObjectPtr<UZodiacHeroAbilitySlot> AbilitySlot;

@@ -46,6 +46,8 @@ namespace ZodiacGameplayTags
 
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_DamageMultiplier);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cost);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Heal);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cooldown);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Ultimate);
@@ -58,6 +60,7 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Movement_Disabled);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Weapon_Firing);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_WeaponReady);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_ADS);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Focus);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Movement_AutoRunning);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death);
@@ -82,6 +85,7 @@ namespace ZodiacGameplayTags
 	// These are mappings from MovementMode enums to GameplayTags associated with those enums (below)
 	ZODIAC_API	extern const TMap<uint8, FGameplayTag> MovementModeTagMap;
 	ZODIAC_API	extern const TMap<uint8, FGameplayTag> CustomMovementModeTagMap;
+	ZODIAC_API	extern const TMap<FGameplayTag, uint8> TagCustomMovementModeMap;
 	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_None);
@@ -93,9 +97,9 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Custom);
 
 	// Custom MovementMode
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Running);
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_ADS);
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Focus);
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Traversal);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Custom_None);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Custom_Running);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Custom_Walking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Custom_Traversal);
 
 };
