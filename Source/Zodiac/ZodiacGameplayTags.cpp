@@ -39,17 +39,18 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Event_JustLifted, "Event.JustLifted");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Traversal, "Event.Traversal");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Death, "Event.Death", "Event that fires on death. This event only fires on the server.");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Elimination, "Event.Elimination");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Reset, "Event.Reset", "Event that fires once a player reset is executed.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_RequestReset, "Event.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Damage, "SetByCaller.Damage", "SetByCaller tag used by damage gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_DamageMultiplier, "SetByCaller.DamageMultiplier", "SetByCaller tag used to apply damage multiplier.");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
+	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Amount, "SetByCaller.Amount");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Heal, "SetByCaller.Heal", "SetByCaller tag used by healing gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Cooldown, "SetByCaller.Cooldown", "SetByCaller tag used to apply cooldown gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Ultimate, "SetByCaller.Ultimate", "SetByCaller tag used to change ultimate attribute value.");
-	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Ultimate_Cost, "SetByCaller.Ultimate.Cost");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_GodMode, "Cheat.GodMode", "GodMode cheat is active on the owner.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_UnlimitedHealth, "Cheat.UnlimitedHealth", "UnlimitedHealth cheat is active on the owner.");
@@ -72,13 +73,13 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Modal, "UI.Layer.Modal");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Action_Escape, "UI.Action.Escape");
 
-	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AttributeChanged_Ultimate, "HUD.Message.AttributeChanged.Ultimate");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_ReticleChanged, "HUD.Message.ReticleChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HealthChanged, "HUD.Message.HealthChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AttributeValueChanged, "HUD.Message.AttributeValueChanged");
-	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AbilitySlotChanged, "HUD.Message.AbilitySlotChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_WidgetChanged, "HUD.Message.WidgetChanged");
 
+	UE_DEFINE_GAMEPLAY_TAG(Gameplay_Message_Elimination, "Gameplay.Message.Elimination");
+	
 	// These are mapped to the movement modes inside GetMovementModeTagMap()
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Mode, "Movement.Mode");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_None, "Movement.Mode.None", "Default Character movement tag");

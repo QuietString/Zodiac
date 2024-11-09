@@ -284,7 +284,7 @@ void UZodiacHeroAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbility
 			{
 				WeaponSlot->AddSpread();
 			}
-
+			
 			// Apply effects to the targets
 			OnRangedWeaponTargetDataReady(LocalTargetDataHandle);
 		}

@@ -162,12 +162,6 @@ void UZodiacHeroAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
-void UZodiacHeroAbility::CommitExecute(const FGameplayAbilitySpecHandle Handle,
-                                        const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
-{
-	Super::CommitExecute(Handle, ActorInfo, ActivationInfo);
-}
-
 bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                     FGameplayTagContainer* OptionalRelevantTags) const
 {
@@ -219,28 +213,31 @@ void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, cons
 		return false;
 	};
 
-	//Pay any additional costs
-	bool bAbilityHitTarget = false;
-	bool bHasDeterminedIfAbilityHitTarget = false;
-	for (const TObjectPtr<UZodiacAbilityCost>& AdditionalCost : AdditionalCosts)
+	if (!ComboToIgnoreAdditionalCost.Find(ComboIndex))
 	{
-		if (AdditionalCost != nullptr)
+		//Pay any additional costs
+		bool bAbilityHitTarget = false;
+		bool bHasDeterminedIfAbilityHitTarget = false;
+		for (const TObjectPtr<UZodiacAbilityCost>& AdditionalCost : AdditionalCosts)
 		{
-			if (AdditionalCost->ShouldOnlyApplyCostOnHit())
+			if (AdditionalCost != nullptr)
 			{
-				if (!bHasDeterminedIfAbilityHitTarget)
+				if (AdditionalCost->ShouldOnlyApplyCostOnHit())
 				{
-					bAbilityHitTarget = DetermineIfAbilityHitTarget();
-					bHasDeterminedIfAbilityHitTarget = true;
+					if (!bHasDeterminedIfAbilityHitTarget)
+					{
+						bAbilityHitTarget = DetermineIfAbilityHitTarget();
+						bHasDeterminedIfAbilityHitTarget = true;
+					}
+	
+					if (!bAbilityHitTarget)
+					{
+						continue;
+					}
 				}
 	
-				if (!bAbilityHitTarget)
-				{
-					continue;
-				}
+				AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
 			}
-	
-			AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
 		}
 	}
 }

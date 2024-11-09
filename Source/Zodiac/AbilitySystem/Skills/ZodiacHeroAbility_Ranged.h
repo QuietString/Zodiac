@@ -73,7 +73,7 @@ protected:
 	// override it in blueprint to not call this function.
 	UFUNCTION(BlueprintNativeEvent)
 	void OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
-	
+
 	void PerformLocalTargeting(OUT TArray<FHitResult>& OutHits);
 
 	// Traces all of the bullets in a single cartridge

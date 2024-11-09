@@ -39,6 +39,7 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Damaged_Message);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_JustLanded);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_JustLifted);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Elimination);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Traversal);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Reset);
@@ -47,11 +48,11 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_DamageMultiplier);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Amount);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cost);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Heal);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cooldown);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Ultimate);
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Ultimate_Cost);
 	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_GodMode);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_UnlimitedHealth);
@@ -74,14 +75,15 @@ namespace ZodiacGameplayTags
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Modal);
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Action_Escape);
 
-	// Gameplay Message channels
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_AttributeChanged_Ultimate);
+	// Gameplay HUD Message channels
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_ReticleChanged);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_HealthChanged);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_AttributeValueChanged);
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_AbilitySlotChanged);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_WidgetChanged);
 
+	// Gameplay Message channels
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_Message_Elimination);
+	
 	// These are mappings from MovementMode enums to GameplayTags associated with those enums (below)
 	ZODIAC_API	extern const TMap<uint8, FGameplayTag> MovementModeTagMap;
 	ZODIAC_API	extern const TMap<uint8, FGameplayTag> CustomMovementModeTagMap;

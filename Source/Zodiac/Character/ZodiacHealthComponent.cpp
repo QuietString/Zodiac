@@ -2,13 +2,19 @@
 
 #include "Character/ZodiacHealthComponent.h"
 
+#include "ZodiacCharacter.h"
 #include "ZodiacLogChannels.h"
 #include "ZodiacGameplayTags.h"
+#include "ZodiacHeroCharacter.h"
+#include "ZodiacHostCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "GameFramework/PlayerState.h"
 #include "Engine/World.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
+#include "Messages/ZodiacMessageTypes.h"
+#include "Messages/ZodiacVerbMessageHelpers.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHealthComponent)
 
@@ -161,6 +167,10 @@ void UZodiacHealthComponent::HandleMaxHealthChanged(AActor* DamageInstigator, AA
 
 void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
 {
+	// Instigator: HostCharacter
+	// Causer: HeroCharacter
+	// Source: AbilitySlot
+	
 #if WITH_SERVER_CODE
 	if (AbilitySystemComponent && DamageEffectSpec)
 	{
@@ -178,6 +188,41 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 
 			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
 			AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
+		}
+
+		// Send the "Event.Elimination" gameplay event to the instigator's ability system.  This can be used to trigger a OnElimination gameplay ability.
+		{
+			if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(DamageCauser))
+			{
+				if (UAbilitySystemComponent* InstigatorASC = HeroCharacter->GetHeroAbilitySystemComponent())
+				{
+					FGameplayEventData Payload;
+					Payload.EventTag = ZodiacGameplayTags::Event_Elimination;
+					Payload.Instigator = DamageInstigator;
+					Payload.Target = AbilitySystemComponent->GetAvatarActor();
+					Payload.OptionalObject = DamageEffectSpec->Def;
+					Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
+					Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+					Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+					Payload.EventMagnitude = DamageMagnitude;
+		
+					FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
+					InstigatorASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+				}	
+			}
+		}
+		
+		// Send a standardized verb message that other systems can observe
+		{
+			FZodiacVerbMessage Message;
+			Message.Channel = ZodiacGameplayTags::Gameplay_Message_Elimination;
+			Message.Instigator = DamageInstigator;
+			Message.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+			Message.Target = AbilitySystemComponent->GetAvatarActor();
+			Message.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+
+			UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+			MessageSystem.BroadcastMessage(Message.Channel, Message);
 		}
 	}
 #endif

@@ -96,7 +96,6 @@ public:
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void CommitExecute(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
@@ -119,7 +118,7 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void ResetCombo() { ComboIndex = 0; }
-
+	
 	UFUNCTION(BlueprintCallable)
 	void ChargeUltimate();
 	
@@ -169,8 +168,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
 	float CostAmount;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
+	TArray<uint8> ComboToIgnoreAdditionalCost;
 private:
-	mutable float CostToApply;
 	mutable bool bHasInitialCostApplied = false;
 	
 	// Temp container that we will return the pointer to in GetCooldownTags().
