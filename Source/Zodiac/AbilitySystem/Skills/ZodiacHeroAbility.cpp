@@ -213,29 +213,29 @@ void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, cons
 		return false;
 	};
 
-	if (!ComboToIgnoreAdditionalCost.Find(ComboIndex))
+	//Pay any additional costs
+	bool bAbilityHitTarget = false;
+	bool bHasDeterminedIfAbilityHitTarget = false;
+	for (const TObjectPtr<UZodiacAbilityCost>& AdditionalCost : AdditionalCosts)
 	{
-		//Pay any additional costs
-		bool bAbilityHitTarget = false;
-		bool bHasDeterminedIfAbilityHitTarget = false;
-		for (const TObjectPtr<UZodiacAbilityCost>& AdditionalCost : AdditionalCosts)
+		if (AdditionalCost != nullptr)
 		{
-			if (AdditionalCost != nullptr)
+			if (AdditionalCost->ShouldOnlyApplyCostOnHit())
 			{
-				if (AdditionalCost->ShouldOnlyApplyCostOnHit())
+				if (!bHasDeterminedIfAbilityHitTarget)
 				{
-					if (!bHasDeterminedIfAbilityHitTarget)
-					{
-						bAbilityHitTarget = DetermineIfAbilityHitTarget();
-						bHasDeterminedIfAbilityHitTarget = true;
-					}
-	
-					if (!bAbilityHitTarget)
-					{
-						continue;
-					}
+					bAbilityHitTarget = DetermineIfAbilityHitTarget();
+					bHasDeterminedIfAbilityHitTarget = true;
 				}
 	
+				if (!bAbilityHitTarget)
+				{
+					continue;
+				}
+			}
+
+			if (!ComboToIgnoreAdditionalCost.Contains(ComboIndex))
+			{
 				AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
 			}
 		}

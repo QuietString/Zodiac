@@ -220,7 +220,7 @@ void UZodiacHeroAbility_Ranged::StartRangedWeaponTargeting()
 	UAbilitySystemComponent* MyASC = CurrentActorInfo->AbilitySystemComponent.Get();
 	check(MyASC);
 
-	//FScopedPredictionWindow ScopedPrediction(MyASC, CurrentActivationInfo.GetActivationPredictionKey());
+	FScopedPredictionWindow ScopedPrediction(MyASC, CurrentActivationInfo.GetActivationPredictionKey());
 
 	TArray<FHitResult> FoundHits;
 	PerformLocalTargeting(OUT FoundHits);
@@ -626,12 +626,14 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 			}
 		}
 	}
-	
+
+	// Apply damage effect
 	if (DamageEffect)
 	{
 		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect, 1);
 		EffectSpecHandle.Data.Get()->GetContext().AddSourceObject(Slot);
 		EffectSpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Damage, DamagePerBullet.GetValue());
+		EffectSpecHandle.Data->AddDynamicAssetTag(DamageType);
 		ApplyGameplayEffectSpecToTarget(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, TargetData);	
 	}
 }

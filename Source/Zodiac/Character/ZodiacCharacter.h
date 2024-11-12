@@ -109,7 +109,7 @@ public:
 	FSharedRepMovement LastSharedReplication;
 	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void SimulateOrPlayHitReact(FVector HitDirection, FName HitBone);
+	void SimulateOrPlayHitReact(FVector HitDirection, FName HitBone, float Magnitude, FGameplayTagContainer InstigatorTags);
 
 	void SetDefaultCustomMovementMode(uint8 CustomMode);
 	void SetMovementSpeeds(const FVector& InWalkSpeeds, const FVector& InRunSpeeds);

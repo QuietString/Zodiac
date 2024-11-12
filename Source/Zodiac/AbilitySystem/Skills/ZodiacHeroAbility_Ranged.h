@@ -104,6 +104,9 @@ protected:
 	TSubclassOf<UGameplayEffect> DamageEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
+	FGameplayTag DamageType;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Gameplay")
 	FScalableFloat DamagePerBullet;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FX|Cues", meta = (Categories = "GameplayCue"))
