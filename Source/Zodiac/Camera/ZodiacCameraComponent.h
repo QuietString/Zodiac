@@ -38,21 +38,8 @@ public:
 	static UZodiacCameraComponent* FindCameraComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UZodiacCameraComponent>() : nullptr); }
 
 	// Returns the target actor that the camera is looking at.
-	virtual AActor* GetTargetActor() const
-	{
-		AActor* Target = GetOwner();
-
-		// if (AZodiacHostCharacter* HostCharacter = GetOwner<AZodiacHostCharacter>())
-		// {
-		// 	if (AZodiacHeroCharacter* HeroCharacter = HostCharacter->GetHero())
-		// 	{
-		// 		Target = HeroCharacter;
-		// 	}
-		// }
-		
-		return Target;
-	}
-
+	virtual AActor* GetTargetActor() const { return GetOwner(); }
+	
 	// Delegate used to query for the best camera mode.
 	FZodiacCameraModeDelegate DetermineCameraModeDelegate;
 
@@ -70,7 +57,7 @@ protected:
 	virtual void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView) override;
 
 	virtual void UpdateCameraModes();
-
+	FVector GetHeroOffset();
 protected:
 
 	// Stack used to blend the camera modes.
@@ -79,5 +66,4 @@ protected:
 
 	// Offset applied to the field of view.  The offset is only for one frame, it gets cleared once it is applied.
 	float FieldOfViewOffset;
-
 };

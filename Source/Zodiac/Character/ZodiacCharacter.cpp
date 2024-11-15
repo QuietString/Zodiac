@@ -493,6 +493,11 @@ void AZodiacCharacter::SetDefaultCustomMovementMode(uint8 CustomMode)
 	}
 }
 
+void AZodiacCharacter::SetMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode)
+{
+	GetCharacterMovement()->SetMovementMode(MovementMode, CustomMovementMode);
+}
+
 void AZodiacCharacter::SetMovementSpeeds(const FVector& InWalkSpeeds, const FVector& InRunSpeeds)
 {
 	if (UZodiacCharacterMovementComponent* ZodiacCharMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))

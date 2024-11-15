@@ -48,6 +48,17 @@ FGenericTeamId AZodiacMonster::GetGenericTeamId() const
 	return static_cast<uint8>(EZodiacTeam::NoTeam);
 }
 
+void AZodiacMonster::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HeroData && HasAuthority())
+	{
+		SetMovementMode(MOVE_Walking, HeroData->DefaultMovementMode);
+		SetDefaultCustomMovementMode(HeroData->DefaultMovementMode);
+	}
+}
+
 void AZodiacMonster::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

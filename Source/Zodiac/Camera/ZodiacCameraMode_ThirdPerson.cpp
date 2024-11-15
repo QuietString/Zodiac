@@ -1,4 +1,5 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
+// the.quiet.string@gmail.com
 
 #include "ZodiacCameraMode_ThirdPerson.h"
 #include "Camera/ZodiacCameraMode.h"
@@ -8,9 +9,12 @@
 #include "Engine/Canvas.h"
 #include "GameFramework/CameraBlockingVolume.h"
 #include "ZodiacCameraAssistInterface.h"
+#include "Character/ZodiacMonster.h"
+#include "Engine/OverlapResult.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/Character.h"
 #include "Math/RotationMatrix.h"
+#include "Physics/ZodiacCollisionChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCameraMode_ThirdPerson)
 
@@ -30,64 +34,99 @@ UZodiacCameraMode_ThirdPerson::UZodiacCameraMode_ThirdPerson()
 	PenetrationAvoidanceFeelers.Add(FZodiacPenetrationAvoidanceFeeler(FRotator(+00.0f, -32.0f, 0.0f), 0.50f, 0.50f, 00.f, 5));
 	PenetrationAvoidanceFeelers.Add(FZodiacPenetrationAvoidanceFeeler(FRotator(+20.0f, +00.0f, 0.0f), 1.00f, 1.00f, 00.f, 4));
 	PenetrationAvoidanceFeelers.Add(FZodiacPenetrationAvoidanceFeeler(FRotator(-20.0f, +00.0f, 0.0f), 0.50f, 0.50f, 00.f, 4));
+
+	CloseContactFeelers.Add(FZodiacCloseContactFeeler(250, 15, 5));
 }
 
 void UZodiacCameraMode_ThirdPerson::UpdateView(float DeltaTime)
 {
-	UpdateForTarget(DeltaTime);
-	UpdateCrouchOffset(DeltaTime);
+    FVector PivotLocation = GetPivotLocation();
+    FRotator PivotRotation = GetPivotRotation();
 
-	FVector PivotLocation = GetPivotLocation() + CurrentCrouchOffset;
-	FRotator PivotRotation = GetPivotRotation();
+    PivotRotation.Pitch = FMath::ClampAngle(PivotRotation.Pitch, ViewPitchMin, ViewPitchMax);
 
-	PivotRotation.Pitch = FMath::ClampAngle(PivotRotation.Pitch, ViewPitchMin, ViewPitchMax);
+    View.Location = PivotLocation;
+    View.Rotation = PivotRotation;
+    View.ControlRotation = View.Rotation;
+    View.FieldOfView = FieldOfView;
 
-	View.Location = PivotLocation;
-	View.Rotation = PivotRotation;
-	View.ControlRotation = View.Rotation;
-	View.FieldOfView = FieldOfView;
+    UpdateTargetOffsetCurve(DeltaTime, PivotRotation);
 
-	// Apply third person offset using pitch.
-	if (!bUseRuntimeFloatCurves)
+    // Update camera location with the calculated TargetOffset
+    View.Location = PivotLocation + PivotRotation.RotateVector(TargetOffset);
+
+    // Adjust final desired camera location to prevent any penetration
+    UpdatePreventPenetration(DeltaTime);
+}
+
+void UZodiacCameraMode_ThirdPerson::UpdateTargetOffsetCurve(float DeltaTime, FRotator PivotRotation)
+{
+	bool bCloseContact = CheckCloseContact();
+
+	// Check for change in close contact status
+	if (bCloseContact != bPreviousCloseContact)
 	{
-		if (TargetOffsetCurve)
+		// Close contact status has changed
+		bIsBlending = true;
+		BlendElapsedTime = 0.0f;
+		BlendDuration = bCloseContact ? CloseContactBlendInTime : CloseContactBlendOutTime;
+
+		// Record the start and end offsets
+		BlendStartOffset = TargetOffset;
+
+		// Determine the BlendEndOffset based on the new close contact status
+		if (bCloseContact)
 		{
-			const FVector TargetOffset = TargetOffsetCurve->GetVectorValue(PivotRotation.Pitch);
-			View.Location = PivotLocation + PivotRotation.RotateVector(TargetOffset);
+			if (CloseContactOffsetCurve)
+			{
+				BlendEndOffset = CloseContactOffsetCurve->GetVectorValue(PivotRotation.Pitch);
+			}
+		}
+		else
+		{
+			if (TargetOffsetCurve)
+			{
+				BlendEndOffset = TargetOffsetCurve->GetVectorValue(PivotRotation.Pitch);
+			}
+		}
+	}
+
+	// Update previous close contact status
+	bPreviousCloseContact = bCloseContact;
+
+	if (bIsBlending)
+	{
+		// Update blend elapsed time
+		BlendElapsedTime += DeltaTime;
+		float OffsetCurveBlendAlpha = FMath::Clamp(BlendElapsedTime / BlendDuration, 0.0f, 1.0f);
+
+		// Interpolate between start and end offsets
+		TargetOffset = FMath::Lerp(BlendStartOffset, BlendEndOffset, OffsetCurveBlendAlpha);
+
+		// Check if blending is complete
+		if (OffsetCurveBlendAlpha >= 1.0f)
+		{
+			bIsBlending = false;
 		}
 	}
 	else
 	{
-		FVector TargetOffset(0.0f);
-
-		TargetOffset.X = TargetOffsetX.GetRichCurveConst()->Eval(PivotRotation.Pitch);
-		TargetOffset.Y = TargetOffsetY.GetRichCurveConst()->Eval(PivotRotation.Pitch);
-		TargetOffset.Z = TargetOffsetZ.GetRichCurveConst()->Eval(PivotRotation.Pitch);
-
-		View.Location = PivotLocation + PivotRotation.RotateVector(TargetOffset);
-	}
-
-	// Adjust final desired camera location to prevent any penetration
-	UpdatePreventPenetration(DeltaTime);
-}
-
-void UZodiacCameraMode_ThirdPerson::UpdateForTarget(float DeltaTime)
-{
-
-	if (const ACharacter* TargetCharacter = Cast<ACharacter>(GetTargetActor()))
-	{
-		if (TargetCharacter->bIsCrouched)
+		// No blending; use the appropriate offset directly
+		if (bCloseContact)
 		{
-			const ACharacter* TargetCharacterCDO = TargetCharacter->GetClass()->GetDefaultObject<ACharacter>();
-			const float CrouchedHeightAdjustment = TargetCharacterCDO->CrouchedEyeHeight - TargetCharacterCDO->BaseEyeHeight;
-
-			SetTargetCrouchOffset(FVector(0.f, 0.f, CrouchedHeightAdjustment));
-
-			return;
+			if (CloseContactOffsetCurve)
+			{
+				TargetOffset = CloseContactOffsetCurve->GetVectorValue(PivotRotation.Pitch);
+			}
+		}
+		else
+		{
+			if (TargetOffsetCurve)
+			{
+				TargetOffset = TargetOffsetCurve->GetVectorValue(PivotRotation.Pitch);
+			}
 		}
 	}
-
-	SetTargetCrouchOffset(FVector::ZeroVector);
 }
 
 void UZodiacCameraMode_ThirdPerson::DrawDebug(UCanvas* Canvas) const
@@ -149,7 +188,7 @@ void UZodiacCameraMode_ThirdPerson::UpdatePreventPenetration(float DeltaTime)
 		{
 			SafeLocation += (SafeLocation - ClosestPointOnLineToCapsuleCenter).GetSafeNormal() * PushInDistance;
 		}
-
+		
 		// Then aim line to desired camera position
 		bool const bSingleRayPenetrationCheck = !bDoPredictiveAvoidance;
 		PreventCameraPenetration(*PPActor, SafeLocation, View.Location, DeltaTime, AimLineToDesiredPosBlockedPct, bSingleRayPenetrationCheck);
@@ -186,7 +225,7 @@ void UZodiacCameraMode_ThirdPerson::PreventCameraPenetration(class AActor const&
 	BaseRayMatrix.GetScaledAxes(BaseRayLocalFwd, BaseRayLocalRight, BaseRayLocalUp);
 
 	float DistBlockedPctThisFrame = 1.f;
-
+	
 	int32 const NumRaysToShoot = bSingleRayOnly ? FMath::Min(1, PenetrationAvoidanceFeelers.Num()) : PenetrationAvoidanceFeelers.Num();
 	FCollisionQueryParams SphereParams(SCENE_QUERY_STAT(CameraPen), false, nullptr/*PlayerCamera*/);
 
@@ -344,25 +383,73 @@ void UZodiacCameraMode_ThirdPerson::PreventCameraPenetration(class AActor const&
 	}
 }
 
-void UZodiacCameraMode_ThirdPerson::SetTargetCrouchOffset(FVector NewTargetOffset)
+bool UZodiacCameraMode_ThirdPerson::CheckCloseContact()
 {
-	CrouchOffsetBlendPct = 0.0f;
-	InitialCrouchOffset = CurrentCrouchOffset;
-	TargetCrouchOffset = NewTargetOffset;
-}
-
-
-void UZodiacCameraMode_ThirdPerson::UpdateCrouchOffset(float DeltaTime)
-{
-	if (CrouchOffsetBlendPct < 1.0f)
+	if (!bHandleCloseContact)
 	{
-		CrouchOffsetBlendPct = FMath::Min(CrouchOffsetBlendPct + DeltaTime * CrouchOffsetBlendMultiplier, 1.0f);
-		CurrentCrouchOffset = FMath::InterpEaseInOut(InitialCrouchOffset, TargetCrouchOffset, CrouchOffsetBlendPct, 1.0f);
+		return false;
 	}
-	else
-	{
-		CurrentCrouchOffset = TargetCrouchOffset;
-		CrouchOffsetBlendPct = 1.0f;
-	}
-}
 
+	UWorld* World = GetWorld();
+	AActor* TargetActor = GetTargetActor();
+
+	// Set up collision query parameters
+	FCollisionQueryParams SphereParams(SCENE_QUERY_STAT(CameraCloseContact), false, nullptr);
+	SphereParams.AddIgnoredActor(TargetActor);
+	SphereParams.AddIgnoredActors(TargetActor->Children);
+
+	FCollisionShape SphereShape = FCollisionShape::MakeSphere(0);
+	ECollisionChannel TraceChannel = ECC_Pawn;
+	
+	FVector EyeLoc;
+	FRotator EyeRot;
+	TargetActor->GetActorEyesViewPoint(EyeLoc, EyeRot);
+	
+	FVector BaseRayForwardVector = TargetActor->GetActorForwardVector();
+	FRotationMatrix BaseRayMatrix(BaseRayForwardVector.Rotation());
+	FVector BaseRayLocalUp, BaseRayLocalFwd, BaseRayLocalRight;
+	BaseRayMatrix.GetScaledAxes(BaseRayLocalFwd, BaseRayLocalRight, BaseRayLocalUp);
+	
+	for (auto& Feeler : CloseContactFeelers)
+	{
+		if (Feeler.FramesUntilNextTrace <= 0)
+		{
+			Feeler.FramesUntilNextTrace = Feeler.TraceInterval;
+			SphereShape.Sphere.Radius = Feeler.Extent;
+			
+			// calc ray target
+			FVector RotatedRayDirection = BaseRayForwardVector.RotateAngleAxis(Feeler.AdjustmentRot.Yaw, BaseRayLocalUp);
+			RotatedRayDirection = RotatedRayDirection.RotateAngleAxis(Feeler.AdjustmentRot.Pitch, BaseRayLocalRight);
+			FVector OverlapCenter = EyeLoc + RotatedRayDirection * Feeler.ContactDistance;
+
+			TArray<FOverlapResult> OverlapResults;
+			FHitResult Hit;
+			bool bHit = World->OverlapMultiByChannel(OverlapResults, OverlapCenter, FQuat(), TraceChannel, SphereShape, SphereParams);
+
+			if (bHit)
+			{
+				for (auto& Result : OverlapResults)
+				{
+					if (Result.bBlockingHit)
+					{
+						if (AZodiacMonster* Monster = Cast<AZodiacMonster>(Result.GetActor()))
+						{
+#if ENABLE_DRAW_DEBUG
+							DrawDebugSphere(World, Hit.Location, Feeler.Extent, 8, FColor::Red);	
+#endif
+							Feeler.FramesUntilNextTrace = 0;
+							return true;
+						}
+					}
+				}
+
+			}
+		}
+		else
+		{
+			--Feeler.FramesUntilNextTrace;
+		}
+	}
+
+	return false;
+}

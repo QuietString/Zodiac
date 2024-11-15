@@ -56,7 +56,7 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 	FieldOfView = CameraModeView.FieldOfView;
 
 	// Fill in desired view.
-	DesiredView.Location = CameraModeView.Location;
+	DesiredView.Location = CameraModeView.Location + GetHeroOffset();
 	DesiredView.Rotation = CameraModeView.Rotation;
 	DesiredView.FOV = CameraModeView.FieldOfView;
 	DesiredView.OrthoWidth = OrthoWidth;
@@ -96,6 +96,16 @@ void UZodiacCameraComponent::UpdateCameraModes()
 			}
 		}
 	}
+}
+
+FVector UZodiacCameraComponent::GetHeroOffset()
+{
+	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetTargetActor()))
+	{
+		return HostCharacter->GetHeroEyeLocationOffset();
+	}
+
+	return  FVector(0);
 }
 
 void UZodiacCameraComponent::DrawDebug(UCanvas* Canvas) const

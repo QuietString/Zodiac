@@ -1,4 +1,5 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
+// the.quiet.string@gmail.com
 
 #pragma once
 
@@ -6,6 +7,7 @@
 #include "Curves/CurveFloat.h"
 #include "ZodiacPenetrationAvoidanceFeeler.h"
 #include "DrawDebugHelpers.h"
+#include "ZodiacCloseContactFeeler.h"
 #include "ZodiacCameraMode_ThirdPerson.generated.h"
 
 class UCurveVector;
@@ -26,36 +28,24 @@ public:
 protected:
 
 	virtual void UpdateView(float DeltaTime) override;
-
-	void UpdateForTarget(float DeltaTime);
+	
+	void UpdateTargetOffsetCurve(float DeltaTime, FRotator PivotRotation);
 	void UpdatePreventPenetration(float DeltaTime);
 	void PreventCameraPenetration(class AActor const& ViewTarget, FVector const& SafeLoc, FVector& CameraLoc, float const& DeltaTime, float& DistBlockedPct, bool bSingleRayOnly);
 
+	bool CheckCloseContact();
+	
 	virtual void DrawDebug(UCanvas* Canvas) const override;
 
 protected:
 
 	// Curve that defines local-space offsets from the target using the view pitch to evaluate the curve.
-	UPROPERTY(EditDefaultsOnly, Category = "Third Person", Meta = (EditCondition = "!bUseRuntimeFloatCurves"))
+	UPROPERTY(EditDefaultsOnly, Category = "Third Person")
 	TObjectPtr<const UCurveVector> TargetOffsetCurve;
 
-	// UE-103986: Live editing of RuntimeFloatCurves during PIE does not work (unlike curve assets).
-	// Once that is resolved this will become the default and TargetOffsetCurve will be removed.
+	// Curve that defines local-space offsets from the target applied when there is close contact at the front of the target
 	UPROPERTY(EditDefaultsOnly, Category = "Third Person")
-	bool bUseRuntimeFloatCurves;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Third Person", Meta = (EditCondition = "bUseRuntimeFloatCurves"))
-	FRuntimeFloatCurve TargetOffsetX;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Third Person", Meta = (EditCondition = "bUseRuntimeFloatCurves"))
-	FRuntimeFloatCurve TargetOffsetY;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Third Person", Meta = (EditCondition = "bUseRuntimeFloatCurves"))
-	FRuntimeFloatCurve TargetOffsetZ;
-
-	// Alters the speed that a crouch offset is blended in or out
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person")
-	float CrouchOffsetBlendMultiplier = 5.0f;
+	TObjectPtr<const UCurveVector> CloseContactOffsetCurve;
 
 	// Penetration prevention
 public:
@@ -69,6 +59,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision")
 	bool bPreventPenetration = true;
 
+	/** If true, does collision checks to move the camera to make aim easier. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision")
+	bool bHandleCloseContact = true;
+
+	UPROPERTY(EditAnywhere, Category = "Collision")
+	float CloseContactBlendInTime = 0.3f;
+	
+	UPROPERTY(EditAnywhere, Category = "Collision")
+	float CloseContactBlendOutTime = 0.3f;
+	
 	/** If true, try to detect nearby walls and move the camera in anticipation.  Helps prevent popping. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision")
 	bool bDoPredictiveAvoidance = true;
@@ -90,24 +90,27 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Collision")
 	TArray<FZodiacPenetrationAvoidanceFeeler> PenetrationAvoidanceFeelers;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Collision")
+	TArray<FZodiacCloseContactFeeler> CloseContactFeelers;
+	
 	UPROPERTY(Transient)
 	float AimLineToDesiredPosBlockedPct;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<const AActor>> DebugActorsHitDuringCameraPenetration;
 
+private:
+	UPROPERTY(Transient)
+	FVector TargetOffset;
+
+	bool bIsBlending = false;
+	float BlendElapsedTime = 0.0f;
+	float BlendDuration = 0.0f;
+	FVector BlendStartOffset;
+	FVector BlendEndOffset;
+	bool bPreviousCloseContact = false;
+
 #if ENABLE_DRAW_DEBUG
 	mutable float LastDrawDebugTime = -MAX_FLT;
 #endif
-
-protected:
-	
-	void SetTargetCrouchOffset(FVector NewTargetOffset);
-	void UpdateCrouchOffset(float DeltaTime);
-
-	FVector InitialCrouchOffset = FVector::ZeroVector;
-	FVector TargetCrouchOffset = FVector::ZeroVector;
-	float CrouchOffsetBlendPct = 1.0f;
-	FVector CurrentCrouchOffset = FVector::ZeroVector;
-	
 };

@@ -112,6 +112,7 @@ public:
 	void SimulateOrPlayHitReact(FVector HitDirection, FName HitBone, float Magnitude, FGameplayTagContainer InstigatorTags);
 
 	void SetDefaultCustomMovementMode(uint8 CustomMode);
+	void SetMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode);
 	void SetMovementSpeeds(const FVector& InWalkSpeeds, const FVector& InRunSpeeds);
 
 protected:	

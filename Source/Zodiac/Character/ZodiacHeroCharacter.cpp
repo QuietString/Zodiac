@@ -241,24 +241,13 @@ void AZodiacHeroCharacter::Activate()
 	{
 		HeroMesh->SetVisibility(true);
 		HeroMesh->bIsHeroHidden = false;
+		HeroMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
 	
 	if (HostCharacter)
 	{
-		if (UCapsuleComponent* Capsule = HostCharacter->GetCapsuleComponent())
-		{
-			if (USkeletalMeshComponent* HostMesh = HostCharacter->GetMesh())
-			{
-				// Prevent character feet floating when capsule height increases.
-				//float OffsetAmount = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() - Capsule->GetUnscaledCapsuleHalfHeight();
-				//HostMesh->AddRelativeLocation(FVector(0.0f, 0.0f, -OffsetAmount));
-			}
-			
-			//Capsule->SetCapsuleSize(CapsuleRadius, CapsuleHalfHeight);
-		}
-
 		HostCharacter->SetDefaultCustomMovementMode(HeroData->DefaultMovementMode);
-		HostCharacter->TryChangeMovementMode(MOVE_Walking, HeroData->DefaultMovementMode);
+		HostCharacter->SetMovementMode(MOVE_Walking, HeroData->DefaultMovementMode);
 		HostCharacter->SetMovementSpeeds(HeroData->WalkSpeeds, HeroData->RunSpeeds);
 	}
 	
@@ -271,6 +260,7 @@ void AZodiacHeroCharacter::Deactivate()
 	{
 		HeroMesh->SetVisibility(false);
 		HeroMesh->bIsHeroHidden = true;
+		HeroMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	
 	bIsActive = false;
@@ -289,6 +279,7 @@ void AZodiacHeroCharacter::InitializeWithHostCharacter()
 		InitializeAbilitySystem();
 
 		GetMesh()->AddTickPrerequisiteComponent(HostCharacter->GetMesh());
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		if (HostCharacter->IsLocallyControlled())
 		{
@@ -310,7 +301,6 @@ void AZodiacHeroCharacter::AttachToOwner()
 			{
 				float HeightOffset = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 				AddActorLocalOffset(FVector(0, 0, HeightOffset));
-				//AddActorLocalRotation(FRotator(0, 90, 0));
 			}
 			AddTickPrerequisiteComponent(HostMesh);
 		}

@@ -153,10 +153,10 @@ FHitResult UZodiacHeroAbility_Ranged::WeaponTrace(const FVector& StartTrace, con
 {
 	TArray<FHitResult> HitResults;
 	
-	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/ GetAvatarActorFromActorInfo());
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(WeaponTrace), true, GetAvatarActorFromActorInfo());
 	TraceParams.bReturnPhysicalMaterial = true;
 	AddAdditionalTraceIgnoreActors(TraceParams);
-	//TraceParams.bDebugQuery = true;
+	TraceParams.bDebugQuery = true;
 	
 	const ECollisionChannel TraceChannel = ZODIAC_TRACE_CHANNEL_WEAPON;
 	

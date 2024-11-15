@@ -24,12 +24,13 @@ class ZODIAC_API AZodiacMonster : public AZodiacCharacter
 
 public:
 	AZodiacMonster(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
+	
+	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
 	virtual FGenericTeamId GetGenericTeamId() const override;
-	
+
+	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner) override;
 

@@ -229,11 +229,6 @@ void AZodiacHostCharacter::ChangeHero(const int32 Index)
 	}
 }
 
-void AZodiacHostCharacter::TryChangeMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode)
-{
-	GetCharacterMovement()->SetMovementMode(MovementMode, CustomMovementMode);
-}
-
 void AZodiacHostCharacter::SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle)
 {
 	if (CameraMode)
@@ -262,6 +257,16 @@ TSubclassOf<UZodiacCameraMode> AZodiacHostCharacter::DetermineCameraMode()
 	return DefaultAbilityCameraMode;
 }
 
+void AZodiacHostCharacter::UpdateHeroEyeLocationOffset()
+{
+	if (AZodiacHeroCharacter* Hero = GetHero())
+	{
+		FVector HeroLocation = Hero->GetPawnViewLocation();
+		FVector HostLocation = GetPawnViewLocation();
+
+		HeroEyeLocationOffset = HeroLocation - HostLocation;
+	}
+}
 
 void AZodiacHostCharacter::OnRep_ActiveHeroIndex(int32 OldIndex)
 {
@@ -275,6 +280,11 @@ void AZodiacHostCharacter::OnRep_ActiveHeroIndex(int32 OldIndex)
 		if (AZodiacHeroCharacter* Hero = HeroList.GetHero(ActiveHeroIndex))
 		{
 			Hero->Activate();
+
+			if (bEnableCameraHeroOffset)
+			{
+				UpdateHeroEyeLocationOffset();				
+			}
 		}	
 	}
 }

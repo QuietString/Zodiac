@@ -39,14 +39,14 @@ public:
 
 	void ChangeHero(const int32 Index);
 	
-	void TryChangeMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode);
-	
 	/** Overrides the camera from an active gameplay ability */
 	void SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
 
 	/** Clears the camera override if it is set */
 	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
 
+	FVector GetHeroEyeLocationOffset() const { return HeroEyeLocationOffset; }
+	
 protected:
 	//~AActor interface
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -64,6 +64,8 @@ protected:
 	
 	TSubclassOf<UZodiacCameraMode> DetermineCameraMode();
 
+	void UpdateHeroEyeLocationOffset();
+	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UZodiacCameraComponent> CameraComponent;
@@ -71,6 +73,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UZodiacCameraMode> DefaultAbilityCameraMode;
 
+	UPROPERTY(EditAnywhere)
+	bool bEnableCameraHeroOffset = true;
+	
 	UPROPERTY()
 	TSubclassOf<UZodiacCameraMode> ActiveAbilityCameraMode;
 
@@ -95,4 +100,7 @@ private:
 
 	UPROPERTY()
 	EZodiacTeam MyTeam = EZodiacTeam::Hero;
+
+	UPROPERTY(Transient)
+	FVector HeroEyeLocationOffset;
 };
