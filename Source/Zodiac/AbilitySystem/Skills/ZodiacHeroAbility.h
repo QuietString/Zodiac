@@ -41,7 +41,10 @@ public:
 	FName SocketName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UNiagaraSystem> Trace;
+	TObjectPtr<UNiagaraSystem> Trace_Niagara;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UParticleSystem> Trace_Particle;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FZodiacImpactParticles Impacts;

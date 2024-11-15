@@ -5,6 +5,7 @@
 
 #include "Net/UnrealNetwork.h"
 #include "GameplayEffectExtension.h"
+#include "ZodiacGameplayTags.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHealthSet)
 
@@ -54,6 +55,29 @@ bool UZodiacHealthSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& 
 	if (!Super::PreGameplayEffectExecute(Data))
 	{
 		return false;
+	}
+
+	// Handle modifying incoming normal damage
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		if (Data.EvaluatedData.Magnitude > 0.0f)
+		{
+			if (Data.Target.HasMatchingGameplayTag(ZodiacGameplayTags::Status_Invincible))
+			{
+				// Do not take away any health.
+				Data.EvaluatedData.Magnitude = 0.0f;
+				return false;
+			}
+
+#if !UE_BUILD_SHIPPING
+			if (Data.Target.HasMatchingGameplayTag(ZodiacGameplayTags::Cheat_GodMode))
+			{
+				// Do not take away any health.
+				Data.EvaluatedData.Magnitude = 0.0f;
+				return false;
+			}
+#endif
+		}
 	}
 	
 	// Save the current health

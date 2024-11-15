@@ -28,6 +28,8 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	//~End of IZodiacTeamAgentInterface interface
 
+	virtual void BeginPlay() override;
+	
 	// Run a cheat command on the server.
 	UFUNCTION(Reliable, Server, WithValidation)
 	void ServerCheat(const FString& Msg);

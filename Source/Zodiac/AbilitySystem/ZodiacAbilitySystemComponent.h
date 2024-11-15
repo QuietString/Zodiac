@@ -46,6 +46,12 @@ public:
 	void RemoveAbilityFromActivationGroup(EZodiacAbilityActivationGroup Group, UZodiacGameplayAbility* ZodiacAbility);
 	void CancelActivationGroupAbilities(EZodiacAbilityActivationGroup Group, UZodiacGameplayAbility* IgnoreZodiacAbility, bool bReplicateCancelAbility);
 
+	// Uses a gameplay effect to add the specified dynamic granted tag.
+	void AddDynamicTagGameplayEffect(const FGameplayTag& Tag);
+
+	// Removes all active instances of the gameplay effect that was used to add the specified dynamic granted tag.
+	void RemoveDynamicTagGameplayEffect(const FGameplayTag& Tag);
+	
 	/** Gets the ability target data associated with the given ability handle and activation info */
 	void GetAbilityTargetData(const FGameplayAbilitySpecHandle AbilityHandle, const FGameplayAbilityActivationInfo& ActivationInfo, FGameplayAbilityTargetDataHandle& OutTargetDataHandle);
 

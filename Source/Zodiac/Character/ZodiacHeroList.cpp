@@ -40,7 +40,7 @@ AZodiacHeroCharacter* FZodiacHeroList::GetHero(const int32 Index) const
 	return nullptr;
 }
 
-TArray<AZodiacHeroCharacter*> FZodiacHeroList::GetHeroes()
+TArray<AZodiacHeroCharacter*> FZodiacHeroList::GetHeroes() const
 {
 	TArray<AZodiacHeroCharacter*> Results;
 	Results.Reserve(Heroes.Num());

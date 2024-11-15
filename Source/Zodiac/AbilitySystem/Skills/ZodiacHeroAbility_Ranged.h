@@ -88,7 +88,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	FTransform GetWeaponTargetingTransform() const;
 	
-	FTransform GetTargetingTransform(APawn* OwningPawn, AActor* SourceActor, EZodiacAbilityAimTraceRule Source) const;
+	FTransform GetTargetingTransform(APawn* OwningPawn, APawn* SourcePawn, EZodiacAbilityAimTraceRule Source) const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Gameplay")

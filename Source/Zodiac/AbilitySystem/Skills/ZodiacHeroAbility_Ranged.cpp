@@ -458,16 +458,16 @@ FTransform UZodiacHeroAbility_Ranged::GetWeaponTargetingTransform() const
 	return GetTargetingTransform(HostCharacter, HeroActor, EZodiacAbilityAimTraceRule::WeaponTowardsFocus);
 }
 
-FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, AActor* SourceActor, EZodiacAbilityAimTraceRule Source) const
+FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, APawn* SourcePawn, EZodiacAbilityAimTraceRule Source) const
 {
 	check(OwningPawn);
-	check(SourceActor);
+	check(SourcePawn);
 	
 	// The caller should determine the transform without calling this if the mode is custom!
 	check(Source != EZodiacAbilityAimTraceRule::Custom);
 	
-	const FVector ActorLoc = SourceActor->GetActorLocation();
-	FQuat AimQuat = SourceActor->GetActorQuat();
+	const FVector ActorLoc = SourcePawn->GetActorLocation();
+	FQuat AimQuat = SourcePawn->GetActorQuat();
 	AController* Controller = OwningPawn->Controller;
 	FVector SourceLoc;
 
@@ -505,13 +505,13 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, A
 		{
 			if (Source == EZodiacAbilityAimTraceRule::WeaponTowardsFocusHit)
 			{
-				FocalDistance = BIG_NUMBER;
-				CamLoc += AimDir * 100.0f;
+				const FVector WeaponLoc = GetWeaponLocation();
+				CamLoc = FocalLoc + (((WeaponLoc - FocalLoc) | AimDir) * AimDir);
 			}
 			else
 			{
-				const FVector WeaponLoc = GetWeaponLocation();
-				CamLoc = FocalLoc + (((WeaponLoc - FocalLoc) | AimDir) * AimDir);
+				const FVector PawnLocation = SourcePawn->GetActorLocation();
+				CamLoc = FocalLoc + (((PawnLocation - FocalLoc) | AimDir) * AimDir);
 			}
 
 			FocalLoc = CamLoc + (AimDir * FocalDistance);
@@ -520,7 +520,7 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, A
 		//Move the start to be the HeadPosition of the AI
 		else if (AAIController* AIController = Cast<AAIController>(Controller))
 		{
-			CamLoc = SourceActor->GetActorLocation() + FVector(0, 0, OwningPawn->BaseEyeHeight);
+			CamLoc = SourcePawn->GetActorLocation() + FVector(0, 0, OwningPawn->BaseEyeHeight);
 		}
 
 		if (Source == EZodiacAbilityAimTraceRule::WeaponTowardsFocusHit)
@@ -530,7 +530,7 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, A
 			FHitResult HitResult;
 			FCollisionQueryParams Params;
 			Params.bReturnPhysicalMaterial = true;
-			Params.AddIgnoredActor(SourceActor);
+			Params.AddIgnoredActor(SourcePawn);
 			Params.AddIgnoredActor(OwningPawn);
 			Params.bTraceComplex = true;
 

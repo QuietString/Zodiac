@@ -22,3 +22,19 @@ void UZodiacAbilitySystemBlueprintLibrary::SendGameplayEventToActorNotPredicted(
 		}
 	}
 }
+
+FGameplayEffectContextHandle UZodiacAbilitySystemBlueprintLibrary::AddInstigator(FGameplayEffectContextHandle ContextHandle, AActor* Instigator,
+                                                                                 AActor* EffectCauser)
+{
+	FGameplayEffectContext* Context = ContextHandle.Get();
+	if (Context)
+	{
+		Context->AddInstigator(Instigator, EffectCauser);
+	}
+	else
+	{
+		ABILITY_LOG(Warning, TEXT("UZodiacAbilitySystemBlueprintLibrary::AddInstigator called with invalid ContextHandle"));
+	}
+
+	return ContextHandle;
+}

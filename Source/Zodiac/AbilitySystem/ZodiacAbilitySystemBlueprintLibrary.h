@@ -17,4 +17,7 @@ class ZODIAC_API UZodiacAbilitySystemBlueprintLibrary : public UBlueprintFunctio
 public:
 	UFUNCTION(BlueprintCallable, Category = Ability, Meta = (Tooltip = "This function can be used to trigger an ability on the actor in question with useful payload data."))
 	static void SendGameplayEventToActorNotPredicted(AActor* Actor, FGameplayTag EventTag, FGameplayEventData Payload);
+
+	UFUNCTION(BlueprintCallable, Category = Ability)
+	static FGameplayEffectContextHandle AddInstigator(FGameplayEffectContextHandle ContextHandle, AActor* Instigator, AActor* EffectCauser);
 };

@@ -49,7 +49,7 @@ public:
 	void RemoveEntry(AZodiacHeroCharacter* Instance);
 
 	AZodiacHeroCharacter* GetHero(const int32 Index) const;
-	TArray<AZodiacHeroCharacter*> GetHeroes();
+	TArray<AZodiacHeroCharacter*> GetHeroes() const;
 
 public:
 	//~FFastArraySerializer contract

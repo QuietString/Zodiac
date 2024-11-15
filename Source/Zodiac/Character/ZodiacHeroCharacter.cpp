@@ -304,6 +304,14 @@ void AZodiacHeroCharacter::AttachToOwner()
 		if (USkeletalMeshComponent* HostMesh = Character->GetMesh())
 		{
 			AttachToComponent(HostMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, NAME_None);
+			
+			// move up as much as UEFN mannequin height.
+			if (HasAuthority())
+			{
+				float HeightOffset = GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+				AddActorLocalOffset(FVector(0, 0, HeightOffset));
+				//AddActorLocalRotation(FRotator(0, 90, 0));
+			}
 			AddTickPrerequisiteComponent(HostMesh);
 		}
 	}

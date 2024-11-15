@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DeveloperSettings.h"
+#include "Engine/DeveloperSettingsBackedByCVars.h"
 #include "ZodiacDeveloperSettings.generated.h"
 
 UENUM()
@@ -29,7 +29,19 @@ struct FZodiacCheatToRun
 };
 
 UCLASS(config=EditorPerProjectUserSettings, MinimalAPI)
-class UZodiacDeveloperSettings : public UDeveloperSettings
+class UZodiacDeveloperSettings : public UDeveloperSettingsBackedByCVars
 {
 	GENERATED_BODY()
+
+public:
+	UZodiacDeveloperSettings();
+
+	//~UDeveloperSettings interface
+	virtual FName GetCategoryName() const override;
+	//~End of UDeveloperSettings interface
+	
+	// List of cheats to auto-run during 'play in editor'
+	UPROPERTY(config, EditAnywhere, Category=Cheat)
+	TArray<FZodiacCheatToRun> CheatsToRun;
+	
 };

@@ -42,15 +42,21 @@ FGenericTeamId AZodiacPlayerController::GetGenericTeamId() const
 	return GetZodiacPlayerState()->GetGenericTeamId();
 }
 
+void AZodiacPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	EnableCheats();
+}
+
 void AZodiacPlayerController::ServerCheat_Implementation(const FString& Msg)
 {
 #if USING_CHEAT_MANAGER
 	if (CheatManager)
 	{
-		UE_LOG(LogZodiac, Warning, TEXT("ServerCheat: %s"), *Msg);
 		ClientMessage(ConsoleCommand(Msg));
 	}
-#endif 
+#endif  
 }
 
 bool AZodiacPlayerController::ServerCheat_Validate(const FString& Msg)

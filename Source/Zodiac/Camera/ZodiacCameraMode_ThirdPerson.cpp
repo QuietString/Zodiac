@@ -225,6 +225,7 @@ void UZodiacCameraMode_ThirdPerson::PreventCameraPenetration(class AActor const&
 				DrawDebugSphere(World, SafeLoc, SphereShape.Sphere.Radius, 8, bHit? FColor::Red : FColor::Green);
 				DrawDebugSphere(World, bHit ? Hit.Location : RayTarget, SphereShape.Sphere.Radius, 8, bHit ? FColor::Red : FColor::Green);
 				DrawDebugLine(World, SafeLoc, bHit ? Hit.Location : RayTarget, FColor::Red);
+				DrawDebugSphere(World, RayTarget, 5, 8, FColor::Yellow, false, 5);
 			}
 #endif
 

@@ -6,8 +6,8 @@
 #include "ZodiacGlobalAbilitySystem.h"
 #include "ZodiacLogChannels.h"
 #include "Abilities/ZodiacGameplayAbility.h"
-#include "Skills/ZodiacHeroAbility.h"
 #include "System/ZodiacAssetManager.h"
+#include "System/ZodiacGameData.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilitySystemComponent)
 
@@ -345,6 +345,44 @@ void UZodiacAbilitySystemComponent::CancelActivationGroupAbilities(EZodiacAbilit
 	};
 
 	CancelAbilitiesByFunc(ShouldCancelFunc, bReplicateCancelAbility);
+}
+
+void UZodiacAbilitySystemComponent::AddDynamicTagGameplayEffect(const FGameplayTag& Tag)
+{
+	const TSubclassOf<UGameplayEffect> DynamicTagGE = UZodiacAssetManager::GetSubclass(UZodiacGameData::Get().DynamicTagGameplayEffect);
+	if (!DynamicTagGE)
+	{
+		UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("AddDynamicTagGameplayEffect: Unable to find DynamicTagGameplayEffect [%s]."), *UZodiacGameData::Get().DynamicTagGameplayEffect.GetAssetName());
+		return;
+	}
+	
+	const FGameplayEffectSpecHandle SpecHandle = MakeOutgoingSpec(DynamicTagGE, 1.0f, MakeEffectContext());
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+	
+	if (!Spec)
+	{
+		UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("AddDynamicTagGameplayEffect: Unable to make outgoing spec for [%s]."), *GetNameSafe(DynamicTagGE));
+		return;
+	}
+	
+	Spec->DynamicGrantedTags.AddTag(Tag);
+	
+	ApplyGameplayEffectSpecToSelf(*Spec);
+}
+
+void UZodiacAbilitySystemComponent::RemoveDynamicTagGameplayEffect(const FGameplayTag& Tag)
+{
+	const TSubclassOf<UGameplayEffect> DynamicTagGE = UZodiacAssetManager::GetSubclass(UZodiacGameData::Get().DynamicTagGameplayEffect);
+	if (!DynamicTagGE)
+	{
+		UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("RemoveDynamicTagGameplayEffect: Unable to find gameplay effect [%s]."), *UZodiacGameData::Get().DynamicTagGameplayEffect.GetAssetName());
+		return;
+	}
+	
+	FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(FGameplayTagContainer(Tag));
+	Query.EffectDefinition = DynamicTagGE;
+	
+	RemoveActiveEffects(Query);
 }
 
 void UZodiacAbilitySystemComponent::GetAbilityTargetData(const FGameplayAbilitySpecHandle AbilityHandle,
