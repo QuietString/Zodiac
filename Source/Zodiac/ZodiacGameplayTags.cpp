@@ -66,7 +66,8 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dying, "Status.Death.Dying", "Target has begun the death process.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Death_Dead, "Status.Death.Dead", "Target has finished the death process.");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Stun, "Status.Stun");
-	UE_DEFINE_GAMEPLAY_TAG(Status_Invincible, "Status.Invincible");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Invincible, "Status.Invincible", "Target doesn't take any damage");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Immortal, "Status.Immortal", "Target's health can't go below 1");
 
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Menu, "UI.Layer.Menu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");

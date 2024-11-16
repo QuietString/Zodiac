@@ -2,12 +2,15 @@
 
 #include "ZodiacCheatManager.h"
 
+#include "EngineUtils.h"
 #include "GameplayTagContainer.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacPlayerController.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "AbilitySystem/ZodiacGlobalAbilitySystem.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
+#include "Character/ZodiacMonster.h"
 #include "Development/ZodiacDeveloperSettings.h"
 #include "Engine/Console.h"
 #include "System/ZodiacAssetManager.h"
@@ -75,6 +78,14 @@ void UZodiacCheatManager::Cheat(const FString& Msg)
 	}
 }
 
+void UZodiacCheatManager::CheatAll(const FString& Msg)
+{
+	if (AZodiacPlayerController* ZodiacPC = Cast<AZodiacPlayerController>(GetOuterAPlayerController()))
+	{
+		ZodiacPC->ServerCheatAll(Msg.Left(128));
+	}
+}
+
 void UZodiacCheatManager::AddTagToSelf(FString TagName)
 {
 	FGameplayTag Tag = ZodiacGameplayTags::FindTagByString(TagName, true);
@@ -88,6 +99,56 @@ void UZodiacCheatManager::AddTagToSelf(FString TagName)
 	else
 	{
 		UE_LOG(LogZodiacCheat, Display, TEXT("AddTagToSelf: Could not find any tag matching [%s]."), *TagName);
+	}
+}
+
+void UZodiacCheatManager::AddTagToAllMonsters(FString TagName)
+{
+	FGameplayTag Tag = ZodiacGameplayTags::FindTagByString(TagName, true);
+	if (Tag.IsValid())
+	{
+		for (TActorIterator<AZodiacMonster> It(GetWorld()); It; ++It)
+		{
+			if (AZodiacMonster* Monster = *It)
+			{
+				if (UZodiacAbilitySystemComponent* ZodiacASC = Monster->GetZodiacAbilitySystemComponent())
+				{
+					ZodiacASC->AddDynamicTagGameplayEffect(Tag);
+				}
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogZodiacCheat, Display, TEXT("AddTagToSelf: Could not find any tag matching [%s]."), *TagName);
+	}
+}
+
+void UZodiacCheatManager::AllMonstersInvincible()
+{
+	for (TActorIterator<AZodiacMonster> It(GetWorld()); It; ++It)
+	{
+		if (AZodiacMonster* Monster = *It)
+		{
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Monster->GetZodiacAbilitySystemComponent())
+			{
+				ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Status_Invincible);
+			}
+		}
+	}
+}
+
+void UZodiacCheatManager::AllMonstersImmortal()
+{
+	for (TActorIterator<AZodiacMonster> It(GetWorld()); It; ++It)
+	{
+		if (AZodiacMonster* Monster = *It)
+		{
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Monster->GetZodiacAbilitySystemComponent())
+			{
+				ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Status_Immortal);
+			}
+		}
 	}
 }
 

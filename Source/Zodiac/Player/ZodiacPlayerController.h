@@ -33,8 +33,13 @@ public:
 	// Run a cheat command on the server.
 	UFUNCTION(Reliable, Server, WithValidation)
 	void ServerCheat(const FString& Msg);
-	
+
+	// Run a cheat command on the server for all players.
+	UFUNCTION(Reliable, Server, WithValidation)
+	void ServerCheatAll(const FString& Msg);
+
 	//~APlayerController interface
+	virtual void OnPossess(APawn* InPawn) override;
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 	//~End of APlayerController interface
 };

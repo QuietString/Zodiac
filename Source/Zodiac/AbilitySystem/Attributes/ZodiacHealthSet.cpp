@@ -93,6 +93,11 @@ void UZodiacHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 	float MinimumHealth = 0.0f;
 
+	if (Data.Target.HasMatchingGameplayTag(ZodiacGameplayTags::Status_Immortal))
+	{
+		MinimumHealth = 1.0f;
+	}
+	
 	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
 	AActor* Instigator = EffectContext.GetOriginalInstigator();
 	AActor* Causer = EffectContext.GetEffectCauser();
@@ -102,12 +107,11 @@ void UZodiacHealthSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 		SetHealth(FMath::Clamp(GetHealth() - GetDamage(), MinimumHealth, GetMaxHealth()));
 		SetDamage(0.0f);
 	}
-	
-	// else if (Data.EvaluatedData.Attribute == GetHealthAttribute())
-	// {
-	// 	// Clamp and fall into out of health handling below
-	// 	SetHealth(FMath::Clamp(GetHealth(), MinimumHealth, GetMaxHealth()));
-	// }
+	else if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		// Clamp and fall into out of health handling below
+		SetHealth(FMath::Clamp(GetHealth(), MinimumHealth, GetMaxHealth()));
+	}
 
 	// If health has actually changed activate callbacks
 	if (GetHealth() != HealthBeforeAttributeChange)

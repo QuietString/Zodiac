@@ -35,7 +35,8 @@ struct FZodiacCloseContactFeeler
 	int32 FramesUntilNextTrace;
 	
 	FZodiacCloseContactFeeler()
-		: ContactDistance(0)
+		: AdjustmentRot(ForceInit)
+		, ContactDistance(0)
 		, Extent(0)
 		, TraceInterval(0)
 		, FramesUntilNextTrace(0)
@@ -46,7 +47,8 @@ struct FZodiacCloseContactFeeler
 									const float& InExtent, 
 									const int32& InTraceInterval = 0, 
 									const int32& InFramesUntilNextTrace = 0)
-		: ContactDistance(InContactDistance)
+		: AdjustmentRot(ForceInit)
+		, ContactDistance(InContactDistance)
 		, Extent(InExtent)
 		, TraceInterval(InTraceInterval)
 		, FramesUntilNextTrace(InFramesUntilNextTrace)

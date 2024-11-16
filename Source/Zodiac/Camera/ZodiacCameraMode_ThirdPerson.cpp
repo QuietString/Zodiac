@@ -12,9 +12,7 @@
 #include "Character/ZodiacMonster.h"
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Controller.h"
-#include "GameFramework/Character.h"
 #include "Math/RotationMatrix.h"
-#include "Physics/ZodiacCollisionChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCameraMode_ThirdPerson)
 

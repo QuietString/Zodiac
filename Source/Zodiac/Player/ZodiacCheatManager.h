@@ -32,9 +32,21 @@ public:
 	UFUNCTION(exec)
 	void Cheat(const FString& Msg);
 
+	UFUNCTION(exec)
+	void CheatAll(const FString& Msg);
+	
 	// Adds the dynamic tag to the owning player's ability system component.
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void AddTagToSelf(FString TagName);
+
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void AddTagToAllMonsters(FString TagName);
+
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void AllMonstersInvincible();
+
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void AllMonstersImmortal();
 	
 	// Applies the specified damage amount to the owning player.
 	UFUNCTION(Exec, BlueprintAuthorityOnly)

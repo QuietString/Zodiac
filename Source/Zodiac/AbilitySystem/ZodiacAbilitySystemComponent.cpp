@@ -46,35 +46,11 @@ void UZodiacAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 	
 	if (bHasNewPawnAvatar)
 	{
-		// Notify all abilities that a new pawn avatar has been set
-		// for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
-		// {
-		// 	UZodiacGameplayAbility* ZodiacAbilityCDO = CastChecked<UZodiacGameplayAbility>(AbilitySpec.Ability);
-		//
-		// 	if (ZodiacAbilityCDO->GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced)
-		// 	{
-		// 		TArray<UGameplayAbility*> Instances = AbilitySpec.GetAbilityInstances();
-		// 		for (UGameplayAbility* AbilityInstance : Instances)
-		// 		{
-		// 			UZodiacGameplayAbility* ZodiacAbilityInstance = Cast<UZodiacGameplayAbility>(AbilityInstance);
-		// 			if (ZodiacAbilityInstance)
-		// 			{
-		// 				// Ability instances may be missing for replays
-		// 				//ZodiacAbilityInstance->OnPawnAvatarSet();
-		// 			}
-		// 		}
-		// 	}
-		// 	else
-		// 	{
-		// 		//ZodiacAbilityCDO->OnPawnAvatarSet();
-		// 	}
-		// }
-
 		// Register with the global system once we actually have a pawn avatar. We wait until this time since some globally-applied effects may require an avatar.
-		// if (UZodiacGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UZodiacGlobalAbilitySystem>(GetWorld()))
-		// {
-		// 	GlobalAbilitySystem->RegisterASC(this);
-		// }
+		if (UZodiacGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UZodiacGlobalAbilitySystem>(GetWorld()))
+		{
+			GlobalAbilitySystem->RegisterASC(this);
+		}
 		
 		TryActivateAbilitiesOnSpawn();
 	}
