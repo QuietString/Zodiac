@@ -127,7 +127,7 @@ bool UZodiacHeroAbilitySlot_Weapon::UpdateMultipliers(float DeltaSeconds)
 {
 	const float MultiplierNearlyEqualThreshold = 0.05f;
 
-	APawn* Pawn = GetHostPawn();
+	APawn* Pawn = GetPawn();
 	if (!Pawn)
 	{
 		return false;

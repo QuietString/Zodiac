@@ -25,9 +25,6 @@ public:
 
 	virtual void InitCheatManager() override;
 
-	// Helper function to write text to the console and to the log.
-	static void CheatOutputText(const FString& TextToOutput);
-	
 	// Runs a cheat on the server for the owning player.
 	UFUNCTION(exec)
 	void Cheat(const FString& Msg);
@@ -38,7 +35,21 @@ public:
 	// Adds the dynamic tag to the owning player's ability system component.
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void AddTagToSelf(FString TagName);
+	
+	// Applies the specified damage amount to the owning player.
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void DamageSelf(float DamageAmount);
 
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void InfiniteAmmo();
+	
+	// Prevents the owning player from taking any damage.
+	virtual void God() override;
+	
+	//
+	// Monster cheats
+	//
+	
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void AddTagToAllMonsters(FString TagName);
 
@@ -47,13 +58,6 @@ public:
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void AllMonstersImmortal();
-	
-	// Applies the specified damage amount to the owning player.
-	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void DamageSelf(float DamageAmount);
-	
-	// Prevents the owning player from taking any damage.
-	virtual void God() override;
 
 protected:
 

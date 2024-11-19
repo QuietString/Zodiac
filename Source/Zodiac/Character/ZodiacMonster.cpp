@@ -56,6 +56,7 @@ void AZodiacMonster::BeginPlay()
 	{
 		SetMovementMode(MOVE_Walking, HeroData->DefaultMovementMode);
 		SetDefaultCustomMovementMode(HeroData->DefaultMovementMode);
+		SetMovementSpeeds(HeroData->WalkSpeeds, HeroData->RunSpeeds);
 	}
 }
 

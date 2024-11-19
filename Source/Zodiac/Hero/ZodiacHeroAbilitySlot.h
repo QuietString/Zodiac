@@ -56,19 +56,17 @@ public:
 	}
 
 	UFUNCTION(BlueprintPure)
-	APawn* GetHostPawn() const
+	AZodiacHostCharacter* GetHostCharacter() const
 	{
 		if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(GetOuter()))
 		{
 			return HeroCharacter->GetHostCharacter();
 		}
+		
 		return nullptr;
 	}
 
-	//FGameplayTag GetSlotType() const { return SlotType; }
 	const FZodiacHeroAbilityDefinition& GetSlotDefinition() const { return Definition; }
-
-	//void SetCostAttribute(const FGameplayAttribute& InAttribute) { CostAttribute = InAttribute; }
 	
 	const UZodiacHeroAbilityFragment* FindFragmentByClass(const TSubclassOf<UZodiacHeroAbilityFragment>& FragmentClass) const;
 
@@ -106,9 +104,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly)
 	void RemoveStatTagStack(FGameplayTag Tag, int32 StackCount);
 
-	UPROPERTY(Replicated)
-	FZodiacAbilitySet_GrantedHandles GrantedHandles;
-
 	FOnReticleChanged OnReticleApplied;
 	FSimpleDelegate OnReticleCleared;
 	
@@ -120,8 +115,5 @@ private:
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTag;
 
-	// UPROPERTY()
-	// FGameplayAttribute CostAttribute;
-	
 	double TimeLastFired = 0.0;
 };

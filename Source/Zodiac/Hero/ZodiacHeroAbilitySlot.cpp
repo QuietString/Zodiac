@@ -3,6 +3,7 @@
 
 #include "ZodiacHeroAbilitySlot.h"
 
+#include "ZodiacGameplayTags.h"
 #include "ZodiacHeroAbilityFragment_Reticle.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Net/UnrealNetwork.h"
@@ -25,7 +26,6 @@ void UZodiacHeroAbilitySlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 
 	DOREPLIFETIME(ThisClass, StatTag);
 	DOREPLIFETIME_CONDITION(ThisClass, Definition, COND_InitialOnly);
-	DOREPLIFETIME_CONDITION(ThisClass, GrantedHandles, COND_InitialOnly);
 }
 
 void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& InDef)
@@ -84,6 +84,16 @@ const UZodiacHeroAbilityFragment* UZodiacHeroAbilitySlot::FindFragmentByClass(co
 
 int32 UZodiacHeroAbilitySlot::GetStatTagStackCount(FGameplayTag Tag) const
 {
+#if !UE_BUILD_SHIPPING
+	if (AZodiacHostCharacter* Host = GetHostCharacter())
+	{
+		if (Host->HasMatchingGameplayTag(ZodiacGameplayTags::Cheat_InfiniteAmmo) && Tag == ZodiacGameplayTags::Ability_Cost_Stack_MagazineAmmo)
+		{
+			return INT_MAX;
+		}
+	}
+#endif
+	
 	return StatTag.GetStackCount(Tag);
 }
 
@@ -99,5 +109,15 @@ void UZodiacHeroAbilitySlot::AddStatTagStack(FGameplayTag Tag, int32 StackCount)
 
 void UZodiacHeroAbilitySlot::RemoveStatTagStack(FGameplayTag Tag, int32 StackCount)
 {
+#if !UE_BUILD_SHIPPING
+	if (AZodiacHostCharacter* Host = GetHostCharacter())
+	{
+		if (Host->HasMatchingGameplayTag(ZodiacGameplayTags::Cheat_InfiniteAmmo) && Tag == ZodiacGameplayTags::Ability_Cost_Stack_MagazineAmmo)
+		{
+			return;
+		}
+	}
+#endif
+	
 	StatTag.RemoveStack(Tag, StackCount);
 }

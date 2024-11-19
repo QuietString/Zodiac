@@ -104,7 +104,7 @@ public:
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
-	float GetCostToApply() const { return bUseInitialCost ? (bHasInitialCostApplied ? CostAmount : InitialCostAmount) : CostAmount; }
+	float GetCostToApply() const { return bHasInitialCost ? (bHasInitialCostApplied ? CostAmount : InitialCostAmount) : CostAmount; }
 	float GetCostAmount() const { return CostAmount; }
 	
 	FVector GetWeaponLocation() const;
@@ -163,9 +163,9 @@ protected:
 	
 	// use different amount of cost for initiation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
-	bool bUseInitialCost = false;
+	bool bHasInitialCost = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs", meta = (EditCondition = "bUseInitialCost"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs", meta = (EditCondition = "bHasInitialCost"))
 	float InitialCostAmount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")

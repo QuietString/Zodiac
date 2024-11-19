@@ -12,7 +12,7 @@
 class UZodiacHeroData;
 class UZodiacHealthComponent;
 
-UCLASS(Abstract)
+UCLASS(Abstract, BlueprintType)
 class ZODIAC_API AZodiacHostCharacter : public AZodiacCharacter
 {
 	GENERATED_BODY()

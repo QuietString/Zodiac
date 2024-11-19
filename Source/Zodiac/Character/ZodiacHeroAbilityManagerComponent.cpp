@@ -1,6 +1,5 @@
 ﻿// the.quiet.string@gmail.com
 
-
 #include "ZodiacHeroAbilityManagerComponent.h"
 
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
@@ -35,7 +34,7 @@ void UZodiacHeroAbilityManagerComponent::ReadyForReplication()
 {
 	Super::ReadyForReplication();
 
-	// Register existing ZodiacHeroItemSlot
+	// Register existing ZodiacHeroAbilitySlot
 	if (IsUsingRegisteredSubObjectList())
 	{
 		for (const auto& Slot : Slots)

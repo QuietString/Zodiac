@@ -1,4 +1,5 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
+// the.quiet.string@gmail.com
 
 #include "ZodiacCheatManager.h"
 
@@ -7,12 +8,10 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacPlayerController.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "AbilitySystem/ZodiacGlobalAbilitySystem.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Character/ZodiacMonster.h"
 #include "Development/ZodiacDeveloperSettings.h"
-#include "Engine/Console.h"
 #include "System/ZodiacAssetManager.h"
 #include "System/ZodiacGameData.h"
 
@@ -56,20 +55,6 @@ void UZodiacCheatManager::InitCheatManager()
 #endif
 }
 
-void UZodiacCheatManager::CheatOutputText(const FString& TextToOutput)
-{
-#if USING_CHEAT_MANAGER
-	// Output to the console.
-	if (GEngine && GEngine->GameViewport && GEngine->GameViewport->ViewportConsole)
-	{
-		GEngine->GameViewport->ViewportConsole->OutputText(TextToOutput);
-	}
-
-	// Output to log.
-	UE_LOG(LogZodiacCheat, Display, TEXT("%s"), *TextToOutput);
-#endif
-}
-
 void UZodiacCheatManager::Cheat(const FString& Msg)
 {
 	if (AZodiacPlayerController* ZodiacPC = Cast<AZodiacPlayerController>(GetOuterAPlayerController()))
@@ -99,6 +84,61 @@ void UZodiacCheatManager::AddTagToSelf(FString TagName)
 	else
 	{
 		UE_LOG(LogZodiacCheat, Display, TEXT("AddTagToSelf: Could not find any tag matching [%s]."), *TagName);
+	}
+}
+
+void UZodiacCheatManager::DamageSelf(float DamageAmount)
+{
+	if (UZodiacAbilitySystemComponent* ZodiacASC = GetPlayerAbilitySystemComponent())
+	{
+		ApplySetByCallerDamage(ZodiacASC, DamageAmount);
+	}
+}
+
+void UZodiacCheatManager::InfiniteAmmo()
+{
+	if (UZodiacAbilitySystemComponent* ZodiacASC = GetPlayerAbilitySystemComponent())
+	{
+		ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Cheat_InfiniteAmmo);
+	}
+}
+
+void UZodiacCheatManager::God()
+{
+	auto ApplyDynamicTagForGodMode = [](UZodiacAbilitySystemComponent* ZodiacASC)
+	{
+		if (ZodiacASC)
+		{
+			const FGameplayTag Tag = ZodiacGameplayTags::Cheat_GodMode;
+			const bool bHasTag = ZodiacASC->HasMatchingGameplayTag(Tag);
+
+			if (bHasTag)
+			{
+				ZodiacASC->RemoveDynamicTagGameplayEffect(Tag);
+			}
+			else
+			{
+				ZodiacASC->AddDynamicTagGameplayEffect(Tag);
+			}
+		}
+	};
+
+	if (AZodiacPlayerController* ZodiacPC = Cast<AZodiacPlayerController>(GetOuterAPlayerController()))
+	{
+		if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(ZodiacPC->GetPawn()))
+		{
+			for (AZodiacHeroCharacter*& Hero : HostCharacter->GetHeroes())
+			{
+				if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+				{
+					ApplyDynamicTagForGodMode(ZodiacASC);
+				}
+			}
+		}
+		else if (UZodiacAbilitySystemComponent* ZodiacASC = ZodiacPC->GetZodiacAbilitySystemComponent())
+		{
+			ApplyDynamicTagForGodMode(ZodiacASC);
+		}
 	}
 }
 
@@ -148,53 +188,6 @@ void UZodiacCheatManager::AllMonstersImmortal()
 			{
 				ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Status_Immortal);
 			}
-		}
-	}
-}
-
-void UZodiacCheatManager::DamageSelf(float DamageAmount)
-{
-	if (UZodiacAbilitySystemComponent* ZodiacASC = GetPlayerAbilitySystemComponent())
-	{
-		ApplySetByCallerDamage(ZodiacASC, DamageAmount);
-	}
-}
-
-void UZodiacCheatManager::God()
-{
-	auto ApplyDynamicTagForGodMode = [](UZodiacAbilitySystemComponent* ZodiacASC)
-	{
-		if (ZodiacASC)
-		{
-			const FGameplayTag Tag = ZodiacGameplayTags::Cheat_GodMode;
-			const bool bHasTag = ZodiacASC->HasMatchingGameplayTag(Tag);
-
-			if (bHasTag)
-			{
-				ZodiacASC->RemoveDynamicTagGameplayEffect(Tag);
-			}
-			else
-			{
-				ZodiacASC->AddDynamicTagGameplayEffect(Tag);
-			}
-		}
-	};
-
-	if (AZodiacPlayerController* ZodiacPC = Cast<AZodiacPlayerController>(GetOuterAPlayerController()))
-	{
-		if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(ZodiacPC->GetPawn()))
-		{
-			for (AZodiacHeroCharacter*& Hero : HostCharacter->GetHeroes())
-			{
-				if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
-				{
-					ApplyDynamicTagForGodMode(ZodiacASC);
-				}
-			}
-		}
-		else if (UZodiacAbilitySystemComponent* ZodiacASC = ZodiacPC->GetZodiacAbilitySystemComponent())
-		{
-			ApplyDynamicTagForGodMode(ZodiacASC);
 		}
 	}
 }
