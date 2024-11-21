@@ -88,6 +88,9 @@ public:
 	virtual UZodiacHealthComponent* GetHealthComponent() const;
 	virtual FGenericTeamId GetGenericTeamId() const override;
 
+	UFUNCTION(BlueprintCallable)
+	virtual USkeletalMeshComponent* GetRetargetedMesh() const { return  nullptr; }
+	
 	//~IGameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;

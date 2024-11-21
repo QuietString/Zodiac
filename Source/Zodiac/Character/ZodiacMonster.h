@@ -24,11 +24,14 @@ class ZODIAC_API AZodiacMonster : public AZodiacCharacter
 
 public:
 	AZodiacMonster(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-	
+
+	//~AZodiacCharacter interface
 	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
 	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual USkeletalMeshComponent* GetRetargetedMesh() const override { return RetargetedMeshComponent; }
+	//~End of AZodiacCharacter interface
 
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -39,6 +42,9 @@ protected:
 	const UZodiacHeroData* HeroData;
 
 private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	TObjectPtr<USkeletalMeshComponent> RetargetedMeshComponent;
+	
 	UPROPERTY(VisibleAnywhere, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
 	

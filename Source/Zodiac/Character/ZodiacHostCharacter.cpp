@@ -193,6 +193,16 @@ UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetHeroAbilitySystemCompone
 	return nullptr;
 }
 
+USkeletalMeshComponent* AZodiacHostCharacter::GetRetargetedMesh() const
+{
+	if (AZodiacHeroCharacter* Hero = GetHero())
+	{
+		return Hero->GetMesh();
+	}
+
+	return nullptr;
+}
+
 UZodiacHealthComponent* AZodiacHostCharacter::GetHealthComponent() const
 {
 	if (AZodiacHeroCharacter* Hero = HeroList.GetHero(ActiveHeroIndex))
