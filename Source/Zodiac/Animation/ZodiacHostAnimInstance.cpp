@@ -57,6 +57,44 @@ void UZodiacHostAnimInstance::UpdateMovementData()
 {
 	CustomMovement_Last = CustomMovement;
 	CustomMovement = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
+	
+	ExtendedMovementMode_Last = ExtendedMovementMode;
+	
+	switch (ZodiacCharMovComp->MovementMode)
+	{
+	case MOVE_Walking:
+	case MOVE_NavWalking:
+		switch (CustomMovement)
+		{
+		case Move_Custom_Walking:
+			ExtendedMovementMode = EZodiacExtendedMovementMode::Walking;
+				break;
+		case Move_Custom_Running:
+			ExtendedMovementMode = EZodiacExtendedMovementMode::Running;
+				break;
+		case Move_Custom_Traversal:
+			ExtendedMovementMode = EZodiacExtendedMovementMode::Traversal;
+				break;
+		case MOVE_None:
+		default:
+			ExtendedMovementMode = EZodiacExtendedMovementMode::Walking;
+		}
+		
+	case MOVE_Falling:
+		ExtendedMovementMode = EZodiacExtendedMovementMode::Falling;
+		break;
+	case MOVE_Flying:
+		ExtendedMovementMode = EZodiacExtendedMovementMode::BindInAir;
+		break;
+		
+	case MOVE_Custom:
+	case MOVE_MAX:
+	case MOVE_Swimming:
+	case MOVE_None:
+	default:
+		break;
+	}
+	
 	bIsMoving = !Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1);
 }
 
@@ -100,6 +138,10 @@ void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 	else if (Tag == ZodiacGameplayTags::Status_ADS)
 	{
 		bIsADS = bHasTag;
+	}
+	else if (Tag == ZodiacGameplayTags::Status_Stun)
+	{
+		bIsStun = bHasTag;
 	}
 }
 

@@ -64,6 +64,7 @@ public:
 	virtual bool CanAttemptJump() const override;
 	virtual void SetDefaultMovementMode() override;
 	virtual void SetPostLandedPhysics(const FHitResult& Hit) override;
+	virtual bool HandlePendingLaunch() override;
 	
 	// Returns the current ground info.  Calling this will update the ground info if it's out of date.
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|CharacterMovement")

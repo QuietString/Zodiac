@@ -458,17 +458,17 @@ FTransform UZodiacHeroAbility_Ranged::GetWeaponTargetingTransform() const
 	return GetTargetingTransform(HostCharacter, HeroActor, EZodiacAbilityAimTraceRule::WeaponTowardsFocus);
 }
 
-FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, APawn* SourcePawn, EZodiacAbilityAimTraceRule Source) const
+FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* HostPawn, APawn* HeroPawn, EZodiacAbilityAimTraceRule Source) const
 {
-	check(OwningPawn);
-	check(SourcePawn);
+	check(HostPawn);
+	check(HeroPawn);
 	
 	// The caller should determine the transform without calling this if the mode is custom!
 	check(Source != EZodiacAbilityAimTraceRule::Custom);
 	
-	const FVector ActorLoc = SourcePawn->GetActorLocation();
-	FQuat AimQuat = SourcePawn->GetActorQuat();
-	AController* Controller = OwningPawn->Controller;
+	const FVector ActorLoc = HeroPawn->GetActorLocation();
+	FQuat AimQuat = HostPawn->GetActorQuat();
+	AController* Controller = HostPawn->Controller;
 	FVector SourceLoc;
 
 	double FocalDistance = 1024;
@@ -510,7 +510,7 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, A
 			}
 			else
 			{
-				const FVector PawnLocation = SourcePawn->GetActorLocation();
+				const FVector PawnLocation = HeroPawn->GetActorLocation();
 				CamLoc = FocalLoc + (((PawnLocation - FocalLoc) | AimDir) * AimDir);
 			}
 
@@ -520,7 +520,7 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, A
 		//Move the start to be the HeadPosition of the AI
 		else if (AAIController* AIController = Cast<AAIController>(Controller))
 		{
-			CamLoc = SourcePawn->GetActorLocation() + FVector(0, 0, OwningPawn->BaseEyeHeight);
+			CamLoc = HeroPawn->GetActorLocation() + FVector(0, 0, HostPawn->BaseEyeHeight);
 		}
 
 		if (Source == EZodiacAbilityAimTraceRule::WeaponTowardsFocusHit)
@@ -530,8 +530,8 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* OwningPawn, A
 			FHitResult HitResult;
 			FCollisionQueryParams Params;
 			Params.bReturnPhysicalMaterial = true;
-			Params.AddIgnoredActor(SourcePawn);
-			Params.AddIgnoredActor(OwningPawn);
+			Params.AddIgnoredActor(HeroPawn);
+			Params.AddIgnoredActor(HostPawn);
 			Params.bTraceComplex = true;
 
 			const ECollisionChannel TraceChannel = ECC_Visibility;

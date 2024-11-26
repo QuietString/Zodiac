@@ -212,6 +212,24 @@ void UZodiacCharacterMovementComponent::SetPostLandedPhysics(const FHitResult& H
 	}
 }
 
+bool UZodiacCharacterMovementComponent::HandlePendingLaunch()
+{
+	// Same as UCharacterMovementComponent's implementation, but don't change movement mode when it's MOVE_Flying
+	if (!PendingLaunchVelocity.IsZero() && HasValidData())
+	{
+		Velocity = PendingLaunchVelocity;
+		if (MovementMode != MOVE_Flying)
+		{
+			SetMovementMode(MOVE_Falling);	
+		}
+		PendingLaunchVelocity = FVector::ZeroVector;
+		bForceNextFloorCheck = true;
+		return true;
+	}
+
+	return false;
+}
+
 const FZodiacCharacterGroundInfo& UZodiacCharacterMovementComponent::GetGroundInfo()
 {
 	if (!CharacterOwner || (GFrameCounter == CachedGroundInfo.LastUpdateFrame))
