@@ -74,6 +74,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsWeaponReady = false;
 
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsFlying = false;
+	
 private:
 	UPROPERTY()
 	TObjectPtr<AZodiacCharacter> ParentCharacter;

@@ -11,6 +11,7 @@
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacCharacter.generated.h"
 
+struct FZodiacMovementInputDirections;
 class UZodiacHealthComponent;
 class UZodiacAbilitySystemComponent;
 struct FInputActionValue;
@@ -90,6 +91,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual USkeletalMeshComponent* GetRetargetedMesh() const { return  nullptr; }
+
+	UFUNCTION(BlueprintCallable)
+	FZodiacMovementInputDirections GetMovementInputDirection() const;
 	
 	//~IGameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;

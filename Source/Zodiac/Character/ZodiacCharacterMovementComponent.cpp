@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// the.quiet.string@gmail.com
 
 #include "ZodiacCharacterMovementComponent.h"
 
@@ -281,6 +281,87 @@ void UZodiacCharacterMovementComponent::SetReplicatedAcceleration(const FVector&
 {
 	bHasReplicatedAcceleration = true;
 	Acceleration = InAcceleration;
+}
+
+FZodiacMovementInputDirections UZodiacCharacterMovementComponent::GetMovementInputDirection()
+{
+    FZodiacMovementInputDirections Directions;
+
+    // Get the pawn owner
+    if (!PawnOwner)
+    {
+        return Directions;
+    }
+
+    // Get the pawn's forward and right vectors
+    FVector PawnForward = PawnOwner->GetActorForwardVector();
+    FVector PawnRight = PawnOwner->GetActorRightVector();
+
+    // Get the last input vector
+    FVector LastInputVector = GetLastInputVector();
+
+    // Check if there is any movement input
+    if (LastInputVector.IsNearlyZero())
+    {
+        return Directions; // No input detected
+    }
+
+    // Normalize the input vector
+    FVector InputDirection = LastInputVector.GetSafeNormal();
+
+    // Calculate dot products
+    float ForwardDot = FVector::DotProduct(PawnForward, InputDirection);
+    float RightDot = FVector::DotProduct(PawnRight, InputDirection);
+
+    // Threshold to filter out insignificant input
+    const float Threshold = 0.1f;
+
+    // Array to store directions and their magnitudes
+    struct FDirectionValue
+    {
+        EZodiacMovementInputDirection Direction;
+        float Value;
+    };
+
+    TArray<FDirectionValue> DirectionValues;
+
+    // Determine forward/backward direction
+    if (ForwardDot > Threshold)
+    {
+        DirectionValues.Add({ EZodiacMovementInputDirection::Forward, ForwardDot });
+    }
+    else if (ForwardDot < -Threshold)
+    {
+        DirectionValues.Add({ EZodiacMovementInputDirection::Backward, -ForwardDot });
+    }
+
+    // Determine right/left direction
+    if (RightDot > Threshold)
+    {
+        DirectionValues.Add({ EZodiacMovementInputDirection::Right, RightDot });
+    }
+    else if (RightDot < -Threshold)
+    {
+        DirectionValues.Add({ EZodiacMovementInputDirection::Left, -RightDot });
+    }
+
+    // Sort directions by their magnitude
+    DirectionValues.Sort([](const FDirectionValue& A, const FDirectionValue& B)
+    {
+        return A.Value > B.Value;
+    });
+
+    // Assign primary and secondary directions
+    if (DirectionValues.Num() >= 1)
+    {
+        Directions.PrimaryDirection = DirectionValues[0].Direction;
+    }
+    if (DirectionValues.Num() >= 2)
+    {
+        Directions.SecondaryDirection = DirectionValues[1].Direction;
+    }
+
+    return Directions;
 }
 
 float UZodiacCharacterMovementComponent::CalculateMaxSpeed() const

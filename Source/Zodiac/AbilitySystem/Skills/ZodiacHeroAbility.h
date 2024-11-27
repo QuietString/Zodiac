@@ -129,6 +129,7 @@ protected:
 	FVector GetSourceLocation() const;
 	
 	UZodiacAbilitySourceSocket* GetSocket() const;
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldowns")

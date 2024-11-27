@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// the.quiet.string@gmail.com
 
 #pragma once
 
@@ -20,7 +20,35 @@ enum EZodiacCustomMovementMode
 	Move_Custom_Running				UMETA(DisplayName="Running"), 
 	Move_Custom_Traversal			UMETA(DisplayName="Traversal")
 };
-	
+
+UENUM(BlueprintType, DisplayName = "Movement Input Direction")
+enum class EZodiacMovementInputDirection : uint8
+{
+	None,
+	Forward,
+	Backward,
+	Left,
+	Right
+};
+
+USTRUCT(BlueprintType)
+struct FZodiacMovementInputDirections
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	EZodiacMovementInputDirection PrimaryDirection;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	EZodiacMovementInputDirection SecondaryDirection;
+
+	FZodiacMovementInputDirections()
+		: PrimaryDirection(EZodiacMovementInputDirection::None)
+		, SecondaryDirection(EZodiacMovementInputDirection::None)
+	{
+	}
+};
+
 /**
  *	Information about the ground under the character.  It only gets updated as needed.
  */
@@ -72,6 +100,9 @@ public:
 
 	void SetReplicatedAcceleration(const FVector& InAcceleration);
 
+	// First element return primary direction, second element return secondary direction if exits. It's for diagonal inputs.
+	FZodiacMovementInputDirections GetMovementInputDirection();
+	
 protected:
 	float CalculateMaxSpeed() const;
 

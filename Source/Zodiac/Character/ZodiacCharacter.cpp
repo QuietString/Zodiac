@@ -143,6 +143,18 @@ FGenericTeamId AZodiacCharacter::GetGenericTeamId() const
 	return IZodiacTeamAgentInterface::GetGenericTeamId();
 }
 
+FZodiacMovementInputDirections AZodiacCharacter::GetMovementInputDirection() const
+{
+	FZodiacMovementInputDirections Directions;
+	
+	if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		Directions = ZodiacCharMovComp->GetMovementInputDirection();	
+	}
+
+	return Directions;
+}
+
 void AZodiacCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
 	if (const UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
