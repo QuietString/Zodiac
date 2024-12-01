@@ -69,7 +69,7 @@ public:
 	
 	FSimpleMulticastDelegate OnHeroActivated;
 	FSimpleMulticastDelegate OnHeroDeactivated;
-	
+
 protected:
 	void InitializeWithHostCharacter();
 	

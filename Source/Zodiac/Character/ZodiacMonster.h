@@ -31,12 +31,16 @@ public:
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	virtual USkeletalMeshComponent* GetRetargetedMesh() const override { return RetargetedMeshComponent; }
+	virtual void OnPhysicsTagChanged(FGameplayTag Tag, int Count) override;
 	//~End of AZodiacCharacter interface
 
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner) override;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_OnPhysicsTagChanged(FGameplayTag Tag, int Count);
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	const UZodiacHeroData* HeroData;

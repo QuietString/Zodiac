@@ -2,6 +2,7 @@
 
 #include "ZodiacHeroCharacter.h"
 
+#include "DelayAction.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
@@ -242,6 +243,8 @@ void AZodiacHeroCharacter::Activate()
 		HeroMesh->SetVisibility(true);
 		HeroMesh->bIsHeroHidden = false;
 		HeroMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		HeroMesh->bDisableClothSimulation = false;
+		HeroMesh->ForceClothNextUpdateTeleportAndReset();
 	}
 	
 	if (HostCharacter)
@@ -261,6 +264,7 @@ void AZodiacHeroCharacter::Deactivate()
 		HeroMesh->SetVisibility(false);
 		HeroMesh->bIsHeroHidden = true;
 		HeroMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		HeroMesh->bDisableClothSimulation = true;
 	}
 	
 	bIsActive = false;

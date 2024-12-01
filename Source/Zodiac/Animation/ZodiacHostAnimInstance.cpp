@@ -131,10 +131,6 @@ void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 	{
 		bIsDead = bHasTag;
 	}
-	else if (Tag == ZodiacGameplayTags::Status_WeaponReady)
-	{
-		bIsWeaponReady = bHasTag;
-	}
 	else if (Tag == ZodiacGameplayTags::Status_ADS)
 	{
 		bIsADS = bHasTag;

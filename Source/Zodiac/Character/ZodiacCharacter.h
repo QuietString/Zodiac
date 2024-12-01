@@ -139,6 +139,7 @@ protected:
 
 	void OnStatusTagChanged(FGameplayTag Tag, int Count);
 	void OnMovementTagChanged(FGameplayTag Tag, int Count);
+	virtual void OnPhysicsTagChanged(FGameplayTag Tag, int Count);
 	
 	virtual void OnJustLanded();
 	virtual void OnJustLifted();
@@ -153,6 +154,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 
+	FName CollisionProfileNameCached;
 private:
 	UPROPERTY()
 	bool bMovementDisabled = false;
@@ -162,4 +164,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_ReplicatedAcceleration();
+
+	
 };

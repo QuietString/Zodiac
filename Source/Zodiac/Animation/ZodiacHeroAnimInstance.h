@@ -72,9 +72,6 @@ protected:
 	bool bIsMoving;
 
 	UPROPERTY(BlueprintReadOnly)
-	bool bIsWeaponReady = false;
-
-	UPROPERTY(BlueprintReadOnly)
 	bool bIsFlying = false;
 	
 private:

@@ -371,6 +371,41 @@ void UZodiacAbilitySystemComponent::GetAbilityTargetData(const FGameplayAbilityS
 	}
 }
 
+bool UZodiacAbilitySystemComponent::SetActiveGameplayEffectDuration(FActiveGameplayEffectHandle Handle, float InDuration)
+{
+	if (!Handle.IsValid())
+	{
+		return false;
+	}
+
+	const FActiveGameplayEffect* ActiveGameplayEffect = GetActiveGameplayEffect(Handle);
+	if (!ActiveGameplayEffect)
+	{
+		return false;
+	}
+
+	FActiveGameplayEffect* ActiveEffect = const_cast<FActiveGameplayEffect*>(ActiveGameplayEffect);
+	if (InDuration > 0)
+	{
+		ActiveEffect->Spec.Duration = InDuration;
+	}
+	else
+	{
+		ActiveEffect->Spec.Duration = 0.01f;
+	}
+
+	ActiveEffect->StartServerWorldTime = ActiveGameplayEffects.GetServerWorldTime();
+	ActiveEffect->CachedStartServerWorldTime = ActiveEffect->StartServerWorldTime;
+	ActiveEffect->StartWorldTime = ActiveGameplayEffects.GetWorldTime();
+	ActiveGameplayEffects.MarkItemDirty(*ActiveEffect);
+	ActiveGameplayEffects.CheckDuration(Handle);
+
+	ActiveEffect->EventSet.OnTimeChanged.Broadcast(ActiveEffect->Handle, ActiveEffect->StartWorldTime, ActiveEffect->GetDuration());
+	OnGameplayEffectDurationChange(*ActiveEffect);
+
+	return true;
+}
+
 void UZodiacAbilitySystemComponent::TryActivateAbilitiesOnSpawn()
 {
 	ABILITYLIST_SCOPE_LOCK();

@@ -8,6 +8,8 @@
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "ZodiacGameplayTags.h"
+#include "Components/CapsuleComponent.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacMonster)
@@ -51,6 +53,11 @@ FGenericTeamId AZodiacMonster::GetGenericTeamId() const
 	return static_cast<uint8>(EZodiacTeam::NoTeam);
 }
 
+void AZodiacMonster::OnPhysicsTagChanged(FGameplayTag Tag, int Count)
+{
+	Multicast_OnPhysicsTagChanged(Tag, Count);
+}
+
 void AZodiacMonster::BeginPlay()
 {
 	Super::BeginPlay();
@@ -86,4 +93,9 @@ void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InAS
 	}
 	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+}
+
+void AZodiacMonster::Multicast_OnPhysicsTagChanged_Implementation(FGameplayTag Tag, int Count)
+{
+	AZodiacCharacter::OnPhysicsTagChanged(Tag, Count);
 }

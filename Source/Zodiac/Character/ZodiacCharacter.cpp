@@ -8,6 +8,7 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
 #include "Animation/ZodiacHostAnimInstance.h"
+#include "Components/CapsuleComponent.h"
 #include "Engine/Canvas.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -264,10 +265,10 @@ void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* In
 	
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_WeaponReady, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Death, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Movement_Disabled, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Physics_Collision_Disabled, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnPhysicsTagChanged);
 	
 	OnAbilitySystemComponentInitialized.Broadcast(AbilitySystemComponent);
 	OnAbilitySystemComponentInitialized.Clear();
@@ -380,7 +381,6 @@ void AZodiacCharacter::Input_LookMouse(const FInputActionValue& InputActionValue
 void AZodiacCharacter::OnStatusTagChanged(FGameplayTag Tag, int Count)
 {
 	bool bHasTag = Count > 0;
-	int32 NewCount = bHasTag ? 1 : 0;
 
 	UZodiacHostAnimInstance* HostAnimInstance = CastChecked<UZodiacHostAnimInstance>(GetMesh()->GetAnimInstance());
 
@@ -402,6 +402,23 @@ void AZodiacCharacter::OnMovementTagChanged(FGameplayTag Tag, int Count)
 			bool bHasTag = Count > 0;
 			uint8 CustomMode = bHasTag ? CustomMovement : Move_Custom_Running; // currently, use Move_Custom_Running as default mode.
 			ZodiacMoveComp->SetMovementMode(MOVE_Walking, CustomMode);
+		}
+	}
+}
+
+void AZodiacCharacter::OnPhysicsTagChanged(FGameplayTag Tag, int Count)
+{
+	bool bHasTag = Count > 0;
+
+	if (Tag == ZodiacGameplayTags::Status_Physics_Collision_Disabled)
+	{
+		if (bHasTag)
+		{
+			GetCapsuleComponent()->SetCollisionProfileName("NoCollision");
+		}
+		else
+		{
+			GetCapsuleComponent()->SetCollisionProfileName("ZodiacPawnCapsule");
 		}
 	}
 }

@@ -55,6 +55,9 @@ public:
 	/** Gets the ability target data associated with the given ability handle and activation info */
 	void GetAbilityTargetData(const FGameplayAbilitySpecHandle AbilityHandle, const FGameplayAbilityActivationInfo& ActivationInfo, FGameplayAbilityTargetDataHandle& OutTargetDataHandle);
 
+	UFUNCTION(BlueprintCallable)
+	bool SetActiveGameplayEffectDuration(FActiveGameplayEffectHandle Handle, float InDuration);
+	
 protected:
 	void TryActivateAbilitiesOnSpawn();
 
