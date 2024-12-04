@@ -108,11 +108,11 @@ protected:
 
 public:
 	// X: max speed, Y: mid speed, Z: min speed
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FVector RunSpeeds = FVector(500.0f, 350.0f, 300.0f);
 
 	// X: max speed, Y: mid speed, Z: min speed
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FVector WalkSpeeds = FVector(200.0f, 175.0f, 150.0f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

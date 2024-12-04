@@ -66,14 +66,13 @@ void UZodiacSkillAbility_Traversal::ActivateAbility(const FGameplayAbilitySpecHa
 			{
 				TraversalComponent->PerformTraversalActionFromAbility();	
 			}
-			return;
+
+			// Automatically ends ability after some time in case.
+			UAbilityTask_WaitDelay* WaitDelay =  UAbilityTask_WaitDelay::WaitDelay(this, 5.0f);
+			WaitDelay->OnFinish.AddDynamic(this, &ThisClass::OnTraversalFinished);
+			WaitDelay->Activate();
 		}
 	}
-	
-	// Automatically ends ability after some time in case.
-	UAbilityTask_WaitDelay* WaitDelay =  UAbilityTask_WaitDelay::WaitDelay(this, 5.0f);
-	WaitDelay->OnFinish.AddDynamic(this, &ThisClass::OnTraversalFinished);
-	WaitDelay->Activate();
 }
 
 void UZodiacSkillAbility_Traversal::OnTraversalFinished()

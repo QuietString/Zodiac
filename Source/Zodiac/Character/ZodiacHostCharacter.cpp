@@ -55,7 +55,6 @@ void AZodiacHostCharacter::OnRep_PlayerState()
 		if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(ZodiacPS->GetAbilitySystemComponent()))
 		{
 			InitializeAbilitySystem(ZodiacASC, ZodiacPS);
-			//InitializeHostAbilitySystem(ZodiacASC);
 		}
 	}
 }

@@ -122,6 +122,8 @@ public:
 	void SetMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode);
 	void SetMovementSpeeds(const FVector& InWalkSpeeds, const FVector& InRunSpeeds);
 
+	void OnTraversalEnded();
+	
 protected:	
 	//~AActor interface
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

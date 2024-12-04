@@ -27,8 +27,8 @@ UZodiacCharacterMovementComponent::UZodiacCharacterMovementComponent(const FObje
 namespace PackedMovementModeConstants
 {
 	const uint32 GroundShift = FMath::CeilLogTwo(MOVE_MAX); // 3
-	const uint8 CustomModeThr = 2 * (1 << GroundShift); // 1111x
-	const uint8 GroundMask = (1 << GroundShift) - 1; // 0111x
+	const uint8 CustomModeThr = 2 * (1 << GroundShift); //  2 * 8 = 16 = 0b10000
+	const uint8 GroundMask = (1 << GroundShift) - 1; // 8 - 1 = 7 0b111
 	const uint8 MainMask = 15 << 4; // 11110000x
 }
 
@@ -72,12 +72,8 @@ void UZodiacCharacterMovementComponent::SetMovementMode(EMovementMode NewMovemen
 
 	const EMovementMode PrevMovementMode = MovementMode;
 	const uint8 PrevCustomMode = CustomMovementMode;
-
-	// Changing custom movement mode is only allowed when MOVE_Walking or MOVE_NavWalking
-	//if (NewMovementMode == MOVE_Walking || NewMovementMode == MOVE_NavWalking)
-	{
-		CustomMovementMode = NewCustomMode;
-	}
+	
+	CustomMovementMode = NewCustomMode;
 	MovementMode = NewMovementMode;
 
 	// We allow setting movement mode before we have a component to update, in case this happens at startup.

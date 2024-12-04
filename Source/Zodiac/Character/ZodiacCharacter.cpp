@@ -110,11 +110,13 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 {
 	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
 	ZodiacMoveComp->GravityScale = 1.0f;
-	ZodiacMoveComp->MaxAcceleration = 2400.0f;
+	ZodiacMoveComp->MaxAcceleration = 800.0f;
 	ZodiacMoveComp->BrakingFrictionFactor = 1.0f;
 	ZodiacMoveComp->BrakingFriction = 6.0f;
-	ZodiacMoveComp->GroundFriction = 8.0f;
-	ZodiacMoveComp->BrakingDecelerationWalking = 1400.0f;
+	ZodiacMoveComp->GroundFriction = 5.0f;
+	ZodiacMoveComp->BrakingDecelerationWalking = 750.0f;
+	ZodiacMoveComp->JumpZVelocity = 500.f;
+	ZodiacMoveComp->RotationRate = FRotator(0, 0, -1.f);
 	ZodiacMoveComp->bUseControllerDesiredRotation = false;
 	ZodiacMoveComp->bOrientRotationToMovement = false;
 	ZodiacMoveComp->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
@@ -472,6 +474,7 @@ void AZodiacCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 	
 	SetMovementModeTag(MovementMode, CustomMovementMode, true);
 
+	UE_LOG(LogTemp, Warning, TEXT("%s: movementmode changed from %d, %d to %d, %d"), HasAuthority() ? TEXT("server") : TEXT("Client"), PrevMovementMode, PreviousCustomMode, MovementMode, CustomMovementMode);
 	if (ZodiacMoveComp->IsMovingOnGround())
 	{
 		if (PrevMovementMode == MOVE_Falling || PrevMovementMode == MOVE_Flying)
@@ -534,6 +537,10 @@ void AZodiacCharacter::SetMovementSpeeds(const FVector& InWalkSpeeds, const FVec
 		ZodiacCharMoveComp->WalkSpeeds = InWalkSpeeds;
 		ZodiacCharMoveComp->RunSpeeds = InRunSpeeds;
 	}
+}
+
+void AZodiacCharacter::OnTraversalEnded()
+{
 }
 
 bool AZodiacCharacter::UpdateSharedReplication()
