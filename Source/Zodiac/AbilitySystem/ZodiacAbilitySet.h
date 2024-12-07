@@ -9,6 +9,8 @@
 #include "Engine/DataAsset.h"
 #include "ZodiacAbilitySet.generated.h"
 
+struct FActiveGameplayEffectHandle;
+class UGameplayEffect;
 class UZodiacHeroAbilityManagerComponent;
 class UZodiacGameplayAbility;
 class UZodiacAbilitySystemComponent;
@@ -38,6 +40,25 @@ public:
 };
 
 /**
+ *	Data used by the ability set to grant gameplay effects.
+ */
+USTRUCT(BlueprintType)
+struct FZodiacAbilitySet_GameplayEffect
+{
+	GENERATED_BODY()
+
+public:
+
+	// Gameplay effect to grant.
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> GameplayEffect = nullptr;
+
+	// Level of gameplay effect to grant.
+	UPROPERTY(EditDefaultsOnly)
+	float EffectLevel = 1.0f;
+};
+
+/**
  *	Data used by the ability set to grant attribute sets.
  */
 USTRUCT(BlueprintType)
@@ -63,9 +84,8 @@ struct FZodiacAbilitySet_GrantedHandles
 	GENERATED_BODY()
 
 public:
-
 	void AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle);
-	//void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
+	void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddAttributeSet(UAttributeSet* Set);
 
 private:
@@ -77,8 +97,8 @@ protected:
 	TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
 
 	// Handles to the granted gameplay effects.
-	//UPROPERTY()
-	//TArray<FActiveGameplayEffectHandle> GameplayEffectHandles;
+	UPROPERTY()
+	TArray<FActiveGameplayEffectHandle> GameplayEffectHandles;
 	
 	// Pointers to the granted attribute sets
 	UPROPERTY()
@@ -102,6 +122,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FZodiacAbilitySet_GameplayAbility> GrantedGameplayAbilities;
 
+	// Gameplay effects to grant when this ability set is granted.
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects", meta=(TitleProperty=GameplayEffect))
+	TArray<FZodiacAbilitySet_GameplayEffect> GrantedGameplayEffects;
+	
 	// Attribute sets to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, meta=(TitleProperty=AttributeSet))
 	TArray<FZodiacAbilitySet_AttributeSet> GrantedAttributes;

@@ -21,26 +21,28 @@ bool UZodiacAbilityCost_TagStack::CheckCost(const UZodiacGameplayAbility* Abilit
 {
 	if (Ability)
 	{
-		const float NumStacksReal = Quantity.GetValueAtLevel(1);
-		const int32 NumStacks = FMath::TruncToInt(NumStacksReal);
+		if (const UZodiacHeroAbility* HeroAbility = Cast<UZodiacHeroAbility>(Ability))
+		{
+			FScalableFloat QuantityToUse = HeroAbility->ShouldUseInitialCost() ? Quantity_Initial : Quantity;
+			const float QuantityReal = QuantityToUse.GetValueAtLevel(1);
+			const int32 StackCost = FMath::TruncToInt(QuantityReal);
 
-		int32 NumStacksFound = 0;
-		if (const UZodiacHeroAbility* Skill = Cast<UZodiacHeroAbility>(Ability))
-		{
-			if (UZodiacHeroAbilitySlot* AbilitySlot = Skill->GetAssociatedSlot())
+			int32 StacksFound = 0;
+			
+			if (UZodiacHeroAbilitySlot* AbilitySlot = HeroAbility->GetAssociatedSlot())
 			{
-				NumStacksFound = AbilitySlot->GetStatTagStackCount(Tag);
+				StacksFound = AbilitySlot->GetStatTagStackCount(Tag);
 			}
-		}
+
+			const bool bCanApplyCost = StacksFound >= StackCost;
 		
-		const bool bCanApplyCost = NumStacksFound >= NumStacks;
-		
-		// Inform other abilities why this cost cannot be applied
-		if (!bCanApplyCost && OptionalRelevantTags && FailureTag.IsValid())
-		{
-			OptionalRelevantTags->AddTag(FailureTag);				
+			// Inform other abilities why this cost cannot be applied
+			if (!bCanApplyCost && OptionalRelevantTags && FailureTag.IsValid())
+			{
+				OptionalRelevantTags->AddTag(FailureTag);				
+			}
+			return bCanApplyCost;
 		}
-		return bCanApplyCost;
 	}
 	
 	return false;
@@ -50,14 +52,15 @@ void UZodiacAbilityCost_TagStack::ApplyCost(const UZodiacGameplayAbility* Abilit
 {
 	if (ActorInfo->IsNetAuthority() && Ability)
 	{
-		const float NumStacksReal = Quantity.GetValueAtLevel(1);
-		const int32 NumStacks = FMath::TruncToInt(NumStacksReal);
-
-		if (const UZodiacHeroAbility* Skill = Cast<UZodiacHeroAbility>(Ability))
+		if (const UZodiacHeroAbility* HeroAbility = Cast<UZodiacHeroAbility>(Ability))
 		{
-			if (UZodiacHeroAbilitySlot* AbilitySlot = Skill->GetAssociatedSlot())
+			FScalableFloat QuantityToUse = HeroAbility->ShouldUseInitialCost() ? Quantity_Initial : Quantity;
+			const float QuantityReal = QuantityToUse.GetValueAtLevel(1);
+			const int32 StackCost = FMath::TruncToInt(QuantityReal);
+	
+			if (UZodiacHeroAbilitySlot* AbilitySlot = HeroAbility->GetAssociatedSlot())
 			{
-				AbilitySlot->RemoveStatTagStack(Tag, NumStacks);		
+				AbilitySlot->RemoveStatTagStack(Tag, StackCost);		
 			}
 		}
 	}

@@ -153,6 +153,9 @@ protected:
 	UFUNCTION()
 	void SendChangeHealthMessage(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
 	void SendAttributeValueChangedMessage(const FOnAttributeChangeData& OnAttributeChangeData);
+	void SendAttributeValueChangedMessage2(const FOnAttributeChangeData& OnAttributeChangeData, bool bUsePredictedValue);
+	void SendAttributeValueChangedMessage_NotPredictedValues(const FOnAttributeChangeData& OnAttributeChangeData) { SendAttributeValueChangedMessage2(OnAttributeChangeData, false); }
+	void SendAttributeValueChangedMessage_PredictedValues(const FOnAttributeChangeData& OnAttributeChangeData) { SendAttributeValueChangedMessage2(OnAttributeChangeData, true); }
 
 private:
 	UPROPERTY()

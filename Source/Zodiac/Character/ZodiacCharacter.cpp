@@ -126,6 +126,32 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	ZodiacMoveComp->SetCrouchedHalfHeight(65.0f);
 }
 
+void AZodiacCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ThisClass, ExtendedMovementMode, COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedAcceleration, COND_SimulatedOnly);
+}
+
+void AZodiacCharacter::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)
+{
+	Super::PreReplication(ChangedPropertyTracker);
+
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		// Compress Acceleration: XY components as direction + magnitude, Z component as direct value
+		const double MaxAccel = MovementComponent->MaxAcceleration;
+		const FVector CurrentAccel = MovementComponent->GetCurrentAcceleration();
+		double AccelXYRadians, AccelXYMagnitude;
+		FMath::CartesianToPolar(CurrentAccel.X, CurrentAccel.Y, AccelXYMagnitude, AccelXYRadians);
+
+		ReplicatedAcceleration.AccelXYRadians   = FMath::FloorToInt((AccelXYRadians / TWO_PI) * 255.0);     // [0, 2PI] -> [0, 255]
+		ReplicatedAcceleration.AccelXYMagnitude = FMath::FloorToInt((AccelXYMagnitude / MaxAccel) * 255.0);	// [0, MaxAccel] -> [0, 255]
+		ReplicatedAcceleration.AccelZ           = FMath::FloorToInt((CurrentAccel.Z / MaxAccel) * 127.0);   // [-MaxAccel, MaxAccel] -> [-127, 127]
+	}
+}
+
 UAbilitySystemComponent* AZodiacCharacter::GetAbilitySystemComponent() const
 {
 	return nullptr;
@@ -144,18 +170,6 @@ UZodiacHealthComponent* AZodiacCharacter::GetHealthComponent() const
 FGenericTeamId AZodiacCharacter::GetGenericTeamId() const
 {
 	return IZodiacTeamAgentInterface::GetGenericTeamId();
-}
-
-FZodiacMovementInputDirections AZodiacCharacter::GetMovementInputDirection() const
-{
-	FZodiacMovementInputDirections Directions;
-	
-	if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
-	{
-		Directions = ZodiacCharMovComp->GetMovementInputDirection();	
-	}
-
-	return Directions;
 }
 
 void AZodiacCharacter::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
@@ -230,28 +244,21 @@ void AZodiacCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& De
 	}
 }
 
-void AZodiacCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void AZodiacCharacter::SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode)
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedAcceleration, COND_SimulatedOnly);
+	ExtendedMovementMode = InMode;
+	if (HasAuthority() || IsLocallyControlled())
+	{
+		OnRep_ExtendedMovementMode();
+	}
 }
 
-void AZodiacCharacter::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)
+void AZodiacCharacter::SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig)
 {
-	Super::PreReplication(ChangedPropertyTracker);
-
-	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
 	{
-		// Compress Acceleration: XY components as direction + magnitude, Z component as direct value
-		const double MaxAccel = MovementComponent->MaxAcceleration;
-		const FVector CurrentAccel = MovementComponent->GetCurrentAcceleration();
-		double AccelXYRadians, AccelXYMagnitude;
-		FMath::CartesianToPolar(CurrentAccel.X, CurrentAccel.Y, AccelXYMagnitude, AccelXYRadians);
-
-		ReplicatedAcceleration.AccelXYRadians   = FMath::FloorToInt((AccelXYRadians / TWO_PI) * 255.0);     // [0, 2PI] -> [0, 255]
-		ReplicatedAcceleration.AccelXYMagnitude = FMath::FloorToInt((AccelXYMagnitude / MaxAccel) * 255.0);	// [0, MaxAccel] -> [0, 255]
-		ReplicatedAcceleration.AccelZ           = FMath::FloorToInt((CurrentAccel.Z / MaxAccel) * 127.0);   // [-MaxAccel, MaxAccel] -> [-127, 127]
+		ZodiacCharMovComp->ExtendMovementConfig = InConfig;
+		SetExtendedMovementMode(InConfig.DefaultExtendedMovement);
 	}
 }
 
@@ -261,9 +268,6 @@ void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* In
 
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwner, this);
-
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Custom_Walking, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Movement_Custom_Running, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnMovementTagChanged);
 	
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
@@ -317,8 +321,8 @@ void AZodiacCharacter::InitializePlayerInput()
 
 			ZodiacIC->BindNativeAction(InputConfig.TagMapping, ZodiacGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
 			ZodiacIC->BindNativeAction(InputConfig.TagMapping, ZodiacGameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, false);
-			//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_Look_Stick, ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
-			//ZodiacIC->BindNativeAction(InputConfig, ZodiacGameplayTags::InputTag_AutoRun, ETriggerEvent::Triggered, this, &ThisClass::Input_AutoRun, /*bLogIfNotFound=*/ false);
+			ZodiacIC->BindNativeAction(InputConfig.TagMapping, ZodiacGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, false);
+			ZodiacIC->BindNativeAction(InputConfig.TagMapping, ZodiacGameplayTags::InputTag_Move_Fly, ETriggerEvent::Triggered, this, &ThisClass::Input_Fly, false);
 		}
 	}
 }
@@ -361,6 +365,23 @@ void AZodiacCharacter::Input_Move(const FInputActionValue& InputActionValue)
 		{
 			const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
 			AddMovementInput(MovementDirection, Value.Y);
+		}
+	}
+}
+
+void AZodiacCharacter::Input_Fly(const FInputActionValue& InputActionValue)
+{
+	if (Controller)
+	{
+		if (HasMatchingGameplayTag(ZodiacGameplayTags::Status_Stun) || HasMatchingGameplayTag(ZodiacGameplayTags::Status_Movement_Disabled))
+		{
+			return;
+		}
+		
+		const float Value = InputActionValue.Get<float>();
+		if (Value != 0.0f)
+		{
+			AddMovementInput(FVector::UpVector, Value);
 		}
 	}
 }
@@ -474,7 +495,6 @@ void AZodiacCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 	
 	SetMovementModeTag(MovementMode, CustomMovementMode, true);
 
-	UE_LOG(LogTemp, Warning, TEXT("%s: movementmode changed from %d, %d to %d, %d"), HasAuthority() ? TEXT("server") : TEXT("Client"), PrevMovementMode, PreviousCustomMode, MovementMode, CustomMovementMode);
 	if (ZodiacMoveComp->IsMovingOnGround())
 	{
 		if (PrevMovementMode == MOVE_Falling || PrevMovementMode == MOVE_Flying)
@@ -517,32 +537,6 @@ void AZodiacCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 Cust
 	}
 }
 
-void AZodiacCharacter::SetDefaultCustomMovementMode(uint8 CustomMode)
-{
-	if (UZodiacCharacterMovementComponent* ZodiacCharacterMovementComponent = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
-	{
-		ZodiacCharacterMovementComponent->DefaultCustomMovementMode = EZodiacCustomMovementMode(CustomMode);
-	}
-}
-
-void AZodiacCharacter::SetMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode)
-{
-	GetCharacterMovement()->SetMovementMode(MovementMode, CustomMovementMode);
-}
-
-void AZodiacCharacter::SetMovementSpeeds(const FVector& InWalkSpeeds, const FVector& InRunSpeeds)
-{
-	if (UZodiacCharacterMovementComponent* ZodiacCharMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
-	{
-		ZodiacCharMoveComp->WalkSpeeds = InWalkSpeeds;
-		ZodiacCharMoveComp->RunSpeeds = InRunSpeeds;
-	}
-}
-
-void AZodiacCharacter::OnTraversalEnded()
-{
-}
-
 bool AZodiacCharacter::UpdateSharedReplication()
 {
 	if (GetLocalRole() == ROLE_Authority)
@@ -583,6 +577,14 @@ void AZodiacCharacter::OnRep_ReplicatedAcceleration()
 		UnpackedAcceleration.Z = double(ReplicatedAcceleration.AccelZ) * MaxAccel / 127.0; // [-127, 127] -> [-MaxAccel, MaxAccel]
 
 		ZodiacMovementComponent->SetReplicatedAcceleration(UnpackedAcceleration);
+	}
+}
+
+void AZodiacCharacter::OnRep_ExtendedMovementMode()
+{
+	if (UZodiacCharacterMovementComponent* ZodiacCharMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		ZodiacCharMoveComp->SetExtendedMovementMode(ExtendedMovementMode);
 	}
 }
 

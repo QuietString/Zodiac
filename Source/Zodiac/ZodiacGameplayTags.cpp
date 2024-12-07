@@ -29,6 +29,7 @@ namespace ZodiacGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Move, "InputTag.Move", "Move input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Move_Sprint, "InputTag.Move.Sprint", "Sprint direction input");
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Move_Fly, "InputTag.Move.Fly");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Look_Mouse, "InputTag.Look.Mouse", "Look (mouse) input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Look_Stick, "InputTag.Look.Stick", "Look (stick) input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Crouch, "InputTag.Crouch", "Crouch input.");
@@ -56,6 +57,10 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Cheat_InfiniteAmmo, "Cheat.InfiniteAmmo")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_UnlimitedHealth, "Cheat.UnlimitedHealth", "UnlimitedHealth cheat is active on the owner.");
 
+	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Walking, "Status.Movement.Walking");
+	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Running, "Status.Movement.Running");
+	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Traversal, "Status.Movement.Traversal");
+	
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Attacking, "Status.Movement.Attacking");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Disabled, "Status.Movement.Disabled");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Weapon_Firing, "Status.Weapon.Firing");

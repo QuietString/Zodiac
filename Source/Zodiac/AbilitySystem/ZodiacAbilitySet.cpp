@@ -1,4 +1,5 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// the.quiet.string@gmail.com
 
 #include "ZodiacAbilitySet.h"
 
@@ -13,6 +14,14 @@ void FZodiacAbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbili
 	if (Handle.IsValid())
 	{
 		AbilitySpecHandles.Add(Handle);
+	}
+}
+
+void FZodiacAbilitySet_GrantedHandles::AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle)
+{
+	if (Handle.IsValid())
+	{
+		GameplayEffectHandles.Add(Handle);
 	}
 }
 
@@ -57,6 +66,26 @@ void UZodiacAbilitySet::GiveToAbilitySystem(UZodiacAbilitySystemComponent* Zodia
 		if (OutGrantedHandles)
 		{
 			OutGrantedHandles->AddAbilitySpecHandle(AbilitySpecHandle);
+		}
+	}
+
+	// Grant the gameplay effects.
+	for (int32 EffectIndex = 0; EffectIndex < GrantedGameplayEffects.Num(); ++EffectIndex)
+	{
+		const FZodiacAbilitySet_GameplayEffect& EffectToGrant = GrantedGameplayEffects[EffectIndex];
+
+		if (!IsValid(EffectToGrant.GameplayEffect))
+		{
+			UE_LOG(LogZodiacAbilitySystem, Error, TEXT("GrantedGameplayEffects[%d] on ability set [%s] is not valid"), EffectIndex, *GetNameSafe(this));
+			continue;
+		}
+
+		const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
+		const FActiveGameplayEffectHandle GameplayEffectHandle = ZodiacASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, ZodiacASC->MakeEffectContext());
+
+		if (OutGrantedHandles)
+		{
+			OutGrantedHandles->AddGameplayEffectHandle(GameplayEffectHandle);
 		}
 	}
 	

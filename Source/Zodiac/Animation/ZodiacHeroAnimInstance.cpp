@@ -35,6 +35,13 @@ void UZodiacHeroAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 	UpdateAimingData(DeltaSeconds);
 }
 
+void UZodiacHeroAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* InASC)
+{
+	check(InASC);
+	
+	GameplayTagPropertyMap.Initialize(this, InASC);
+}
+
 AZodiacCharacter* UZodiacHeroAnimInstance::GetParentCharacter() const
 {
 	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetOwningActor()))
@@ -70,7 +77,7 @@ void UZodiacHeroAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 	{
 		bIsDead = bHasTag;
 	}
-
+	
 	else if (Tag == ZodiacGameplayTags::Status_ADS)
 	{
 		bIsADS = bHasTag;
@@ -79,8 +86,7 @@ void UZodiacHeroAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 
 void UZodiacHeroAnimInstance::UpdateMovementData()
 {
-	bIsMoving = ParentAnimInstance->bIsMoving; 
-	bIsTraversal = ParentAnimInstance->CustomMovement == Move_Custom_Traversal;
+	bIsMoving = ParentAnimInstance->bIsMoving;
 }
 
 void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)

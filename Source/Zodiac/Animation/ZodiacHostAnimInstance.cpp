@@ -3,6 +3,7 @@
 
 #include "ZodiacHostAnimInstance.h"
 
+#include "AbilitySystemComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "Character/ZodiacCharacter.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
@@ -47,54 +48,27 @@ void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 		
 		UpdateVelocityData();
 		UpdateMovementData();
+		UpdateGait();
 		UpdateAccelerationData(DeltaSeconds);
-
 		UpdateAimingData();
 	}
 }
 
+void UZodiacHostAnimInstance::UpdateLocationData(float DeltaSeconds)
+{
+	const FVector PositionDiff = OwningCharacter->GetActorLocation() - WorldLocation;
+	DisplacementSinceLastUpdate = UKismetMathLibrary::VSizeXY(PositionDiff);
+
+	WorldLocation = OwningCharacter->GetActorLocation();
+	
+	DisplacementSpeed = UKismetMathLibrary::SafeDivide(DisplacementSinceLastUpdate, DeltaSeconds);
+}
+
 void UZodiacHostAnimInstance::UpdateMovementData()
 {
-	CustomMovement_Last = CustomMovement;
-	CustomMovement = EZodiacCustomMovementMode(ZodiacCharMovComp->CustomMovementMode);
-	
-	ExtendedMovementMode_Last = ExtendedMovementMode;
-	
-	switch (ZodiacCharMovComp->MovementMode)
-	{
-	case MOVE_Walking:
-	case MOVE_NavWalking:
-		switch (CustomMovement)
-		{
-		case Move_Custom_Walking:
-			ExtendedMovementMode = EZodiacExtendedMovementMode::Walking;
-				break;
-		case Move_Custom_Running:
-			ExtendedMovementMode = EZodiacExtendedMovementMode::Running;
-				break;
-		case Move_Custom_Traversal:
-			ExtendedMovementMode = EZodiacExtendedMovementMode::Traversal;
-				break;
-		case MOVE_None:
-		default:
-			ExtendedMovementMode = EZodiacExtendedMovementMode::Walking;
-		}
-		
-	case MOVE_Falling:
-		ExtendedMovementMode = EZodiacExtendedMovementMode::Falling;
-		break;
-	case MOVE_Flying:
-		ExtendedMovementMode = EZodiacExtendedMovementMode::BindInAir;
-		break;
-		
-	case MOVE_Custom:
-	case MOVE_MAX:
-	case MOVE_Swimming:
-	case MOVE_None:
-	default:
-		break;
-	}
-	
+	ExtendedMovementMode = ZodiacCharMovComp->GetExtendedMovementMode();
+
+	bIsTraversal = OwningCharacter->bIsTraversal;
 	bIsMoving = !Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1);
 }
 
@@ -148,29 +122,20 @@ void UZodiacHostAnimInstance::UpdateGait()
 		Gait_LastFrame = Gait;
 		
 		EMovementMode MovementMode = ZodiacCharMovComp->MovementMode;
-		uint8 CustomMovementMode = ZodiacCharMovComp->CustomMovementMode;
 
 		if (MovementMode == MOVE_Walking)
 		{
-			switch (CustomMovementMode)
+			switch (ZodiacCharMovComp->GetExtendedMovementMode())
 			{
-			case Move_Custom_Running:
+			case EZodiacExtendedMovementMode::Running:
 				Gait = Gait_Run;
 				return;
+				
+			case EZodiacExtendedMovementMode::Walking:
 			default:
 				Gait = Gait_Walk;
 				return;
 			}
 		}
 	}
-}
-
-void UZodiacHostAnimInstance::UpdateLocationData(float DeltaSeconds)
-{
-	const FVector PositionDiff = OwningCharacter->GetActorLocation() - WorldLocation;
-	DisplacementSinceLastUpdate = UKismetMathLibrary::VSizeXY(PositionDiff);
-
-	WorldLocation = OwningCharacter->GetActorLocation();
-	
-	DisplacementSpeed = UKismetMathLibrary::SafeDivide(DisplacementSinceLastUpdate, DeltaSeconds);
 }

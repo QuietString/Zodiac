@@ -8,8 +8,6 @@
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "ZodiacGameplayTags.h"
-#include "Components/CapsuleComponent.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacMonster)
@@ -62,11 +60,12 @@ void AZodiacMonster::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HeroData && HasAuthority())
+	if (HeroData)
 	{
-		SetMovementMode(MOVE_Walking, HeroData->DefaultMovementMode);
-		SetDefaultCustomMovementMode(HeroData->DefaultMovementMode);
-		SetMovementSpeeds(HeroData->WalkSpeeds, HeroData->RunSpeeds);
+		if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+		{
+			ZodiacCharMovComp->SetExtendedMovementConfig(HeroData->ExtendedMovementConfig);
+		}
 	}
 }
 

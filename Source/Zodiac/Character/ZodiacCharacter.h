@@ -11,7 +11,9 @@
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacCharacter.generated.h"
 
-struct FZodiacMovementInputDirections;
+struct FZodiacExtendedMovementConfig;
+enum class EZodiacExtendedMovementMode : uint8;
+enum class EZodiacWalkMode : uint8;
 class UZodiacHealthComponent;
 class UZodiacAbilitySystemComponent;
 struct FInputActionValue;
@@ -81,6 +83,11 @@ class ZODIAC_API AZodiacCharacter : public ACharacter, public IAbilitySystemInte
 public:
 	AZodiacCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	//~AActor interface
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
+	//~End of AActor interface
+	
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	
@@ -92,9 +99,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual USkeletalMeshComponent* GetRetargetedMesh() const { return  nullptr; }
 
-	UFUNCTION(BlueprintCallable)
-	FZodiacMovementInputDirections GetMovementInputDirection() const;
-	
 	//~IGameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
@@ -118,18 +122,11 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SimulateOrPlayHitReact(FVector HitDirection, FName HitBone, float Magnitude, FGameplayTagContainer InstigatorTags);
 
-	void SetDefaultCustomMovementMode(uint8 CustomMode);
-	void SetMovementMode(EMovementMode MovementMode, uint8 CustomMovementMode);
-	void SetMovementSpeeds(const FVector& InWalkSpeeds, const FVector& InRunSpeeds);
-
-	void OnTraversalEnded();
+	UFUNCTION(BlueprintCallable)
+	void SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode);
+	void SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig);
 	
 protected:	
-	//~AActor interface
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
-	//~End of AActor interface
-
 	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner);
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -137,6 +134,7 @@ protected:
 	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
 	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 	void Input_Move(const FInputActionValue& InputActionValue);
+	void Input_Fly(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 
 	void OnStatusTagChanged(FGameplayTag Tag, int Count);
@@ -149,14 +147,20 @@ protected:
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 	void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled);
 
+public:
+	UPROPERTY(BlueprintReadWrite, Category = "Zodiac|Movement")
+	bool bIsTraversal = false;
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
 	FZodiacInputConfig InputConfig;
 
+	UPROPERTY(ReplicatedUsing=OnRep_ExtendedMovementMode)
+	EZodiacExtendedMovementMode ExtendedMovementMode;
+	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
-
-	FName CollisionProfileNameCached;
+	
 private:
 	UPROPERTY()
 	bool bMovementDisabled = false;
@@ -167,5 +171,7 @@ private:
 	UFUNCTION()
 	void OnRep_ReplicatedAcceleration();
 
+	UFUNCTION()
+	void OnRep_ExtendedMovementMode();
 	
 };

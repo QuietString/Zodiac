@@ -2,13 +2,13 @@
 
 #include "ZodiacCharacterMovementComponent.h"
 
-#include "AbilitySystemComponent.h"
 #include "KismetAnimationLibrary.h"
-#include "ZodiacGameplayTags.h"
+#include "ZodiacCharacterType.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCharacterMovementComponent)
 
@@ -18,74 +18,12 @@ namespace ZodiacCharacter
 	FAutoConsoleVariableRef CVar_GroundTraceDistance(TEXT("ZodiacCharacter.GroundTraceDistance"), GroundTraceDistance, TEXT("Distance to trace down when generating ground information."), ECVF_Cheat);
 };
 
-
 UZodiacCharacterMovementComponent::UZodiacCharacterMovementComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-}
-
-namespace PackedMovementModeConstants
-{
-	const uint32 GroundShift = FMath::CeilLogTwo(MOVE_MAX); // 3
-	const uint8 CustomModeThr = 2 * (1 << GroundShift); //  2 * 8 = 16 = 0b10000
-	const uint8 GroundMask = (1 << GroundShift) - 1; // 8 - 1 = 7 0b111
-	const uint8 MainMask = 15 << 4; // 11110000x
-}
-
-uint8 UZodiacCharacterMovementComponent::PackNetworkMovementMode() const
-{
-	const uint8 GroundModeBit = (GetGroundMovementMode() == MOVE_Walking ? 0 : 1);
-	uint8 MainMovementMode = uint8(MovementMode.GetValue()) | (GroundModeBit << PackedMovementModeConstants::GroundShift);
-
-	return MainMovementMode | (CustomMovementMode << 4);
-}
-
-void UZodiacCharacterMovementComponent::UnpackNetworkMovementMode(const uint8 ReceivedMode, TEnumAsByte<EMovementMode>& OutMode, uint8& OutCustomMode,
-	TEnumAsByte<EMovementMode>& OutGroundMode) const
-{
-	OutMode = TEnumAsByte<EMovementMode>(ReceivedMode & PackedMovementModeConstants::GroundMask);
-	OutCustomMode = (ReceivedMode & PackedMovementModeConstants::MainMask) >> 4;
-	const uint8 GroundModeBit = (ReceivedMode >> PackedMovementModeConstants::GroundShift);
-	OutGroundMode = TEnumAsByte<EMovementMode>(GroundModeBit == 0 ? MOVE_Walking : MOVE_NavWalking);
-}
-
-void UZodiacCharacterMovementComponent::SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode)
-{
-	// Almost same as UCharacterMovementComponent's implementation but
-	// 1. removed checking (NewMovementMode == MOVE_CUSTOM)
-	// 2. allowing custom mode even when MovementMode is not MOVE_CUSTOM 
-	
-	// If trying to use NavWalking but there is no navmesh, use walking instead.
-	if (NewMovementMode == MOVE_NavWalking)
-	{
-		if (GetNavData() == nullptr)
-		{
-			NewMovementMode = MOVE_Walking;
-		}
-	}
-
-	// Do nothing if nothing is changing.
-	if (MovementMode == NewMovementMode && CustomMovementMode == NewCustomMode)
-	{
-		return;
-	}
-
-	const EMovementMode PrevMovementMode = MovementMode;
-	const uint8 PrevCustomMode = CustomMovementMode;
-	
-	CustomMovementMode = NewCustomMode;
-	MovementMode = NewMovementMode;
-
-	// We allow setting movement mode before we have a component to update, in case this happens at startup.
-	if (!HasValidData())
-	{
-		return;
-	}
-	
-	// Handle change in movement mode
-	OnMovementModeChanged(PrevMovementMode, PrevCustomMode);
-	
-	bMovementModeDirty = true; // lets async callback know movement mode was dirtied on game thread
+	ExtendMovementConfig.DefaultExtendedMovement = EZodiacExtendedMovementMode::Running;
+	ExtendMovementConfig.MovementSpeedsMap.Add(EZodiacExtendedMovementMode::Walking, FVector(200.f, 175.f, 150.f));
+	ExtendMovementConfig.MovementSpeedsMap.Add(EZodiacExtendedMovementMode::Running, FVector(500.f, 350.f, 300.f));
 }
 
 void UZodiacCharacterMovementComponent::SimulateMovement(float DeltaTime)
@@ -103,41 +41,6 @@ void UZodiacCharacterMovementComponent::SimulateMovement(float DeltaTime)
 	}
 }
 
-void UZodiacCharacterMovementComponent::JumpOff(AActor* MovementBaseActor)
-{
-	// Don't set MovementMode to MOVE_Falling when CustomMovementMode is MOVE_Traversal.
-	if ( !bPerformingJumpOff )
-	{
-		bPerformingJumpOff = true;
-		if ( CharacterOwner )
-		{
-			const float MaxSpeed = GetMaxSpeed() * 0.85f;
-			Velocity += MaxSpeed * GetBestDirectionOffActor(MovementBaseActor);
-			if ( Velocity.Size2D() > MaxSpeed )
-			{
-				Velocity = MaxSpeed * Velocity.GetSafeNormal();
-			}
-
-			if (HasCustomGravity())
-			{
-				FVector GravityRelativeVelocity = RotateWorldToGravity(Velocity);
-				GravityRelativeVelocity.Z = JumpOffJumpZFactor * JumpZVelocity;
-				Velocity = RotateGravityToWorld(GravityRelativeVelocity);
-			}
-			else
-			{
-				Velocity.Z = JumpOffJumpZFactor * JumpZVelocity;
-			}
-
-			if (CustomMovementMode != Move_Custom_Traversal)
-			{
-				SetMovementMode(MOVE_Falling);	
-			}
-		}
-		bPerformingJumpOff = false;
-	}
-}
-
 float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 {
 	if (MovementMode == MOVE_Walking)
@@ -148,69 +51,10 @@ float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 	return Super::GetMaxSpeed();
 }
 
-bool UZodiacCharacterMovementComponent::CanAttemptJump() const
-{
-	// Same as UCharacterMovementComponent's implementation but without the crouch check
-	return IsJumpAllowed() && (IsMovingOnGround() || IsFalling()); // Falling included for double-jump and non-zero jump hold time, but validated by character.
-}
-
-void UZodiacCharacterMovementComponent::SetDefaultMovementMode()
-{
-	// Same as UCharacterMovementComponent's implementation but with DefaultCustomMovementMode
-
-	// check for water volume
-	if (CanEverSwim() && IsInWater())
-	{
-		SetMovementMode(DefaultWaterMovementMode);
-	}
-	else if ( !CharacterOwner || MovementMode != DefaultLandMovementMode || CustomMovementMode != DefaultCustomMovementMode)
-	{
-		const float SavedVelocityZ = Velocity.Z;
-		SetMovementMode(DefaultLandMovementMode, DefaultCustomMovementMode);
-
-		// Avoid 1-frame delay if trying to walk but walking fails at this location.
-		if (MovementMode == MOVE_Walking && GetMovementBase() == NULL)
-		{
-			Velocity.Z = SavedVelocityZ; // Prevent temporary walking state from zeroing Z velocity.
-			SetMovementMode(MOVE_Falling);
-		}
-	}
-}
-
-void UZodiacCharacterMovementComponent::SetPostLandedPhysics(const FHitResult& Hit)
-{
-	// Same as UCharacterMovementComponent's implementation, but with DefaultCustomMovementMode
-	
-	if( CharacterOwner )
-	{
-		if (CanEverSwim() && IsInWater())
-		{
-			SetMovementMode(MOVE_Swimming);
-		}
-		else
-		{
-			const FVector PreImpactAccel = Acceleration + (IsFalling() ? -GetGravityDirection() * GetGravityZ() : FVector::ZeroVector);
-			const FVector PreImpactVelocity = Velocity;
-
-			if (DefaultLandMovementMode == MOVE_Walking ||
-				DefaultLandMovementMode == MOVE_NavWalking ||
-				DefaultLandMovementMode == MOVE_Falling)
-			{
-				SetMovementMode(GetGroundMovementMode(), DefaultCustomMovementMode);
-			}
-			else
-			{
-				SetDefaultMovementMode();
-			}
-			
-			ApplyImpactPhysicsForces(Hit, PreImpactAccel, PreImpactVelocity);
-		}
-	}
-}
-
 bool UZodiacCharacterMovementComponent::HandlePendingLaunch()
 {
 	// Same as UCharacterMovementComponent's implementation, but don't change movement mode when it's MOVE_Flying
+	// to keep flying during AirBoost with launch
 	if (!PendingLaunchVelocity.IsZero() && HasValidData())
 	{
 		Velocity = PendingLaunchVelocity;
@@ -279,9 +123,9 @@ void UZodiacCharacterMovementComponent::SetReplicatedAcceleration(const FVector&
 	Acceleration = InAcceleration;
 }
 
-FZodiacMovementInputDirections UZodiacCharacterMovementComponent::GetMovementInputDirection()
+FZodiacMovementInputDirections UZodiacCharacterMovementComponent::GetMovementInputDirection(bool bUseExplicitInputVector, FVector InputVector) const
 {
-    FZodiacMovementInputDirections Directions;
+	FZodiacMovementInputDirections Directions;
 
     // Get the pawn owner
     if (!PawnOwner)
@@ -294,7 +138,7 @@ FZodiacMovementInputDirections UZodiacCharacterMovementComponent::GetMovementInp
     FVector PawnRight = PawnOwner->GetActorRightVector();
 
     // Get the last input vector
-    FVector LastInputVector = GetLastInputVector();
+    FVector LastInputVector = bUseExplicitInputVector ? InputVector : GetLastInputVector();
 
     // Check if there is any movement input
     if (LastInputVector.IsNearlyZero())
@@ -360,24 +204,21 @@ FZodiacMovementInputDirections UZodiacCharacterMovementComponent::GetMovementInp
     return Directions;
 }
 
+void UZodiacCharacterMovementComponent::SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig)
+{
+	ExtendMovementConfig = InConfig;
+	ExtendedMovementMode = InConfig.DefaultExtendedMovement;
+}
+
 float UZodiacCharacterMovementComponent::CalculateMaxSpeed() const
 {
 	FRotator Rotation = GetPawnOwner() ? GetPawnOwner()->GetActorRotation() : FRotator();
 	float MovementAngle = FMath::Abs(UKismetAnimationLibrary::CalculateDirection(Velocity, Rotation));
 	float StrafeMap = StrafeSpeedMapCurve ? StrafeSpeedMapCurve->GetFloatValue(MovementAngle) : 1.0f;
+
+	const FVector* FindVector = ExtendMovementConfig.MovementSpeedsMap.Find(ExtendedMovementMode);
 	
-	FVector DesiredSpeedRange;
-
-	switch (CustomMovementMode)
-	{
-	case Move_Custom_Running:
-		DesiredSpeedRange = RunSpeeds;
-		break;
-
-	default:
-		DesiredSpeedRange = WalkSpeeds;
-		break;
-	}
+	FVector DesiredSpeedRange = FindVector ? *FindVector : FVector();
 
 	// Min value is used when strafing or moving backward.
 	float MaxSpeed = (StrafeMap < 1.0f) ? DesiredSpeedRange.X : DesiredSpeedRange.Y;

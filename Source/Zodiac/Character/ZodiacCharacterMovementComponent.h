@@ -4,9 +4,11 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "NativeGameplayTags.h"
+#include "ZodiacCharacterType.h"
 
 #include "ZodiacCharacterMovementComponent.generated.h"
 
+enum class EZodiacWalkMode : uint8;
 class UObject;
 struct FFrame;
 
@@ -83,42 +85,35 @@ public:
 
 	UZodiacCharacterMovementComponent(const FObjectInitializer& ObjectInitializer);
 
-	virtual uint8 PackNetworkMovementMode() const override;
-	virtual void UnpackNetworkMovementMode(const uint8 ReceivedMode, TEnumAsByte<EMovementMode>& OutMode, uint8& OutCustomMode, TEnumAsByte<EMovementMode>& OutGroundMode) const override;
-	virtual void SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode = 0) override;
 	virtual void SimulateMovement(float DeltaTime) override;
-	virtual void JumpOff(AActor* MovementBaseActor) override;
 	virtual float GetMaxSpeed() const override;
-	virtual bool CanAttemptJump() const override;
-	virtual void SetDefaultMovementMode() override;
-	virtual void SetPostLandedPhysics(const FHitResult& Hit) override;
 	virtual bool HandlePendingLaunch() override;
 	
 	// Returns the current ground info.  Calling this will update the ground info if it's out of date.
-	UFUNCTION(BlueprintCallable, Category = "Zodiac|CharacterMovement")
+	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
 	const FZodiacCharacterGroundInfo& GetGroundInfo();
 
 	void SetReplicatedAcceleration(const FVector& InAcceleration);
 
 	// First element return primary direction, second element return secondary direction if exits. It's for diagonal inputs.
-	FZodiacMovementInputDirections GetMovementInputDirection();
+	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
+	FZodiacMovementInputDirections GetMovementInputDirection(bool bUseExplicitInputVector = false, FVector InputVector = FVector(0)) const;
 	
+	void SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig);
+
+	EZodiacExtendedMovementMode GetExtendedMovementMode() const { return ExtendedMovementMode; }
+	void SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode) { ExtendedMovementMode = InMode; }
+
 protected:
 	float CalculateMaxSpeed() const;
 
 public:
-	// X: max speed, Y: mid speed, Z: min speed
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FVector RunSpeeds = FVector(500.0f, 350.0f, 300.0f);
+	UPROPERTY(EditAnywhere, Category = "Walk Modes")
+	FZodiacExtendedMovementConfig ExtendMovementConfig;
 
-	// X: max speed, Y: mid speed, Z: min speed
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FVector WalkSpeeds = FVector(200.0f, 175.0f, 150.0f);
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TEnumAsByte<EZodiacCustomMovementMode> DefaultCustomMovementMode;
-	
 protected:
+	EZodiacExtendedMovementMode ExtendedMovementMode;
+	
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
 	TObjectPtr<UCurveFloat> StrafeSpeedMapCurve;
 	

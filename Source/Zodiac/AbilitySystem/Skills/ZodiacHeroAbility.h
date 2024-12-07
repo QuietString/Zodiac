@@ -103,7 +103,8 @@ public:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-	
+
+	bool ShouldUseInitialCost() const { return bHasInitialCost && !bHasInitialCostApplied; }
 	float GetCostToApply() const { return bHasInitialCost ? (bHasInitialCostApplied ? CostAmount : InitialCostAmount) : CostAmount; }
 	float GetCostAmount() const { return CostAmount; }
 	
@@ -162,7 +163,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ultimate")
 	FScalableFloat UltimateChargeAmount;
 	
-	// use different amount of cost for initiation.
+	// use different amount of cost for initiation when ability consume cost continuously during activation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
 	bool bHasInitialCost = false;
 
@@ -174,6 +175,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
 	TArray<uint8> ComboToIgnoreAdditionalCost;
+	
 private:
 	mutable bool bHasInitialCostApplied = false;
 	

@@ -189,7 +189,6 @@ void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, cons
                                     const FGameplayAbilityActivationInfo ActivationInfo) const
 {
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
-	bHasInitialCostApplied = true;
 
 	// Used to determine if the ability actually hit a target (as some costs are only spent on successful attempts)
 	auto DetermineIfAbilityHitTarget = [&]()
@@ -240,6 +239,8 @@ void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, cons
 			}
 		}
 	}
+
+	bHasInitialCostApplied = true;
 }
 
 void UZodiacHeroAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,

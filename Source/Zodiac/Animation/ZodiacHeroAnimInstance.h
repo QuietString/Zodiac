@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "AbilitySystem/Abilities/ZodiacGameplayAbility_Sprint.h"
 #include "Animation/AnimInstance.h"
 #include "Character/ZodiacCharacter.h"
 #include "ZodiacHeroAnimInstance.generated.h"
@@ -24,6 +25,8 @@ class ZODIAC_API UZodiacHeroAnimInstance : public UAnimInstance
 public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
+
+	void InitializeWithAbilitySystem(UAbilitySystemComponent* InASC);
 	
 	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe))
 	AZodiacCharacter* GetParentCharacter() const;
@@ -38,6 +41,9 @@ protected:
 	void UpdateAimingData(float DeltaSeconds);
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
+	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Blends")
 	float RootYawOffset;
 	

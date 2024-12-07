@@ -20,17 +20,6 @@ enum EZodiacGait
 	Gait_Sprint
 };
 
-UENUM(BlueprintType, DisplayName = "Extended Movement Mode")
-enum class EZodiacExtendedMovementMode : uint8
-{
-	Idle,
-	Walking,
-	Running,
-	Traversal,
-	Falling,
-	BindInAir
-};
-
 UCLASS()
 class ZODIAC_API UZodiacHostAnimInstance : public UAnimInstance
 {
@@ -121,11 +110,8 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsStun;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TEnumAsByte<EZodiacCustomMovementMode> CustomMovement_Last;
+	UPROPERTY(BlueprintReadOnly)
+	bool bIsTraversal;
 	
 	UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
 	FRotator WorldRotation;

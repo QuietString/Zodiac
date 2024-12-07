@@ -2,7 +2,6 @@
 
 #include "ZodiacHeroCharacter.h"
 
-#include "DelayAction.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
@@ -163,6 +162,11 @@ void AZodiacHeroCharacter::InitializeAbilitySystem()
 			}
 		}
 	}
+
+	if (UZodiacHeroAnimInstance* HeroAnimInstance = GetHeroAnimInstance())
+	{
+		HeroAnimInstance->InitializeWithAbilitySystem(AbilitySystemComponent);
+	}
 	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 }
@@ -249,9 +253,10 @@ void AZodiacHeroCharacter::Activate()
 	
 	if (HostCharacter)
 	{
-		HostCharacter->SetDefaultCustomMovementMode(HeroData->DefaultMovementMode);
-		HostCharacter->SetMovementMode(MOVE_Walking, HeroData->DefaultMovementMode);
-		HostCharacter->SetMovementSpeeds(HeroData->WalkSpeeds, HeroData->RunSpeeds);
+		if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(HostCharacter->GetCharacterMovement()))
+		{
+			HostCharacter->SetExtendedMovementConfig(HeroData->ExtendedMovementConfig);
+		}
 	}
 	
 	OnHeroActivated.Broadcast();
