@@ -45,11 +45,11 @@ void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 	if (OwningCharacter && ZodiacCharMovComp)
 	{
 		UpdateLocationData(DeltaSeconds);
-		
+		UpdateRotationData();
 		UpdateVelocityData();
+		UpdateAccelerationData(DeltaSeconds);
 		UpdateMovementData();
 		UpdateGait();
-		UpdateAccelerationData(DeltaSeconds);
 		UpdateAimingData();
 	}
 }
@@ -64,12 +64,27 @@ void UZodiacHostAnimInstance::UpdateLocationData(float DeltaSeconds)
 	DisplacementSpeed = UKismetMathLibrary::SafeDivide(DisplacementSinceLastUpdate, DeltaSeconds);
 }
 
+void UZodiacHostAnimInstance::UpdateRotationData()
+{
+	WorldRotation = OwningCharacter->GetActorRotation();
+}
+
 void UZodiacHostAnimInstance::UpdateMovementData()
 {
 	ExtendedMovementMode = ZodiacCharMovComp->GetExtendedMovementMode();
 
 	bIsTraversal = OwningCharacter->bIsTraversal;
-	bIsMoving = !Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1);
+
+	bool IsAccelerationLargeEnough = UKismetMathLibrary::VSizeXY(LocalAcceleration2D) > 0.1f;
+	bool IsVelocitySmall = UKismetMathLibrary::VSizeXY(LocalVelocity2D) < 200.f;
+
+	FVector AccelerationNorm = LocalAcceleration2D.GetSafeNormal();
+	FVector VelocityNorm = LocalVelocity2D.GetSafeNormal();
+	float AngleDiff = AccelerationNorm | VelocityNorm;
+	bool IsSameDirection = UKismetMathLibrary::InRange_FloatFloat(AngleDiff, -0.6f, 0.6f, true, true);
+
+	bIsRunningIntoWall = IsAccelerationLargeEnough && IsVelocitySmall && IsSameDirection;
+	bIsMoving = (!Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1) && !bIsRunningIntoWall);
 }
 
 void UZodiacHostAnimInstance::UpdateVelocityData()
@@ -79,6 +94,9 @@ void UZodiacHostAnimInstance::UpdateVelocityData()
 	Speed2D = UKismetMathLibrary::VSizeXY(Velocity);
 	bHasVelocity = Speed2D > 5.0f;
 	if (bHasVelocity) Velocity_LastNonZero = Velocity;
+
+	FVector Velocity2D = Velocity * FVector(1.0f, 1.0f, 0.f);
+	LocalVelocity2D = WorldRotation.UnrotateVector(Velocity2D);
 }
 
 void UZodiacHostAnimInstance::UpdateAccelerationData(float DeltaSeconds)
@@ -88,6 +106,9 @@ void UZodiacHostAnimInstance::UpdateAccelerationData(float DeltaSeconds)
 	Acceleration = ZodiacCharMovComp->GetCurrentAcceleration();
 	AccelerationAmount = Acceleration.Length() / ZodiacCharMovComp->MaxAcceleration;
 	bHasAcceleration = AccelerationAmount > 0;
+
+	FVector Acceleration2D = Acceleration * FVector(1.0f, 1.0f, 0.f);
+	LocalAcceleration2D = WorldRotation.UnrotateVector(Acceleration2D);
 }
 
 void UZodiacHostAnimInstance::UpdateAimingData()

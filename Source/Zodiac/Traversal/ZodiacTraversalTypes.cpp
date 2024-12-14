@@ -47,6 +47,7 @@ bool FZodiacTraversalCheckResult::NetSerialize(FArchive& Ar, UPackageMap* Map, b
 	Ar << ObstacleHeight;
 	Ar << ObstacleDepth;
 	Ar << Speed;
+	Ar.SerializeBits(&bIsMidAir, 1);
 	Ar << HitComponent;
 	Ar << ChosenMontage;
 	Ar << StartTime;
@@ -57,9 +58,9 @@ bool FZodiacTraversalCheckResult::NetSerialize(FArchive& Ar, UPackageMap* Map, b
 }
 
 FZodiacTraversalCheckResult UZodiacTraversalCheckHelper::MakeTraversalCheckResult(EZodiacTraversalActionType ActionType, bool HasFrontLedge,
-	FVector FrontLedgeLocation, FVector FrontLedgeNormal, bool bHasBackLedge, FVector BackLedgeLocation, FVector BackLedgeNormal,
-	float BackLedgeHeight, bool bHasBackFloor, FVector BackFloorLocation, float ObstacleHeight, float ObstacleDepth, float Speed,
-	UPrimitiveComponent* HitComponent, UAnimMontage* ChosenMontage, float StartTime, float PlayRate)
+                                                                                  FVector FrontLedgeLocation, FVector FrontLedgeNormal, bool bHasBackLedge, FVector BackLedgeLocation, FVector BackLedgeNormal,
+                                                                                  float BackLedgeHeight, bool bHasBackFloor, FVector BackFloorLocation, float ObstacleHeight, float ObstacleDepth, float Speed,
+                                                                                  UPrimitiveComponent* HitComponent, UAnimMontage* ChosenMontage, float StartTime, float PlayRate, bool IsMidAir)
 {
 	FZodiacTraversalCheckResult CheckResult;
 	CheckResult.ActionType = ActionType;
@@ -75,6 +76,7 @@ FZodiacTraversalCheckResult UZodiacTraversalCheckHelper::MakeTraversalCheckResul
 	CheckResult.ObstacleHeight = ObstacleHeight;
 	CheckResult.ObstacleDepth = ObstacleDepth;
 	CheckResult.Speed = Speed;
+	CheckResult.bIsMidAir = IsMidAir;
 	CheckResult.HitComponent = HitComponent;
 	CheckResult.ChosenMontage = ChosenMontage;
 	CheckResult.StartTime = StartTime;
@@ -85,7 +87,7 @@ FZodiacTraversalCheckResult UZodiacTraversalCheckHelper::MakeTraversalCheckResul
 void UZodiacTraversalCheckHelper::BreakTraversalCheckResult(const FZodiacTraversalCheckResult& Check, EZodiacTraversalActionType& ActionType,
                                                             bool& HasFrontLedge, FVector& FrontLedgeLocation, FVector& FrontLedgeNormal, bool& bHasBackLedge, FVector& BackLedgeLocation,
                                                             FVector& BackLedgeNormal, float& BackLedgeHeight, bool& bHasBackFloor, FVector& BackFloorLocation, float& ObstacleHeight, float& ObstacleDepth,
-                                                            float& Speed, UPrimitiveComponent*& HitComponent, UAnimMontage*& ChosenMontage, float& StartTime, float& PlayRate)
+                                                            float& Speed, UPrimitiveComponent*& HitComponent, UAnimMontage*& ChosenMontage, float& StartTime, float& PlayRate, bool& bIsMidAir)
 {
 	ActionType = Check.ActionType;
 	HasFrontLedge = Check.bHasFrontLedge;
@@ -100,6 +102,7 @@ void UZodiacTraversalCheckHelper::BreakTraversalCheckResult(const FZodiacTravers
 	ObstacleHeight = Check.ObstacleHeight;
 	ObstacleDepth = Check.ObstacleDepth;
 	Speed = Check.Speed;
+	bIsMidAir = Check.bIsMidAir;
 	HitComponent = Check.GetComponent();
 	ChosenMontage = Check.ChosenMontage.Get();
 	StartTime = Check.StartTime;

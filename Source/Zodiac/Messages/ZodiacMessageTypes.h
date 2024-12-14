@@ -7,8 +7,9 @@
 #include "GameplayTagContainer.h"
 #include "ZodiacMessageTypes.generated.h"
 
+
 USTRUCT(BlueprintType, DisplayName = "Cooldown Message")
-struct FZodiacCooldownMessage
+struct FZodiacHUDMessage_Cooldown
 {
 	GENERATED_BODY()
 
@@ -21,6 +22,22 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite)
 	float Duration = 0;
+};
+
+USTRUCT(BlueprintType, DisplayName = "Input Event Message")
+struct FZodiacHUDMessage_InputEvent
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite, meta = (Categories = "HUD.Type.AbilitySlot"))
+	FGameplayTag Slot;
+	
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AActor> Instigator = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	TEnumAsByte<EInputEvent> InputEvent = EInputEvent::IE_MAX;
 };
 
 // Represents a generic message of the form Instigator Verb Target (in Context, with Magnitude)

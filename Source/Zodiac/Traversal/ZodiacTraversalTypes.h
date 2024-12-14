@@ -73,6 +73,9 @@ public:
 
 	UPROPERTY()
 	float Speed;
+
+	UPROPERTY()
+	bool bIsMidAir;
 	
 	UPROPERTY()
 	TWeakObjectPtr<UPrimitiveComponent> HitComponent;
@@ -115,11 +118,13 @@ class UZodiacTraversalCheckHelper : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Traversal", meta = (NativeMakeFunc, AdvancedDisplay="1", FrontLedgeNormal="0,0,1", BackLedgeNormal="0,0,1"))
-	static FZodiacTraversalCheckResult MakeTraversalCheckResult(EZodiacTraversalActionType ActionType, bool HasFrontLedge, FVector FrontLedgeLocation, FVector FrontLedgeNormal, bool bHasBackLedge, FVector BackLedgeLocation, FVector BackLedgeNormal, float BackLedgeHeight, bool bHasBackFloor, FVector BackFloorLocation, float ObstacleHeight, float ObstacleDepth, float Speed, UPrimitiveComponent* HitComponent, UAnimMontage* ChosenMontage, float StartTime, float PlayRate);
+	static FZodiacTraversalCheckResult MakeTraversalCheckResult(EZodiacTraversalActionType ActionType, bool HasFrontLedge, FVector FrontLedgeLocation, FVector FrontLedgeNormal, bool bHasBackLedge, FVector BackLedgeLocation, FVector BackLedgeNormal, float BackLedgeHeight, bool bHasBackFloor, FVector BackFloorLocation, float ObstacleHeight, float ObstacleDepth, float Speed, UPrimitiveComponent* HitComponent, UAnimMontage* ChosenMontage, float StartTime, float PlayRate, bool
+	                                                            IsMidAir);
 	
 	UFUNCTION(BlueprintPure, Category = "Traversal", meta=(NativeBreakFunc, AdvancedDisplay="1"))
 	static void BreakTraversalCheckResult(const struct FZodiacTraversalCheckResult& Check, EZodiacTraversalActionType& ActionType, bool& HasFrontLedge, FVector& FrontLedgeLocation, FVector& FrontLedgeNormal, bool& bHasBackLedge, FVector& BackLedgeLocation, FVector& BackLedgeNormal, float
-	                                      & BackLedgeHeight, bool& bHasBackFloor, FVector& BackFloorLocation, float& ObstacleHeight, float& ObstacleDepth, float& Speed, UPrimitiveComponent*& HitComponent, UAnimMontage*& ChosenMontage, float& StartTime, float& PlayRate);
+	                                      & BackLedgeHeight, bool& bHasBackFloor, FVector& BackFloorLocation, float& ObstacleHeight, float& ObstacleDepth, float& Speed, UPrimitiveComponent*& HitComponent, UAnimMontage*& ChosenMontage, float& StartTime, float& PlayRate, bool
+	                                      & bIsMidAir);
 };
 
 USTRUCT(BlueprintType)
@@ -133,6 +138,9 @@ struct FZodiacTraversalChooserParams
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Speed = 0.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsMidAir = false;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ObstacleHeight = 0.0f;
 

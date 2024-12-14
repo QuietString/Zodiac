@@ -42,6 +42,8 @@ protected:
 
 private:
 	void UpdateLocationData(float DeltaSeconds);
+	void UpdateRotationData();
+	
 	void UpdateVelocityData();
 	void UpdateAccelerationData(float DeltaSeconds);
 	void UpdateAimingData();
@@ -63,6 +65,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = Location_Data)
 	float DisplacementSpeed;
+
+	UPROPERTY(BlueprintReadOnly, Category = Rotation_data)
+	FRotator WorldRotation;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector Velocity;
@@ -79,9 +84,15 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsMoving;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsRunningIntoWall;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float Speed2D;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Velocity_Data)
+	FVector LocalVelocity2D;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bHasVelocity;
@@ -89,6 +100,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FVector Acceleration;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Acceleration_Data)
+	FVector LocalAcceleration2D;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bHasAcceleration;
 
@@ -112,9 +126,6 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsTraversal;
-	
-	UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
-	FRotator WorldRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
 	float YawDeltaSinceLastUpdate;

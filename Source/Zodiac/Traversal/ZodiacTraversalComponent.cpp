@@ -92,7 +92,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 		return false;
 	}
 
-	if (CharMovComp->CustomMovementMode == Move_Custom_Traversal)
+	if (CharMovComp->MovementMode == MOVE_Flying)
 	{
 		return false;
 	}
@@ -119,7 +119,8 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 	FZodiacTraversalCheckResult Result;
 	
 	bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
-
+	Result.bIsMidAir = bIsInAir;
+	
 	FVector CeilingCheckEndLocation;
 	if (!CheckFrontLedge(bIsInAir,Result,FailReason, CeilingCheckEndLocation, false))
 	{
@@ -258,6 +259,8 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	FVector TraceStart = ActorLocation;
 	FVector TraceEnd = ActorLocation + ActorForwardVector * TraceForwardDistance;
 	FHitResult TraversalObjectHit;
+
+	Result.bIsMidAir = bIsInAir;
 	
 	if (!CapsuleTrace(TraceStart, TraceEnd, TraversalObjectHit, OUT CapsuleRadius, CapsuleHalfHeight, bDrawFindBlockTrace, DebugDuration, bIsTicked, ActorsToIgnore))
 	{
@@ -386,6 +389,7 @@ bool UZodiacTraversalComponent::FindMatchingAnimMontage(FZodiacTraversalCheckRes
 			FZodiacTraversalChooserParams ChooserParams;
 			ChooserParams.ActionType = CheckResult.ActionType;
 			ChooserParams.Speed = CheckResult.Speed;
+			ChooserParams.bIsMidAir = CheckResult.bIsMidAir;
 			ChooserParams.ObstacleHeight = CheckResult.ObstacleHeight;
 			ChooserParams.ObstacleDepth = CheckResult.ObstacleDepth;
 			
