@@ -19,7 +19,7 @@ UZodiacSkillAbility_Traversal::UZodiacSkillAbility_Traversal(const FObjectInitia
 	{
 		// Add the ability trigger tag as default to the CDO.
 		FAbilityTriggerData TriggerData;
-		TriggerData.TriggerTag = ZodiacGameplayTags::Event_Traversal;
+		TriggerData.TriggerTag = ZodiacGameplayTags::Event_Ability_Traversal;
 		TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 		AbilityTriggers.Add(TriggerData);
 	}

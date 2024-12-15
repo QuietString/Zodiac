@@ -3,9 +3,8 @@
 
 #include "ZodiacHeroAbility_Jump.h"
 
-#include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Character/ZodiacCharacter.h"
 #include "Traversal/ZodiacTraversalComponent.h"
 
@@ -44,10 +43,6 @@ void UZodiacHeroAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle H
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	UAbilityTask_WaitGameplayEvent* WaitGameplayEvent = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, ZodiacGameplayTags::Event_JustLanded);
-	WaitGameplayEvent->EventReceived.AddDynamic(this, &ThisClass::OnJustLanded);
-	WaitGameplayEvent->Activate();
 	
 	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
 	{
@@ -60,14 +55,18 @@ void UZodiacHeroAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle H
 			}
 			else
 			{
-				bool Result = TraversalComponent->CanTraversalAction(FailReason);
 #if WITH_EDITOR
-				if (!Result && ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
+				if (ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
 				{
 					UE_LOG(LogZodiacTraversal, Log, TEXT("Traversal Failed Reason: %s"), *FailReason.ToString());
 				}
 #endif
 				CharacterJumpStart();
+				
+				UAbilityTask_WaitDelay* WaitDelay = UAbilityTask_WaitDelay::WaitDelay(this, DelayTime);
+				WaitDelay->OnFinish.AddDynamic(this, &ThisClass::OnDelayFinished);
+				WaitDelay->Activate();
+				
 				return;
 			}
 		}
@@ -85,9 +84,8 @@ void UZodiacHeroAbility_Jump::EndAbility(const FGameplayAbilitySpecHandle Handle
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UZodiacHeroAbility_Jump::OnJustLanded(FGameplayEventData Payload)
+void UZodiacHeroAbility_Jump::OnDelayFinished()
 {
-	CharacterJumpStop();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 

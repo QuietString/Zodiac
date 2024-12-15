@@ -41,7 +41,7 @@ public:
 protected:
 	float GetTraversalForwardTraceDistance(bool bIsInAir) const;
 	bool CapsuleTrace(const FVector& TraceStart, const FVector& TraceEnd, FHitResult& OutHit, float CapsuleRadius, float CapsuleHalfHeight, bool bDrawDebug, float
-	                  DebugDuration, bool bIsTicked, TArray<AActor*> ActorsToIgnore);
+	                  DebugDuration, bool bIsTicked, const TArray<AActor*>& ActorsToIgnore);
 	bool DetermineTraversalType(FZodiacTraversalCheckResult& CheckResult);
 	bool FindMatchingAnimMontage(FZodiacTraversalCheckResult& CheckResult);
 
@@ -68,7 +68,7 @@ protected:
 	FVector2D MantleHeightRange = FVector2D(50.0f, 275.0f);
 
 	UPROPERTY(EditAnywhere, Category = "Traversal")
-	FVector2D AirMantleHeightRange = FVector2D(50.0f, 125.0f);
+	FVector2D MidAirMantleHeightRange = FVector2D(50.0f, 125.0f);
 
 	UPROPERTY(EditAnywhere, Category = "Traversal")
 	FVector2D AirTraversalRange = FVector2D(0.0f, 50.0f);

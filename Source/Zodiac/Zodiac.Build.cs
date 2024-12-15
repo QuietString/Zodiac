@@ -67,7 +67,7 @@ public class Zodiac : ModuleRules
 				"ClientPilot",
 				"AudioModulation",
 				"GameSubtitles",
-				"PoseSearch"
+				"PoseSearch",
 			}
 		);
 	}

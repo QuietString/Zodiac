@@ -206,7 +206,7 @@ void UZodiacTraversalComponent::TryActivateTraversalAbility()
 			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
 
 			FGameplayEventData Payload;
-			Payload.EventTag = ZodiacGameplayTags::Event_Traversal;
+			Payload.EventTag = ZodiacGameplayTags::Event_Ability_Traversal;
 			Payload.Instigator = nullptr;
 			Payload.Target = ASC->GetAvatarActor();
 			Payload.ContextHandle = ContextHandle;
@@ -330,7 +330,7 @@ float UZodiacTraversalComponent::GetTraversalForwardTraceDistance(bool bIsInAir)
 }
 
 bool UZodiacTraversalComponent::CapsuleTrace(const FVector& TraceStart, const FVector& TraceEnd, FHitResult& OutHit, float CapsuleRadius, float CapsuleHalfHeight, bool bDrawDebug, float
-                                             DebugDuration, bool bIsTicked, TArray<AActor*> ActorsToIgnore)
+                                             DebugDuration, bool bIsTicked, const TArray<AActor*>& ActorsToIgnore)
 {
 	UWorld* World = GetWorld();
 	check(World);
@@ -344,7 +344,7 @@ bool UZodiacTraversalComponent::CapsuleTrace(const FVector& TraceStart, const FV
 bool UZodiacTraversalComponent::DetermineTraversalType(FZodiacTraversalCheckResult& CheckResult)
 {
 	FZodiacTraversalCheckResult& R = CheckResult;
-
+	
 	bool bLongEnoughToStepOn = R.ObstacleDepth >= 59.0f;
 	
 	bool CanVault = UKismetMathLibrary::InRange_FloatFloat(R.ObstacleHeight, VaultHeightRange.X, VaultHeightRange.Y);
@@ -361,10 +361,17 @@ bool UZodiacTraversalComponent::DetermineTraversalType(FZodiacTraversalCheckResu
 		return true;
 	}
 
-	bool CanMantle = UKismetMathLibrary::InRange_FloatFloat(R.ObstacleHeight, MantleHeightRange.X, MantleHeightRange.Y);
-	if (R.bHasFrontLedge && CanMantle && bLongEnoughToStepOn)
+	bool CanGroundMantle = UKismetMathLibrary::InRange_FloatFloat(R.ObstacleHeight, MantleHeightRange.X, MantleHeightRange.Y);
+	if (R.bHasFrontLedge && CanGroundMantle && bLongEnoughToStepOn && !CheckResult.bIsMidAir)
 	{
 		R.ActionType = EZodiacTraversalActionType::Mantle;
+		return true;
+	}
+
+	bool CanMidAirMantle = UKismetMathLibrary::InRange_FloatFloat(R.ObstacleHeight, MidAirMantleHeightRange.X, MidAirMantleHeightRange.Y);
+	if (R.bHasFrontLedge && CanMidAirMantle && bLongEnoughToStepOn && CheckResult.bIsMidAir)
+	{
+		R.ActionType = EZodiacTraversalActionType::MidAirMantle;
 		return true;
 	}
 

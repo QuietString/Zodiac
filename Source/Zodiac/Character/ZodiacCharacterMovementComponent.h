@@ -18,8 +18,6 @@ UENUM(BlueprintType)
 enum EZodiacCustomMovementMode
 {
 	Move_Custom_None = 0			UMETA(DisplayName="None"),
-	Move_Custom_Walking				UMETA(DisplayName="Walking"),
-	Move_Custom_Running				UMETA(DisplayName="Running"), 
 	Move_Custom_Traversal			UMETA(DisplayName="Traversal")
 };
 
@@ -87,6 +85,7 @@ public:
 
 	virtual void SimulateMovement(float DeltaTime) override;
 	virtual float GetMaxSpeed() const override;
+	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 	virtual bool HandlePendingLaunch() override;
 	
 	// Returns the current ground info.  Calling this will update the ground info if it's out of date.

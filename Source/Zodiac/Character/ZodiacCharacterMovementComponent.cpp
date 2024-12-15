@@ -51,6 +51,19 @@ float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 	return Super::GetMaxSpeed();
 }
 
+void UZodiacCharacterMovementComponent::PhysCustom(float deltaTime, int32 Iterations)
+{
+	if (CustomMovementMode == Move_Custom_Traversal)
+	{
+		PhysFlying(deltaTime, Iterations);
+	}
+	
+	if (CharacterOwner)
+	{
+		CharacterOwner->K2_UpdateCustomMovement(deltaTime);
+	}
+}
+
 bool UZodiacCharacterMovementComponent::HandlePendingLaunch()
 {
 	// Same as UCharacterMovementComponent's implementation, but don't change movement mode when it's MOVE_Flying

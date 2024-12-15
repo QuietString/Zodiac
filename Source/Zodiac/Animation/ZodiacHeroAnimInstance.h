@@ -77,9 +77,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsMoving;
 
-	UPROPERTY(BlueprintReadOnly)
-	bool bIsFlying = false;
-	
 private:
 	UPROPERTY()
 	TObjectPtr<AZodiacCharacter> ParentCharacter;

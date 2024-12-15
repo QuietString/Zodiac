@@ -60,11 +60,6 @@ protected:
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	//~End of AActor interface
 
-	//~AZodiacCharacter interface
-	virtual void OnJustLanded() override;
-	virtual void OnJustLifted() override;
-	//~End of AZodiacCharacter interface
-	
 	void InitializeHeroes();
 	
 	TSubclassOf<UZodiacCameraMode> DetermineCameraMode();

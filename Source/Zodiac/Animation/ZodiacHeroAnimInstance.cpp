@@ -87,19 +87,17 @@ void UZodiacHeroAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 void UZodiacHeroAnimInstance::UpdateMovementData()
 {
 	bIsMoving = ParentAnimInstance->bIsMoving;
+	bIsTraversal = ParentAnimInstance->bIsTraversal;
 }
 
 void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 {
-	if (ParentAnimInstance)
-	{
-		FRotator AimRotation = ParentCharacter->GetBaseAimRotation();
-		FRotator RootTransform = ParentAnimInstance->RootTransform.Rotator();
-		FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
+	FRotator AimRotation = ParentCharacter->GetBaseAimRotation();
+	FRotator RootTransform = ParentAnimInstance->RootTransform.Rotator();
+	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
 
-		RootYawOffset = - Delta.Yaw;
-		AimYaw = Delta.Yaw;
-		AimPitch = Delta.Pitch;
-		FMath::Clamp(AimYaw, AimYawClampRange.X, AimYawClampRange.Y);
-	}
+	RootYawOffset = - Delta.Yaw;
+	AimYaw = Delta.Yaw;
+	AimPitch = Delta.Pitch;
+	FMath::Clamp(AimYaw, AimYawClampRange.X, AimYawClampRange.Y);
 }

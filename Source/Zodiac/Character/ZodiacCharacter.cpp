@@ -423,7 +423,7 @@ void AZodiacCharacter::OnMovementTagChanged(FGameplayTag Tag, int Count)
 		{
 			uint8 CustomMovement = *CustomMovementPtr;
 			bool bHasTag = Count > 0;
-			uint8 CustomMode = bHasTag ? CustomMovement : Move_Custom_Running; // currently, use Move_Custom_Running as default mode.
+			uint8 CustomMode = bHasTag ? CustomMovement : Move_Custom_None;
 			ZodiacMoveComp->SetMovementMode(MOVE_Walking, CustomMode);
 		}
 	}
@@ -497,16 +497,22 @@ void AZodiacCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 
 	if (ZodiacMoveComp->IsMovingOnGround())
 	{
-		if (PrevMovementMode == MOVE_Falling || PrevMovementMode == MOVE_Flying)
+		if (PrevMovementMode == MOVE_Falling || PrevMovementMode == MOVE_Flying || PreviousCustomMode == Move_Custom_Traversal)
 		{
-			OnJustLanded();
+			if (MovementMode == MOVE_Walking || MOVE_NavWalking)
+			{
+				OnJustLanded();	
+			}
 		}
 	}
 	else
 	{
 		if (PrevMovementMode == MOVE_Walking || PrevMovementMode == MOVE_NavWalking)
 		{
-			OnJustLifted();
+			if (MovementMode == MOVE_Flying || MOVE_Falling)
+			{
+				OnJustLifted();	
+			}
 		}
 	}
 }

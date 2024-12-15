@@ -73,7 +73,7 @@ void UZodiacHostAnimInstance::UpdateMovementData()
 {
 	ExtendedMovementMode = ZodiacCharMovComp->GetExtendedMovementMode();
 
-	bIsTraversal = OwningCharacter->bIsTraversal;
+	bIsTraversal = ZodiacCharMovComp->CustomMovementMode == Move_Custom_Traversal;
 
 	bool IsAccelerationLargeEnough = UKismetMathLibrary::VSizeXY(LocalAcceleration2D) > 0.1f;
 	bool IsVelocitySmall = UKismetMathLibrary::VSizeXY(LocalVelocity2D) < 200.f;

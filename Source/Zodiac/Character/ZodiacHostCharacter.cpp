@@ -126,42 +126,6 @@ void AZodiacHostCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo
 	}
 }
 
-void AZodiacHostCharacter::OnJustLanded()
-{
-	Super::OnJustLanded();
-	
-	if (UAbilitySystemComponent* HeroASC = GetAbilitySystemComponent())
-	{
-		FGameplayEffectContextHandle ContextHandle = HeroASC->MakeEffectContext();
-		FGameplayEventData Payload;
-		Payload.EventTag = ZodiacGameplayTags::Event_JustLanded;
-		Payload.Target = HeroASC->GetAvatarActor();
-		Payload.ContextHandle = ContextHandle;
-		Payload.EventMagnitude = 1;
-	
-		FScopedPredictionWindow NewScopedWindow(HeroASC, true);
-		HeroASC->HandleGameplayEvent(Payload.EventTag, &Payload);
-	}
-}
-
-void AZodiacHostCharacter::OnJustLifted()
-{
-	Super::OnJustLifted();
-
-	if (UAbilitySystemComponent* HeroASC = GetAbilitySystemComponent())
-	{
-		FGameplayEffectContextHandle ContextHandle = HeroASC->MakeEffectContext();
-		FGameplayEventData Payload;
-		Payload.EventTag = ZodiacGameplayTags::Event_JustLifted;
-		Payload.Target = HeroASC->GetAvatarActor();
-		Payload.ContextHandle = ContextHandle;
-		Payload.EventMagnitude = 1;
-	
-		FScopedPredictionWindow NewScopedWindow(HeroASC, true);
-		HeroASC->HandleGameplayEvent(Payload.EventTag, &Payload);
-	}
-}
-
 UAbilitySystemComponent* AZodiacHostCharacter::GetAbilitySystemComponent() const
 {
 	return GetZodiacAbilitySystemComponent();

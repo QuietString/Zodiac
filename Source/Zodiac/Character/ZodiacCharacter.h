@@ -147,10 +147,6 @@ protected:
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 	void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled);
 
-public:
-	UPROPERTY(BlueprintReadWrite, Category = "Zodiac|Movement")
-	bool bIsTraversal = false;
-	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
 	FZodiacInputConfig InputConfig;

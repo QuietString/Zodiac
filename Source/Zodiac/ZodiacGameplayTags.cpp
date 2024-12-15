@@ -36,9 +36,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_AutoRun, "InputTag.AutoRun", "Auto-run input.");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_Damaged_Message, "Event.Damaged.Message");
-	UE_DEFINE_GAMEPLAY_TAG(Event_JustLanded, "Event.JustLanded");
-	UE_DEFINE_GAMEPLAY_TAG(Event_JustLifted, "Event.JustLifted");
-	UE_DEFINE_GAMEPLAY_TAG(Event_Traversal, "Event.Traversal");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Ability_Traversal, "Event.Ability.Traversal");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Death, "Event.Death", "Event that fires on death. This event only fires on the server.");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Elimination, "Event.Elimination");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Reset, "Event.Reset", "Event that fires once a player reset is executed.");
@@ -59,7 +57,6 @@ namespace ZodiacGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Walking, "Status.Movement.Walking");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Running, "Status.Movement.Running");
-	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Traversal, "Status.Movement.Traversal");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Attacking, "Status.Movement.Attacking");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Disabled, "Status.Movement.Disabled");
@@ -103,8 +100,6 @@ namespace ZodiacGameplayTags
 
 	// These are mapped to the movement modes inside GetCustomMovementModeTagMap()
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_None, "Movement.Custom.None");
-	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_Walking, "Movement.Custom.Walking");
-	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_Running, "Movement.Custom.Running");
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_Traversal, "Movement.Custom.Traversal");
 
 	// Unreal Movement Modes
@@ -122,16 +117,12 @@ namespace ZodiacGameplayTags
 	const TMap<uint8, FGameplayTag> CustomMovementModeTagMap =
 	{
 		{Move_Custom_None, Movement_Custom_None},
-		{Move_Custom_Walking, Movement_Custom_Walking},
-		{Move_Custom_Running, Movement_Custom_Running},
 		{Move_Custom_Traversal, Movement_Custom_Traversal}
 	};
 
 	const TMap<FGameplayTag, uint8> TagCustomMovementModeMap =
 	{
 		{Movement_Custom_None, Move_Custom_None},
-		{Movement_Custom_Walking, Move_Custom_Walking},
-		{Movement_Custom_Running, Move_Custom_Running},
 		{Movement_Custom_Traversal, Move_Custom_Traversal}
 	};
 	
