@@ -11,6 +11,8 @@
 #include "GameFramework/RootMotionSource.h"
 #include "Net/UnrealNetwork.h"
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilityTask_ApplyRootMotionConstantForceOnHost)
+
 UZodiacAbilityTask_ApplyRootMotionConstantForceOnHost* UZodiacAbilityTask_ApplyRootMotionConstantForceOnHost::ApplyRootMotionConstantForceOnHost
 (
 	UGameplayAbility* OwningAbility,

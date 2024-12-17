@@ -6,7 +6,7 @@
 #include "Abilities/Tasks/AbilityTask_ApplyRootMotion_Base.h"
 #include "ZodiacAbilityTask_ApplyRootMotionConstantForceOnHost.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FApplyRootMotionConstantForceDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FApplyRootMotionConstantForceOnHostDelegate);
 
 /**
  * Custom AbilityTask to apply root motion on host avatar actor, instead of hero avatar actor.
@@ -18,7 +18,7 @@ class UZodiacAbilityTask_ApplyRootMotionConstantForceOnHost : public UAbilityTas
 
 public:
 	UPROPERTY(BlueprintAssignable)
-	FApplyRootMotionConstantForceDelegate OnFinish;
+	FApplyRootMotionConstantForceOnHostDelegate OnFinish;
 
 	/** Apply force to character's movement */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
