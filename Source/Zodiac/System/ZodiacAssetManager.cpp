@@ -74,10 +74,12 @@ void UZodiacAssetManager::StartInitialLoading()
 	InitializeGameplayCueManager();
 }
 
+#if WITH_EDITOR
 void UZodiacAssetManager::PreBeginPIE(bool bStartSimulate)
 {
 	Super::PreBeginPIE(bStartSimulate);
 }
+#endif
 
 UPrimaryDataAsset* UZodiacAssetManager::LoadGameDataOfClass(TSubclassOf<UPrimaryDataAsset> DataClass,
 	const TSoftObjectPtr<UPrimaryDataAsset>& DataClassPath, FPrimaryAssetType PrimaryAssetType)
