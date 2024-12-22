@@ -324,7 +324,7 @@ float UZodiacTraversalComponent::GetTraversalForwardTraceDistance(bool bIsInAir)
 	else
 	{
 		float ForwardDistance = ActorRotation.UnrotateVector(OwningCharacter->GetCharacterMovement()->Velocity).X;
-		float ForwardDistanceClamped = FMath::GetMappedRangeValueClamped(FVector2f(0.0f, 500.0f), FVector2f(75.0f, 350.0f), ForwardDistance);
+		float ForwardDistanceClamped = FMath::GetMappedRangeValueClamped(FVector2f(0.0f, 500.0f), FVector2f(BaseGroundTraversalDistance, 350.0f), ForwardDistance);
 		return ForwardDistanceClamped;
 	}
 }

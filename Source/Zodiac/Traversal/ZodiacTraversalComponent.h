@@ -59,6 +59,9 @@ protected:
 	bool bEnableFindLedgeOnTick;
 
 	UPROPERTY(EditAnywhere, Category = "Traversal")
+	float BaseGroundTraversalDistance = 125.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Traversal")
 	FVector2D VaultHeightRange = FVector2D(50.0f, 125.0f);
 
 	UPROPERTY(EditAnywhere, Category = "Traversal")
