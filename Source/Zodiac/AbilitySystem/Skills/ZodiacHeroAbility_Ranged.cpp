@@ -94,6 +94,13 @@ void UZodiacHeroAbility_Ranged::ActivateAbility(const FGameplayAbilitySpecHandle
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+	if (TriggerEventData)
+	{
+		// if AimRule == EZodiacAbilityAimTraceRule::Custom, these variables are used for auto targeting.
+		Instigator = TriggerEventData->Instigator;
+		AimTarget = TriggerEventData->Target;	
+	}
+	
 	UZodiacHeroAbilitySlot_Weapon* WeaponSlot = GetAssociatedSlot<UZodiacHeroAbilitySlot_Weapon>();
 	check(WeaponSlot);
 	WeaponSlot->UpdateActivationTime();
@@ -120,6 +127,9 @@ void UZodiacHeroAbility_Ranged::EndAbility(const FGameplayAbilitySpecHandle Hand
 		MyASC->AbilityTargetDataSetDelegate(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey()).Remove(OnTargetDataReadyCallbackDelegateHandle);
 		MyASC->ConsumeClientReplicatedTargetData(CurrentSpecHandle, CurrentActivationInfo.GetActivationPredictionKey());
 
+		Instigator = nullptr;
+		AimTarget = nullptr;
+		
 		Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 	}
 }
@@ -223,8 +233,15 @@ void UZodiacHeroAbility_Ranged::StartRangedWeaponTargeting()
 	FScopedPredictionWindow ScopedPrediction(MyASC, CurrentActivationInfo.GetActivationPredictionKey());
 
 	TArray<FHitResult> FoundHits;
-	PerformLocalTargeting(OUT FoundHits);
-
+	if (AimTraceRule != EZodiacAbilityAimTraceRule::Custom)
+	{
+		PerformLocalTargeting(OUT FoundHits);
+	}
+	else if (AimTarget && Instigator)
+	{
+		PerformLocalTargetingWithTarget(OUT FoundHits);
+	}
+	
 	// Fill out the target data from the hit results
 	FGameplayAbilityTargetDataHandle TargetData;
 
@@ -307,6 +324,39 @@ void UZodiacHeroAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHit
 		TraceData.bCanPlayBulletFX = (HeroActor->GetNetMode() != NM_DedicatedServer);
 
 		const FTransform TargetTransform = GetTargetingTransform(HostCharacter, HeroActor, AimTraceRule);
+		TraceData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
+		TraceData.StartTrace = TargetTransform.GetTranslation();
+		const FVector EndTrace = TraceData.StartTrace + TraceData.AimDir * 100000.f;
+
+#if ENABLE_DRAW_DEBUG
+		if (ZodiacConsoleVariables::DrawBulletTracesDuration > 0.0f)
+		{
+			static float DebugThickness = 2.0f;
+			DrawDebugLine(GetWorld(), TraceData.StartTrace, TraceData.StartTrace + (TraceData.AimDir * 100.0f), FColor::Yellow, false, ZodiacConsoleVariables::DrawBulletTracesDuration, 0, DebugThickness);
+		}
+#endif
+
+		TraceBulletsInCartridge(TraceData, OUT OutHits);
+	}
+}
+
+void UZodiacHeroAbility_Ranged::PerformLocalTargetingWithTarget(TArray<FHitResult>& OutHits)
+{
+	AZodiacHeroCharacter* HeroActor = Cast<AZodiacHeroCharacter>(GetCurrentActorInfo()->AvatarActor);
+	UZodiacHeroAbilitySlot_RangedWeapon* WeaponSlot = GetAssociatedSlot<UZodiacHeroAbilitySlot_RangedWeapon>();
+
+	if (HeroActor && WeaponSlot)
+	{
+		FRangedAbilityTraceData TraceData;
+		TraceData.WeaponData = WeaponSlot;
+		TraceData.bCanPlayBulletFX = (HeroActor->GetNetMode() != NM_DedicatedServer);
+
+		FVector SourceLoc = Instigator->GetActorLocation();
+		FVector TargetLoc = AimTarget->GetActorLocation();
+		FVector Direction = TargetLoc - SourceLoc;
+		FRotator Rot = Direction.ToOrientationRotator();
+		const FTransform TargetTransform = FTransform(Rot, SourceLoc);
+		
 		TraceData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
 		TraceData.StartTrace = TargetTransform.GetTranslation();
 		const FVector EndTrace = TraceData.StartTrace + TraceData.AimDir * 100000.f;
@@ -592,6 +642,8 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 		const FHitResult* FirstHitResult = TargetData.Get(0)->GetHitResult();
 		GameplayCueParams_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*FirstHitResult);
 		GameplayCueParams_Firing.SourceObject = GetSocket();
+		GameplayCueParams_Firing.Instigator = const_cast<AActor*>(Instigator);
+		
 		HostASC->ExecuteGameplayCue(GameplayCueTag_Firing, GameplayCueParams_Firing);
 		AdvanceCombo();
 

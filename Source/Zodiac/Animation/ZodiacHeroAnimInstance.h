@@ -36,6 +36,8 @@ public:
 	
 	void OnStatusChanged(FGameplayTag Tag, bool bHasTag);
 
+	bool GetIsFocus() const { return bIsFocus; }
+	
 protected:
 	void UpdateMovementData();
 	void UpdateAimingData(float DeltaSeconds);

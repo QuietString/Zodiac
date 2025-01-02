@@ -268,9 +268,8 @@ void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* In
 
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwner, this);
-	
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
+
+	// Focus and ADS is not applied to host character.
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Death, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Movement_Disabled, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);

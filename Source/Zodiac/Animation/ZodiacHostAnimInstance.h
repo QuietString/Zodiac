@@ -49,7 +49,8 @@ private:
 	void UpdateAimingData();
 	
 	void UpdateMovementData();
-
+	void UpdateHeroData();
+	
 public:
 	UPROPERTY(BlueprintReadOnly, meta=(DisplayName = CharacterMovement))
 	TObjectPtr<UZodiacCharacterMovementComponent> ZodiacCharMovComp;

@@ -5,7 +5,6 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemLog.h"
-#include "ZodiacAbilityCost.h"
 #include "ZodiacAbilitySimpleFailureMessage.h"
 #include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"

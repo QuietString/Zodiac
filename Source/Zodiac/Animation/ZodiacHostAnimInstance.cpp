@@ -5,8 +5,11 @@
 
 #include "AbilitySystemComponent.h"
 #include "ZodiacGameplayTags.h"
+#include "ZodiacHeroAnimInstance.h"
 #include "Character/ZodiacCharacter.h"
+#include "Character/ZodiacHostCharacter.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
+#include "Character/ZodiacHeroCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHostAnimInstance)
@@ -51,6 +54,7 @@ void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 		UpdateMovementData();
 		UpdateGait();
 		UpdateAimingData();
+		UpdateHeroData();
 	}
 }
 
@@ -87,6 +91,20 @@ void UZodiacHostAnimInstance::UpdateMovementData()
 	bIsMoving = (!Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1) && !bIsRunningIntoWall);
 }
 
+void UZodiacHostAnimInstance::UpdateHeroData()
+{
+	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(OwningCharacter))
+	{
+		if (AZodiacHeroCharacter* Hero = HostCharacter->GetHero())
+		{
+			if (UZodiacHeroAnimInstance* HeroAnimInstance = Hero->GetHeroAnimInstance())
+			{
+				bIsFocus = HeroAnimInstance->GetIsFocus();
+			}
+		}	
+	}
+}
+
 void UZodiacHostAnimInstance::UpdateVelocityData()
 {
 	Velocity_Last = Velocity;
@@ -118,17 +136,9 @@ void UZodiacHostAnimInstance::UpdateAimingData()
 
 void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 {
-	if (Tag == ZodiacGameplayTags::Status_Focus)
-	{
-		bIsFocus = bHasTag;
-	}
-	else if (Tag == ZodiacGameplayTags::Status_Death)
+	if (Tag == ZodiacGameplayTags::Status_Death)
 	{
 		bIsDead = bHasTag;
-	}
-	else if (Tag == ZodiacGameplayTags::Status_ADS)
-	{
-		bIsADS = bHasTag;
 	}
 	else if (Tag == ZodiacGameplayTags::Status_Stun)
 	{

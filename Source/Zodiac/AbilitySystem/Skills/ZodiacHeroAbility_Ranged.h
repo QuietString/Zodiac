@@ -7,6 +7,7 @@
 #include "ZodiacHeroAbility_Ranged.generated.h"
 
 class UZodiacHeroAbilitySlot_RangedWeapon;
+
 /** Defines where an ability starts its trace from and where it should face */
 UENUM(BlueprintType)
 enum class EZodiacAbilityAimTraceRule : uint8
@@ -16,7 +17,7 @@ enum class EZodiacAbilityAimTraceRule : uint8
 	PawnTowardsFocus			UMETA(ToolTip = "From the weapon's muzzle or location, in the pawn's orientation"),
 	WeaponForward				UMETA(ToolTip = "From the weapon's muzzle or location, in the pawn's orientation"),
 	WeaponTowardsFocus			UMETA(ToolTip = "From the weapon's muzzle or location, towards camera focus"),
-	WeaponTowardsFocusHit	UMETA(ToolTip = "From the weapon's muzzle or location, towards focus trace hit"),
+	WeaponTowardsFocusHit		UMETA(ToolTip = "From the weapon's muzzle or location, towards focus trace hit"),
 	Custom						UMETA(ToolTip = "Custom blueprint-specified source location")
 };
 
@@ -75,7 +76,8 @@ protected:
 	void OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 
 	void PerformLocalTargeting(OUT TArray<FHitResult>& OutHits);
-
+	void PerformLocalTargetingWithTarget(OUT TArray<FHitResult>& OutHits);
+	
 	// Traces all of the bullets in a single cartridge
 	void TraceBulletsInCartridge(const FRangedAbilityTraceData& InputData, OUT TArray<FHitResult>& OutHits);
 
@@ -89,7 +91,7 @@ protected:
 	FTransform GetWeaponTargetingTransform() const;
 	
 	FTransform GetTargetingTransform(APawn* HostPawn, APawn* HeroPawn, EZodiacAbilityAimTraceRule Source) const;
-
+	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Gameplay")
 	float RateOfFire;
@@ -122,6 +124,12 @@ protected:
 	FGameplayCueParameters GameplayCueParams_Impact;
 
 private:
+	UPROPERTY()
+	const AActor* AimTarget;
+
+	UPROPERTY()
+	const AActor* Instigator; 
+	
 	FDelegateHandle OnTargetDataReadyCallbackDelegateHandle;
 
 #if WITH_EDITOR

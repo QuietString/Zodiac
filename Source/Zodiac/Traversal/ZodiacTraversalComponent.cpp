@@ -55,25 +55,35 @@ void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 	if (ACharacter* Character = GetPawn<ACharacter>())
 	{
-		if (bEnableFindLedgeOnTick && Character->IsLocallyViewed())
+		if (UCharacterMovementComponent* CharMovComp = Character->GetCharacterMovement())
 		{
-			bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
-			FText FailReason;
-			FZodiacTraversalCheckResult Result;
-			FVector LastLocation;
-			bool bLedgeFound = CheckFrontLedge(bIsInAir, Result, FailReason, LastLocation, true);
-			
-			DrawLedgeLocation(bLedgeFound, Result.FrontLedgeLocation, Result.FrontLedgeNormal);
-
-#if WITH_EDITOR
-			if (ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
+			if (bEnableFindLedgeOnTick && Character->IsLocallyViewed())
 			{
-				if (GEngine)
+				if (CharMovComp->CustomMovementMode != Move_Custom_Traversal)
 				{
-					GEngine->AddOnScreenDebugMessage(9135, 0, FColor::Green, FailReason.ToString());
+					bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
+					FText FailReason;
+					FZodiacTraversalCheckResult Result;
+					FVector LastLocation;
+					bool bLedgeFound = CheckFrontLedge(bIsInAir, Result, FailReason, LastLocation, true);
+			
+					OnFrontLedgeChecked(bLedgeFound, Result.FrontLedgeLocation, Result.FrontLedgeNormal);
+			
+#if WITH_EDITOR
+					if (ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
+					{
+						if (GEngine)
+						{
+							GEngine->AddOnScreenDebugMessage(9135, 0, FColor::Green, FailReason.ToString());
+						}
+					}
+#endif	
+				}
+				else
+				{
+					OnFrontLedgeChecked(false, FVector(), FVector());
 				}
 			}
-#endif
 		}
 	}
 }
@@ -324,7 +334,7 @@ float UZodiacTraversalComponent::GetTraversalForwardTraceDistance(bool bIsInAir)
 	else
 	{
 		float ForwardDistance = ActorRotation.UnrotateVector(OwningCharacter->GetCharacterMovement()->Velocity).X;
-		float ForwardDistanceClamped = FMath::GetMappedRangeValueClamped(FVector2f(0.0f, 500.0f), FVector2f(BaseGroundTraversalDistance, 350.0f), ForwardDistance);
+		float ForwardDistanceClamped = FMath::GetMappedRangeValueClamped(FVector2f(0.0f, 500.0f), GroundForwardTraceRange, ForwardDistance);
 		return ForwardDistanceClamped;
 	}
 }

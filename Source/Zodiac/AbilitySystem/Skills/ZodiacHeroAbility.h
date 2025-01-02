@@ -128,11 +128,11 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	FVector GetSourceLocation() const;
-	
+
+	UFUNCTION(BlueprintCallable)
 	UZodiacAbilitySourceSocket* GetSocket() const;
 
 protected:
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldowns")
 	FScalableFloat CooldownDuration;
 

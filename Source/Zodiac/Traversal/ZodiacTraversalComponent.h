@@ -36,7 +36,7 @@ public:
 	FSimpleDelegate OnTraversalFinished;
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void DrawLedgeLocation(bool bLedgeFound, FVector Location, FVector Normal);
+	void OnFrontLedgeChecked(bool bLedgeFound, FVector Location, FVector Normal);
 	
 protected:
 	float GetTraversalForwardTraceDistance(bool bIsInAir) const;
@@ -60,6 +60,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Traversal")
 	float BaseGroundTraversalDistance = 125.f;
+
+	// Distance range where a character can try traversal action.
+	UPROPERTY(EditAnywhere, Category = "Traversal")
+	FVector2f GroundForwardTraceRange = FVector2f(100.f, 200.f);
 	
 	UPROPERTY(EditAnywhere, Category = "Traversal")
 	FVector2D VaultHeightRange = FVector2D(50.0f, 125.0f);
