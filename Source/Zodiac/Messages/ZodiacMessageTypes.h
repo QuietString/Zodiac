@@ -40,6 +40,22 @@ public:
 	TEnumAsByte<EInputEvent> InputEvent = EInputEvent::IE_MAX;
 };
 
+USTRUCT(BlueprintType, DisplayName = "On Off Event Message")
+struct FZodiacHUDMessage_OnOffEvent
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite, meta = (Categories = "HUD.Type.AbilitySlot"))
+	FGameplayTag Slot;
+	
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AActor> Instigator = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool IsOn = true;
+};
+
 // Represents a generic message of the form Instigator Verb Target (in Context, with Magnitude)
 USTRUCT(BlueprintType)
 struct FZodiacVerbMessage
