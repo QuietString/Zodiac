@@ -26,7 +26,7 @@ void UZodiacHeroAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 	ParentCharacter = GetParentCharacter();
 	ParentAnimInstance = GetParentAnimInstance();
 	
-	if (!ParentCharacter)
+	if (!ParentCharacter || !ParentAnimInstance)
 	{
 		return;
 	}

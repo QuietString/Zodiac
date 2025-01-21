@@ -20,6 +20,9 @@ class AZodiacHostCharacter;
 class UZodiacHealthComponent;
 class UZodiacHeroData;
 class UZodiacAbilitySystemComponent;
+class AZodiacHeroCharacter;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHeroChanged, AZodiacHeroCharacter*, Hero);
 
 UCLASS(Abstract)
 class ZODIAC_API AZodiacHeroCharacter : public ACharacter, public IAbilitySystemInterface, public IZodiacTeamAgentInterface, public IGameplayTagAssetInterface
@@ -70,6 +73,17 @@ public:
 	FSimpleMulticastDelegate OnHeroActivated;
 	FSimpleMulticastDelegate OnHeroDeactivated;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnHeroChanged OnHeroActivated_BP;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnHeroChanged OnHeroDeactivated_BP;
+	
+	bool GetIsInitialized() const { return bIsInitialized; }
+
+	UFUNCTION(BlueprintPure)
+	bool GetIsActive() const { return bIsActive; }
+	
 protected:
 	void InitializeWithHostCharacter();
 	
@@ -107,9 +121,11 @@ private:
 	TObjectPtr<AZodiacHostCharacter> HostCharacter;
 
 	// Initial use only for initialization on a client.
-	UPROPERTY(ReplicatedUsing=OnRep_bIsActive)
+	UPROPERTY(ReplicatedUsing=OnRep_IsActive)
 	bool bIsActive = false;
 
+	bool bIsInitialized = false;
+	
 	UFUNCTION()
-	void OnRep_bIsActive(bool OldValue);
+	void OnRep_IsActive(bool OldValue);
 };

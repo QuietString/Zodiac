@@ -202,6 +202,33 @@ void AZodiacHostCharacter::ChangeHero(const int32 Index)
 	}
 }
 
+void AZodiacHostCharacter::CheckAllHeroesInitialized()
+{
+	if (bHasHeroInitialized)
+	{
+		// Already initialized.
+		return;
+	}
+	
+	if (GetHeroes().Num() != HeroClasses.Num())
+	{
+		// Heroes not replicated yet.
+		return;
+	}
+	
+	for (auto& Hero : GetHeroes())
+	{
+		if (!Hero->GetIsInitialized())
+		{
+			// A hero is not initialized yet.
+			return;
+		}
+	}
+	
+	OnAllHeroesInitialized();
+	bHasHeroInitialized = true;
+}
+
 void AZodiacHostCharacter::SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle)
 {
 	if (CameraMode)
@@ -260,4 +287,9 @@ void AZodiacHostCharacter::OnRep_ActiveHeroIndex(int32 OldIndex)
 			}
 		}	
 	}
+}
+
+void AZodiacHostCharacter::OnRep_HeroList()
+{
+	CheckAllHeroesInitialized();
 }

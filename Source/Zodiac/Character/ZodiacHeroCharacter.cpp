@@ -169,6 +169,9 @@ void AZodiacHeroCharacter::InitializeAbilitySystem()
 	}
 	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+
+	bIsInitialized = true;
+	GetHostCharacter()->CheckAllHeroesInitialized();
 }
 
 void AZodiacHeroCharacter::OnStatusTagChanged(FGameplayTag Tag, int Count)
@@ -260,6 +263,7 @@ void AZodiacHeroCharacter::Activate()
 	}
 	
 	OnHeroActivated.Broadcast();
+	OnHeroActivated_BP.Broadcast(this);
 }
 
 void AZodiacHeroCharacter::Deactivate()
@@ -275,6 +279,7 @@ void AZodiacHeroCharacter::Deactivate()
 	bIsActive = false;
 
 	OnHeroDeactivated.Broadcast();
+	OnHeroDeactivated_BP.Broadcast(this);
 }
 
 void AZodiacHeroCharacter::InitializeWithHostCharacter()
@@ -324,7 +329,7 @@ void AZodiacHeroCharacter::OnHostAbilitySystemComponentInitialized(UAbilitySyste
 	}
 }
 
-void AZodiacHeroCharacter::OnRep_bIsActive(bool OldValue)
+void AZodiacHeroCharacter::OnRep_IsActive(bool OldValue)
 {
 	if (bIsActive != OldValue)
 	{

@@ -39,9 +39,16 @@ public:
 	// Return currently active hero
 	UFUNCTION(BlueprintCallable)
 	AZodiacHeroCharacter* GetHero() const { return HeroList.GetHero(ActiveHeroIndex); }
+
+	UFUNCTION(BlueprintPure)
 	TArray<AZodiacHeroCharacter*> GetHeroes() const { return HeroList.GetHeroes(); }
 	
 	void ChangeHero(const int32 Index);
+
+	void CheckAllHeroesInitialized();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAllHeroesInitialized();
 	
 	/** Overrides the camera from an active gameplay ability */
 	void SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
@@ -89,7 +96,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Zodiac|Hero")
 	TArray<TSubclassOf<AZodiacHeroCharacter>> HeroClasses;
 	
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_HeroList)
 	FZodiacHeroList HeroList;
 
 	UPROPERTY(ReplicatedUsing=OnRep_ActiveHeroIndex, BlueprintReadOnly)
@@ -99,9 +106,14 @@ private:
 	UFUNCTION()
 	void OnRep_ActiveHeroIndex(int32 OldIndex);
 
+	UFUNCTION()
+	void OnRep_HeroList();
+	
 	UPROPERTY()
 	EZodiacTeam MyTeam = EZodiacTeam::Hero;
 
 	UPROPERTY(Transient)
 	FVector HeroEyeLocationOffset;
+
+	bool bHasHeroInitialized = false;
 };

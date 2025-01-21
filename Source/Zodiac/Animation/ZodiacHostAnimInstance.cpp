@@ -66,6 +66,8 @@ void UZodiacHostAnimInstance::UpdateLocationData(float DeltaSeconds)
 	WorldLocation = OwningCharacter->GetActorLocation();
 	
 	DisplacementSpeed = UKismetMathLibrary::SafeDivide(DisplacementSinceLastUpdate, DeltaSeconds);
+
+	MeshTransform = GetSkelMeshComponent()->GetComponentTransform();
 }
 
 void UZodiacHostAnimInstance::UpdateRotationData()

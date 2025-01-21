@@ -58,6 +58,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FTransform RootTransform;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FTransform MeshTransform;
+	
 	UPROPERTY(BlueprintReadOnly, Category = Location_Data)
 	FVector WorldLocation;
 
