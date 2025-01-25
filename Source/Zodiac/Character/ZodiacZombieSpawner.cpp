@@ -1,17 +1,17 @@
 ﻿// the.quiet.string@gmail.com
 
-#include "ZodiacMonsterSpawner.h"
+#include "ZodiacZombieSpawner.h"
 
 #include "ZodiacLogChannels.h"
 #include "ZodiacMonster.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacMonsterSpawner)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacZombieSpawner)
 
-AZodiacMonsterSpawner::AZodiacMonsterSpawner()
+AZodiacZombieSpawner::AZodiacZombieSpawner()
 {
 }
 
-void AZodiacMonsterSpawner::BeginPlay()
+void AZodiacZombieSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -21,7 +21,7 @@ void AZodiacMonsterSpawner::BeginPlay()
 	}
 }
 
-void AZodiacMonsterSpawner::SpawnMonsters()
+void AZodiacZombieSpawner::SpawnMonsters()
 {
 	if (MonstersToSpawn.IsEmpty())
 	{
@@ -72,7 +72,10 @@ void AZodiacMonsterSpawner::SpawnMonsters()
 			// Initialize the monster
 			if (SpawnedMonster)
 			{
-				SpawnedMonster->SpawnDefaultController();	
+				uint8 RandomSeed = FMath::RandRange(0, UINT8_MAX);
+				SpawnedMonster->SetSpawnSeed(RandomSeed);
+				
+				SpawnedMonster->SpawnDefaultController();
 			}
 		}	
 	}

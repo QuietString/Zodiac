@@ -4,17 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ZodiacMonsterSpawner.generated.h"
+#include "ZodiacZombieSpawner.generated.h"
 
 class AZodiacMonster;
 
 UCLASS(BlueprintType, Blueprintable)
-class ZODIAC_API AZodiacMonsterSpawner : public AActor
+class ZODIAC_API AZodiacZombieSpawner : public AActor
 {
 	GENERATED_BODY()
 
+
 public:
-	AZodiacMonsterSpawner();
+	AZodiacZombieSpawner();
 
 protected:
 	virtual void BeginPlay() override;

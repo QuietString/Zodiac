@@ -33,18 +33,26 @@ public:
 	virtual USkeletalMeshComponent* GetRetargetedMesh() const override { return RetargetedMeshComponent; }
 	virtual void OnPhysicsTagChanged(FGameplayTag Tag, int Count) override;
 	//~End of AZodiacCharacter interface
-
+	
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner) override;
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_OnPhysicsTagChanged(FGameplayTag Tag, int Count);
+
+	UFUNCTION(BlueprintPure)
+	uint8 GetSpawnSeed() const { return SpawnSeed; }
+	void SetSpawnSeed(const uint8 Seed);
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	const UZodiacHeroData* HeroData;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnSpawnSeedSet();
+	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<USkeletalMeshComponent> RetargetedMeshComponent;
@@ -54,4 +62,10 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UPhysicalAnimationComponent> PhysicalAnimationComponent;
+
+	UPROPERTY(ReplicatedUsing = OnRep_SpawnSeed)
+	uint8 SpawnSeed;
+
+	UFUNCTION()
+	void OnRep_SpawnSeed();
 };

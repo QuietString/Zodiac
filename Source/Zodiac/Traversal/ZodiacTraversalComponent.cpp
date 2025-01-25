@@ -102,7 +102,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 		return false;
 	}
 
-	if (CharMovComp->MovementMode == MOVE_Flying)
+	if (CharMovComp->CustomMovementMode == Move_Custom_Traversal)
 	{
 		return false;
 	}

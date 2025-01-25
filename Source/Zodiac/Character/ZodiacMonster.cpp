@@ -8,6 +8,7 @@
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacMonster)
@@ -76,6 +77,13 @@ void AZodiacMonster::PossessedBy(AController* NewController)
 	InitializeAbilitySystem(AbilitySystemComponent, this);
 }
 
+void AZodiacMonster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(ThisClass, SpawnSeed, COND_InitialOnly);
+}
+
 void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner)
 {
 	Super::InitializeAbilitySystem(InASC, InOwner);
@@ -92,6 +100,22 @@ void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InAS
 	}
 	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
+}
+
+void AZodiacMonster::SetSpawnSeed(const uint8 Seed)
+{
+	SpawnSeed = Seed;
+	
+	if (HasAuthority())
+	{
+		OnSpawnSeedSet();
+		UE_LOG(LogTemp, Warning, TEXT("spawn seed set called"));
+	}
+}
+
+void AZodiacMonster::OnRep_SpawnSeed()
+{
+	OnSpawnSeedSet();
 }
 
 void AZodiacMonster::Multicast_OnPhysicsTagChanged_Implementation(FGameplayTag Tag, int Count)
