@@ -100,6 +100,7 @@ public:
 	
 	void SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig);
 
+	UFUNCTION(BlueprintCallable)
 	EZodiacExtendedMovementMode GetExtendedMovementMode() const { return ExtendedMovementMode; }
 	void SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode) { ExtendedMovementMode = InMode; }
 
@@ -107,7 +108,7 @@ protected:
 	float CalculateMaxSpeed() const;
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Walk Modes")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Walk Modes")
 	FZodiacExtendedMovementConfig ExtendMovementConfig;
 
 protected:

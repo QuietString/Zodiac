@@ -13,10 +13,6 @@ class ZODIAC_API AZodiacZombieSpawner : public AActor
 {
 	GENERATED_BODY()
 
-
-public:
-	AZodiacZombieSpawner();
-
 protected:
 	virtual void BeginPlay() override;
 

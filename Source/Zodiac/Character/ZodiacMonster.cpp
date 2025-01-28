@@ -8,8 +8,10 @@
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Animation/ZodiacZombieAnimInstance.h"
 #include "Net/UnrealNetwork.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
+#include "System/ZodiacGameData.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacMonster)
 
@@ -61,11 +63,28 @@ void AZodiacMonster::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HeroData)
+	if (HeroData && !bHasMovementInitialized)
 	{
 		if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
 		{
-			ZodiacCharMovComp->SetExtendedMovementConfig(HeroData->ExtendedMovementConfig);
+			FZodiacExtendedMovementConfig MovementConfig = HeroData->ExtendedMovementConfig;
+			ZodiacCharMovComp->SetExtendedMovementConfig(MovementConfig);
+
+			if (MovementConfig.DefaultExtendedMovement == EZodiacExtendedMovementMode::Walking)
+			{
+				if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+				{
+					if (UZodiacZombieAnimInstance* ZombieAnimInstance = Cast<UZodiacZombieAnimInstance>(AnimInstance))
+					{
+						FVector WalkSpeedRange = *MovementConfig.MovementSpeedsMap.Find(EZodiacExtendedMovementMode::Walking);
+						ZombieAnimInstance->WalkSpeed = WalkSpeedRange.X;
+						ZombieAnimInstance->MovementSpeedMultiplier = 1.f;
+						ZombieAnimInstance->SelectAnimsBySeed(0);
+					}
+				}
+			}
+			
+			bHasMovementInitialized = true;
 		}
 	}
 }
@@ -108,14 +127,54 @@ void AZodiacMonster::SetSpawnSeed(const uint8 Seed)
 	
 	if (HasAuthority())
 	{
-		OnSpawnSeedSet();
-		UE_LOG(LogTemp, Warning, TEXT("spawn seed set called"));
+		OnSpawnSeedSet_Internal();
+	}
+}
+
+void AZodiacMonster::OnSpawnSeedSet_Internal()
+{
+	check(HeroData);
+	
+	float MovementSpeedMultiplier = FMath::GetMappedRangeValueClamped(FVector2d(0, 255), FVector2d(0.9f, 1.1f), SpawnSeed);
+
+	const UZodiacGameData& GameData = UZodiacGameData::Get();
+	
+	TArray<FZodiacExtendedMovementConfig> MovementConfigs = GameData.MovementConfigTemplates;
+	uint8 Num = MovementConfigs.Num();
+	if (Num > 0)
+	{
+		FZodiacExtendedMovementConfig MovementConfig = MovementConfigs[SpawnSeed % Num];
+	
+		if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+		{
+			for (auto& [K, V] : MovementConfig.MovementSpeedsMap)
+			{
+				V = V * MovementSpeedMultiplier;
+			}
+		
+			// Change movement speed
+			ZodiacCharMovComp->SetExtendedMovementConfig(MovementConfig);
+			bHasMovementInitialized = true;
+
+			if (FVector* WalkSpeeds = MovementConfig.MovementSpeedsMap.Find(EZodiacExtendedMovementMode::Walking))
+			{
+				if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+				{
+					if (UZodiacZombieAnimInstance* ZombieAnimInstance = Cast<UZodiacZombieAnimInstance>(AnimInstance))
+					{
+						ZombieAnimInstance->WalkSpeed = WalkSpeeds->X;
+						ZombieAnimInstance->MovementSpeedMultiplier = MovementSpeedMultiplier;
+						ZombieAnimInstance->SelectAnimsBySeed(SpawnSeed);
+					}
+				}
+			}
+		}
 	}
 }
 
 void AZodiacMonster::OnRep_SpawnSeed()
 {
-	OnSpawnSeedSet();
+	OnSpawnSeedSet_Internal();
 }
 
 void AZodiacMonster::Multicast_OnPhysicsTagChanged_Implementation(FGameplayTag Tag, int Count)

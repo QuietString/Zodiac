@@ -7,10 +7,6 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacZombieSpawner)
 
-AZodiacZombieSpawner::AZodiacZombieSpawner()
-{
-}
-
 void AZodiacZombieSpawner::BeginPlay()
 {
 	Super::BeginPlay();
@@ -64,8 +60,7 @@ void AZodiacZombieSpawner::SpawnMonsters()
 			// Spawn parameters
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
-			SpawnParams.Instigator = GetInstigator();
-
+			
 			// Spawn the monster
 			AZodiacMonster* SpawnedMonster = World->SpawnActor<AZodiacMonster>(MonsterClass, SpawnLocation, SpawnRotation, SpawnParams);
 

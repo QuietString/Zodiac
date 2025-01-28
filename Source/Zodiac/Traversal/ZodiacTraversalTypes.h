@@ -26,6 +26,7 @@ enum class EZodiacTraversalActionType : uint8
 	Vault,
 	Mantle,
 	MidAirMantle,
+	ClimbVault
 };
 
 USTRUCT(BlueprintType, DisplayName="Traversal Check Result", meta = (HasNativeMake = "/Script/Zodiac.ZodiacTraversalCheckHelper:MakeTraversalCheckResult", HasNativeBreak = "/Script/Zodiac.ZodiacTraversalCheckHelper:BreakTraversalCheckResult"))

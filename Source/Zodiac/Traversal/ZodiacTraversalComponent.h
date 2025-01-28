@@ -18,7 +18,6 @@ public:
 	//~UActorComponent interface
 	virtual void OnRegister() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	//~End of UActorComponent interface
 
@@ -68,6 +67,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Traversal")
 	FVector2D VaultHeightRange = FVector2D(50.0f, 125.0f);
 
+	UPROPERTY(EditAnywhere, Category = "Traversal")
+	FVector2D ClimbVaultHeightRange = FVector2D(125.0f, 275.0f);
+	
 	UPROPERTY(EditAnywhere, Category = "Traversal")
 	FVector2D HurdleHeightRange = FVector2D(50.0f, 125.0f);
 

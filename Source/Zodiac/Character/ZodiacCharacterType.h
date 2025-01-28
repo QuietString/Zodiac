@@ -13,8 +13,7 @@ enum class EZodiacExtendedMovementMode : uint8
 {
 	None,
 	Walking,
-	Running,
-	BindInAir
+	Running
 };
 
 USTRUCT(BlueprintType, DisplayName = "Extended Movement Config")
@@ -30,4 +29,3 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EZodiacExtendedMovementMode DefaultExtendedMovement  = EZodiacExtendedMovementMode::Running;
 };
-

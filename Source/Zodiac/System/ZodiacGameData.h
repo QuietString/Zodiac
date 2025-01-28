@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/ZodiacCharacterType.h"
 #include "Engine/DataAsset.h"
 #include "ZodiacGameData.generated.h"
 
@@ -28,4 +29,7 @@ public:
 	// Gameplay effect used to add and remove dynamic tags.
 	UPROPERTY(EditDefaultsOnly, Category = "Default Gameplay Effects")
 	TSoftClassPtr<UGameplayEffect> DynamicTagGameplayEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Zombie")
+	TArray<FZodiacExtendedMovementConfig> MovementConfigTemplates;
 };

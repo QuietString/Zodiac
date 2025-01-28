@@ -45,14 +45,13 @@ public:
 	UFUNCTION(BlueprintPure)
 	uint8 GetSpawnSeed() const { return SpawnSeed; }
 	void SetSpawnSeed(const uint8 Seed);
-	
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	const UZodiacHeroData* HeroData;
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnSpawnSeedSet();
-	
+	void OnSpawnSeedSet_Internal();
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<USkeletalMeshComponent> RetargetedMeshComponent;
@@ -63,9 +62,12 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UPhysicalAnimationComponent> PhysicalAnimationComponent;
 
+	// A randomizer seed for movement speed, walk/run animations when it's spawned by ZodiacZombieSpawner.
 	UPROPERTY(ReplicatedUsing = OnRep_SpawnSeed)
 	uint8 SpawnSeed;
 
 	UFUNCTION()
 	void OnRep_SpawnSeed();
+
+	bool bHasMovementInitialized = false;
 };

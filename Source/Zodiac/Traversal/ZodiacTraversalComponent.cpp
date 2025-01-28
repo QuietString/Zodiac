@@ -44,11 +44,6 @@ void UZodiacTraversalComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME(ThisClass, TraversalCheckResult);
 }
 
-void UZodiacTraversalComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -364,6 +359,13 @@ bool UZodiacTraversalComponent::DetermineTraversalType(FZodiacTraversalCheckResu
 		return true;
 	}
 
+	bool CanClimbVault = UKismetMathLibrary::InRange_FloatFloat(R.ObstacleHeight, ClimbVaultHeightRange.X, ClimbVaultHeightRange.Y);
+	if (R.bHasFrontLedge && R.bHasBackLedge && CanClimbVault && !bLongEnoughToStepOn)
+	{
+		R.ActionType = EZodiacTraversalActionType::ClimbVault;
+		return true;
+	}
+	
 	bool CanHurdle = UKismetMathLibrary::InRange_FloatFloat(R.ObstacleHeight, HurdleHeightRange.X, HurdleHeightRange.Y);
 	if (R.bHasFrontLedge && R.bHasBackLedge && R.bHasBackFloor && CanHurdle && !bLongEnoughToStepOn && R.BackLedgeHeight > 50.0f)
 	{
