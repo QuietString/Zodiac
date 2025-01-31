@@ -22,8 +22,3 @@ AZodiacGameMode::AZodiacGameMode(const FObjectInitializer& ObjectInitializer)
 	DefaultPawnClass = AZodiacHostCharacter::StaticClass();
 	HUDClass = AZodiacHUD::StaticClass();
 }
-
-void AZodiacGameMode::BeginPlay()
-{
-	Super::BeginPlay();
-}

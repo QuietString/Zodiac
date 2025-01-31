@@ -14,6 +14,4 @@ class ZODIAC_API AZodiacGameMode : public AGameModeBase
 
 public:
 	AZodiacGameMode(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-	virtual void BeginPlay() override;
 };

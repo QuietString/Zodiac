@@ -637,14 +637,14 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 
 	UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot();
 	
-	if (UZodiacAbilitySystemComponent* HostASC = Cast<UZodiacAbilitySystemComponent>(GetHostAbilitySystemComponent()))
+	if (UZodiacAbilitySystemComponent* HeroASC = Cast<UZodiacAbilitySystemComponent>(GetHeroAbilitySystemComponentFromActorInfo()))
 	{
 		const FHitResult* FirstHitResult = TargetData.Get(0)->GetHitResult();
 		GameplayCueParams_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*FirstHitResult);
 		GameplayCueParams_Firing.SourceObject = GetSocket();
 		GameplayCueParams_Firing.Instigator = const_cast<AActor*>(Instigator);
 		
-		HostASC->ExecuteGameplayCue(GameplayCueTag_Firing, GameplayCueParams_Firing);
+		HeroASC->ExecuteGameplayCue(GameplayCueTag_Firing, GameplayCueParams_Firing);
 		AdvanceCombo();
 
 		for (auto& SingleTargetData : TargetData.Data)
@@ -654,7 +654,7 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 			{
 				GameplayCueParams_Impact = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
 				GameplayCueParams_Impact.SourceObject = Slot;
-				HostASC->ExecuteGameplayCue(GameplayCueTag_Impact, GameplayCueParams_Impact);
+				HeroASC->ExecuteGameplayCue(GameplayCueTag_Impact, GameplayCueParams_Impact);
 			}
 		
 			if (ChargeUltimateEffectClass && HasAuthorityOrPredictionKey(CurrentActorInfo, &CurrentActivationInfo))
