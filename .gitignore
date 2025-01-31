@@ -8,8 +8,9 @@
 # Game Contents
 Content/
 
-# Mixamo Contents
+# Mixamo & DALL E Contents
 Mixamo/
+DALL E/ 
 
 # Compiled Object files
 *.slo

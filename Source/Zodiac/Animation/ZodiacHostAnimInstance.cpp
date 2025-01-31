@@ -102,6 +102,7 @@ void UZodiacHostAnimInstance::UpdateHeroData()
 			if (UZodiacHeroAnimInstance* HeroAnimInstance = Hero->GetHeroAnimInstance())
 			{
 				bIsFocus = HeroAnimInstance->GetIsFocus();
+				bIsADS = HeroAnimInstance->GetIsADS();
 			}
 		}	
 	}
