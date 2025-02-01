@@ -31,7 +31,6 @@ public class Zodiac : ModuleRules
 				"DataRegistry",
 				"ReplicationGraph",
 				"SignificanceManager",
-				"AnimationLocomotionLibraryRuntime",
 				"AnimGraphRuntime",
 				"Hotfix",
 				"CommonLoadingScreen",

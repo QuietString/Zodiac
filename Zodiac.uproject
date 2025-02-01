@@ -153,10 +153,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "AnimationLocomotionLibrary",
-			"Enabled": true
-		},
-		{
 			"Name": "AudioModulation",
 			"Enabled": true
 		},
