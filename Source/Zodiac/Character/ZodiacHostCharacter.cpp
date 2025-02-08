@@ -126,6 +126,16 @@ void AZodiacHostCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo
 	}
 }
 
+void AZodiacHostCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
+{
+	Super::Input_AbilityInputTagPressed(InputTag);
+}
+
+void AZodiacHostCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
+{
+	Super::Input_AbilityInputTagReleased(InputTag);
+}
+
 UAbilitySystemComponent* AZodiacHostCharacter::GetAbilitySystemComponent() const
 {
 	return GetZodiacAbilitySystemComponent();

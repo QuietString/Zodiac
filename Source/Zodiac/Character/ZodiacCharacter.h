@@ -131,8 +131,8 @@ protected:
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void InitializePlayerInput();
-	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
-	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
+	virtual void Input_AbilityInputTagPressed(FGameplayTag InputTag);
+	virtual void Input_AbilityInputTagReleased(FGameplayTag InputTag);
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_Fly(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);

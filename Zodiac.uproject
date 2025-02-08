@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{DBFAB60D-41FE-1AF6-60F4-24BABA146FA9}",
+	"EngineAssociation": "{4227F02F-4C2E-5638-4E4D-0F8611E0EBF4}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -194,10 +194,6 @@
 		},
 		{
 			"Name": "PCG",
-			"Enabled": true
-		},
-		{
-			"Name": "Traffic",
 			"Enabled": true
 		},
 		{

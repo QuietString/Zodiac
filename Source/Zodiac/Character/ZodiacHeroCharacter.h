@@ -56,7 +56,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	AZodiacHostCharacter* GetHostCharacter() const;
-	
+
 	UZodiacHealthComponent* GetHealthComponent() const;
 	
 	UZodiacHeroAnimInstance* GetHeroAnimInstance() const;

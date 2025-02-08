@@ -68,6 +68,10 @@ protected:
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	//~End of AActor interface
 
+	//~AZodiacCharacter interface
+	virtual void Input_AbilityInputTagPressed(FGameplayTag InputTag) override;
+	virtual void Input_AbilityInputTagReleased(FGameplayTag InputTag) override;
+	//~End of AZodiacCharacter interface
 	void InitializeHeroes();
 	
 	TSubclassOf<UZodiacCameraMode> DetermineCameraMode();

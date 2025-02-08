@@ -140,6 +140,7 @@ public:
 	void InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InAbilitySystemComponent, const UZodiacHeroData* InHeroData);
 	void BindMessageDelegates();
 
+	UFUNCTION(BlueprintCallable)
 	void OnHeroActivated();
 	void OnHeroDeactivated();
 
