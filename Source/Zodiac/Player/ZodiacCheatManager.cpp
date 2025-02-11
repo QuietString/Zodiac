@@ -11,6 +11,7 @@
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Character/ZodiacMonster.h"
+#include "Character/ZodiacZombieSpawner.h"
 #include "Development/ZodiacDeveloperSettings.h"
 #include "System/ZodiacAssetManager.h"
 #include "System/ZodiacGameData.h"
@@ -138,6 +139,20 @@ void UZodiacCheatManager::God()
 		else if (UZodiacAbilitySystemComponent* ZodiacASC = ZodiacPC->GetZodiacAbilitySystemComponent())
 		{
 			ApplyDynamicTagForGodMode(ZodiacASC);
+		}
+	}
+}
+
+void UZodiacCheatManager::SpawnZombies()
+{
+	UWorld* World = GetWorld();
+	check(World);
+	
+	for (TActorIterator<AZodiacZombieSpawner> It(World); It; ++It)
+	{
+		if (AZodiacZombieSpawner* Spawner = *It)
+		{
+			Spawner->SpawnMonsters();	
 		}
 	}
 }

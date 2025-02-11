@@ -5,10 +5,8 @@
 #include "DisplayDebugHelpers.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroCharacter.h"
-#include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "Animation/ZodiacHostAnimInstance.h"
 #include "Camera/ZodiacCameraComponent.h"
 #include "Engine/Canvas.h"
 #include "Player/ZodiacPlayerState.h"
@@ -126,14 +124,27 @@ void AZodiacHostCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo
 	}
 }
 
+FGameplayTag HeroInputTag = ZodiacGameplayTags::InputTag_Hero;
+
 void AZodiacHostCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	Super::Input_AbilityInputTagPressed(InputTag);
+	UZodiacAbilitySystemComponent* ZodiacASC = InputTag.MatchesTag(HeroInputTag) ? GetHeroAbilitySystemComponent() : GetHostAbilitySystemComponent();
+
+	if (ZodiacASC)
+	{
+		ZodiacASC->AbilityInputTagPressed(InputTag);
+		const TArray<FGameplayAbilitySpec> Specs = ZodiacASC->GetActivatableAbilities();
+	}
 }
 
 void AZodiacHostCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	Super::Input_AbilityInputTagReleased(InputTag);
+	UZodiacAbilitySystemComponent* ZodiacASC = InputTag.MatchesTag(HeroInputTag) ? GetHeroAbilitySystemComponent() : GetHostAbilitySystemComponent();
+
+	if (ZodiacASC)
+	{
+		ZodiacASC->AbilityInputTagReleased(InputTag);
+	}
 }
 
 UAbilitySystemComponent* AZodiacHostCharacter::GetAbilitySystemComponent() const
@@ -184,6 +195,11 @@ UZodiacHealthComponent* AZodiacHostCharacter::GetHealthComponent() const
 	}
 
 	return nullptr;
+}
+
+UAbilitySystemComponent* AZodiacHostCharacter::GetTraversalAbilitySystemComponent() const
+{
+	return GetHostAbilitySystemComponent();
 }
 
 void AZodiacHostCharacter::InitializeHeroes()

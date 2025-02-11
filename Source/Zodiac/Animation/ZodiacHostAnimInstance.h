@@ -3,12 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Abilities/ZodiacGameplayAbility_Sprint.h"
 #include "Animation/AnimInstance.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
-#include "Kismet/KismetMathLibrary.h"
+#include "GameplayEffectTypes.h"
 #include "ZodiacHostAnimInstance.generated.h"
 
+struct FAnimUpdateContext;
+struct FAnimNodeReference;
+class UPoseSearchDatabase;
 class UZodiacCharacterMovementComponent;
 class AZodiacCharacter;
 
@@ -40,13 +42,15 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void UpdateGait();
 
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe), Category = MotionMatching)
+	void UpdateMotionMatchingPoseSelection(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
+	
 private:
 	void UpdateLocationData(float DeltaSeconds);
 	void UpdateRotationData();
 	
 	void UpdateVelocityData();
 	void UpdateAccelerationData(float DeltaSeconds);
-	void UpdateAimingData();
 	
 	void UpdateMovementData();
 	void UpdateHeroData();
@@ -58,9 +62,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FTransform RootTransform;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FTransform MeshTransform;
-	
+	UPROPERTY(BlueprintReadOnly)
+	FTransform CharacterTransform;
+
 	UPROPERTY(BlueprintReadOnly, Category = Location_Data)
 	FVector WorldLocation;
 
@@ -138,12 +142,6 @@ public:
 	// UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
 	// float AdditiveLeanAngle;
 
-	UPROPERTY( BlueprintReadWrite)
-	float AimYaw; 
-
-	UPROPERTY(BlueprintReadWrite)
-	float AimPitch;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TEnumAsByte<EZodiacGait> Gait;
 
@@ -159,7 +157,13 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<AZodiacCharacter> OwningCharacter;
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
 	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
+
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<const UPoseSearchDatabase> CurrentSelectedDatabase;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FName> CurrentDatabaseTags;
 };

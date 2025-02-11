@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ZodiacCharacter.h"
+#include "Traversal/ZodiacTraversalActorInterface.h"
 #include "ZodiacMonster.generated.h"
 
 class UPhysicalAnimationComponent;
@@ -18,7 +19,7 @@ enum EZodiacAIState : uint8
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class ZODIAC_API AZodiacMonster : public AZodiacCharacter
+class ZODIAC_API AZodiacMonster : public AZodiacCharacter, public IZodiacTraversalActorInterface
 {
 	GENERATED_BODY()
 
@@ -33,6 +34,10 @@ public:
 	virtual USkeletalMeshComponent* GetRetargetedMesh() const override { return RetargetedMeshComponent; }
 	virtual void OnPhysicsTagChanged(FGameplayTag Tag, int Count) override;
 	//~End of AZodiacCharacter interface
+
+	//~IZodiacTraversalActorInterface
+	virtual UAbilitySystemComponent* GetTraversalAbilitySystemComponent() const override;
+	//~End of IZodiacTraversalActorInterface
 	
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -47,9 +52,6 @@ public:
 	void SetSpawnSeed(const uint8 Seed);
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category="Ability")
-	const UZodiacHeroData* HeroData;
-
 	void OnSpawnSeedSet_Internal();
 
 private:

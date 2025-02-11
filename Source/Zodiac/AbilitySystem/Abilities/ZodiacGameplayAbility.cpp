@@ -53,12 +53,12 @@ UZodiacAbilitySystemComponent* UZodiacGameplayAbility::GetHeroAbilitySystemCompo
 
 AZodiacHostCharacter* UZodiacGameplayAbility::GetZodiacHostCharacterFromActorInfo() const
 {
-	return (CurrentActorInfo ? Cast<AZodiacHostCharacter>(CurrentActorInfo->OwnerActor.Get()) : nullptr);
+	return (CurrentActorInfo ? Cast<AZodiacHostCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 }
 
 AZodiacCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
 {
-	return (CurrentActorInfo ? Cast<AZodiacCharacter>(CurrentActorInfo->OwnerActor.Get()) : nullptr);
+	return (CurrentActorInfo ? Cast<AZodiacCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 }
 
 AController* UZodiacGameplayAbility::GetControllerFromActorInfo() const

@@ -1,31 +1,27 @@
 ﻿// the.quiet.string@gmail.com
 
 
-#include "ZodiacHeroAbility_Jump.h"
+#include "ZodiacGameplayAbility_Jump.h"
 
 #include "ZodiacLogChannels.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Character/ZodiacCharacter.h"
 #include "Traversal/ZodiacTraversalComponent.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbility_Jump)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility_Jump)
 
-UZodiacHeroAbility_Jump::UZodiacHeroAbility_Jump(const FObjectInitializer& ObjectInitializer)
+UZodiacGameplayAbility_Jump::UZodiacGameplayAbility_Jump(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
 }
 
-bool UZodiacHeroAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+bool UZodiacGameplayAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (!ActorInfo || !ActorInfo->AvatarActor.IsValid())
-	{
-		return false;
-	}
-
 	AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo();
+	
 	if (!ZodiacCharacter || !ZodiacCharacter->CanJump())
 	{
 		return false;
@@ -39,7 +35,7 @@ bool UZodiacHeroAbility_Jump::CanActivateAbility(const FGameplayAbilitySpecHandl
 	return true;
 }
 
-void UZodiacHeroAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UZodiacGameplayAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -75,7 +71,7 @@ void UZodiacHeroAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHandle H
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UZodiacHeroAbility_Jump::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UZodiacGameplayAbility_Jump::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	// Stop jumping in case the ability blueprint doesn't call it.
@@ -84,12 +80,12 @@ void UZodiacHeroAbility_Jump::EndAbility(const FGameplayAbilitySpecHandle Handle
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-void UZodiacHeroAbility_Jump::OnDelayFinished()
+void UZodiacGameplayAbility_Jump::OnDelayFinished()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
-void UZodiacHeroAbility_Jump::CharacterJumpStart()
+void UZodiacGameplayAbility_Jump::CharacterJumpStart()
 {
 	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
 	{
@@ -101,7 +97,7 @@ void UZodiacHeroAbility_Jump::CharacterJumpStart()
 	}
 }
 
-void UZodiacHeroAbility_Jump::CharacterJumpStop()
+void UZodiacGameplayAbility_Jump::CharacterJumpStop()
 {
 	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
 	{

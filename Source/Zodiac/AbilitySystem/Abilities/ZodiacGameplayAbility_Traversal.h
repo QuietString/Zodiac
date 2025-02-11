@@ -3,26 +3,32 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZodiacGameplayAbility.h"
-#include "ZodiacGameplayAbility_TraversalAction.generated.h"
+#include "AbilitySystem/Hero/ZodiacHeroAbility.h"
+#include "Traversal/ZodiacTraversalTypes.h"
+#include "ZodiacGameplayAbility_Traversal.generated.h"
 
 /**
  * Ability for traversal action, working with UZodiacTraversalComponent.
  * Can be activated by player input or gameplay event.
  */
 UCLASS(Abstract)
-class ZODIAC_API UZodiacGameplayAbility_TraversalAction : public UZodiacGameplayAbility
+class ZODIAC_API UZodiacGameplayAbility_Traversal : public UZodiacGameplayAbility
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacGameplayAbility_TraversalAction(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UZodiacGameplayAbility_Traversal(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
-protected:
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void PerformTraversalAction(FZodiacTraversalCheckResult CheckResult) const;
 	
 protected:
 	UFUNCTION()
 	void OnTraversalFinished();
+
+	mutable FZodiacTraversalCheckResult TraversalCheckResult;
 };

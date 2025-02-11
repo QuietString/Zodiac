@@ -57,8 +57,6 @@ void AZodiacHeroCharacter::PostInitializeComponents()
 void AZodiacHeroCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	GetMesh()->LinkAnimClassLayers(AnimLayerClass);
 }
 
 void AZodiacHeroCharacter::OnRep_Owner()
@@ -300,6 +298,8 @@ void AZodiacHeroCharacter::InitializeWithHostCharacter()
 			AbilityManagerComponent->BindMessageDelegates();	
 		}
 	}
+
+	GetMesh()->LinkAnimClassLayers(AnimLayerClass);
 }
 
 void AZodiacHeroCharacter::AttachToOwner()

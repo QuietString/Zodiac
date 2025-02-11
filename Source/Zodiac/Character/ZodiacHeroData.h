@@ -6,6 +6,7 @@
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacCharacterType.h"
 #include "Hero/ZodiacHeroAbilityDefinition.h"
+#include "Input/ZodiacInputComponent.h"
 
 #include "ZodiacHeroData.generated.h"
 
@@ -25,7 +26,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Ability")
 	TArray<FZodiacHeroAbilityDefinition> AbilitySlots;
-	
+
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	FZodiacExtendedMovementConfig ExtendedMovementConfig;
 };

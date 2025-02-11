@@ -49,7 +49,7 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Blends")
 	float RootYawOffset;
-	
+
 	UPROPERTY(BlueprintReadOnly, Category = Aiming_Data)
 	float AimYaw;
 

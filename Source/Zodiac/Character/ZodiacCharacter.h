@@ -11,6 +11,7 @@
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacCharacter.generated.h"
 
+class UZodiacHeroData;
 struct FZodiacExtendedMovementConfig;
 enum class EZodiacExtendedMovementMode : uint8;
 enum class EZodiacWalkMode : uint8;
@@ -87,7 +88,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
 	//~End of AActor interface
-	
+
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	
@@ -148,7 +149,10 @@ protected:
 	void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled);
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Player Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
+	UZodiacHeroData* CharacterData;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
 	FZodiacInputConfig InputConfig;
 
 	UPROPERTY(ReplicatedUsing=OnRep_ExtendedMovementMode)

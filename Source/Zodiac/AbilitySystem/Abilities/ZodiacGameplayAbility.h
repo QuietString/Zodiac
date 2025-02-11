@@ -83,7 +83,7 @@ public:
 	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponentFromActorInfo() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
-	AZodiacHostCharacter* GetZodiacHostCharacterFromActorInfo() const;
+	virtual AZodiacHostCharacter* GetZodiacHostCharacterFromActorInfo() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AZodiacCharacter* GetZodiacCharacterFromActorInfo() const;

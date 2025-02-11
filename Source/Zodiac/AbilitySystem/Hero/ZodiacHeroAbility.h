@@ -62,6 +62,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UAbilitySystemComponent* GetHostAbilitySystemComponent() const;
 
+	virtual AZodiacHostCharacter* GetZodiacHostCharacterFromActorInfo() const override;
+	
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AZodiacPlayerController* GetHostPlayerControllerFromActorInfo() const;
 

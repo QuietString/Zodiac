@@ -102,13 +102,18 @@ void AZodiacPlayerController::OnPossess(APawn* InPawn)
 
 void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
-	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetCharacter()))
+	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
 	{
 		if (IsLocalPlayerController())
 		{
-			if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+			if (UZodiacAbilitySystemComponent* HostASC = HostCharacter->GetHostAbilitySystemComponent())
 			{
-				ZodiacASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+				HostASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+			}
+			
+			if (UZodiacAbilitySystemComponent* HeroASC = HostCharacter->GetHeroAbilitySystemComponent())
+			{
+				HeroASC->ProcessAbilityInput(DeltaTime, bGamePaused);
 			}
 		}
 	}

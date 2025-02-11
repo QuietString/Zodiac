@@ -6,7 +6,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
+#include "ZodiacHeroData.h"
 #include "ZodiacLogChannels.h"
+#include "AbilitySystem/ZodiacAbilitySet.h"
 #include "Animation/ZodiacHostAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/Canvas.h"
@@ -277,6 +279,17 @@ void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* In
 	
 	OnAbilitySystemComponentInitialized.Broadcast(AbilitySystemComponent);
 	OnAbilitySystemComponentInitialized.Clear();
+
+	if (CharacterData && HasAuthority())
+	{
+		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : CharacterData->AbilitySets)
+		{
+			if (AbilitySet)
+			{
+				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
+			}
+		}
+	}
 }
 
 void AZodiacCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

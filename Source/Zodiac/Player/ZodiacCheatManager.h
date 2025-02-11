@@ -49,6 +49,8 @@ public:
 	//
 	// Monster cheats
 	//
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void SpawnZombies();
 	
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void AddTagToAllMonsters(FString TagName);

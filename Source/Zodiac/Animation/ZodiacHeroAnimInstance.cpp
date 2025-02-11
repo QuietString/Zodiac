@@ -92,10 +92,11 @@ void UZodiacHeroAnimInstance::UpdateMovementData()
 
 void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 {
+	FRotator ActorRotation = ParentCharacter->GetActorRotation();
 	FRotator AimRotation = ParentCharacter->GetBaseAimRotation();
 	FRotator RootTransform = ParentAnimInstance->RootTransform.Rotator();
 	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
-
+	//FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(ActorRotation, RootTransform);
 	RootYawOffset = - Delta.Yaw;
 	AimYaw = Delta.Yaw;
 	AimPitch = Delta.Pitch;

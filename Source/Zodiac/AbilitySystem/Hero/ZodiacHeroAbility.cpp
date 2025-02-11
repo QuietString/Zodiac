@@ -1,6 +1,6 @@
 // the.quiet.string@gmail.com
 
-#include "AbilitySystem/Skills/ZodiacHeroAbility.h"
+#include "AbilitySystem/Hero/ZodiacHeroAbility.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemGlobals.h"
@@ -25,6 +25,11 @@ UAbilitySystemComponent* UZodiacHeroAbility::GetHostAbilitySystemComponent() con
 	}
 
 	return nullptr;
+}
+
+AZodiacHostCharacter* UZodiacHeroAbility::GetZodiacHostCharacterFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<AZodiacHostCharacter>(CurrentActorInfo->OwnerActor.Get()) : nullptr);
 }
 
 AZodiacPlayerController* UZodiacHeroAbility::GetHostPlayerControllerFromActorInfo() const

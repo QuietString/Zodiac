@@ -7,6 +7,8 @@
 #include "ModularGameplay/Public/Components/PawnComponent.h"
 #include "ZodiacTraversalComponent.generated.h"
 
+class UAbilitySystemComponent;
+
 UCLASS()
 class ZODIAC_API UZodiacTraversalComponent : public UPawnComponent
 {
@@ -28,6 +30,10 @@ public:
 	void TryActivateTraversalAbility();
 	
 	void PerformTraversalActionFromAbility();
+	void PerformTraversalAction_Local();
+
+	UFUNCTION(Server, Reliable)
+	void Server_PerformTraversalAction(FZodiacTraversalCheckResult CheckResult);
 	
 	// Used only for traversal location visualization
 	bool CheckFrontLedge(bool bIsInAir, FZodiacTraversalCheckResult& Result, FText& FailReason, FVector& LastTraceLocation, bool bIsTicked);
@@ -36,6 +42,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnFrontLedgeChecked(bool bLedgeFound, FVector Location, FVector Normal);
+
+	FZodiacTraversalCheckResult GetCachedCheckResult() { return CheckResultCached; };
+	void ClearCheckResultCache();
 	
 protected:
 	float GetTraversalForwardTraceDistance(bool bIsInAir) const;
@@ -43,7 +52,7 @@ protected:
 	                  DebugDuration, bool bIsTicked, const TArray<AActor*>& ActorsToIgnore);
 	bool DetermineTraversalType(FZodiacTraversalCheckResult& CheckResult);
 	bool FindMatchingAnimMontage(FZodiacTraversalCheckResult& CheckResult);
-
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	UAnimMontage* RunChooser(FZodiacTraversalChooserParams ChooserParams, float& SelectedTime, float& WantedPlayRate);
 
@@ -92,4 +101,6 @@ private:
 	// Used for not to call CanTraversalAction again when activating traversal ability.
 	FZodiacTraversalCheckResult CheckResultCached;
 	bool bHasCached;
+
+	bool bIsLocalPredicted = false;
 };

@@ -6,11 +6,15 @@
 #include "AbilitySystemComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroAnimInstance.h"
+#include "Animation/AnimNodeReference.h"
 #include "Character/ZodiacCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "PoseSearch/MotionMatchingAnimNodeLibrary.h"
+#include "PoseSearch/PoseSearchDatabase.h"
+#include "PoseSearch/PoseSearchResult.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHostAnimInstance)
 
@@ -53,21 +57,25 @@ void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 		UpdateAccelerationData(DeltaSeconds);
 		UpdateMovementData();
 		UpdateGait();
-		UpdateAimingData();
 		UpdateHeroData();
+
+		if (CurrentSelectedDatabase.IsValid())
+		{
+			CurrentDatabaseTags = CurrentSelectedDatabase->Tags;
+		}
 	}
 }
 
 void UZodiacHostAnimInstance::UpdateLocationData(float DeltaSeconds)
 {
+	CharacterTransform = OwningCharacter->GetActorTransform();
+	
 	const FVector PositionDiff = OwningCharacter->GetActorLocation() - WorldLocation;
 	DisplacementSinceLastUpdate = UKismetMathLibrary::VSizeXY(PositionDiff);
 
 	WorldLocation = OwningCharacter->GetActorLocation();
 	
 	DisplacementSpeed = UKismetMathLibrary::SafeDivide(DisplacementSinceLastUpdate, DeltaSeconds);
-
-	MeshTransform = GetSkelMeshComponent()->GetComponentTransform();
 }
 
 void UZodiacHostAnimInstance::UpdateRotationData()
@@ -132,11 +140,6 @@ void UZodiacHostAnimInstance::UpdateAccelerationData(float DeltaSeconds)
 	LocalAcceleration2D = WorldRotation.UnrotateVector(Acceleration2D);
 }
 
-void UZodiacHostAnimInstance::UpdateAimingData()
-{
-	AimPitch = UKismetMathLibrary::NormalizeAxis(TryGetPawnOwner()->GetBaseAimRotation().Pitch);
-}
-
 void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 {
 	if (Tag == ZodiacGameplayTags::Status_Death)
@@ -170,6 +173,22 @@ void UZodiacHostAnimInstance::UpdateGait()
 				Gait = Gait_Walk;
 				return;
 			}
+		}
+	}
+}
+
+void UZodiacHostAnimInstance::UpdateMotionMatchingPoseSelection(const FAnimUpdateContext& Context, const FAnimNodeReference& Node)
+{
+	EAnimNodeReferenceConversionResult Result;
+	FMotionMatchingAnimNodeReference MotionMatchingNode = UMotionMatchingAnimNodeLibrary::ConvertToMotionMatchingNode(Node, Result);
+	if (Result == EAnimNodeReferenceConversionResult::Succeeded)
+	{
+		FPoseSearchBlueprintResult SearchResult;
+		bool bIsResultValid;
+		UMotionMatchingAnimNodeLibrary::GetMotionMatchingSearchResult(MotionMatchingNode, SearchResult, bIsResultValid);
+		if (bIsResultValid)
+		{
+			CurrentSelectedDatabase = SearchResult.SelectedDatabase;
 		}
 	}
 }

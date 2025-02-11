@@ -86,7 +86,7 @@ public:
 	
 protected:
 	void InitializeWithHostCharacter();
-	
+
 	void InitializeAbilitySystem();
 
 	void OnStatusTagChanged(FGameplayTag Tag, int Count);

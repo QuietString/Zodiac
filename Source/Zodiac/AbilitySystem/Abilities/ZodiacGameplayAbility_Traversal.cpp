@@ -1,7 +1,7 @@
 ﻿// the.quiet.string@gmail.com
 
 
-#include "ZodiacSkillAbility_Traversal.h"
+#include "ZodiacGameplayAbility_Traversal.h"
 
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
@@ -10,9 +10,9 @@
 #include "Traversal/ZodiacTraversalTypes.h"
 #include "GameplayAbilities/Public/Abilities/Tasks/AbilityTask_WaitDelay.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSkillAbility_Traversal)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility_Traversal)
 
-UZodiacSkillAbility_Traversal::UZodiacSkillAbility_Traversal(const FObjectInitializer& ObjectInitializer)
+UZodiacGameplayAbility_Traversal::UZodiacGameplayAbility_Traversal(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	if (HasAnyFlags(RF_ClassDefaultObject))
@@ -25,7 +25,7 @@ UZodiacSkillAbility_Traversal::UZodiacSkillAbility_Traversal(const FObjectInitia
 	}
 }
 
-bool UZodiacSkillAbility_Traversal::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+bool UZodiacGameplayAbility_Traversal::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                                             const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
@@ -39,6 +39,10 @@ bool UZodiacSkillAbility_Traversal::CanActivateAbility(const FGameplayAbilitySpe
 		{
 			FText FailReason;
 			bool Result = TraversalComponent->CanTraversalAction(FailReason);
+			// if (Result)
+			// {
+			// 	TraversalCheckResult = TraversalComponent->GetCachedCheckResult();
+			// }
 #if WITH_EDITOR
 			if (!Result && ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
 			{
@@ -52,7 +56,7 @@ bool UZodiacSkillAbility_Traversal::CanActivateAbility(const FGameplayAbilitySpe
 	return false;
 }
 
-void UZodiacSkillAbility_Traversal::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+void UZodiacGameplayAbility_Traversal::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                                          const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -62,9 +66,16 @@ void UZodiacSkillAbility_Traversal::ActivateAbility(const FGameplayAbilitySpecHa
 		if (UZodiacTraversalComponent* TraversalComponent = ZodiacCharacter->FindComponentByClass<UZodiacTraversalComponent>())
 		{
 			TraversalComponent->OnTraversalFinished.BindUObject(this, &ThisClass::OnTraversalFinished);
-			if (HasAuthority(&CurrentActivationInfo))
+			// if (HasAuthority(&CurrentActivationInfo))
+			// {
+			// 	TraversalComponent->PerformTraversalActionFromAbility();
+			// 	//PerformTraversalAction(TraversalCheckResult);
+			// 	UE_LOG(LogTemp, Warning, TEXT("%s: call perform traversal actrion"), GetZodiacCharacterFromActorInfo()->HasAuthority() ? TEXT("Server") : TEXT("Client"));
+			// }
+
+			if (IsLocallyControlled())
 			{
-				TraversalComponent->PerformTraversalActionFromAbility();	
+				TraversalComponent->PerformTraversalAction_Local();
 			}
 
 			// Automatically ends ability after some time in case.
@@ -75,7 +86,21 @@ void UZodiacSkillAbility_Traversal::ActivateAbility(const FGameplayAbilitySpecHa
 	}
 }
 
-void UZodiacSkillAbility_Traversal::OnTraversalFinished()
+void UZodiacGameplayAbility_Traversal::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	// if (AActor* TraversalActor = GetAvatarActorFromActorInfo())
+	// {
+	// 	if (UZodiacTraversalComponent* TraversalComponent = TraversalActor->FindComponentByClass<UZodiacTraversalComponent>())
+	// 	{
+	// 		TraversalComponent->ClearCheckResultCache();
+	// 	}
+	// }
+	
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UZodiacGameplayAbility_Traversal::OnTraversalFinished()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

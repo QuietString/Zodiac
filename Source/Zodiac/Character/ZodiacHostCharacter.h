@@ -7,13 +7,14 @@
 #include "ZodiacCharacter.h"
 #include "Camera/ZodiacCameraMode.h"
 #include "ZodiacHeroList.h"
+#include "Traversal/ZodiacTraversalActorInterface.h"
 #include "ZodiacHostCharacter.generated.h"
 
 class UZodiacHeroData;
 class UZodiacHealthComponent;
 
 UCLASS(Abstract, BlueprintType)
-class ZODIAC_API AZodiacHostCharacter : public AZodiacCharacter
+class ZODIAC_API AZodiacHostCharacter : public AZodiacCharacter, public IZodiacTraversalActorInterface
 {
 	GENERATED_BODY()
 
@@ -25,11 +26,14 @@ public:
 	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const override;
 	UZodiacAbilitySystemComponent* GetHostAbilitySystemComponent() const;
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
-
 	virtual USkeletalMeshComponent* GetRetargetedMesh() const override;
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
 	//~End of AZodiacCharacter interface
 
+	//~IZodiacTraversalActorInterface
+	virtual UAbilitySystemComponent* GetTraversalAbilitySystemComponent() const override;
+	//~End of IZodiacTraversalActorInterface
+	
 	UFUNCTION(BlueprintCallable)
 	virtual UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
 
@@ -68,10 +72,9 @@ protected:
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	//~End of AActor interface
 
-	//~AZodiacCharacter interface
 	virtual void Input_AbilityInputTagPressed(FGameplayTag InputTag) override;
 	virtual void Input_AbilityInputTagReleased(FGameplayTag InputTag) override;
-	//~End of AZodiacCharacter interface
+
 	void InitializeHeroes();
 	
 	TSubclassOf<UZodiacCameraMode> DetermineCameraMode();

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Skills/ZodiacHeroAbility.h"
+#include "AbilitySystem/Hero/ZodiacHeroAbility.h"
 #include "ZodiacHeroAbility_Ranged.generated.h"
 
 class UZodiacHeroAbilitySlot_RangedWeapon;

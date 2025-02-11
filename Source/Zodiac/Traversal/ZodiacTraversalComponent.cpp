@@ -8,6 +8,7 @@
 #include "ZodiacInteractionTransformInterface.h"
 #include "ZodiacLogChannels.h"
 #include "ZodiacTraversableActorComponent.h"
+#include "ZodiacTraversalActorInterface.h"
 #include "ZodiacTraversalTypes.h"
 #include "Character/ZodiacCharacter.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
@@ -203,10 +204,13 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 
 void UZodiacTraversalComponent::TryActivateTraversalAbility()
 {
+	APawn* Pawn = GetPawn<APawn>();
+	check(Pawn);
+	
 	// PerformTraversalActionFromAbility() will be called from ASC.
-	if (AZodiacCharacter* ZodiacCharacter = GetPawn<AZodiacCharacter>())
+	if (IZodiacTraversalActorInterface* TraversalActor = Cast<IZodiacTraversalActorInterface>(Pawn))
 	{
-		if (UAbilitySystemComponent* ASC = ZodiacCharacter->GetAbilitySystemComponent())
+		if (UAbilitySystemComponent* ASC = TraversalActor->GetTraversalAbilitySystemComponent())
 		{
 			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
 
@@ -225,7 +229,37 @@ void UZodiacTraversalComponent::TryActivateTraversalAbility()
 
 void UZodiacTraversalComponent::PerformTraversalActionFromAbility()
 {
+	bIsLocalPredicted = true;
+	
 	TraversalCheckResult = CheckResultCached;
+	PerformTraversalAction(TraversalCheckResult);
+
+	// Clear cache
+	CheckResultCached = FZodiacTraversalCheckResult();
+	bHasCached = false;
+}
+
+void UZodiacTraversalComponent::PerformTraversalAction_Local()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("%s:local perform traversal"), HasAuthority() ? TEXT("server") : TEXT("Client"));
+
+	bIsLocalPredicted = true;
+	
+	TraversalCheckResult = CheckResultCached;
+	PerformTraversalAction(TraversalCheckResult);
+	if (!HasAuthority())
+	{
+		Server_PerformTraversalAction(TraversalCheckResult);	
+	}
+	// Clear cache
+	CheckResultCached = FZodiacTraversalCheckResult();
+	bHasCached = false;
+}
+
+void UZodiacTraversalComponent::Server_PerformTraversalAction_Implementation(FZodiacTraversalCheckResult CheckResult)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("%s:server perform traversal"), HasAuthority() ? TEXT("server") : TEXT("Client"));
+	TraversalCheckResult = CheckResult;
 	PerformTraversalAction(TraversalCheckResult);
 
 	// Clear cache
@@ -315,6 +349,12 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 
 	LastTraceLocation = CeilingCheckEndLocation; 
 	return true;
+}
+
+void UZodiacTraversalComponent::ClearCheckResultCache()
+{
+	CheckResultCached = FZodiacTraversalCheckResult();
+	bHasCached = false;
 }
 
 float UZodiacTraversalComponent::GetTraversalForwardTraceDistance(bool bIsInAir) const
@@ -439,8 +479,15 @@ void UZodiacTraversalComponent::K2_NotifyTraversalActionFinished()
 
 void UZodiacTraversalComponent::OnRepTraversalCheckResult()
 {
+	if (GetOwnerRole() == ROLE_AutonomousProxy && bIsLocalPredicted)
+	{
+		return;
+	}
+	
 	PerformTraversalAction(TraversalCheckResult);
+	//UE_LOG(LogTemp, Warning, TEXT("%s:OnRep perform traversal"), HasAuthority() ? TEXT("server") : TEXT("Client"));
 
+	
 	// Clear cache
 	CheckResultCached = FZodiacTraversalCheckResult();
 	bHasCached = false;

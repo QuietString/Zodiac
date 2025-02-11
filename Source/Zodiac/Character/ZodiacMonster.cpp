@@ -6,7 +6,6 @@
 #include "ZodiacAIController.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHeroData.h"
-#include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Animation/ZodiacZombieAnimInstance.h"
 #include "Net/UnrealNetwork.h"
@@ -59,15 +58,20 @@ void AZodiacMonster::OnPhysicsTagChanged(FGameplayTag Tag, int Count)
 	Multicast_OnPhysicsTagChanged(Tag, Count);
 }
 
+UAbilitySystemComponent* AZodiacMonster::GetTraversalAbilitySystemComponent() const
+{
+	return GetAbilitySystemComponent();
+}
+
 void AZodiacMonster::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HeroData && !bHasMovementInitialized)
+	if (CharacterData && !bHasMovementInitialized)
 	{
 		if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
 		{
-			FZodiacExtendedMovementConfig MovementConfig = HeroData->ExtendedMovementConfig;
+			FZodiacExtendedMovementConfig MovementConfig = CharacterData->ExtendedMovementConfig;
 			ZodiacCharMovComp->SetExtendedMovementConfig(MovementConfig);
 
 			if (MovementConfig.DefaultExtendedMovement == EZodiacExtendedMovementMode::Walking)
@@ -106,17 +110,6 @@ void AZodiacMonster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner)
 {
 	Super::InitializeAbilitySystem(InASC, InOwner);
-
-	if (HeroData && HasAuthority())
-	{
-		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : HeroData->AbilitySets)
-		{
-			if (AbilitySet)
-			{
-				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
-			}
-		}
-	}
 	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 }
@@ -133,7 +126,7 @@ void AZodiacMonster::SetSpawnSeed(const uint8 Seed)
 
 void AZodiacMonster::OnSpawnSeedSet_Internal()
 {
-	check(HeroData);
+	check(CharacterData);
 	
 	float MovementSpeedMultiplier = FMath::GetMappedRangeValueClamped(FVector2d(0, 255), FVector2d(0.9f, 1.1f), SpawnSeed);
 

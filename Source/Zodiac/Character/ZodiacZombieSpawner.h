@@ -13,10 +13,11 @@ class ZODIAC_API AZodiacZombieSpawner : public AActor
 {
 	GENERATED_BODY()
 
+public:
+	void SpawnMonsters();
+
 protected:
 	virtual void BeginPlay() override;
-
-	void SpawnMonsters();
 
 protected:
 	// The zombie character class to spawn

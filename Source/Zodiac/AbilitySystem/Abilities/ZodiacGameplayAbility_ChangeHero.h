@@ -3,12 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZodiacHeroAbility.h"
-#include "ZodiacHeroAbility_ChangeHero.generated.h"
-
+#include "ZodiacGameplayAbility.h"
+#include "ZodiacGameplayAbility_ChangeHero.generated.h"
 
 UCLASS()
-class ZODIAC_API UZodiacHeroAbility_ChangeHero : public UZodiacHeroAbility
+class ZODIAC_API UZodiacGameplayAbility_ChangeHero : public UZodiacGameplayAbility
 {
 	GENERATED_BODY()
 

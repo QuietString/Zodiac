@@ -11,7 +11,7 @@ class UCanvas;
 class UObject;
 
 
-#define ZODIAC_CAMERA_DEFAULT_FOV			(80.0f)
+#define ZODIAC_CAMERA_DEFAULT_FOV			(90.0f)
 #define ZODIAC_CAMERA_DEFAULT_PITCH_MIN	(-89.0f)
 #define ZODIAC_CAMERA_DEFAULT_PITCH_MAX	(89.0f)
 
