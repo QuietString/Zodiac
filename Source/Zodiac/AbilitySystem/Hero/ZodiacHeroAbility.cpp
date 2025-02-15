@@ -160,16 +160,11 @@ void UZodiacHeroAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, co
 	}
 }
 
-void UZodiacHeroAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                          const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-                                          const FGameplayEventData* TriggerEventData)
-{
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-}
-
 bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                     FGameplayTagContainer* OptionalRelevantTags) const
 {
+	bHasCheckedInitialCost = bHasAppliedInitialCost;
+	
 	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags) || !ActorInfo)
 	{
 		return false;
@@ -193,6 +188,8 @@ bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, cons
 void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                     const FGameplayAbilityActivationInfo ActivationInfo) const
 {
+	bHasCheckedInitialCost = true;
+	
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
 
 	// Used to determine if the ability actually hit a target (as some costs are only spent on successful attempts)
@@ -245,7 +242,7 @@ void UZodiacHeroAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, cons
 		}
 	}
 
-	bHasInitialCostApplied = true;
+	bHasAppliedInitialCost = true;
 }
 
 void UZodiacHeroAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
@@ -271,7 +268,8 @@ void UZodiacHeroAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 		HostASC->RemoveLooseGameplayTags(ActivationOwnedTagsHost);
 	}
 
-	bHasInitialCostApplied = false;
+	bHasCheckedInitialCost = false;
+	bHasAppliedInitialCost = false;
 }
 
 FVector UZodiacHeroAbility::GetWeaponLocation() const

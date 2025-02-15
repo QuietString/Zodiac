@@ -10,6 +10,8 @@
 UZodiacHeroAttributeSet_Twinblast::UZodiacHeroAttributeSet_Twinblast()
 	: Fuel(100.f)
 	, MaxFuel(100.f)
+	, InitialCheckAmount(0.f)
+	, InitialApplyAmount(0.f)
 {
 	bOutOfFuel = false;
 	MaxFuelBeforeAttributeChange = 0.f;
@@ -20,8 +22,10 @@ void UZodiacHeroAttributeSet_Twinblast::GetLifetimeReplicatedProps(TArray<FLifet
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, Fuel, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, MaxFuel, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, Fuel, COND_None, REPNOTIFY_OnChanged);
+	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, MaxFuel, COND_None, REPNOTIFY_OnChanged);
+	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, InitialCheckAmount, COND_None, REPNOTIFY_OnChanged);
+	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, InitialApplyAmount, COND_None, REPNOTIFY_OnChanged);
 }
 
 void UZodiacHeroAttributeSet_Twinblast::OnRep_Fuel(const FGameplayAttributeData& OldValue)

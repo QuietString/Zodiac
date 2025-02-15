@@ -46,9 +46,12 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Heal, "SetByCaller.Heal", "SetByCaller tag used by healing gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Cooldown, "SetByCaller.Cooldown", "SetByCaller tag used to apply cooldown gameplay effects.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Ultimate, "SetByCaller.Ultimate", "SetByCaller tag used to change ultimate attribute value.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Cost_MinimumCheck, "SetByCaller.Cost.MinimumCheck", "SetByCaller tag used to check if the owner has minimum amount of attributes to activate an ability.");
 	
+	// Cheats
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_GodMode, "Cheat.GodMode", "GodMode cheat is active on the owner.");
 	UE_DEFINE_GAMEPLAY_TAG(Cheat_InfiniteAmmo, "Cheat.InfiniteAmmo")
+	UE_DEFINE_GAMEPLAY_TAG(Cheat_InfiniteUltimate, "Cheat.InfiniteUltimate")
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Cheat_UnlimitedHealth, "Cheat.UnlimitedHealth", "UnlimitedHealth cheat is active on the owner.");
 	
 	UE_DEFINE_GAMEPLAY_TAG(Status_Movement_Attacking, "Status.Movement.Attacking");
@@ -76,7 +79,6 @@ namespace ZodiacGameplayTags
 
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_ReticleChanged, "HUD.Message.ReticleChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HealthChanged, "HUD.Message.HealthChanged");
-	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_AttributeValueChanged, "HUD.Message.AttributeValueChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_WidgetChanged, "HUD.Message.WidgetChanged");
 
 	UE_DEFINE_GAMEPLAY_TAG(Gameplay_Message_Elimination, "Gameplay.Message.Elimination");

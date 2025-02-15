@@ -31,6 +31,7 @@ void FZodiacAbilitySet_GrantedHandles::AddAttributeSet(UAttributeSet* Set)
 }
 
 UZodiacAbilitySet::UZodiacAbilitySet(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 }
 

@@ -186,28 +186,7 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 
 			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
 			AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
-		}
-
-		// Send the "Event.Elimination" gameplay event to the instigator's ability system.  This can be used to trigger a OnElimination gameplay ability.
-		{
-			if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(DamageCauser))
-			{
-				if (UAbilitySystemComponent* InstigatorASC = HeroCharacter->GetHeroAbilitySystemComponent())
-				{
-					FGameplayEventData Payload;
-					Payload.EventTag = ZodiacGameplayTags::Event_Elimination;
-					Payload.Instigator = DamageInstigator;
-					Payload.Target = AbilitySystemComponent->GetAvatarActor();
-					Payload.OptionalObject = DamageEffectSpec->Def;
-					Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
-					Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
-					Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
-					Payload.EventMagnitude = DamageMagnitude;
-		
-					FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
-					InstigatorASC->HandleGameplayEvent(Payload.EventTag, &Payload);
-				}	
-			}
+			UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s death event key: %d"), HasAuthority() ? TEXT("server") : TEXT("Client"), AbilitySystemComponent->ScopedPredictionKey.Current);
 		}
 		
 		// Send a standardized verb message that other systems can observe

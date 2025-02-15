@@ -42,6 +42,9 @@ public:
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void InfiniteAmmo();
+
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void InfiniteUltimate();
 	
 	// Prevents the owning player from taking any damage.
 	virtual void God() override;
@@ -62,7 +65,6 @@ public:
 	virtual void AllMonstersImmortal();
 
 protected:
-
 	void ApplySetByCallerDamage(UZodiacAbilitySystemComponent* ZodiacASC, float DamageAmount);
 	
 	UZodiacAbilitySystemComponent* GetPlayerAbilitySystemComponent() const;

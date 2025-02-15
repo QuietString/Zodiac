@@ -3,6 +3,7 @@
 #include "ZodiacHostCharacter.h"
 
 #include "DisplayDebugHelpers.h"
+#include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroCharacter.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
@@ -165,6 +166,32 @@ UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetZodiacAbilitySystemCompo
 UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetHostAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void AZodiacHostCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled)
+{
+	// The Same as AZodiacCharacter, just applies to host asc instead.
+	if (UAbilitySystemComponent* ASC = GetHostAbilitySystemComponent())
+	{
+		const FGameplayTag* MovementModeTag;
+
+		if (CustomMovementMode == MOVE_None)
+		{
+			MovementModeTag = ZodiacGameplayTags::MovementModeTagMap.Find(MovementMode);
+			if (MovementModeTag && MovementModeTag->IsValid())
+			{
+				ASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
+			}
+		}
+		else if (CustomMovementMode == Move_Custom_Traversal)
+		{
+			MovementModeTag = ZodiacGameplayTags::CustomMovementModeTagMap.Find(CustomMovementMode);
+			if (MovementModeTag && MovementModeTag->IsValid())
+			{
+				ASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
+			}
+		}
+	}
 }
 
 UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetHeroAbilitySystemComponent() const

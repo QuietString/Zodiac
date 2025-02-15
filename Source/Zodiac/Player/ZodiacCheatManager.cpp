@@ -104,6 +104,14 @@ void UZodiacCheatManager::InfiniteAmmo()
 	}
 }
 
+void UZodiacCheatManager::InfiniteUltimate()
+{
+	if (UZodiacAbilitySystemComponent* ZodiacASC = GetPlayerAbilitySystemComponent())
+	{
+		ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Cheat_InfiniteUltimate);
+	}
+}
+
 void UZodiacCheatManager::God()
 {
 	auto ApplyDynamicTagForGodMode = [](UZodiacAbilitySystemComponent* ZodiacASC)

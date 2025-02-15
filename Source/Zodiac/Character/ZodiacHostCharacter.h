@@ -25,6 +25,7 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const override;
 	UZodiacAbilitySystemComponent* GetHostAbilitySystemComponent() const;
+	virtual void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled) override;
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
 	virtual USkeletalMeshComponent* GetRetargetedMesh() const override;
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
@@ -46,7 +47,8 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	TArray<AZodiacHeroCharacter*> GetHeroes() const { return HeroList.GetHeroes(); }
-	
+
+	UFUNCTION(BlueprintCallable)
 	void ChangeHero(const int32 Index);
 
 	void CheckAllHeroesInitialized();

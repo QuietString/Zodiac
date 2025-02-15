@@ -9,9 +9,6 @@
 #include "ZodiacHostCharacter.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacLogChannels.h"
-#include "AbilitySystem/Attributes/ZodiacCombatSet.h"
-#include "AbilitySystem/Attributes/ZodiacHeroAttributeSet_Twinblast.h"
-#include "AbilitySystem/Attributes/ZodiacUltimateSet.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Hero/ZodiacHeroAbilityFragment_Reticle.h"
 #include "Hero/ZodiacHeroAbilityFragment_SlotWidget.h"
@@ -139,7 +136,7 @@ void UZodiacHeroAbilityManagerComponent::InitializeWithAbilitySystem(UZodiacAbil
 
 	AbilitySystemComponent = InAbilitySystemComponent;
 	HeroData = InHeroData;
-
+	
 	if (GetOwner()->HasAuthority())
 	{
 		TArray<TObjectPtr<UZodiacHeroAbilitySlot>> AbilitySlots;
@@ -175,20 +172,14 @@ void UZodiacHeroAbilityManagerComponent::InitializeWithAbilitySystem(UZodiacAbil
 
 void UZodiacHeroAbilityManagerComponent::BindMessageDelegates()
 {
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UZodiacUltimateSet::GetUltimateAttribute()).AddUObject(this, &ThisClass::SendAttributeValueChangedMessage_PredictedValues);
-
-	// @TODO: dynamically assign delegate based on heroes without hard coding.
-	if (AbilitySystemComponent->GetAttributeSet(UZodiacHeroAttributeSet_Twinblast::StaticClass()))
-	{
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UZodiacHeroAttributeSet_Twinblast::GetFuelAttribute()).AddUObject(this, &ThisClass::SendAttributeValueChangedMessage_NotPredictedValues);	
-	}
+	check(HeroData);
 
 	if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
 	{
 		if (UZodiacHealthComponent* HealthComponent = Hero->GetComponentByClass<UZodiacHealthComponent>())
-    		{
-    			HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::SendChangeHealthMessage);
-    		}	
+    	{
+    		HealthComponent->OnHealthChanged.AddDynamic(this, &ThisClass::SendChangeHealthMessage);
+    	}	
 	}
 }
 
@@ -300,62 +291,5 @@ void UZodiacHeroAbilityManagerComponent::SendChangeHealthMessage(UZodiacHealthCo
 		const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_HealthChanged;
 		UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 		MessageSubsystem.BroadcastMessage(Channel, Message);
-	}
-}
-
-void UZodiacHeroAbilityManagerComponent::SendAttributeValueChangedMessage(const FOnAttributeChangeData& OnAttributeChangeData)
-{
-	float Threshold = 25.0f;
-	float NewValue = OnAttributeChangeData.NewValue;
-	float OldValue = OnAttributeChangeData.OldValue;
-	
-	bool bIsPredicted = AbilitySystemComponent->ScopedPredictionKey.IsValidKey();
-	bool bIsLargeDifference = FMath::Abs(NewValue - OldValue) > Threshold;
-
-	// bIsLargeDifference for initial attribute value change, which is not predicted.
-	if (!bIsPredicted || bIsLargeDifference)
-	{
-		if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
-		{
-			FZodiacHUDMessage_AttributeValueChanged Message;
-			Message.Controller = GetHostController();
-			Message.Hero = Hero;
-			Message.Attribute = OnAttributeChangeData.Attribute;
-			Message.OldValue = OnAttributeChangeData.OldValue;
-			Message.NewValue = OnAttributeChangeData.NewValue;
-		
-			const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_AttributeValueChanged;
-			UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-			MessageSubsystem.BroadcastMessage(Channel, Message);
-		}
-	}
-}
-
-void UZodiacHeroAbilityManagerComponent::SendAttributeValueChangedMessage2(const FOnAttributeChangeData& OnAttributeChangeData,
-	bool bUsePredictedValue)
-{
-	float Threshold = 25.0f;
-	float NewValue = OnAttributeChangeData.NewValue;
-	float OldValue = OnAttributeChangeData.OldValue;
-	
-	bool bIsPredicted = AbilitySystemComponent->ScopedPredictionKey.IsValidKey();
-	bool bIsLargeDifference = FMath::Abs(NewValue - OldValue) > Threshold;
-
-	// bIsLargeDifference for initial attribute value change, which is not predicted.
-	if (!bUsePredictedValue || (bUsePredictedValue && bIsPredicted) || bIsLargeDifference)
-	{
-		if (AZodiacHeroCharacter* Hero = GetOwner<AZodiacHeroCharacter>())
-		{
-			FZodiacHUDMessage_AttributeValueChanged Message;
-			Message.Controller = GetHostController();
-			Message.Hero = Hero;
-			Message.Attribute = OnAttributeChangeData.Attribute;
-			Message.OldValue = OnAttributeChangeData.OldValue;
-			Message.NewValue = OnAttributeChangeData.NewValue;
-		
-			const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_AttributeValueChanged;
-			UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-			MessageSubsystem.BroadcastMessage(Channel, Message);
-		}
 	}
 }

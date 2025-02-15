@@ -20,7 +20,9 @@ public:
 	ATTRIBUTE_ACCESSORS(UZodiacHeroAttributeSet_Twinblast, MaxFuel);
 	ATTRIBUTE_ACCESSORS(UZodiacHeroAttributeSet_Twinblast, FuelCharge);
 	ATTRIBUTE_ACCESSORS(UZodiacHeroAttributeSet_Twinblast, FuelConsumption);
-
+	ATTRIBUTE_ACCESSORS(UZodiacHeroAttributeSet_Twinblast, InitialCheckAmount);
+	ATTRIBUTE_ACCESSORS(UZodiacHeroAttributeSet_Twinblast, InitialApplyAmount);
+	
 	mutable FZodiacAttributeEvent OnFuelChanged;
 	mutable FZodiacAttributeEvent OnMaxFuelChanged;
 	mutable FZodiacAttributeEvent OnOutOfFuel;
@@ -41,7 +43,7 @@ private:
 
 	UPROPERTY(ReplicatedUsing=OnRep_MaxFuel, BlueprintReadOnly, meta=(AllowPrivateAccess = true))
 	FGameplayAttributeData MaxFuel;
-
+	
 	bool bOutOfFuel;
 
 	// Store the fuel before any changes 
@@ -53,4 +55,10 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category="Hero|Twinblast", meta=(AllowPrivateAccess = true))
 	FGameplayAttributeData FuelConsumption;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category="Hero|Twinblast", meta=(AllowPrivateAccess = true))
+	FGameplayAttributeData InitialCheckAmount;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category="Hero|Twinblast", meta=(AllowPrivateAccess = true))
+	FGameplayAttributeData InitialApplyAmount;
 };

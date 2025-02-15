@@ -146,7 +146,7 @@ protected:
 	virtual void OnJustLifted();
 	
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
-	void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled);
+	virtual void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")

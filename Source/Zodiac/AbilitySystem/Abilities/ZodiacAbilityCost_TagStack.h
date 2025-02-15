@@ -39,9 +39,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Costs)
 	FScalableFloat Quantity;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Costs)
-	bool bHasInitialCost = false;
-	
 	/** How much of the tag to spend for initial activation */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Costs, meta=(EditCondition = "bHasInitialCost"))
 	FScalableFloat Quantity_Initial;

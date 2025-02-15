@@ -406,6 +406,20 @@ bool UZodiacAbilitySystemComponent::SetActiveGameplayEffectDuration(FActiveGamep
 	return true;
 }
 
+bool UZodiacAbilitySystemComponent::IsLocallyPredicted() const
+{
+	return ScopedPredictionKey.IsValidKey();
+}
+
+#if WITH_EDITOR
+int32 UZodiacAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload)
+{
+	int32 Result = Super::HandleGameplayEvent(EventTag, Payload);
+	UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s, %s prediction key: %d"), GetOwnerActor()->HasAuthority() ? TEXT("Server") : TEXT("Client"), *EventTag.ToString(), ScopedPredictionKey.Current);
+	return Result;
+}
+#endif
+
 void UZodiacAbilitySystemComponent::TryActivateAbilitiesOnSpawn()
 {
 	ABILITYLIST_SCOPE_LOCK();

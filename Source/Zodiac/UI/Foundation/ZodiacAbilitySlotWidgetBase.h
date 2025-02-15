@@ -21,6 +21,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void OnHeroChanged();
+
+protected:
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnAbilitySlotInitialized();
 	
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Slot")

@@ -531,7 +531,6 @@ void AZodiacCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode, uin
 
 void AZodiacCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled)
 {
-	// MOVE_Walking and MOVE_Traversal tags applied from CharMoveComp to ASC. for ZodiacHostCharacter, it's applied to HeroCharacter.
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 	{
 		const FGameplayTag* MovementModeTag;

@@ -271,7 +271,7 @@ void UZodiacHeroAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbility
 	if (const FGameplayAbilitySpec* AbilitySpec = MyASC->FindAbilitySpecFromHandle(CurrentSpecHandle))
 	{
 		FScopedPredictionWindow	ScopedPrediction(MyASC);
-		
+
 		// Take ownership of the target data to make sure no callbacks into game code invalidate it out from under us
 		FGameplayAbilityTargetDataHandle LocalTargetDataHandle(MoveTemp(const_cast<FGameplayAbilityTargetDataHandle&>(InData)));
 
@@ -302,10 +302,11 @@ void UZodiacHeroAbility_Ranged::OnTargetDataReadyCallback(const FGameplayAbility
 		{
 			if (UZodiacHeroAbilitySlot_RangedWeapon* WeaponSlot = GetAssociatedSlot<UZodiacHeroAbilitySlot_RangedWeapon>())
 			{
+				check(WeaponSlot);
 				WeaponSlot->AddSpread();
 			}
 			
-			// Apply effects to the targets
+			// Let the blueprint do stuff like apply effects to the targets
 			OnRangedWeaponTargetDataReady(LocalTargetDataHandle);
 		}
 	}
@@ -639,15 +640,15 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 	}
 
 	UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot();
-	
-	if (UZodiacAbilitySystemComponent* HeroASC = Cast<UZodiacAbilitySystemComponent>(GetHeroAbilitySystemComponentFromActorInfo()))
+
+	if (UZodiacAbilitySystemComponent* HostASC = Cast<UZodiacAbilitySystemComponent>(GetHostAbilitySystemComponent()))
 	{
 		const FHitResult* FirstHitResult = TargetData.Get(0)->GetHitResult();
 		GameplayCueParams_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*FirstHitResult);
 		GameplayCueParams_Firing.SourceObject = GetSocket();
 		GameplayCueParams_Firing.Instigator = const_cast<AActor*>(Instigator);
 		
-		HeroASC->ExecuteGameplayCue(GameplayCueTag_Firing, GameplayCueParams_Firing);
+		HostASC->ExecuteGameplayCue(GameplayCueTag_Firing, GameplayCueParams_Firing);
 		AdvanceCombo();
 
 		for (auto& SingleTargetData : TargetData.Data)
@@ -657,33 +658,32 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 			{
 				GameplayCueParams_Impact = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*HitResult);
 				GameplayCueParams_Impact.SourceObject = Slot;
-				HeroASC->ExecuteGameplayCue(GameplayCueTag_Impact, GameplayCueParams_Impact);
+				HostASC->ExecuteGameplayCue(GameplayCueTag_Impact, GameplayCueParams_Impact);
 			}
-		
-			if (ChargeUltimateEffectClass && HasAuthorityOrPredictionKey(CurrentActorInfo, &CurrentActivationInfo))
+		}
+
+		if (ChargeUltimateEffectClass && FirstHitResult)
+		{
+			if (AActor* HitActor = FirstHitResult->GetActor())
 			{
-				for (auto& Actor : SingleTargetData->GetActors())
+				UZodiacTeamSubsystem* TeamSubsystem = GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
+				if (TeamSubsystem->CanCauseDamage(GetZodiacHostCharacterFromActorInfo(), HitActor, false))
 				{
-					UZodiacTeamSubsystem* TeamSubsystem = GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
-					if (TeamSubsystem->CanCauseDamage(GetZodiacHostCharacterFromActorInfo(), Actor.Get(), false))
+					if (IGameplayTagAssetInterface* TagAssetInterface = Cast<IGameplayTagAssetInterface>(HitActor))
 					{
-						if (IGameplayTagAssetInterface* TagAssetInterface = Cast<IGameplayTagAssetInterface>(Actor))
+						if (!TagAssetInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Death_Dying))
 						{
-							if (!TagAssetInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Death_Dying))
-							{
-								// charge ultimate when any enemies is hit
-								ChargeUltimate();
-								break;
-							}
+							// charge ultimate when any enemies is hit
+							ChargeUltimate();
 						}
 					}
 				}
 			}
 		}
 	}
-
+	
 	// Apply damage effect
-	if (DamageEffect)
+	if (DamageEffect && HasAuthority(&CurrentActivationInfo))
 	{
 		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(DamageEffect, 1);
 		EffectSpecHandle.Data.Get()->GetContext().AddSourceObject(Slot);

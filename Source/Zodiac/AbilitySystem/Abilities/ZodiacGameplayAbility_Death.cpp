@@ -42,11 +42,6 @@ void UZodiacGameplayAbility_Death::ActivateAbility(const FGameplayAbilitySpecHan
 
 	SetCanBeCanceled(false);
 
-	// if (!ChangeActivationGroup(EZodiacAbilityActivationGroup::Exclusive_Blocking))
-	// {
-	// 	UE_LOG(LogZodiacAbilitySystem, Error, TEXT("UZodiacGameplayAbility_Death::ActivateAbility: Ability [%s] failed to change activation group to blocking."), *GetName());
-	// }
-
 	if (bAutoStartDeath)
 	{
 		StartDeath();

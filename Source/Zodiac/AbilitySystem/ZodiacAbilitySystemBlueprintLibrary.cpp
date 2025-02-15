@@ -9,7 +9,7 @@
 
 void UZodiacAbilitySystemBlueprintLibrary::SendGameplayEventToActorNotPredicted(AActor* Actor, FGameplayTag EventTag, FGameplayEventData Payload)
 {
-	if (::IsValid(Actor))
+	if (IsValid(Actor))
 	{
 		UAbilitySystemComponent* AbilitySystemComponent = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
 		if (AbilitySystemComponent != nullptr && IsValidChecked(AbilitySystemComponent))

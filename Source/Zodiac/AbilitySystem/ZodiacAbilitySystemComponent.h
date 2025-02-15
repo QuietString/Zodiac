@@ -57,10 +57,16 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool SetActiveGameplayEffectDuration(FActiveGameplayEffectHandle Handle, float InDuration);
+
+	UFUNCTION(BlueprintPure)
+	bool IsLocallyPredicted() const;
+
+#if WITH_EDITOR
+	virtual int32 HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload) override;
+#endif
 	
 protected:
 	void TryActivateAbilitiesOnSpawn();
-
 	virtual void AbilitySpecInputPressed(FGameplayAbilitySpec& Spec) override;
 	virtual void AbilitySpecInputReleased(FGameplayAbilitySpec& Spec) override;
 

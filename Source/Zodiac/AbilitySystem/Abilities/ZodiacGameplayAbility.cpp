@@ -10,6 +10,7 @@
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "ZodiacLogChannels.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Player/ZodiacPlayerController.h"
 
@@ -42,10 +43,7 @@ UZodiacAbilitySystemComponent* UZodiacGameplayAbility::GetHeroAbilitySystemCompo
 {
 	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
 	{
-		if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(ASC))
-		{
-			return ZodiacASC;
-		}
+		return Cast<UZodiacAbilitySystemComponent>(ASC);
 	}
 	
 	return nullptr;
@@ -97,6 +95,16 @@ void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* Acto
 	
 	TryActivateAbilityOnSpawn(ActorInfo, Spec);
 }
+
+#if WITH_EDITOR
+void UZodiacGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s, %s: AcitvationKey: %d"), HasAuthority(&CurrentActivationInfo) ? TEXT("server") : TEXT("client"), *GetName(), CurrentActivationInfo.GetActivationPredictionKey().Current);
+}
+#endif
 
 void UZodiacGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,
                                                        const FGameplayAbilitySpec& Spec) const

@@ -100,14 +100,15 @@ public:
 	virtual const FGameplayTagContainer* GetCooldownTags() const override;
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData) override;
-	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void ApplyCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
-	bool ShouldUseInitialCost() const { return bHasInitialCost && !bHasInitialCostApplied; }
-	float GetCostToApply() const { return bHasInitialCost ? (bHasInitialCostApplied ? CostAmount : InitialCostAmount) : CostAmount; }
+	bool ShouldUseInitialCost() const { return bHasInitialCost && !bHasAppliedInitialCost; }
+	bool GetHasInitialCost() const { return bHasInitialCost; }
+	bool GetHasCheckedInitialCost() const { return bHasCheckedInitialCost; }
+	float GetCostToApply() const { return bHasInitialCost ? (bHasAppliedInitialCost ? CostAmount : InitialCostAmount) : CostAmount; }
 	float GetCostAmount() const { return CostAmount; }
 	
 	FVector GetWeaponLocation() const;
@@ -179,7 +180,9 @@ protected:
 	TArray<uint8> ComboToIgnoreAdditionalCost;
 	
 private:
-	mutable bool bHasInitialCostApplied = false;
+	// These are used for checking which amount of cost should be used in CheckCost() and ApplyCost()
+	mutable bool bHasCheckedInitialCost = false;
+	mutable bool bHasAppliedInitialCost = false;
 	
 	// Temp container that we will return the pointer to in GetCooldownTags().
 	// This will be a union of our CooldownTags and the Cooldown GE's cooldown tags.

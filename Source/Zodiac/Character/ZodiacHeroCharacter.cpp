@@ -144,7 +144,7 @@ void AZodiacHeroCharacter::InitializeAbilitySystem()
 	AbilitySystemComponent->InitAbilityActorInfo(Owner, this);
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Focus, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
 	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_ADS, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);	
-
+	
 	if (HeroData)
 	{
 		AbilityManagerComponent->InitializeWithAbilitySystem(AbilitySystemComponent, HeroData);

@@ -13,8 +13,6 @@ class UZodiacAbilitySystemComponent;
 class UZodiacHeroAbilitySlot_RangedWeapon;
 class UZodiacHeroAbilitySlot_Weapon;
 class UAbilitySystemComponent;
-class UZodiacHeroItemSlot;
-class UZodiacWeaponSlot;
 class AZodiacHeroCharacter;
 class AZodiacHostCharacter;
 class UZodiacHeroData;
@@ -22,29 +20,6 @@ class UZodiacReticleWidgetBase;
 class UZodiacHealthComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthComponentInitialized, UZodiacHealthComponent*);
-
-USTRUCT(BlueprintType, DisplayName = "HUD Message Attribute Value Changed")
-struct FZodiacHUDMessage_AttributeValueChanged
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<AController> Controller = nullptr;
-
-	UPROPERTY(BlueprintReadOnly)
-	TObjectPtr<AActor> Hero = nullptr;
-	
-	UPROPERTY(BlueprintReadWrite)
-	FGameplayAttribute Attribute;
-	
-	UPROPERTY(BlueprintReadWrite)
-	float OldValue = 0.0f;
-
-	UPROPERTY(BlueprintReadWrite)
-	float NewValue = 0.0f;
-};
-
 
 USTRUCT(BlueprintType, DisplayName = "HUD Message Widget Changed")
 struct FZodiacHUDMessage_WidgetChangedBatch
@@ -136,8 +111,10 @@ public:
 	//~ End of UActorComponent interface
 
 	AController* GetHostController();
-	
+
+public:
 	void InitializeWithAbilitySystem(UZodiacAbilitySystemComponent* InAbilitySystemComponent, const UZodiacHeroData* InHeroData);
+
 	void BindMessageDelegates();
 
 	UFUNCTION(BlueprintCallable)
@@ -153,10 +130,6 @@ protected:
 	
 	UFUNCTION()
 	void SendChangeHealthMessage(UZodiacHealthComponent* HealthComponent, float OldValue, float NewValue, AActor* Instigator);
-	void SendAttributeValueChangedMessage(const FOnAttributeChangeData& OnAttributeChangeData);
-	void SendAttributeValueChangedMessage2(const FOnAttributeChangeData& OnAttributeChangeData, bool bUsePredictedValue);
-	void SendAttributeValueChangedMessage_NotPredictedValues(const FOnAttributeChangeData& OnAttributeChangeData) { SendAttributeValueChangedMessage2(OnAttributeChangeData, false); }
-	void SendAttributeValueChangedMessage_PredictedValues(const FOnAttributeChangeData& OnAttributeChangeData) { SendAttributeValueChangedMessage2(OnAttributeChangeData, true); }
 
 private:
 	UPROPERTY()

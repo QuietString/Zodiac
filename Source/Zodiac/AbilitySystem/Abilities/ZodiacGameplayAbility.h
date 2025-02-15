@@ -92,6 +92,9 @@ public:
 	AController* GetControllerFromActorInfo() const;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+#if WITH_EDITOR
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+#endif
 	
 	EZodiacAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 	EZodiacAbilityActivationGroup GetActivationGroup() const { return ActivationGroup; }

@@ -12,6 +12,7 @@ UZodiacAbilitySlotWidgetBase::UZodiacAbilitySlotWidgetBase(const FObjectInitiali
 void UZodiacAbilitySlotWidgetBase::InitializeFromAbilitySlot(UZodiacHeroAbilitySlot* InSlot)
 {
 	AbilitySlot = InSlot;
+	OnAbilitySlotInitialized();
 }
 
 void UZodiacAbilitySlotWidgetBase::OnHeroChanged_Implementation()
