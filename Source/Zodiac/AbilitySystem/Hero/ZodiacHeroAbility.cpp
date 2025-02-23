@@ -7,6 +7,7 @@
 #include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/ZodiacAbilityCost.h"
+#include "Hero/ZodiacHeroAbilitySlotActor.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Hero/ZodiacHeroAbilitySlot.h"
@@ -64,16 +65,6 @@ FGameplayEffectContextHandle UZodiacHeroAbility::AddSourceSlotToEffectContext(FG
 {
 	AddSlotAsSourceObject(EffectContext);
 	return EffectContext;
-}
-
-FName UZodiacHeroAbility::GetCurrentComboSocket()
-{
-	if (Sockets.IsValidIndex(ComboIndex))
-	{
-		return Sockets[ComboIndex]->SocketName;
-	}
-
-	return NAME_None;
 }
 
 const FGameplayTagContainer* UZodiacHeroAbility::GetCooldownTags() const
@@ -276,13 +267,11 @@ FVector UZodiacHeroAbility::GetWeaponLocation() const
 {
 	if (USkeletalMeshComponent* MeshComponent =  GetOwningComponentFromActorInfo())
 	{
-		if (Sockets.IsValidIndex(ComboIndex))
+		if (AZodiacHeroAbilitySlotActor* SocketSourceActor = GetCurrentSocketSourceActor())
 		{
-			FName Socket = Sockets[ComboIndex]->SocketName;
 			FVector Location;
 			FRotator Rotator;
-			MeshComponent->GetSocketWorldLocationAndRotation(Socket, Location, Rotator);
-			//return MeshComponent->GetSocketLocation(Sockets[ComboIndex]->SocketName);
+			MeshComponent->GetSocketWorldLocationAndRotation(SocketSourceActor->SocketName, Location, Rotator);
 			return Location;
 		}
 
@@ -308,9 +297,39 @@ void UZodiacHeroAbility::ClearSlotReticle()
 	}
 }
 
+AZodiacHeroAbilitySlotActor* UZodiacHeroAbility::GetCurrentSocketSourceActor() const
+{
+	if (AZodiacHeroAbilitySlotActor* const* ActorPtr = CachedSocketSourceActors.Find(ComboIndex))
+	{
+		if (AZodiacHeroAbilitySlotActor* Actor = *ActorPtr)
+		{
+			return Actor;
+		}
+	}
+	
+	if (UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot())
+	{
+		TArray<AZodiacHeroAbilitySlotActor*> SpawnedActors = Slot->GetSpawnedActors();
+		if (SocketSourceClasses.IsValidIndex(ComboIndex))
+		{
+			TSubclassOf<AZodiacHeroAbilitySlotActor> ComboActorClass = SocketSourceClasses[ComboIndex];
+			for (auto& SpawnedActor : SpawnedActors)
+			{
+				if (SpawnedActor->IsA(ComboActorClass))
+				{
+					CachedSocketSourceActors.Add(ComboIndex, SpawnedActor);
+					return SpawnedActor;
+				}
+			}
+		}
+	}
+
+	return nullptr;
+}
+
 void UZodiacHeroAbility::AdvanceCombo()
 {
-	if (++ComboIndex >= Sockets.Num())
+	if (++ComboIndex >= SocketSourceClasses.Num())
 	{
 		ComboIndex = 0;
 	}
@@ -322,25 +341,4 @@ void UZodiacHeroAbility::ChargeUltimate()
 	EffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Ultimate, UltimateChargeAmount.GetValueAtLevel(GetAbilityLevel()));
 
 	ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
-}
-
-FVector UZodiacHeroAbility::GetSourceLocation() const
-{
-	FVector Location = FVector();
-	if (AZodiacHeroCharacter* Hero =  GetHeroActorFromActorInfo())
-	{
-		Location = Hero->GetMesh()->GetSocketLocation(GetSocket()->SocketName);
-	}
-
-	return Location;
-}
-
-UZodiacAbilitySourceSocket* UZodiacHeroAbility::GetSocket() const
-{
-	if (Sockets.IsValidIndex(ComboIndex))
-	{
-		return Sockets[ComboIndex];
-	}
-
-	return nullptr;
 }

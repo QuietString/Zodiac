@@ -3,17 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacCharacterType.h"
-#include "Hero/ZodiacHeroAbilityDefinition.h"
-#include "Input/ZodiacInputComponent.h"
 
 #include "ZodiacHeroData.generated.h"
 
-struct FZodiacHeroAbilityDefinition;
+class UZodiacHeroAbilitySlotDefinition;
 class UZodiacAbilitySet;
-struct FAttributeDefaults;
-class UZodiacReticleWidgetBase;
 
 UCLASS(BlueprintType, Const)
 class UZodiacHeroData : public UDataAsset
@@ -25,8 +20,8 @@ public:
 	TArray<TObjectPtr<UZodiacAbilitySet>> AbilitySets;
 
 	UPROPERTY(EditAnywhere, Category = "Ability")
-	TArray<FZodiacHeroAbilityDefinition> AbilitySlots;
-
+	TArray<TObjectPtr<UZodiacHeroAbilitySlotDefinition>> AbilitySlots;
+	
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	FZodiacExtendedMovementConfig ExtendedMovementConfig;
 };

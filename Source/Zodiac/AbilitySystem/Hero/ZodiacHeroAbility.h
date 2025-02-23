@@ -4,51 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
+#include "Hero/ZodiacHeroAbilitySlotActor.h"
 #include "ZodiacHeroAbility.generated.h"
 
+class AZodiacHeroAbilitySlotActor;
 class UNiagaraSystem;
 class UZodiacHeroAbilitySlot;
 class AZodiacHeroCharacter;
-
-USTRUCT(BlueprintType)
-struct FZodiacImpactParticles
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> Default;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> Character;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> Concrete;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> Glass;
-};
-
-UCLASS(BlueprintType, Const, DefaultToInstanced, EditInlineNew, DisplayName = "Socket Object", CollapseCategories)
-class UZodiacAbilitySourceSocket : public UObject
-{
-	GENERATED_BODY()
-
-public:
-	virtual bool IsSupportedForNetworking() const override { return true; }
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FName SocketName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UNiagaraSystem> Trace_Niagara;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> Trace_Particle;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	FZodiacImpactParticles Impacts;
-};
 
 /**
  * Gameplay ability belongs to a hero character
@@ -91,8 +53,6 @@ public:
 
 		return nullptr;
 	}
-
-	FName GetCurrentComboSocket();
 	
 	UFUNCTION(BlueprintCallable)
 	float GetCooldownDuration() const { return CooldownDuration.GetValueAtLevel(GetAbilityLevel()); }
@@ -119,6 +79,15 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void ClearSlotReticle();
+
+	UFUNCTION(BlueprintCallable)
+	void SetTargetAttachComponent(USceneComponent* InAttachComponent) { TargetAttachComponent = InAttachComponent; }
+
+	UFUNCTION(BlueprintCallable)
+	void ClearTargetAttachComponent() { TargetAttachComponent = nullptr; }
+
+	UFUNCTION(BlueprintCallable)
+	AZodiacHeroAbilitySlotActor* GetCurrentSocketSourceActor() const;
 	
 	UFUNCTION(BlueprintCallable)
 	void AdvanceCombo();
@@ -128,12 +97,6 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	void ChargeUltimate();
-	
-	UFUNCTION(BlueprintCallable)
-	FVector GetSourceLocation() const;
-
-	UFUNCTION(BlueprintCallable)
-	UZodiacAbilitySourceSocket* GetSocket() const;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldowns")
@@ -157,9 +120,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Tags)
 	FGameplayTagContainer ActivationBlockedTagsHost;
 
-	UPROPERTY(EditAnywhere, Instanced, Category = "FX")
-	TArray<UZodiacAbilitySourceSocket*> Sockets;
+	// List of actors that will be used for specific combo fire. Each actor has a socket for firing. These actors should be included in ActorsToSpawn in HeroAbilitySlotDefinition
+	UPROPERTY(EditAnywhere, Category = "FX")
+	TArray<TSubclassOf<AZodiacHeroAbilitySlotActor>> SocketSourceClasses;
 
+	UPROPERTY(EditAnywhere, Category = "FX")
+	TObjectPtr<USceneComponent> TargetAttachComponent;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate")
 	TSubclassOf<UGameplayEffect> ChargeUltimateEffectClass;
 
@@ -180,6 +147,9 @@ protected:
 	TArray<uint8> ComboToIgnoreAdditionalCost;
 	
 private:
+	UPROPERTY(Transient)
+	mutable TMap<uint8, AZodiacHeroAbilitySlotActor*> CachedSocketSourceActors;
+	
 	// These are used for checking which amount of cost should be used in CheckCost() and ApplyCost()
 	mutable bool bHasCheckedInitialCost = false;
 	mutable bool bHasAppliedInitialCost = false;

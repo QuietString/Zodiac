@@ -5,7 +5,10 @@
 
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroAbilityFragment_Reticle.h"
+#include "ZodiacHeroAbilitySlotActor.h"
+#include "ZodiacHeroAbilitySlotDefinition.h"
 #include "Character/ZodiacHeroCharacter.h"
+#include "Character/ZodiacHostCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbilitySlot)
@@ -26,13 +29,27 @@ void UZodiacHeroAbilitySlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 
 	DOREPLIFETIME(ThisClass, StatTag);
 	DOREPLIFETIME_CONDITION(ThisClass, Definition, COND_InitialOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, SpawnedActors, COND_InitialOnly);
 }
 
-void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& InDef)
+void UZodiacHeroAbilitySlot::InitializeSlot(const UZodiacHeroAbilitySlotDefinition* InDef)
 {
+	ACharacter* OwnerCharacter = GetPawn<ACharacter>();
+	check(OwnerCharacter);
+	
 	Definition = InDef;
-
-	for (auto& Fragment : Definition.Fragments)
+	
+	TArray<AZodiacHeroAbilitySlotActor*> Actors;
+	for (auto& Actor : InDef->ActorsToSpawn)
+	{
+		AZodiacHeroAbilitySlotActor* NewActor = GetWorld()->SpawnActorDeferred<AZodiacHeroAbilitySlotActor>(Actor, FTransform::Identity, OwnerCharacter, OwnerCharacter, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		NewActor->FinishSpawning(FTransform::Identity, true);
+		NewActor->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+		Actors.Add_GetRef(NewActor);
+	}
+	SpawnedActors = Actors;
+	
+	for (auto& Fragment : Definition->Fragments)
 	{
 		Fragment->OnSlotCreated(this);
 	}
@@ -40,7 +57,7 @@ void UZodiacHeroAbilitySlot::InitializeSlot(const FZodiacHeroAbilityDefinition& 
 
 FGameplayTag UZodiacHeroAbilitySlot::GetSlotType() const
 {
-	return Definition.SlotType;
+	return  Definition->SlotType;
 }
 
 void UZodiacHeroAbilitySlot::UpdateActivationTime()
@@ -66,11 +83,21 @@ void UZodiacHeroAbilitySlot::ClearReticle()
 	}
 }
 
+AZodiacHostCharacter* UZodiacHeroAbilitySlot::GetHostCharacter() const
+{
+	if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(GetOuter()))
+	{
+		return HeroCharacter->GetHostCharacter();
+	}
+		
+	return nullptr;
+}
+
 const UZodiacHeroAbilityFragment* UZodiacHeroAbilitySlot::FindFragmentByClass(const TSubclassOf<UZodiacHeroAbilityFragment>& FragmentClass) const
 {
 	if (FragmentClass != nullptr)
 	{
-		for (UZodiacHeroAbilityFragment* Fragment : Definition.Fragments)
+		for (UZodiacHeroAbilityFragment* Fragment : Definition->Fragments)
 		{
 			if (Fragment && Fragment->IsA(FragmentClass))
 			{

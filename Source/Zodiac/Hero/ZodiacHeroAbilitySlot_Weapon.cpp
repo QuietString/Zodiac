@@ -32,7 +32,7 @@ void UZodiacHeroAbilitySlot_Weapon::Tick(float DeltaTime)
 #endif
 }
 
-void UZodiacHeroAbilitySlot_Weapon::InitializeSlot(const FZodiacHeroAbilityDefinition& InDef)
+void UZodiacHeroAbilitySlot_Weapon::InitializeSlot(const UZodiacHeroAbilitySlotDefinition* InDef)
 {
 	Super::InitializeSlot(InDef);
 

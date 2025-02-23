@@ -5,21 +5,22 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "ZodiacHeroAbilityDefinition.h"
-#include "AbilitySystem/ZodiacAbilitySet.h"
+#include "ZodiacHeroAbilitySlotDefinition.h"
 #include "AbilitySystem/ZodiacAbilitySourceInterface.h"
-#include "Character/ZodiacHeroCharacter.h"
-#include "Character/ZodiacHostCharacter.h"
 #include "System/GameplayTagStack.h"
 #include "UI/Weapons/ZodiacReticleWidgetBase.h"
 #include "UObject/Object.h"
 #include "ZodiacHeroAbilitySlot.generated.h"
 
-DECLARE_DELEGATE_TwoParams(FOnReticleChanged, const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& , UZodiacHeroAbilitySlot*);
+class AZodiacHostCharacter;
+class AZodiacHeroAbilitySlotActor;
+class UZodiacHeroAbilitySlotDefinition;
+DECLARE_DELEGATE_TwoParams(FOnReticleChanged, const TArray<TSubclassOf<UZodiacReticleWidgetBase>>&, UZodiacHeroAbilitySlot*);
 
 /**
  * Contains data for associated abilities of a slot. 
  */
-UCLASS(BlueprintType, Blueprintable)
+UCLASS(BlueprintType, Blueprintable, Abstract)
 class ZODIAC_API UZodiacHeroAbilitySlot : public UObject, public IZodiacAbilitySourceInterface
 {
 	GENERATED_BODY()
@@ -38,7 +39,7 @@ public:
 	//~End of IZodiacAbilitySourceInterface interface
 
 	virtual void Tick(float DeltaTime) {}
-	virtual void InitializeSlot(const FZodiacHeroAbilityDefinition& InDef);
+	virtual void InitializeSlot(const UZodiacHeroAbilitySlotDefinition* InDef);
 
 	UFUNCTION(BlueprintCallable)
 	FGameplayTag GetSlotType() const;
@@ -46,6 +47,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void UpdateActivationTime();
 
+	UFUNCTION(BlueprintPure)
+	TArray<AZodiacHeroAbilitySlotActor*> GetSpawnedActors() const { return SpawnedActors; }
+	
 	void ChangeReticle();
 	void ClearReticle();
 	
@@ -54,20 +58,18 @@ public:
 	{
 		return Cast<APawn>(GetOuter());
 	}
-
-	UFUNCTION(BlueprintPure)
-	AZodiacHostCharacter* GetHostCharacter() const
+	
+	template<typename T>
+	T* GetPawn() const
 	{
-		if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(GetOuter()))
-		{
-			return HeroCharacter->GetHostCharacter();
-		}
-		
-		return nullptr;
+		return Cast<T>(GetOuter());
 	}
 
-	const FZodiacHeroAbilityDefinition& GetSlotDefinition() const { return Definition; }
+	UFUNCTION(BlueprintPure)
+	AZodiacHostCharacter* GetHostCharacter() const;
 	
+	const UZodiacHeroAbilitySlotDefinition* GetSlotDefinition() const { return Definition; }
+
 	const UZodiacHeroAbilityFragment* FindFragmentByClass(const TSubclassOf<UZodiacHeroAbilityFragment>& FragmentClass) const;
 
 	template<typename T>
@@ -75,7 +77,7 @@ public:
 	{
 		static_assert(TIsDerivedFrom<T, UZodiacHeroAbilityFragment>::IsDerived, "T must be derived from UZodiacHeroAbilityFragment");
 
-		for (UZodiacHeroAbilityFragment* Fragment : Definition.Fragments)
+		for (UZodiacHeroAbilityFragment* Fragment : Definition->Fragments)
 		{
 			if (Fragment)
 			{
@@ -109,7 +111,10 @@ public:
 	
 protected:
 	UPROPERTY(Replicated)
-	FZodiacHeroAbilityDefinition Definition;
+	const UZodiacHeroAbilitySlotDefinition* Definition;
+
+	UPROPERTY(Replicated)
+	TArray<TObjectPtr<AZodiacHeroAbilitySlotActor>> SpawnedActors;
 
 private:
 	UPROPERTY(Replicated)

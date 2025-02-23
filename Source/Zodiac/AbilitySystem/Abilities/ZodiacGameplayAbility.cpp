@@ -96,13 +96,16 @@ void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* Acto
 	TryActivateAbilityOnSpawn(ActorInfo, Spec);
 }
 
-#if WITH_EDITOR
+#if !UE_BUILD_SHIPPING
 void UZodiacGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s, %s: AcitvationKey: %d"), HasAuthority(&CurrentActivationInfo) ? TEXT("server") : TEXT("client"), *GetName(), CurrentActivationInfo.GetActivationPredictionKey().Current);
+	if (ZodiacConsoleVariables::CVarLogPredictionKey.GetValueOnAnyThread())
+	{
+		UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s, %s: AcitvationKey: %d"), HasAuthority(&CurrentActivationInfo) ? TEXT("Server") : TEXT("Client"), *GetName(), CurrentActivationInfo.GetActivationPredictionKey().Current);
+	}
 }
 #endif
 

@@ -330,7 +330,6 @@ void UZodiacHeroAbility_Ranged::PerformLocalTargeting(TArray<FHitResult>& OutHit
 		const FTransform TargetTransform = GetTargetingTransform(HostCharacter, HeroActor, AimTraceRule);
 		TraceData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
 		TraceData.StartTrace = TargetTransform.GetTranslation();
-		const FVector EndTrace = TraceData.StartTrace + TraceData.AimDir * 100000.f;
 
 #if ENABLE_DRAW_DEBUG
 		if (ZodiacConsoleVariables::DrawBulletTracesDuration > 0.0f)
@@ -363,7 +362,6 @@ void UZodiacHeroAbility_Ranged::PerformLocalTargetingWithTarget(TArray<FHitResul
 		
 		TraceData.AimDir = TargetTransform.GetUnitAxis(EAxis::X);
 		TraceData.StartTrace = TargetTransform.GetTranslation();
-		const FVector EndTrace = TraceData.StartTrace + TraceData.AimDir * 100000.f;
 
 #if ENABLE_DRAW_DEBUG
 		if (ZodiacConsoleVariables::DrawBulletTracesDuration > 0.0f)
@@ -377,9 +375,9 @@ void UZodiacHeroAbility_Ranged::PerformLocalTargetingWithTarget(TArray<FHitResul
 	}
 }
 
-void UZodiacHeroAbility_Ranged::TraceBulletsInCartridge(const FRangedAbilityTraceData& InputData, TArray<FHitResult>& OutHits)
+void UZodiacHeroAbility_Ranged::TraceBulletsInCartridge(const FRangedAbilityTraceData& TraceData, TArray<FHitResult>& OutHits)
 {
-	UZodiacHeroAbilitySlot_RangedWeapon* WeaponData = InputData.WeaponData;
+	UZodiacHeroAbilitySlot_RangedWeapon* WeaponData = TraceData.WeaponData;
 	check(WeaponData);
 
 	const int32 BulletsPerCartridge = WeaponData->GetBulletsPerCartridge();
@@ -392,14 +390,14 @@ void UZodiacHeroAbility_Ranged::TraceBulletsInCartridge(const FRangedAbilityTrac
 
 		const float HalfSpreadAngleInRadians = FMath::DegreesToRadians(ActualSpreadAngle * 0.5f);
 
-		const FVector BulletDir = VRandConeNormalDistribution(InputData.AimDir, HalfSpreadAngleInRadians, WeaponData->GetSpreadExponent());
+		const FVector BulletDir = VRandConeNormalDistribution(TraceData.AimDir, HalfSpreadAngleInRadians, WeaponData->GetSpreadExponent());
 
-		const FVector EndTrace = InputData.StartTrace + (BulletDir * WeaponData->GetMaxDamageRange());
+		const FVector EndTrace = TraceData.StartTrace + (BulletDir * WeaponData->GetMaxDamageRange());
 		FVector HitLocation = EndTrace;
 
 		TArray<FHitResult> AllImpacts;
 
-		FHitResult Impact = DoSingleBulletTrace(InputData.StartTrace, EndTrace, WeaponData->GetBulletTraceSweepRadius(), false, OUT AllImpacts);
+		FHitResult Impact = DoSingleBulletTrace(TraceData.StartTrace, EndTrace, WeaponData->GetBulletTraceSweepRadius(), false, OUT AllImpacts);
 
 		const AActor* HitActor = Impact.GetActor();
 
@@ -504,14 +502,6 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(const EZodiacAbility
 	return GetTargetingTransform(HostCharacter, HeroActor, TraceRule);
 }
 
-FTransform UZodiacHeroAbility_Ranged::GetWeaponTargetingTransform() const
-{
-	AZodiacHeroCharacter* HeroActor = Cast<AZodiacHeroCharacter>(GetCurrentActorInfo()->AvatarActor);
-	AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCurrentActorInfo()->OwnerActor);
-	
-	return GetTargetingTransform(HostCharacter, HeroActor, EZodiacAbilityAimTraceRule::WeaponTowardsFocus);
-}
-
 FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* HostPawn, APawn* HeroPawn, EZodiacAbilityAimTraceRule Source) const
 {
 	check(HostPawn);
@@ -548,7 +538,6 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* HostPawn, APa
 			CamLoc = SourceLoc;
 			CamRot = Controller->GetControlRotation();
 		}
-
 		
 		// Determine initial focal point to 
 		FVector AimDir = CamRot.Vector().GetSafeNormal();
@@ -570,13 +559,18 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* HostPawn, APa
 
 			FocalLoc = CamLoc + (AimDir * FocalDistance);
 		}
-		
 		//Move the start to be the HeadPosition of the AI
 		else if (AAIController* AIController = Cast<AAIController>(Controller))
 		{
 			CamLoc = HeroPawn->GetActorLocation() + FVector(0, 0, HostPawn->BaseEyeHeight);
 		}
 
+		if (Source == EZodiacAbilityAimTraceRule::CameraTowardsFocus)
+		{
+			// If we're camera -> focus then we're done
+			return FTransform(CamRot, CamLoc);
+		}
+		
 		if (Source == EZodiacAbilityAimTraceRule::WeaponTowardsFocusHit)
 		{
 			FocalDistance = BIG_NUMBER;
@@ -594,21 +588,6 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* HostPawn, APa
 			float FallbackFocalDistance = 2000.0f;
 			FVector FallbackFocalLoc = CamLoc + (AimDir * FallbackFocalDistance);
 			FocalLoc =  bHit ? HitResult.ImpactPoint : FallbackFocalLoc;
-
-#if ENABLE_DRAW_DEBUG
-			if (ZodiacConsoleVariables::bDrawTargetingTraceHit)
-			{
-				const FColor DebugColor = bHit ? FColor::Cyan : FColor::Silver;
-				const FVector EndLocation = bHit ? HitResult.ImpactPoint : FocalLoc;
-				DrawDebugLine(GetWorld(), CamLoc, EndLocation, DebugColor, false, 3, 0, 1.5f);
-			}
-#endif
-		}
-		
-		if (Source == EZodiacAbilityAimTraceRule::CameraTowardsFocus)
-		{
-			// If we're camera -> focus then we're done
-			return FTransform(CamRot, CamLoc);
 		}
 	}
 
@@ -645,8 +624,9 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 	{
 		const FHitResult* FirstHitResult = TargetData.Get(0)->GetHitResult();
 		GameplayCueParams_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*FirstHitResult);
-		GameplayCueParams_Firing.SourceObject = GetSocket();
+		GameplayCueParams_Firing.SourceObject = GetCurrentSocketSourceActor();
 		GameplayCueParams_Firing.Instigator = const_cast<AActor*>(Instigator);
+		GameplayCueParams_Firing.TargetAttachComponent = TargetAttachComponent;
 		
 		HostASC->ExecuteGameplayCue(GameplayCueTag_Firing, GameplayCueParams_Firing);
 		AdvanceCombo();

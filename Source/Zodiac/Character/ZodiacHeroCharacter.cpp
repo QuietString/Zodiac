@@ -2,6 +2,7 @@
 
 #include "ZodiacHeroCharacter.h"
 
+#include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"

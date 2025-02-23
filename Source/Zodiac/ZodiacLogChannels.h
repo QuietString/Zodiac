@@ -11,3 +11,11 @@ ZODIAC_API DECLARE_LOG_CATEGORY_EXTERN(LogZodiacMovement, Log, All);
 ZODIAC_API DECLARE_LOG_CATEGORY_EXTERN(LogZodiacTraversal, Log, All);
 
 ZODIAC_API FString GetClientServerContextString(UObject* ContextObject = nullptr);
+
+namespace ZodiacConsoleVariables
+{
+	inline TAutoConsoleVariable<bool> CVarLogPredictionKey(
+		TEXT("zodiac.PredictionKey.ShowDebug"),
+		false,
+		TEXT(""));
+}

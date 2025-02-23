@@ -79,7 +79,7 @@ protected:
 	void PerformLocalTargetingWithTarget(OUT TArray<FHitResult>& OutHits);
 	
 	// Traces all of the bullets in a single cartridge
-	void TraceBulletsInCartridge(const FRangedAbilityTraceData& InputData, OUT TArray<FHitResult>& OutHits);
+	void TraceBulletsInCartridge(const FRangedAbilityTraceData& TraceData, OUT TArray<FHitResult>& OutHits);
 
 	// Wrapper around WeaponTrace to handle trying to do a ray trace before falling back to a sweep trace if there were no hits and SweepRadius is above zero 
 	FHitResult DoSingleBulletTrace(const FVector& StartTrace, const FVector& EndTrace, float SweepRadius, bool bIsSimulated, OUT TArray<FHitResult>& OutHits) const;
@@ -87,9 +87,6 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	FTransform GetTargetingTransform(EZodiacAbilityAimTraceRule TraceRule) const;
 
-	UFUNCTION(BlueprintCallable)
-	FTransform GetWeaponTargetingTransform() const;
-	
 	FTransform GetTargetingTransform(APawn* HostPawn, APawn* HeroPawn, EZodiacAbilityAimTraceRule Source) const;
 	
 protected:

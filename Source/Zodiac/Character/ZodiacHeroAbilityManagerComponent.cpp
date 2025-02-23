@@ -9,10 +9,12 @@
 #include "ZodiacHostCharacter.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacLogChannels.h"
+#include "AbilitySystem/ZodiacAbilitySet.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Hero/ZodiacHeroAbilityFragment_Reticle.h"
 #include "Hero/ZodiacHeroAbilityFragment_SlotWidget.h"
 #include "Hero/ZodiacHeroAbilitySlot.h"
+#include "Hero/ZodiacHeroAbilitySlotDefinition.h"
 #include "Hero/ZodiacHeroAbilitySlot_RangedWeapon.h"
 #include "Net/UnrealNetwork.h"
 
@@ -81,14 +83,16 @@ void UZodiacHeroAbilityManagerComponent::BeginPlay()
 		{
 			if (Hero->HasAuthority())
 			{
-				for (auto& [Tag, Count] : Slot->GetSlotDefinition().InitialTagStack)
+				for (auto& [Tag, Count] : Slot->GetSlotDefinition()->InitialTagStack)
 				{
 					Slot->AddStatTagStack(Tag, Count);
 				}
 			}
-				
-			Slot->OnReticleApplied.BindUObject(this, &ThisClass::SendChangeReticleMessage);
-			Slot->OnReticleCleared.BindUObject(this, &ThisClass::ClearAbilityReticle);
+			else
+			{
+				Slot->OnReticleApplied.BindUObject(this, &ThisClass::SendChangeReticleMessage);
+				Slot->OnReticleCleared.BindUObject(this, &ThisClass::ClearAbilityReticle);	
+			}
 		}
 	}
 }
@@ -140,18 +144,18 @@ void UZodiacHeroAbilityManagerComponent::InitializeWithAbilitySystem(UZodiacAbil
 	if (GetOwner()->HasAuthority())
 	{
 		TArray<TObjectPtr<UZodiacHeroAbilitySlot>> AbilitySlots;
-
+		
 		if (!HeroData->AbilitySlots.IsEmpty())
 		{
 			for (auto& SlotDef : HeroData->AbilitySlots)
 			{
-				if (TSubclassOf<UZodiacHeroAbilitySlot> SlotClass = SlotDef.SlotClass)
+				if (TSubclassOf<UZodiacHeroAbilitySlot> SlotClass = SlotDef->SlotClass)
 				{
 					if (UZodiacHeroAbilitySlot* Slot = AbilitySlots.Add_GetRef(NewObject<UZodiacHeroAbilitySlot>(GetOwner(), SlotClass)))
 					{
 						Slot->InitializeSlot(SlotDef);
-
-						if (UZodiacAbilitySet* AbilitySet = SlotDef.SkillSetToGrant)
+						
+						if (UZodiacAbilitySet* AbilitySet = SlotDef->AbilitySetToGrant)
 						{
 							FZodiacAbilitySet_GrantedHandles Handles;
 							AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, &Handles, Slot);
@@ -165,7 +169,7 @@ void UZodiacHeroAbilityManagerComponent::InitializeWithAbilitySystem(UZodiacAbil
 				}
 			}
 		}
-
+		
 		Slots = AbilitySlots;
 	}
 }

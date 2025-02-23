@@ -8,6 +8,7 @@
 #include "Components/ActorComponent.h"
 #include "ZodiacHeroAbilityManagerComponent.generated.h"
 
+class UZodiacHeroAbilitySlot;
 class UZodiacAbilitySlotWidgetBase;
 class UZodiacAbilitySystemComponent;
 class UZodiacHeroAbilitySlot_RangedWeapon;

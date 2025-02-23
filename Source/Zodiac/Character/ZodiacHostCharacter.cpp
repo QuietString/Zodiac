@@ -16,6 +16,8 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHostCharacter)
 
+UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_INPUTTAG_HERO, "InputTag.Hero");
+
 AZodiacHostCharacter::AZodiacHostCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer),
 	HeroList(this)
@@ -125,11 +127,9 @@ void AZodiacHostCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo
 	}
 }
 
-FGameplayTag HeroInputTag = ZodiacGameplayTags::InputTag_Hero;
-
 void AZodiacHostCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	UZodiacAbilitySystemComponent* ZodiacASC = InputTag.MatchesTag(HeroInputTag) ? GetHeroAbilitySystemComponent() : GetHostAbilitySystemComponent();
+	UZodiacAbilitySystemComponent* ZodiacASC = InputTag.MatchesTag(TAG_INPUTTAG_HERO) ? GetHeroAbilitySystemComponent() : GetHostAbilitySystemComponent();
 
 	if (ZodiacASC)
 	{
@@ -140,7 +140,7 @@ void AZodiacHostCharacter::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 
 void AZodiacHostCharacter::Input_AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	UZodiacAbilitySystemComponent* ZodiacASC = InputTag.MatchesTag(HeroInputTag) ? GetHeroAbilitySystemComponent() : GetHostAbilitySystemComponent();
+	UZodiacAbilitySystemComponent* ZodiacASC = InputTag.MatchesTag(TAG_INPUTTAG_HERO) ? GetHeroAbilitySystemComponent() : GetHostAbilitySystemComponent();
 
 	if (ZodiacASC)
 	{

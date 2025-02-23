@@ -17,7 +17,7 @@ class ZODIAC_API UZodiacHeroAbilitySlot_Weapon : public UZodiacHeroAbilitySlot
 public:
 	UZodiacHeroAbilitySlot_Weapon(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	virtual void Tick(float DeltaTime) override;
-	virtual void InitializeSlot(const FZodiacHeroAbilityDefinition& InDef) override;
+	virtual void InitializeSlot(const UZodiacHeroAbilitySlotDefinition* InDef) override;
 	void AddSpread();
 
 #if WITH_EDITOR

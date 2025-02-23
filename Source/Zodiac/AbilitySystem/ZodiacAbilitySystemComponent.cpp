@@ -12,7 +12,14 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilitySystemComponent)
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_AbilityInputBlocked, "Gameplay.AbilityInputBlocked");
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_SKILL, "Skill");
+
+namespace ZodiacConsoleVariables
+{
+	TAutoConsoleVariable<bool> CVarLogShowDebug(
+		TEXT("zodiac.PredictionKey.Event.ShowDebug"),
+		false,
+		TEXT(""));
+}
 
 UZodiacAbilitySystemComponent::UZodiacAbilitySystemComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -415,7 +422,12 @@ bool UZodiacAbilitySystemComponent::IsLocallyPredicted() const
 int32 UZodiacAbilitySystemComponent::HandleGameplayEvent(FGameplayTag EventTag, const FGameplayEventData* Payload)
 {
 	int32 Result = Super::HandleGameplayEvent(EventTag, Payload);
-	UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s, %s prediction key: %d"), GetOwnerActor()->HasAuthority() ? TEXT("Server") : TEXT("Client"), *EventTag.ToString(), ScopedPredictionKey.Current);
+
+	if (ZodiacConsoleVariables::CVarLogPredictionKey.GetValueOnAnyThread())
+	{
+		UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s, %s event prediction key: %d"), GetOwnerActor()->HasAuthority() ? TEXT("Server") : TEXT("Client"), *EventTag.ToString(), ScopedPredictionKey.Current);
+	}
+	
 	return Result;
 }
 #endif

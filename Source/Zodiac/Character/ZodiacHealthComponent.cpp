@@ -186,7 +186,12 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 
 			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
 			AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
-			UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s death event key: %d"), HasAuthority() ? TEXT("server") : TEXT("Client"), AbilitySystemComponent->ScopedPredictionKey.Current);
+#if !UE_BUILD_SHIPPING
+			if (ZodiacConsoleVariables::CVarLogPredictionKey.GetValueOnAnyThread())
+			{
+				UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s death event key: %d"), HasAuthority() ? TEXT("Server") : TEXT("Client"), AbilitySystemComponent->ScopedPredictionKey.Current);	
+			}
+#endif
 		}
 		
 		// Send a standardized verb message that other systems can observe
