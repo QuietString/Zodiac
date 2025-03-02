@@ -43,5 +43,6 @@ public:
 	// Compare the teams of two actors and returns a value indicating if they are on same teams, different teams, or one/both are invalid
 	EZodiacTeamComparison CompareTeams(const UObject* A, const UObject* B) const;
 
-	bool CanCauseDamage(const UObject* Instigator, const UObject* Target, bool bAllowDamageToSelf = true) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure=false, Category=Teams, meta=(ExpandBoolAsExecs=ReturnValue))
+	bool CanCauseDamage(const UObject* Instigator, const UObject* Target, bool bAllowDamageToSelf = true, bool bAllowDyingTarget = false) const;
 };

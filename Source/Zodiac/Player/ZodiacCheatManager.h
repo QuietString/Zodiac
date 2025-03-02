@@ -11,6 +11,9 @@
 #define USING_CHEAT_MANAGER (1 && !UE_BUILD_SHIPPING)
 #endif
 
+struct FGameplayTag;
+class AZodiacHostCharacter;
+class UZodiacHeroAbilitySystemComponent;
 class UZodiacAbilitySystemComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogZodiacCheat, Log, All);
@@ -62,11 +65,13 @@ public:
 	virtual void AllMonstersInvincible();
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void AllMonstersImmortal();
+	virtual void MonstersImmortal();
 
 protected:
 	void ApplySetByCallerDamage(UZodiacAbilitySystemComponent* ZodiacASC, float DamageAmount);
 	
-	UZodiacAbilitySystemComponent* GetPlayerAbilitySystemComponent() const;
+	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
+	AZodiacHostCharacter* GetHostCharacter() const;
 
+	void ToggleDynamicTag(UZodiacAbilitySystemComponent* ZodiacASC, FGameplayTag TagToToggle);
 };

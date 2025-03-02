@@ -13,14 +13,6 @@
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_Gameplay_AbilityInputBlocked, "Gameplay.AbilityInputBlocked");
 
-namespace ZodiacConsoleVariables
-{
-	TAutoConsoleVariable<bool> CVarLogShowDebug(
-		TEXT("zodiac.PredictionKey.Event.ShowDebug"),
-		false,
-		TEXT(""));
-}
-
 UZodiacAbilitySystemComponent::UZodiacAbilitySystemComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {

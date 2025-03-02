@@ -649,14 +649,8 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 				UZodiacTeamSubsystem* TeamSubsystem = GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
 				if (TeamSubsystem->CanCauseDamage(GetZodiacHostCharacterFromActorInfo(), HitActor, false))
 				{
-					if (IGameplayTagAssetInterface* TagAssetInterface = Cast<IGameplayTagAssetInterface>(HitActor))
-					{
-						if (!TagAssetInterface->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Death_Dying))
-						{
-							// charge ultimate when any enemies is hit
-							ChargeUltimate();
-						}
-					}
+					// charge ultimate when any enemies is hit
+					ChargeUltimate();
 				}
 			}
 		}

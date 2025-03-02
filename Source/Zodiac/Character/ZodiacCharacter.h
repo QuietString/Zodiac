@@ -21,6 +21,7 @@ struct FInputActionValue;
 class UAbilitySystemComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAbilitySystemComponentInitialized, UAbilitySystemComponent*);
+DECLARE_DELEGATE_FourParams(FOnPlayHitReact, FVector, FName, float, const FGameplayTagContainer&);
 
 /**
  * FZodiacReplicatedAcceleration: Compressed representation of acceleration
@@ -120,8 +121,10 @@ public:
 	// Last FSharedRepMovement we sent, to avoid sending repeatedly.
 	FSharedRepMovement LastSharedReplication;
 	
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SimulateOrPlayHitReact(FVector HitDirection, FName HitBone, float Magnitude, FGameplayTagContainer InstigatorTags);
+
+	FOnPlayHitReact OnSimulateOrPlayHitReact;
 
 	UFUNCTION(BlueprintCallable)
 	void SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode);
@@ -160,7 +163,7 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
-	
+
 private:
 	UPROPERTY()
 	bool bMovementDisabled = false;

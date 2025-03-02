@@ -7,6 +7,7 @@
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacPlayerController.generated.h"
 
+class AZodiacHostCharacter;
 class UZodiacAbilitySystemComponent;
 class AZodiacPlayerState;
 
@@ -22,7 +23,8 @@ public:
 	AZodiacPlayerController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	AZodiacPlayerState* GetZodiacPlayerState() const;
-	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent();
+	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent();
+	AZodiacHostCharacter* GetHostCharacter() const;
 
 	//~IZodiacTeamAgentInterface interface
 	virtual FGenericTeamId GetGenericTeamId() const override;

@@ -3,10 +3,14 @@
 
 #include "ZodiacTeamSubsystem.h"
 
+#include "AbilitySystemComponent.h"
 #include "ZodiacLogChannels.h"
 #include "ZodiacTeamAgentInterface.h"
 #include "AbilitySystemGlobals.h"
+#include "ZodiacGameplayTags.h"
 #include "Player/ZodiacPlayerState.h"
+
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacTeamSubsystem)
 
 int32 UZodiacTeamSubsystem::FindTeamFromObject(const UObject* TestObject) const
 {
@@ -52,7 +56,7 @@ EZodiacTeamComparison UZodiacTeamSubsystem::CompareTeams(const UObject* A, const
 }
 
 bool UZodiacTeamSubsystem::CanCauseDamage(const UObject* Instigator, const UObject* Target,
-                                          bool bAllowDamageToSelf) const
+                                          bool bAllowDamageToSelf, bool bAllowDyingTarget) const
 {
 	if (bAllowDamageToSelf)
 	{
@@ -68,6 +72,17 @@ bool UZodiacTeamSubsystem::CanCauseDamage(const UObject* Instigator, const UObje
 	
 	if (Relationship == EZodiacTeamComparison::DifferentTeams)
 	{
+		if (!bAllowDyingTarget)
+		{
+			if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Cast<const AActor>(Target)))
+			{
+				if (TargetASC->HasMatchingGameplayTag(ZodiacGameplayTags::Status_Death))
+				{
+					return false;
+				}
+			}
+		}
+		
 		return true;
 	}
 	

@@ -3,6 +3,7 @@
 
 #include "ZodiacModMagnitudeCalculation_Ultimate.h"
 
+#include "ZodiacGameplayTags.h"
 #include "AbilitySystem/Attributes/ZodiacUltimateSet.h"
 #include "AbilitySystem/Hero/ZodiacHeroAbility.h"
 
@@ -40,6 +41,11 @@ float UZodiacModMagnitudeCalculation_Ultimate::CalculateBaseMagnitude_Implementa
 	EvaluationParameters.SourceTags = SourceTags;
 	EvaluationParameters.TargetTags = TargetTags;
 
+	if (SourceTags->HasTag(ZodiacGameplayTags::Cheat_InfiniteUltimate))
+	{
+		return 0;
+	}
+	
 	float Ultimate = 0.f;
 	GetCapturedAttributeMagnitude(UltimateDef, Spec, EvaluationParameters, Ultimate);
 	Ultimate = FMath::Max<float>(Ultimate, 0.0f);

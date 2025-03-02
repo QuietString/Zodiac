@@ -29,7 +29,7 @@ AZodiacPlayerState* AZodiacPlayerController::GetZodiacPlayerState() const
 	return CastChecked<AZodiacPlayerState>(PlayerState);
 }
 
-UZodiacAbilitySystemComponent* AZodiacPlayerController::GetZodiacAbilitySystemComponent()
+UZodiacAbilitySystemComponent* AZodiacPlayerController::GetHeroAbilitySystemComponent()
 {
 	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(GetCharacter()))
 	{
@@ -37,6 +37,11 @@ UZodiacAbilitySystemComponent* AZodiacPlayerController::GetZodiacAbilitySystemCo
 	}
 
 	return nullptr;
+}
+
+AZodiacHostCharacter* AZodiacPlayerController::GetHostCharacter() const
+{
+	return GetPawn<AZodiacHostCharacter>();
 }
 
 FGenericTeamId AZodiacPlayerController::GetGenericTeamId() const

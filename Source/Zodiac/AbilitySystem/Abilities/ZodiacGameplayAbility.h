@@ -92,7 +92,7 @@ public:
 	AController* GetControllerFromActorInfo() const;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-#if WITH_EDITOR
+#if !UE_BUILD_SHIPPING
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 #endif
 	

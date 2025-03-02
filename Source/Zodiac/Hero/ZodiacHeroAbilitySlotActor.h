@@ -74,9 +74,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	TObjectPtr<UNiagaraSystem> Trace_Niagara;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
-	TObjectPtr<UParticleSystem> Trace_Particle;
+	FLinearColor TracerColor;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FZodiacImpactParticles Impacts;

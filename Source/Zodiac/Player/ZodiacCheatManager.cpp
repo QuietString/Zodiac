@@ -77,9 +77,15 @@ void UZodiacCheatManager::AddTagToSelf(FString TagName)
 	FGameplayTag Tag = ZodiacGameplayTags::FindTagByString(TagName, true);
 	if (Tag.IsValid())
 	{
-		if (UZodiacAbilitySystemComponent* ZodiacASC = GetPlayerAbilitySystemComponent())
+		if (AZodiacHostCharacter* HostCharacter = GetHostCharacter())
 		{
-			ZodiacASC->AddDynamicTagGameplayEffect(Tag);
+			for (auto& Hero : HostCharacter->GetHeroes())
+			{
+				if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+				{
+					ToggleDynamicTag(ZodiacASC, Tag);
+				}
+			}
 		}
 	}
 	else
@@ -90,7 +96,7 @@ void UZodiacCheatManager::AddTagToSelf(FString TagName)
 
 void UZodiacCheatManager::DamageSelf(float DamageAmount)
 {
-	if (UZodiacAbilitySystemComponent* ZodiacASC = GetPlayerAbilitySystemComponent())
+	if (UZodiacAbilitySystemComponent* ZodiacASC = GetHeroAbilitySystemComponent())
 	{
 		ApplySetByCallerDamage(ZodiacASC, DamageAmount);
 	}
@@ -98,55 +104,78 @@ void UZodiacCheatManager::DamageSelf(float DamageAmount)
 
 void UZodiacCheatManager::InfiniteAmmo()
 {
-	if (UZodiacAbilitySystemComponent* ZodiacASC = GetPlayerAbilitySystemComponent())
+	if (AZodiacHostCharacter* HostCharacter = GetHostCharacter())
 	{
-		ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Cheat_InfiniteAmmo);
+		for (auto& Hero : HostCharacter->GetHeroes())
+		{
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+			{
+				ToggleDynamicTag(ZodiacASC, ZodiacGameplayTags::Cheat_InfiniteAmmo);
+			}
+		}
 	}
 }
 
 void UZodiacCheatManager::InfiniteUltimate()
 {
-	if (UZodiacAbilitySystemComponent* ZodiacASC = GetPlayerAbilitySystemComponent())
+	if (AZodiacHostCharacter* HostCharacter = GetHostCharacter())
 	{
-		ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Cheat_InfiniteUltimate);
+		for (auto& Hero : HostCharacter->GetHeroes())
+		{
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+			{
+				ToggleDynamicTag(ZodiacASC, ZodiacGameplayTags::Cheat_InfiniteUltimate);
+			}
+		}
 	}
 }
 
 void UZodiacCheatManager::God()
 {
-	auto ApplyDynamicTagForGodMode = [](UZodiacAbilitySystemComponent* ZodiacASC)
-	{
-		if (ZodiacASC)
-		{
-			const FGameplayTag Tag = ZodiacGameplayTags::Cheat_GodMode;
-			const bool bHasTag = ZodiacASC->HasMatchingGameplayTag(Tag);
+	// auto ApplyDynamicTagForGodMode = [](UZodiacAbilitySystemComponent* ZodiacASC)
+	// {
+	// 	if (ZodiacASC)
+	// 	{
+	// 		const FGameplayTag Tag = ZodiacGameplayTags::Cheat_GodMode;
+	// 		const bool bHasTag = ZodiacASC->HasMatchingGameplayTag(Tag);
+	//
+	// 		if (bHasTag)
+	// 		{
+	// 			ZodiacASC->RemoveDynamicTagGameplayEffect(Tag);
+	// 		}
+	// 		else
+	// 		{
+	// 			ZodiacASC->AddDynamicTagGameplayEffect(Tag);
+	// 		}
+	// 	}
+	// };
 
-			if (bHasTag)
-			{
-				ZodiacASC->RemoveDynamicTagGameplayEffect(Tag);
-			}
-			else
-			{
-				ZodiacASC->AddDynamicTagGameplayEffect(Tag);
-			}
-		}
-	};
+	// if (AZodiacPlayerController* ZodiacPC = Cast<AZodiacPlayerController>(GetOuterAPlayerController()))
+	// {
+	// 	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(ZodiacPC->GetPawn()))
+	// 	{
+	// 		for (AZodiacHeroCharacter*& Hero : HostCharacter->GetHeroes())
+	// 		{
+	// 			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+	// 			{
+	// 				ApplyDynamicTagForGodMode(ZodiacASC);
+	// 			}
+	// 		}
+	// 	}
+	// 	else if (UZodiacAbilitySystemComponent* ZodiacASC = ZodiacPC->GetHeroAbilitySystemComponent())
+	// 	{
+	// 		ApplyDynamicTagForGodMode(ZodiacASC);
+	// 	}
+	// }
 
-	if (AZodiacPlayerController* ZodiacPC = Cast<AZodiacPlayerController>(GetOuterAPlayerController()))
+	if (AZodiacHostCharacter* HostCharacter = GetHostCharacter())
 	{
-		if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(ZodiacPC->GetPawn()))
+		for (auto& Hero : HostCharacter->GetHeroes())
 		{
-			for (AZodiacHeroCharacter*& Hero : HostCharacter->GetHeroes())
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
 			{
-				if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
-				{
-					ApplyDynamicTagForGodMode(ZodiacASC);
-				}
+				ToggleDynamicTag(ZodiacASC, ZodiacGameplayTags::Cheat_GodMode);
 			}
-		}
-		else if (UZodiacAbilitySystemComponent* ZodiacASC = ZodiacPC->GetZodiacAbilitySystemComponent())
-		{
-			ApplyDynamicTagForGodMode(ZodiacASC);
 		}
 	}
 }
@@ -201,7 +230,7 @@ void UZodiacCheatManager::AllMonstersInvincible()
 	}
 }
 
-void UZodiacCheatManager::AllMonstersImmortal()
+void UZodiacCheatManager::MonstersImmortal()
 {
 	for (TActorIterator<AZodiacMonster> It(GetWorld()); It; ++It)
 	{
@@ -209,7 +238,8 @@ void UZodiacCheatManager::AllMonstersImmortal()
 		{
 			if (UZodiacAbilitySystemComponent* ZodiacASC = Monster->GetZodiacAbilitySystemComponent())
 			{
-				ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Status_Immortal);
+				ToggleDynamicTag(ZodiacASC, ZodiacGameplayTags::Status_Immortal);
+				//ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Status_Immortal);
 			}
 		}
 	}
@@ -229,12 +259,36 @@ void UZodiacCheatManager::ApplySetByCallerDamage(UZodiacAbilitySystemComponent* 
 	}
 }
 
-UZodiacAbilitySystemComponent* UZodiacCheatManager::GetPlayerAbilitySystemComponent() const
+UZodiacAbilitySystemComponent* UZodiacCheatManager::GetHeroAbilitySystemComponent() const
 {
 	if (AZodiacPlayerController* ZodiacPC = Cast<AZodiacPlayerController>(GetOuterAPlayerController()))
 	{
-		return ZodiacPC->GetZodiacAbilitySystemComponent();
+		return ZodiacPC->GetHeroAbilitySystemComponent();
 	}
 	
 	return nullptr;
+}
+
+AZodiacHostCharacter* UZodiacCheatManager::GetHostCharacter() const
+{
+	if (AZodiacPlayerController* ZodiacPC = Cast<AZodiacPlayerController>(GetOuterAPlayerController()))
+	{
+		return ZodiacPC->GetHostCharacter();
+	}
+	
+	return nullptr;
+}
+
+void UZodiacCheatManager::ToggleDynamicTag(UZodiacAbilitySystemComponent* ZodiacASC, FGameplayTag TagToToggle)
+{
+	const bool bHasTag = ZodiacASC->HasMatchingGameplayTag(TagToToggle);
+
+	if (bHasTag)
+	{
+		ZodiacASC->RemoveDynamicTagGameplayEffect(TagToToggle);
+	}
+	else
+	{
+		ZodiacASC->AddDynamicTagGameplayEffect(TagToToggle);
+	}
 }

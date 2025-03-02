@@ -246,6 +246,12 @@ void AZodiacCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& De
 	}
 }
 
+void AZodiacCharacter::SimulateOrPlayHitReact_Implementation(FVector HitDirection, FName HitBone, float Magnitude,
+	FGameplayTagContainer InstigatorTags)
+{
+	OnSimulateOrPlayHitReact.ExecuteIfBound(HitDirection, HitBone, Magnitude, InstigatorTags);
+}
+
 void AZodiacCharacter::SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode)
 {
 	ExtendedMovementMode = InMode;
