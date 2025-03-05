@@ -3,29 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Effects/ZodiacNiagaraEffectTypes.h"
 #include "GameFramework/Actor.h"
 #include "ZodiacHeroAbilitySlotActor.generated.h"
-
-class UNiagaraSystem;
-
-USTRUCT(BlueprintType)
-struct FZodiacImpactParticles
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> Default;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> Character;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> Concrete;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UParticleSystem> Glass;
-};
 
 UENUM(BlueprintType)
 enum class EZodiacHeroAbilitySlotSocketSourceType : uint8
@@ -67,16 +47,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX" )
 	FName SocketName;
-
-	// Offsets are used when multiple bullets are fired from different sockets from a single fire.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
-	TArray<FVector> Offsets;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
-	TObjectPtr<UNiagaraSystem> Trace_Niagara;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
-	FLinearColor TracerColor;
+	FZodiacWeaponTracerConfig TracerConfig;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FZodiacImpactParticles Impacts;

@@ -38,6 +38,8 @@ public:
 	
 	void OnStatusChanged(FGameplayTag Tag, bool bHasTag);
 
+	FVector GetTranslationOffset() const;
+	
 protected:
 	UFUNCTION(BlueprintCallable)
 	void UpdateGait();

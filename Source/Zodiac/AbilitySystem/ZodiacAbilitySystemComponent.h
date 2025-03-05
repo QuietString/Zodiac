@@ -79,6 +79,10 @@ protected:
 
 	void HandleAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason);
 
+	// Add local gameplay tag. Added tag will be removed even when the ability added this tag ended before the scheduled time.
+	UFUNCTION(BlueprintCallable)
+	void AddLooseGameplayTagForDuration(FGameplayTag Tag, float Duration, FTimerHandle& RemoveHandle);
+	
 protected:
 	// Handles to abilities that had their input pressed this frame.
 	TArray<FGameplayAbilitySpecHandle> InputPressedSpecHandles;

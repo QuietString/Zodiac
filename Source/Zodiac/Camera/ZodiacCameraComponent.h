@@ -19,7 +19,7 @@ struct FMinimalViewInfo;
 template <class TClass> class TSubclassOf;
 
 DECLARE_DELEGATE_RetVal(TSubclassOf<UZodiacCameraMode>, FZodiacCameraModeDelegate);
-
+DECLARE_DELEGATE_RetVal(FVector, FZodiacCameraOffsetDelegate);
 
 /**
  *	The base camera component class used by this project.
@@ -43,6 +43,9 @@ public:
 	// Delegate used to query for the best camera mode.
 	FZodiacCameraModeDelegate DetermineCameraModeDelegate;
 
+	// Delegate used to update translation offset
+	FZodiacCameraOffsetDelegate UpdateCameraTranslationOffsetDelegate;
+	
 	// Add an offset to the field of view.  The offset is only for one frame, it gets cleared once it is applied.
 	void AddFieldOfViewOffset(float FovOffset) { FieldOfViewOffset += FovOffset; }
 
@@ -58,12 +61,22 @@ protected:
 
 	virtual void UpdateCameraModes();
 	FVector GetHeroOffset();
-protected:
 
+public:
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Camera")
+	bool bApplyTranslationOffset;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Camera")
+	float TranslationOffsetInterpSpeed = 120.f;
+	
+protected:
 	// Stack used to blend the camera modes.
 	UPROPERTY()
 	TObjectPtr<UZodiacCameraModeStack> CameraModeStack;
 
+	// Offset applied to the global translation. The offset is interpolated every frame.
+	FVector TranslationOffset;
+	
 	// Offset applied to the field of view.  The offset is only for one frame, it gets cleared once it is applied.
 	float FieldOfViewOffset;
 };

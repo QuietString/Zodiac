@@ -8,6 +8,7 @@
 #include "ZodiacHeroCharacter.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "Animation/ZodiacHostAnimInstance.h"
 #include "Camera/ZodiacCameraComponent.h"
 #include "Engine/Canvas.h"
 #include "Player/ZodiacPlayerState.h"
@@ -65,6 +66,17 @@ void AZodiacHostCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	
 	CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
+
+	if (CameraComponent->bApplyTranslationOffset)
+	{
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+		{
+			if (UZodiacHostAnimInstance* HostAnimInstance = Cast<UZodiacHostAnimInstance>(AnimInstance))
+			{
+				CameraComponent->UpdateCameraTranslationOffsetDelegate.BindUObject(HostAnimInstance, &UZodiacHostAnimInstance::GetTranslationOffset);
+			}
+		}	
+	}
 	
 	if (HasAuthority())
 	{

@@ -492,6 +492,21 @@ void UZodiacAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* 
 	}	
 }
 
+void UZodiacAbilitySystemComponent::AddLooseGameplayTagForDuration(FGameplayTag Tag, float Duration, FTimerHandle& RemoveHandle)
+{
+	AddLooseGameplayTag(Tag);
+	
+	GetWorld()->GetTimerManager().SetTimer(
+		RemoveHandle,
+		[ASC = this, TagToRemove = Tag]()
+		{
+			ASC->RemoveLooseGameplayTag(TagToRemove);
+		},
+		Duration,
+		false
+	);
+}
+
 void UZodiacAbilitySystemComponent::ClientNotifyAbilityFailed_Implementation(const UGameplayAbility* Ability,
                                                                              const FGameplayTagContainer& FailureReason)
 {

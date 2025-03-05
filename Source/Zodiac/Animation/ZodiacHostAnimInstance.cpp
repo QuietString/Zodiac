@@ -152,6 +152,11 @@ void UZodiacHostAnimInstance::OnStatusChanged(FGameplayTag Tag, bool bHasTag)
 	}
 }
 
+FVector UZodiacHostAnimInstance::GetTranslationOffset() const
+{
+	return (OwningCharacter) ? (RootTransform.GetLocation() - OwningCharacter->GetMesh()->GetComponentLocation()) : FVector(); 
+}
+
 void UZodiacHostAnimInstance::UpdateGait()
 {
 	if (ZodiacCharMovComp)

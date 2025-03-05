@@ -14,6 +14,7 @@
 UZodiacCameraComponent::UZodiacCameraComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	bApplyTranslationOffset = true;
 	CameraModeStack = nullptr;
 	FieldOfViewOffset = 0.0f;
 }
@@ -55,8 +56,14 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 	SetWorldLocationAndRotation(CameraModeView.Location, CameraModeView.Rotation);
 	FieldOfView = CameraModeView.FieldOfView;
 
+	if (UpdateCameraTranslationOffsetDelegate.IsBound())
+	{
+		FVector TargetTranslationOffset = UpdateCameraTranslationOffsetDelegate.Execute();
+		TranslationOffset = FMath::VInterpTo(TranslationOffset, TargetTranslationOffset, DeltaTime, TranslationOffsetInterpSpeed);
+	}
+	
 	// Fill in desired view.
-	DesiredView.Location = CameraModeView.Location + GetHeroOffset();
+	DesiredView.Location = CameraModeView.Location + GetHeroOffset() + TranslationOffset;
 	DesiredView.Rotation = CameraModeView.Rotation;
 	DesiredView.FOV = CameraModeView.FieldOfView;
 	DesiredView.OrthoWidth = OrthoWidth;
