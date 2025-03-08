@@ -189,7 +189,7 @@ void UZodiacCheatManager::SpawnZombies()
 	{
 		if (AZodiacZombieSpawner* Spawner = *It)
 		{
-			Spawner->SpawnMonsters();	
+			Spawner->SpawnAllMonsters();	
 		}
 	}
 }
