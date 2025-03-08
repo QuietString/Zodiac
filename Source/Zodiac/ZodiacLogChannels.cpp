@@ -7,6 +7,7 @@ DEFINE_LOG_CATEGORY(LogZodiacAbilitySystem);
 DEFINE_LOG_CATEGORY(LogZodiacTeams);
 DEFINE_LOG_CATEGORY(LogZodiacMovement);
 DEFINE_LOG_CATEGORY(LogZodiacTraversal);
+DEFINE_LOG_CATEGORY(LogZodiacSpawner);
 
 FString GetClientServerContextString(UObject* ContextObject)
 {

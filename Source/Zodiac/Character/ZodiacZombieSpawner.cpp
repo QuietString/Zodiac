@@ -4,8 +4,15 @@
 
 #include "ZodiacLogChannels.h"
 #include "ZodiacMonster.h"
+#include "EnvironmentQuery/EnvQueryManager.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacZombieSpawner)
+
+namespace ZombieSpawnerQueryParamNames
+{
+	FName GridSize = FName("SimpleGrid.GridSize");
+	FName SpaceBetween = FName("SimpleGrid.SpaceBetween");
+}
 
 void AZodiacZombieSpawner::BeginPlay()
 {
@@ -13,65 +20,132 @@ void AZodiacZombieSpawner::BeginPlay()
 
 	if (HasAuthority() && bIsEnabled)
 	{
-		SpawnMonsters();
+		SpawnAllMonsters();
 	}
 }
 
-void AZodiacZombieSpawner::SpawnMonsters()
+void AZodiacZombieSpawner::SpawnAllMonsters()
 {
-	if (MonstersToSpawn.IsEmpty())
-	{
-		UE_LOG(LogZodiac, Warning, TEXT("Monsters are not set in MonsterSpawner"));
-		return;
-	}
-
-	UWorld* World = GetWorld();
-	if (!World)
+	if (!HasAuthority() || !LocationQuery)
 	{
 		return;
 	}
-
-	FVector SpawnOrigin = GetActorLocation();
-
-	for (auto& [MonsterClass, NumberToSpawn] : MonstersToSpawn)
+	
+	if (LocationQuery)
 	{
-		for (int32 i = 0; i < NumberToSpawn; ++i)
+		FEnvQueryRequest Request(LocationQuery, this);
+		Request.SetFloatParam(ZombieSpawnerQueryParamNames::GridSize, GridSize);
+		Request.SetFloatParam(ZombieSpawnerQueryParamNames::SpaceBetween, SpawnSpacing);
+		
+		FQueryFinishedSignature QueryFinishedDelegate = FQueryFinishedSignature::CreateLambda(
+	[this](TSharedPtr<FEnvQueryResult> Res)
+			{
+				OnQueryFinished(Res, MonstersToSpawn);
+			}
+		);
+		
+		Request.Execute(EEnvQueryRunMode::AllMatching, QueryFinishedDelegate);
+	}
+}
+
+void AZodiacZombieSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap)
+{
+	if (!Result.IsValid() || !Result->IsSuccessful())
+	{
+		UE_LOG(LogZodiacSpawner, Log, TEXT("Initial EQS query failed or no results."));
+		return;
+	}
+
+	TArray<FVector> SpawnPoints;
+	Result->GetAllAsLocations(SpawnPoints);
+
+	int32 TotalNumber = 0;
+	for (auto& Pair : MonsterToSpawnMap)
+	{
+		TotalNumber += Pair.Value;
+	}
+	
+	if (SpawnPoints.Num() < TotalNumber)
+	{
+		UE_LOG(LogZodiacSpawner, Log, TEXT("Not enough space to spawn monsters. Number to spawn: %d, Available locations: %d."), TotalNumber, SpawnPoints.Num());
+		return;
+	}
+
+	int32 PointIndex = 0;
+
+	for (auto& Pair : MonsterToSpawnMap)
+	{
+		TSubclassOf<AZodiacMonster> MonsterClass = Pair.Key;
+		int32 NumberToSpawn = Pair.Value;
+
+		int32 SpawnCount = 0;
+		while (SpawnCount < NumberToSpawn && PointIndex < SpawnPoints.Num())
 		{
-			// Random point within a circle
-			float Angle = FMath::RandRange(0.0f, 2.0f * PI);
-			float Distance = FMath::RandRange(0.0f, SpawnRadius);
-			FVector SpawnLocation = SpawnOrigin + FVector(FMath::Cos(Angle) * Distance, FMath::Sin(Angle) * Distance, 0.0f);
+			FVector Location = SpawnPoints[PointIndex++];
+			AActor* NewMonster = SpawnMonster(MonsterClass, Location);
+			if (NewMonster) SpawnCount++;
+		}
+	}
+}
 
-			// Adjust Z position if necessary (e.g., place on the ground)
-			FHitResult HitResult;
-			FVector Start = SpawnLocation + FVector(0.0f, 0.0f, 500.0f);
-			FVector End = SpawnLocation - FVector(0.0f, 0.0f, 1000.0f);
-			FCollisionQueryParams Params;
-			Params.AddIgnoredActor(this);
+AZodiacMonster* AZodiacZombieSpawner::SpawnMonster(const TSubclassOf<AZodiacMonster> ClassToSpawn, const FVector& SpawnLocation)
+{
+	UWorld* World = GetWorld();
+	if (!World || !ClassToSpawn)
+	{
+		return nullptr;
+	}
 
-			if (World->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+	FRotator SpawnRotation(0.f, FMath::RandRange(-180.f, 180.f), 0.f);
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	AZodiacMonster* Spawned = World->SpawnActor<AZodiacMonster>(ClassToSpawn, SpawnLocation, SpawnRotation, SpawnParams);
+	if (Spawned)
+	{
+		uint8 RandomSeed = FMath::RandRange(0, UINT8_MAX);
+		Spawned->SetSpawnSeed(RandomSeed);
+		Spawned->SpawnDefaultController();
+		
+		SpawnedMonsters.Add(Spawned);
+		
+		// Bind OnDestroyed so we can do a re-spawn
+		Spawned->OnDestroyed.AddDynamic(this, &AZodiacZombieSpawner::OnMonsterDestroyed);
+	}
+	return Spawned;
+}
+
+void AZodiacZombieSpawner::OnMonsterDestroyed(AActor* DestroyedActor)
+{
+	AZodiacMonster* DeadMonster = Cast<AZodiacMonster>(DestroyedActor);
+	if (!DeadMonster)
+	{
+		return;
+	}
+
+	SpawnedMonsters.Remove(DeadMonster);
+
+	// We want to re-spawn the same class
+	TSubclassOf<AZodiacMonster> MonsterClass = DeadMonster->GetClass(); 
+	TMap<TSubclassOf<AZodiacMonster>, uint8> SpawnNumberMap;
+	SpawnNumberMap.Add(DeadMonster->GetClass(), 1);
+
+	if (LocationQuery)
+	{
+		FEnvQueryRequest Request(LocationQuery, this);
+		Request.SetFloatParam(ZombieSpawnerQueryParamNames::GridSize, GridSize);
+		Request.SetFloatParam(ZombieSpawnerQueryParamNames::SpaceBetween, SpawnSpacing);
+		
+		FQueryFinishedSignature QueryFinishedDelegate = FQueryFinishedSignature::CreateLambda(
+	[this, SpawnNumberMap](TSharedPtr<FEnvQueryResult> Res)
 			{
-				SpawnLocation.Z = HitResult.Location.Z;
+				OnQueryFinished(Res, SpawnNumberMap);
 			}
-
-			// Random rotation
-			FRotator SpawnRotation = FRotator(0.0f, FMath::RandRange(-180.0f, 180.0f), 0.0f);
-
-			// Spawn parameters
-			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = this;
-			
-			// Spawn the monster
-			AZodiacMonster* SpawnedMonster = World->SpawnActor<AZodiacMonster>(MonsterClass, SpawnLocation, SpawnRotation, SpawnParams);
-
-			// Initialize the monster
-			if (SpawnedMonster)
-			{
-				uint8 RandomSeed = FMath::RandRange(0, UINT8_MAX);
-				SpawnedMonster->SetSpawnSeed(RandomSeed);
-				
-				SpawnedMonster->SpawnDefaultController();
-			}
-		}	
+		);
+		
+		// Execute the query in SingleResult mode
+		Request.Execute(EEnvQueryRunMode::SingleResult, QueryFinishedDelegate);
 	}
 }
