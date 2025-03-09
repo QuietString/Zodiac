@@ -105,6 +105,7 @@ void AZodiacMonster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ThisClass, SpawnSeed, COND_InitialOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, SpawnConfig, COND_InitialOnly);
 }
 
 void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner)
@@ -114,13 +115,23 @@ void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InAS
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 }
 
-void AZodiacMonster::SetSpawnSeed(const uint8 Seed)
+void AZodiacMonster::SetSpawnSeed(const int32 Seed)
 {
 	SpawnSeed = Seed;
 	
 	if (HasAuthority())
 	{
 		OnSpawnSeedSet_Internal();
+	}
+}
+
+
+void AZodiacMonster::SetSpawnConfig(const FZodiacZombieSpawnConfig& InSpawnConfig)
+{
+	if (HasAuthority())
+	{
+		SpawnConfig = InSpawnConfig;
+		OnRep_SpawnConfig();
 	}
 }
 
@@ -165,9 +176,57 @@ void AZodiacMonster::OnSpawnSeedSet_Internal()
 	}
 }
 
+void AZodiacMonster::OnSpawnConfigSet()
+{
+	check(CharacterData);
+	
+	const UZodiacGameData& GameData = UZodiacGameData::Get();
+	check (&GameData);
+	
+	TArray<FZodiacExtendedMovementConfig> MovementConfigs = GameData.MovementConfigTemplates;
+	int32 Index = SpawnConfig.MovementConfigTemplateIndex;
+	check(MovementConfigs.IsValidIndex(Index));
+	
+	FZodiacExtendedMovementConfig MovementConfig = MovementConfigs[Index];
+	MovementConfig.DefaultExtendedMovement = SpawnConfig.DefaultMovementMode;
+	int16 Seed = SpawnConfig.Seed;
+
+	float MovementSpeedMultiplier = FMath::GetMappedRangeValueClamped(FVector2d(0, 255), FVector2d(0.9f, 1.1f), Seed);
+
+	if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		for (auto& [K, V] : MovementConfig.MovementSpeedsMap)
+		{
+			V = V * MovementSpeedMultiplier;
+		}
+		
+		// Change movement speed
+		ZodiacCharMovComp->SetExtendedMovementConfig(MovementConfig);
+		bHasMovementInitialized = true;
+
+		if (FVector* WalkSpeeds = MovementConfig.MovementSpeedsMap.Find(EZodiacExtendedMovementMode::Walking))
+		{
+			if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+			{
+				if (UZodiacZombieAnimInstance* ZombieAnimInstance = Cast<UZodiacZombieAnimInstance>(AnimInstance))
+				{
+					ZombieAnimInstance->WalkSpeed = WalkSpeeds->X;
+					ZombieAnimInstance->MovementSpeedMultiplier = MovementSpeedMultiplier;
+					ZombieAnimInstance->SelectAnimsBySeed(Seed);
+				}
+			}
+		}
+	}
+}
+
 void AZodiacMonster::OnRep_SpawnSeed()
 {
 	OnSpawnSeedSet_Internal();
+}
+
+void AZodiacMonster::OnRep_SpawnConfig()
+{
+	 OnSpawnConfigSet();
 }
 
 void AZodiacMonster::Multicast_OnPhysicsTagChanged_Implementation(FGameplayTag Tag, int Count)

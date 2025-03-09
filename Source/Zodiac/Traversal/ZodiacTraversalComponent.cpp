@@ -241,8 +241,6 @@ void UZodiacTraversalComponent::PerformTraversalActionFromAbility()
 
 void UZodiacTraversalComponent::PerformTraversalAction_Local()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("%s:local perform traversal"), HasAuthority() ? TEXT("server") : TEXT("Client"));
-
 	bIsLocalPredicted = true;
 	
 	TraversalCheckResult = CheckResultCached;
@@ -258,7 +256,6 @@ void UZodiacTraversalComponent::PerformTraversalAction_Local()
 
 void UZodiacTraversalComponent::Server_PerformTraversalAction_Implementation(FZodiacTraversalCheckResult CheckResult)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("%s:server perform traversal"), HasAuthority() ? TEXT("server") : TEXT("Client"));
 	TraversalCheckResult = CheckResult;
 	PerformTraversalAction(TraversalCheckResult);
 
@@ -485,8 +482,6 @@ void UZodiacTraversalComponent::OnRepTraversalCheckResult()
 	}
 	
 	PerformTraversalAction(TraversalCheckResult);
-	//UE_LOG(LogTemp, Warning, TEXT("%s:OnRep perform traversal"), HasAuthority() ? TEXT("server") : TEXT("Client"));
-
 	
 	// Clear cache
 	CheckResultCached = FZodiacTraversalCheckResult();

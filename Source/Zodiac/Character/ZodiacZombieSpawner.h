@@ -9,6 +9,7 @@
 class UEnvQuery;
 struct FEnvQueryResult;
 class AZodiacMonster;
+struct FZodiacZombieSpawnConfig;
 
 UCLASS(BlueprintType, Blueprintable)
 class ZODIAC_API AZodiacZombieSpawner : public AActor
@@ -22,10 +23,10 @@ public:
 	void SpawnAllMonsters();
 
 protected:
-	void OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap);
-
-	AZodiacMonster* SpawnMonster(const TSubclassOf<AZodiacMonster> ClassToSpawn, const FVector& SpawnLocation);
+	void OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap, FZodiacZombieSpawnConfig SpawnConfig);
 	
+	AZodiacMonster* SpawnMonster2(const TSubclassOf<AZodiacMonster> ClassToSpawn, const FVector& SpawnLocation, FZodiacZombieSpawnConfig ZombieSpawnConfig);
+
 	UFUNCTION()
 	void OnMonsterDestroyed(AActor* DestroyedActor);
 	
@@ -36,7 +37,10 @@ protected:
 	// The zombie character class to spawn
 	UPROPERTY(EditAnywhere, Category = "Spawner")
 	TMap<TSubclassOf<AZodiacMonster>, uint8> MonstersToSpawn;
-
+	
+	UPROPERTY(EditAnywhere, Category = "Spawner", meta = (UIMin = 0 , UIMax = 1, ClampMin = 0, ClampMax = 1))
+	float RunningRatio = 0.f;
+	
 	// Half length of spawn area.
 	UPROPERTY(EditAnywhere, Category = "Spawner")
 	TObjectPtr<UEnvQuery> LocationQuery;

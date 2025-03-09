@@ -420,10 +420,8 @@ bool UZodiacCameraMode_ThirdPerson::CheckCloseContact()
 			FVector OverlapCenter = EyeLoc + RotatedRayDirection * Feeler.ContactDistance;
 
 			TArray<FOverlapResult> OverlapResults;
-			FHitResult Hit;
-			bool bHit = World->OverlapMultiByChannel(OverlapResults, OverlapCenter, FQuat(), TraceChannel, SphereShape, SphereParams);
-
-			if (bHit)
+			bool bHasEnemyHit = false;
+			if (bool bHit = World->OverlapMultiByChannel(OverlapResults, OverlapCenter, FQuat(), TraceChannel, SphereShape, SphereParams))
 			{
 				for (auto& Result : OverlapResults)
 				{
@@ -431,15 +429,23 @@ bool UZodiacCameraMode_ThirdPerson::CheckCloseContact()
 					{
 						if (AZodiacMonster* Monster = Cast<AZodiacMonster>(Result.GetActor()))
 						{
-#if ENABLE_DRAW_DEBUG
-							DrawDebugSphere(World, Hit.Location, Feeler.Extent, 8, FColor::Red);	
-#endif
 							Feeler.FramesUntilNextTrace = 0;
-							return true;
+							bHasEnemyHit = true;
+							break;
 						}
 					}
 				}
-
+			}
+			
+#if ENABLE_DRAW_DEBUG
+			if (World->TimeSince(LastDrawDebugTime) < 1.f)
+			{
+				DrawDebugSphere(World, OverlapCenter, Feeler.Extent, 8, bHasEnemyHit ? FColor::Purple : FColor::White);	
+			}
+#endif
+			if (bHasEnemyHit)
+			{
+				return true;
 			}
 		}
 		else

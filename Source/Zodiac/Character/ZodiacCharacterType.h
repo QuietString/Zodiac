@@ -29,3 +29,33 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	EZodiacExtendedMovementMode DefaultExtendedMovement  = EZodiacExtendedMovementMode::Running;
 };
+
+USTRUCT()
+struct FZodiacZombieSpawnConfig
+{
+	GENERATED_BODY()
+
+public:
+	FZodiacZombieSpawnConfig()
+		: MovementConfigTemplateIndex(INDEX_NONE)
+		, DefaultMovementMode(EZodiacExtendedMovementMode::None)
+		, Seed(INDEX_NONE)
+	{}
+
+	FZodiacZombieSpawnConfig(const int32 Index, const EZodiacExtendedMovementMode MovementMode, const int32 Seed)
+		: MovementConfigTemplateIndex(Index)
+		, DefaultMovementMode(MovementMode)
+		, Seed(Seed)
+	{}
+	
+	UPROPERTY()
+	int32 MovementConfigTemplateIndex;
+
+	UPROPERTY()
+	EZodiacExtendedMovementMode DefaultMovementMode;
+	
+	UPROPERTY()
+	int32 Seed;
+
+	bool IsValid() const { return (MovementConfigTemplateIndex != INDEX_NONE); }
+};

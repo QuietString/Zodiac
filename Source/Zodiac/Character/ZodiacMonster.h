@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ZodiacCharacter.h"
+#include "ZodiacCharacterType.h"
 #include "Traversal/ZodiacTraversalActorInterface.h"
 #include "ZodiacMonster.generated.h"
 
@@ -49,10 +50,14 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	uint8 GetSpawnSeed() const { return SpawnSeed; }
-	void SetSpawnSeed(const uint8 Seed);
+	void SetSpawnSeed(const int32 Seed);
 
+	FZodiacZombieSpawnConfig GetZombieSpawnConfig() const { return SpawnConfig; }
+	void SetSpawnConfig(const FZodiacZombieSpawnConfig& InSpawnConfig);
+	
 protected:
 	void OnSpawnSeedSet_Internal();
+	void OnSpawnConfigSet();
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
@@ -63,13 +68,19 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UPhysicalAnimationComponent> PhysicalAnimationComponent;
-
+	
 	// A randomizer seed for movement speed, walk/run animations when it's spawned by ZodiacZombieSpawner.
 	UPROPERTY(ReplicatedUsing = OnRep_SpawnSeed)
 	uint8 SpawnSeed;
 
 	UFUNCTION()
 	void OnRep_SpawnSeed();
+	
+	UPROPERTY(ReplicatedUsing = OnRep_SpawnConfig)
+	FZodiacZombieSpawnConfig SpawnConfig;
 
+	UFUNCTION()
+	void OnRep_SpawnConfig();
+	
 	bool bHasMovementInitialized = false;
 };

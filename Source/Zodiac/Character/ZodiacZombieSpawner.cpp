@@ -5,6 +5,7 @@
 #include "ZodiacLogChannels.h"
 #include "ZodiacMonster.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
+#include "System/ZodiacGameData.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacZombieSpawner)
 
@@ -40,7 +41,7 @@ void AZodiacZombieSpawner::SpawnAllMonsters()
 		FQueryFinishedSignature QueryFinishedDelegate = FQueryFinishedSignature::CreateLambda(
 	[this](TSharedPtr<FEnvQueryResult> Res)
 			{
-				OnQueryFinished(Res, MonstersToSpawn);
+				OnQueryFinished(Res, MonstersToSpawn, FZodiacZombieSpawnConfig());
 			}
 		);
 		
@@ -48,7 +49,7 @@ void AZodiacZombieSpawner::SpawnAllMonsters()
 	}
 }
 
-void AZodiacZombieSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap)
+void AZodiacZombieSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap, FZodiacZombieSpawnConfig SpawnConfig)
 {
 	if (!Result.IsValid() || !Result->IsSuccessful())
 	{
@@ -82,13 +83,13 @@ void AZodiacZombieSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, T
 		while (SpawnCount < NumberToSpawn && PointIndex < SpawnPoints.Num())
 		{
 			FVector Location = SpawnPoints[PointIndex++];
-			AActor* NewMonster = SpawnMonster(MonsterClass, Location);
+			AActor* NewMonster = SpawnMonster2(MonsterClass, Location, SpawnConfig);
 			if (NewMonster) SpawnCount++;
 		}
 	}
 }
 
-AZodiacMonster* AZodiacZombieSpawner::SpawnMonster(const TSubclassOf<AZodiacMonster> ClassToSpawn, const FVector& SpawnLocation)
+AZodiacMonster* AZodiacZombieSpawner::SpawnMonster2(const TSubclassOf<AZodiacMonster> ClassToSpawn, const FVector& SpawnLocation, FZodiacZombieSpawnConfig ZombieSpawnConfig)
 {
 	UWorld* World = GetWorld();
 	if (!World || !ClassToSpawn)
@@ -96,17 +97,41 @@ AZodiacMonster* AZodiacZombieSpawner::SpawnMonster(const TSubclassOf<AZodiacMons
 		return nullptr;
 	}
 
+	const UZodiacGameData& GameData = UZodiacGameData::Get();
+	check(&GameData);
+
 	FRotator SpawnRotation(0.f, FMath::RandRange(-180.f, 180.f), 0.f);
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
 	AZodiacMonster* Spawned = World->SpawnActor<AZodiacMonster>(ClassToSpawn, SpawnLocation, SpawnRotation, SpawnParams);
 	if (Spawned)
 	{
-		uint8 RandomSeed = FMath::RandRange(0, UINT8_MAX);
-		Spawned->SetSpawnSeed(RandomSeed);
+		if (ZombieSpawnConfig.IsValid())
+		{
+			Spawned->SetSpawnConfig(ZombieSpawnConfig);
+		}
+		else
+		{
+			TArray<FZodiacExtendedMovementConfig> MovementConfigs = GameData.MovementConfigTemplates;
+			if (!MovementConfigs.IsEmpty())
+			{
+				int32 ConfigsNum = MovementConfigs.Num();
+				int32 RandomIndex = FMath::RandRange(0, ConfigsNum -1);
+				FZodiacExtendedMovementConfig PickedConfig = MovementConfigs[RandomIndex];
+
+				float r = FMath::FRand();
+				EZodiacExtendedMovementMode Mode = (r <= RunningRatio) ? EZodiacExtendedMovementMode::Running : EZodiacExtendedMovementMode::Walking;
+		
+				int32 RandomSeed = FMath::RandRange(0, UINT8_MAX);
+				FZodiacZombieSpawnConfig SpawnConfig = FZodiacZombieSpawnConfig(RandomIndex, Mode, RandomSeed);
+		
+				Spawned->SetSpawnConfig(SpawnConfig);
+			}	
+		}
+		
 		Spawned->SpawnDefaultController();
 		
 		SpawnedMonsters.Add(Spawned);
@@ -114,6 +139,7 @@ AZodiacMonster* AZodiacZombieSpawner::SpawnMonster(const TSubclassOf<AZodiacMons
 		// Bind OnDestroyed so we can do a re-spawn
 		Spawned->OnDestroyed.AddDynamic(this, &AZodiacZombieSpawner::OnMonsterDestroyed);
 	}
+	
 	return Spawned;
 }
 
@@ -137,11 +163,13 @@ void AZodiacZombieSpawner::OnMonsterDestroyed(AActor* DestroyedActor)
 		FEnvQueryRequest Request(LocationQuery, this);
 		Request.SetFloatParam(ZombieSpawnerQueryParamNames::GridSize, GridSize);
 		Request.SetFloatParam(ZombieSpawnerQueryParamNames::SpaceBetween, SpawnSpacing);
+
+		FZodiacZombieSpawnConfig SpawnConfig = DeadMonster->GetZombieSpawnConfig();
 		
 		FQueryFinishedSignature QueryFinishedDelegate = FQueryFinishedSignature::CreateLambda(
-	[this, SpawnNumberMap](TSharedPtr<FEnvQueryResult> Res)
+	[this, SpawnNumberMap, SpawnConfig](TSharedPtr<FEnvQueryResult> Res)
 			{
-				OnQueryFinished(Res, SpawnNumberMap);
+				OnQueryFinished(Res, SpawnNumberMap, SpawnConfig);
 			}
 		);
 		

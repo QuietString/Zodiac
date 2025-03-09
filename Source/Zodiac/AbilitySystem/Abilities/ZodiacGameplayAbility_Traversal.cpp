@@ -39,10 +39,7 @@ bool UZodiacGameplayAbility_Traversal::CanActivateAbility(const FGameplayAbility
 		{
 			FText FailReason;
 			bool Result = TraversalComponent->CanTraversalAction(FailReason);
-			// if (Result)
-			// {
-			// 	TraversalCheckResult = TraversalComponent->GetCachedCheckResult();
-			// }
+
 #if WITH_EDITOR
 			if (!Result && ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())
 			{
@@ -66,12 +63,6 @@ void UZodiacGameplayAbility_Traversal::ActivateAbility(const FGameplayAbilitySpe
 		if (UZodiacTraversalComponent* TraversalComponent = ZodiacCharacter->FindComponentByClass<UZodiacTraversalComponent>())
 		{
 			TraversalComponent->OnTraversalFinished.BindUObject(this, &ThisClass::OnTraversalFinished);
-			// if (HasAuthority(&CurrentActivationInfo))
-			// {
-			// 	TraversalComponent->PerformTraversalActionFromAbility();
-			// 	//PerformTraversalAction(TraversalCheckResult);
-			// 	UE_LOG(LogTemp, Warning, TEXT("%s: call perform traversal actrion"), GetZodiacCharacterFromActorInfo()->HasAuthority() ? TEXT("Server") : TEXT("Client"));
-			// }
 
 			if (IsLocallyControlled())
 			{
@@ -84,20 +75,6 @@ void UZodiacGameplayAbility_Traversal::ActivateAbility(const FGameplayAbilitySpe
 			WaitDelay->Activate();
 		}
 	}
-}
-
-void UZodiacGameplayAbility_Traversal::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	// if (AActor* TraversalActor = GetAvatarActorFromActorInfo())
-	// {
-	// 	if (UZodiacTraversalComponent* TraversalComponent = TraversalActor->FindComponentByClass<UZodiacTraversalComponent>())
-	// 	{
-	// 		TraversalComponent->ClearCheckResultCache();
-	// 	}
-	// }
-	
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 void UZodiacGameplayAbility_Traversal::OnTraversalFinished()
