@@ -129,7 +129,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode);
 	void SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig);
-	
+
+	virtual void OnExtendedMovementModeChanged(EZodiacExtendedMovementMode PreviousMode);
+	virtual void SetExtendedMovementModeTag(EZodiacExtendedMovementMode ExtendedMovementMode, bool bTagEnabled);
+
 protected:	
 	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner);
 	
@@ -158,13 +161,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
 	FZodiacInputConfig InputConfig;
 
-	UPROPERTY(ReplicatedUsing=OnRep_ExtendedMovementMode)
-	EZodiacExtendedMovementMode ExtendedMovementMode;
-	
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 
 private:
+	UPROPERTY(Transient)
+	bool bWantsToStrafe;
+
 	UPROPERTY()
 	bool bMovementDisabled = false;
 	
@@ -173,8 +176,4 @@ private:
 
 	UFUNCTION()
 	void OnRep_ReplicatedAcceleration();
-
-	UFUNCTION()
-	void OnRep_ExtendedMovementMode();
-	
 };

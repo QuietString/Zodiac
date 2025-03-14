@@ -3,12 +3,13 @@
 
 #include "ZodiacGameplayAbility_Sprint.h"
 
-#include "EnhancedInputSubsystems.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 #include "Character/ZodiacHostCharacter.h"
-#include "GameFramework/CharacterMovementComponent.h"
+
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility_Sprint)
 
 UZodiacGameplayAbility_Sprint::UZodiacGameplayAbility_Sprint(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
@@ -24,7 +25,10 @@ void UZodiacGameplayAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHa
 	WaitInputRelease->OnRelease.AddDynamic(this, &ThisClass::OnInputRelease);
 	WaitInputRelease->Activate();
 	
-	Sprint();
+	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacHostCharacterFromActorInfo())
+	{
+		ZodiacCharacter->ToggleSprint(true);
+	}
 }
 
 void UZodiacGameplayAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -34,54 +38,10 @@ void UZodiacGameplayAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
 	WaitInputRelease->OnRelease.Clear();
-	Walk();
-}
 
-UEnhancedInputLocalPlayerSubsystem* UZodiacGameplayAbility_Sprint::GetEnhancedInputSubsystem(AZodiacHostCharacter* ZodiacCharacter)
-{
-	if (const APlayerController* PC = ZodiacCharacter->GetController<APlayerController>())
-	{
-		if (const ULocalPlayer* LP = CastChecked<ULocalPlayer>(PC->GetLocalPlayer()))
-		{
-			return LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-		} 
-	}
-
-	return nullptr;
-}
-
-void UZodiacGameplayAbility_Sprint::Sprint()
-{
 	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacHostCharacterFromActorInfo())
 	{
-		if (UCharacterMovementComponent* CharMoveComp =  ZodiacCharacter->GetCharacterMovement())
-		{
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = GetEnhancedInputSubsystem(ZodiacCharacter))
-			{
-				FModifyContextOptions Options = {};
-				Subsystem->AddMappingContext(SprintIMC, 1, Options);
-
-				WalkingSpeed = CharMoveComp->MaxWalkSpeed;
-				CharMoveComp->MaxWalkSpeed = SprintSpeed;
-			}
-		}
-	}
-}
-
-void UZodiacGameplayAbility_Sprint::Walk()
-{
-	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacHostCharacterFromActorInfo())
-	{
-		if (UCharacterMovementComponent* CharMoveComp =  ZodiacCharacter->GetCharacterMovement())
-		{
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = GetEnhancedInputSubsystem(ZodiacCharacter))
-			{
-				FModifyContextOptions Options = {};
-				Subsystem->RemoveMappingContext(SprintIMC, Options);
-				
-				CharMoveComp->MaxWalkSpeed = WalkingSpeed;
-			}
-		}
+		ZodiacCharacter->ToggleSprint(false);
 	}
 }
 

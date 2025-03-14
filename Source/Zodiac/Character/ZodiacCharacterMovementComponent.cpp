@@ -3,6 +3,7 @@
 #include "ZodiacCharacterMovementComponent.h"
 
 #include "KismetAnimationLibrary.h"
+#include "ZodiacCharacter.h"
 #include "ZodiacCharacterType.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/World.h"
@@ -21,6 +22,8 @@ namespace ZodiacCharacter
 UZodiacCharacterMovementComponent::UZodiacCharacterMovementComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	SetIsReplicatedByDefault(true);
+	
 	ExtendMovementConfig.DefaultExtendedMovement = EZodiacExtendedMovementMode::Running;
 	ExtendMovementConfig.MovementSpeedsMap.Add(EZodiacExtendedMovementMode::Walking, FVector(200.f, 175.f, 150.f));
 	ExtendMovementConfig.MovementSpeedsMap.Add(EZodiacExtendedMovementMode::Running, FVector(500.f, 350.f, 300.f));
@@ -43,7 +46,7 @@ void UZodiacCharacterMovementComponent::SimulateMovement(float DeltaTime)
 
 float UZodiacCharacterMovementComponent::GetMaxSpeed() const
 {
-	if (MovementMode == MOVE_Walking)
+	if (MovementMode == MOVE_Walking || MovementMode == MOVE_NavWalking)
 	{
 		return CalculateMaxSpeed();
 	}
@@ -83,57 +86,48 @@ bool UZodiacCharacterMovementComponent::HandlePendingLaunch()
 	return false;
 }
 
-const FZodiacCharacterGroundInfo& UZodiacCharacterMovementComponent::GetGroundInfo()
+void UZodiacCharacterMovementComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
-	if (!CharacterOwner || (GFrameCounter == CachedGroundInfo.LastUpdateFrame))
-	{
-		return CachedGroundInfo;
-	}
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	if (MovementMode == MOVE_Walking)
-	{
-		CachedGroundInfo.GroundHitResult = CurrentFloor.HitResult;
-		CachedGroundInfo.GroundDistance = 0.0f;
-	}
-	else
-	{
-		const UCapsuleComponent* CapsuleComp = CharacterOwner->GetCapsuleComponent();
-		check(CapsuleComp);
-
-		const float CapsuleHalfHeight = CapsuleComp->GetUnscaledCapsuleHalfHeight();
-		const ECollisionChannel CollisionChannel = (UpdatedComponent ? UpdatedComponent->GetCollisionObjectType() : ECC_Pawn);
-		const FVector TraceStart(GetActorLocation());
-		const FVector TraceEnd(TraceStart.X, TraceStart.Y, (TraceStart.Z - ZodiacCharacter::GroundTraceDistance - CapsuleHalfHeight));
-
-		FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(ZodiacCharacterMovementComponent_GetGroundInfo), false, CharacterOwner);
-		FCollisionResponseParams ResponseParam;
-		InitCollisionParams(QueryParams, ResponseParam);
-
-		FHitResult HitResult;
-		GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, CollisionChannel, QueryParams, ResponseParam);
-
-		CachedGroundInfo.GroundHitResult = HitResult;
-		CachedGroundInfo.GroundDistance = ZodiacCharacter::GroundTraceDistance;
-
-		if (MovementMode == MOVE_NavWalking)
-		{
-			CachedGroundInfo.GroundDistance = 0.0f;
-		}
-		else if (HitResult.bBlockingHit)
-		{
-			CachedGroundInfo.GroundDistance = FMath::Max((HitResult.Distance - CapsuleHalfHeight), 0.0f);
-		}
-	}
-
-	CachedGroundInfo.LastUpdateFrame = GFrameCounter;
-
-	return CachedGroundInfo;
+	DOREPLIFETIME_CONDITION(ThisClass, ExtendedMovementMode, COND_None);
 }
 
 void UZodiacCharacterMovementComponent::SetReplicatedAcceleration(const FVector& InAcceleration)
 {
 	bHasReplicatedAcceleration = true;
 	Acceleration = InAcceleration;
+}
+
+void UZodiacCharacterMovementComponent::ToggleSprint(bool bShouldSprint)
+{
+	// Don't strafe when sprinting
+	ToggleStrafe(!bShouldSprint);
+		
+	EZodiacExtendedMovementMode NewMode = bShouldSprint ? EZodiacExtendedMovementMode::Sprinting : ExtendMovementConfig.DefaultExtendedMovement;
+	SetExtendedMovementMode(NewMode);
+}
+
+void UZodiacCharacterMovementComponent::ToggleStrafe(bool bShouldStrafe)
+{
+	bUseControllerDesiredRotation = bShouldStrafe;
+	bOrientRotationToMovement = !bShouldStrafe;
+}
+
+void UZodiacCharacterMovementComponent::SetExtendedMovementMode(EZodiacExtendedMovementMode InMode)
+{
+	EZodiacExtendedMovementMode PrevMode = ExtendedMovementMode;
+	if (PrevMode != InMode)
+	{
+		ExtendedMovementMode = InMode;
+		OnExtendedMovementModeChanged(PrevMode);
+	}
+}
+
+void UZodiacCharacterMovementComponent::SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig)
+{
+	ExtendMovementConfig = InConfig;
+	SetExtendedMovementMode(InConfig.DefaultExtendedMovement);
 }
 
 FZodiacMovementInputDirections UZodiacCharacterMovementComponent::GetMovementInputDirection(bool bUseExplicitInputVector, FVector InputVector) const
@@ -217,17 +211,74 @@ FZodiacMovementInputDirections UZodiacCharacterMovementComponent::GetMovementInp
     return Directions;
 }
 
-void UZodiacCharacterMovementComponent::SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig)
+
+const FZodiacCharacterGroundInfo& UZodiacCharacterMovementComponent::GetGroundInfo()
 {
-	ExtendMovementConfig = InConfig;
-	ExtendedMovementMode = InConfig.DefaultExtendedMovement;
+	if (!CharacterOwner || (GFrameCounter == CachedGroundInfo.LastUpdateFrame))
+	{
+		return CachedGroundInfo;
+	}
+
+	if (MovementMode == MOVE_Walking)
+	{
+		CachedGroundInfo.GroundHitResult = CurrentFloor.HitResult;
+		CachedGroundInfo.GroundDistance = 0.0f;
+	}
+	else
+	{
+		const UCapsuleComponent* CapsuleComp = CharacterOwner->GetCapsuleComponent();
+		check(CapsuleComp);
+
+		const float CapsuleHalfHeight = CapsuleComp->GetUnscaledCapsuleHalfHeight();
+		const ECollisionChannel CollisionChannel = (UpdatedComponent ? UpdatedComponent->GetCollisionObjectType() : ECC_Pawn);
+		const FVector TraceStart(GetActorLocation());
+		const FVector TraceEnd(TraceStart.X, TraceStart.Y, (TraceStart.Z - ZodiacCharacter::GroundTraceDistance - CapsuleHalfHeight));
+
+		FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(ZodiacCharacterMovementComponent_GetGroundInfo), false, CharacterOwner);
+		FCollisionResponseParams ResponseParam;
+		InitCollisionParams(QueryParams, ResponseParam);
+
+		FHitResult HitResult;
+		GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, CollisionChannel, QueryParams, ResponseParam);
+
+		CachedGroundInfo.GroundHitResult = HitResult;
+		CachedGroundInfo.GroundDistance = ZodiacCharacter::GroundTraceDistance;
+
+		if (MovementMode == MOVE_NavWalking)
+		{
+			CachedGroundInfo.GroundDistance = 0.0f;
+		}
+		else if (HitResult.bBlockingHit)
+		{
+			CachedGroundInfo.GroundDistance = FMath::Max((HitResult.Distance - CapsuleHalfHeight), 0.0f);
+		}
+	}
+
+	CachedGroundInfo.LastUpdateFrame = GFrameCounter;
+
+	return CachedGroundInfo;
+}
+
+void UZodiacCharacterMovementComponent::OnExtendedMovementModeChanged(EZodiacExtendedMovementMode PreviousMovementMode)
+{
+	if (AZodiacCharacter* ZodiacCharacter = Cast<AZodiacCharacter>(CharacterOwner))
+	{
+		ZodiacCharacter->OnExtendedMovementModeChanged(PreviousMovementMode);
+	}
 }
 
 float UZodiacCharacterMovementComponent::CalculateMaxSpeed() const
 {
 	FRotator Rotation = GetPawnOwner() ? GetPawnOwner()->GetActorRotation() : FRotator();
 	float MovementAngle = FMath::Abs(UKismetAnimationLibrary::CalculateDirection(Velocity, Rotation));
-	float StrafeMap = StrafeSpeedMapCurve ? StrafeSpeedMapCurve->GetFloatValue(MovementAngle) : 1.0f;
+	
+	float StrafeMap = StrafeSpeedMapCurve ? StrafeSpeedMapCurve->GetFloatValue(MovementAngle) : 0.f;
+
+	// Use forward speed when not strafing.
+	if (bUseControllerDesiredRotation)
+	{
+		StrafeMap = 0.f;
+	}
 
 	const FVector* FindVector = ExtendMovementConfig.MovementSpeedsMap.Find(ExtendedMovementMode);
 	

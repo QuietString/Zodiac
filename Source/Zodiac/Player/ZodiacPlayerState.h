@@ -47,6 +47,12 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
 	//~End of IZodiacTeamAgentInterface interface
 
+	virtual void BeginPlay() override;
+	
+protected:
+	UFUNCTION(Server, Reliable)
+	void ServerNotifyClientIsReady();
+
 private:
 	// The ability system component sub-object used by player characters.
 	UPROPERTY(VisibleAnywhere, Category = "Zodiac|PlayerState")

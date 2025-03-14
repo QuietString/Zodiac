@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ZodiacZombieSpawner.generated.h"
 
+class UBehaviorTree;
 class UEnvQuery;
 struct FEnvQueryResult;
 class AZodiacMonster;
@@ -25,32 +26,47 @@ public:
 protected:
 	void OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap, FZodiacZombieSpawnConfig SpawnConfig);
 	
-	AZodiacMonster* SpawnMonster2(const TSubclassOf<AZodiacMonster> ClassToSpawn, const FVector& SpawnLocation, FZodiacZombieSpawnConfig ZombieSpawnConfig);
+	AZodiacMonster* SpawnMonster(const TSubclassOf<AZodiacMonster> ClassToSpawn, const FVector& SpawnLocation, FZodiacZombieSpawnConfig ZombieSpawnConfig);
 
 	UFUNCTION()
 	void OnMonsterDestroyed(AActor* DestroyedActor);
-	
+
 protected:
-	UPROPERTY(EditAnywhere, Category = "Spawner")
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bIsEnabled = true;
-	
-	// The zombie character class to spawn
-	UPROPERTY(EditAnywhere, Category = "Spawner")
-	TMap<TSubclassOf<AZodiacMonster>, uint8> MonstersToSpawn;
-	
-	UPROPERTY(EditAnywhere, Category = "Spawner", meta = (UIMin = 0 , UIMax = 1, ClampMin = 0, ClampMax = 1))
-	float RunningRatio = 0.f;
-	
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
+	bool bRespawnWhenDies;
+
 	// Half length of spawn area.
-	UPROPERTY(EditAnywhere, Category = "Spawner")
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	TObjectPtr<UEnvQuery> LocationQuery;
 
-	UPROPERTY(EditAnywhere, Category = "Spawner")
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
+	bool bSelectCloserLocationToSpawner = true;
+	
+	// The zombie character class to spawn
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
+	TMap<TSubclassOf<AZodiacMonster>, uint8> MonstersToSpawn;
+	
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn", meta = (UIMin = 0 , UIMax = 1, ClampMin = 0, ClampMax = 1))
+	float RunningRatio = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
+	TObjectPtr<UBehaviorTree> BehaviorTree;
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn", meta = (ClampMin = 0))
+	float TargetSearchRadius = 10000.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spacing")
 	float GridSize = 500.f;
 
-	UPROPERTY(EditAnywhere, Category = "Spawner")
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spacing")
 	float SpawnSpacing = 120.f;
-	
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spacing", meta = (UIMin = 0, UIMax = 1, ClampMin = 0, ClampMax = 1))
+	float RandomSkipping = 0.f;
+
 private:
 	UPROPERTY()
 	TSet<TObjectPtr<AZodiacMonster>> SpawnedMonsters;

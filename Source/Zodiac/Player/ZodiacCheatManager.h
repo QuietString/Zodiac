@@ -67,6 +67,9 @@ public:
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void MonstersImmortal();
 
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void ToggleMonsterAI();
+	
 protected:
 	void ApplySetByCallerDamage(UZodiacAbilitySystemComponent* ZodiacASC, float DamageAmount);
 	

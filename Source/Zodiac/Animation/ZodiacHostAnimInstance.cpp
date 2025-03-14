@@ -172,11 +172,16 @@ void UZodiacHostAnimInstance::UpdateGait()
 			case EZodiacExtendedMovementMode::Running:
 				Gait = Gait_Run;
 				return;
+
+			case EZodiacExtendedMovementMode::Sprinting:
+				Gait = Gait_Sprint;
+				return;
 				
 			case EZodiacExtendedMovementMode::Walking:
-			default:
 				Gait = Gait_Walk;
+			default:
 				return;
+				
 			}
 		}
 	}

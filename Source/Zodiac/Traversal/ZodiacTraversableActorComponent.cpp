@@ -269,8 +269,8 @@ void UZodiacTraversableActorComponent::SetOppositeLedges(TMap<USplineComponent*,
 	}
 }
 
-void UZodiacTraversableActorComponent::GetLedgeTransforms(const FVector& HitLocation, const FVector& ActorLocation,
-                                                          FZodiacTraversalCheckResult& CheckResult)
+void UZodiacTraversableActorComponent::GetLedgeTransforms(FZodiacTraversalCheckResult& CheckResult, const FVector& HitLocation,
+                                                          const FVector& ActorLocation)
 {
 	// Find the ledge closest to the actors location.
 	TObjectPtr<USplineComponent> FrontLedge = FindLedgeClosestToActor(ActorLocation);
@@ -279,7 +279,7 @@ void UZodiacTraversableActorComponent::GetLedgeTransforms(const FVector& HitLoca
 		CheckResult.bHasFrontLedge = false;
 		return;
 	}
-
+	
 	// Make sure the ledge is wide enough. If not, the front ledge will not be valid.
 	if (FrontLedge->GetSplineLength() < MinLedgeWidth)
 	{

@@ -4,8 +4,8 @@
 
 #include "Engine/EngineTypes.h"
 #include "GameplayTagsManager.h"
+#include "Character/ZodiacCharacterType.h"
 #include "ZodiacLogChannels.h"
-#include "Character/ZodiacCharacterMovementComponent.h"
 
 namespace ZodiacGameplayTags
 {
@@ -26,15 +26,17 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_Behavior_SurvivesDeath, "Ability.Behavior.SurvivesDeath", "An ability with this type tag should not be canceled due to death.");
 
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Move, "InputTag.Move", "Move input.");
+	UE_DEFINE_GAMEPLAY_TAG(InputTag_Move_Sprint, "InputTag.Move.Sprint");
 	UE_DEFINE_GAMEPLAY_TAG(InputTag_Move_Fly, "InputTag.Move.Fly");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Look_Mouse, "InputTag.Look.Mouse", "Look (mouse) input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Look_Stick, "InputTag.Look.Stick", "Look (stick) input.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InputTag_Hero, "InputTag.Hero", "Hero ability input.");
 	
-	UE_DEFINE_GAMEPLAY_TAG(Event_Damaged_Message, "Event.Damaged.Message");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Ability_Traversal, "Event.Ability.Traversal");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Death, "Event.Death", "Event that fires on death. This event only fires on the server.");
+
+	UE_DEFINE_GAMEPLAY_TAG(Event_Damaged_Message, "Event.Damaged.Message");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Elimination, "Event.Elimination");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Death, "Event.Death", "Event that fires on death. This event only fires on the server.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_Reset, "Event.Reset", "Event that fires once a player reset is executed.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_RequestReset, "Event.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
 
@@ -73,6 +75,8 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Invincible, "Status.Invincible", "Target doesn't take any damage");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Immortal, "Status.Immortal", "Target's health can't go below 1");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Physics_Collision_Disabled, "Status.Physics.Collision.Disabled");
+
+	UE_DEFINE_GAMEPLAY_TAG(Player_PlayReady, "Player.PlayReady")
 	
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Menu, "UI.Layer.Menu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");
@@ -96,11 +100,7 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Flying, "Movement.Mode.Flying", "Default Character movement tag");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Movement_Mode_Custom, "Movement.Mode.Custom", "Default Character movement tag");
 
-	// These are mapped to the movement modes inside GetCustomMovementModeTagMap()
-	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_None, "Movement.Custom.None");
-	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_Traversal, "Movement.Custom.Traversal");
-
-	// Unreal Movement Modes
+	// Default Movement Modes
 	const TMap<uint8, FGameplayTag> MovementModeTagMap =
 	{
 		{ MOVE_Walking, Movement_Mode_Walking },
@@ -110,7 +110,25 @@ namespace ZodiacGameplayTags
 		{ MOVE_Flying, Movement_Mode_Flying },
 		{MOVE_Custom, Movement_Mode_Custom}
 	};
+	
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Extended_None, "Movement.Extended.None");
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Extended_Walking, "Movement.Extended.Walking");
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Extended_Running, "Movement.Extended.Running");
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Extended_Sprinting, "Movement.Extended.Sprinting");
 
+	// Extended Movement Modes
+	const TMap<EZodiacExtendedMovementMode, FGameplayTag> ExtendedMovementModeTagMap =
+	{
+		{ EZodiacExtendedMovementMode::None, Movement_Extended_None },
+		{ EZodiacExtendedMovementMode::Walking, Movement_Extended_Walking },
+		{ EZodiacExtendedMovementMode::Running, Movement_Extended_Running },
+		{ EZodiacExtendedMovementMode::Sprinting, Movement_Extended_Sprinting },
+	};
+	
+	// These are mapped to the movement modes inside GetCustomMovementModeTagMap()
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_None, "Movement.Custom.None");
+	UE_DEFINE_GAMEPLAY_TAG(Movement_Custom_Traversal, "Movement.Custom.Traversal");
+	
 	// Custom Movement Modes
 	const TMap<uint8, FGameplayTag> CustomMovementModeTagMap =
 	{

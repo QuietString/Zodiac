@@ -107,15 +107,29 @@ void UZodiacGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 		UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s, %s: AcitvationKey: %d"), HasAuthority(&CurrentActivationInfo) ? TEXT("Server") : TEXT("Client"), *GetName(), CurrentActivationInfo.GetActivationPredictionKey().Current);
 	}
 }
+
+void UZodiacGameplayAbility::SetShouldBlockOtherAbilities(bool bShouldBlockAbilities)
+{
+	Super::SetShouldBlockOtherAbilities(bShouldBlockAbilities);
+
+	if (bIsActive && GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced && bShouldBlockAbilities != bIsBlockingOtherAbilities)
+	{
+		bIsBlockingOtherAbilities = bShouldBlockAbilities;
+
+		UAbilitySystemComponent* Comp = CurrentActorInfo->AbilitySystemComponent.Get();
+		if (Comp)
+		{
+			Comp->ApplyAbilityBlockAndCancelTags(GetAssetTags(), this, bIsBlockingOtherAbilities, BlockAbilitiesWithTag_Hero, false, CancelAbilitiesWithTag_Hero);
+		}
+	}
+}
 #endif
 
 void UZodiacGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,
                                                        const FGameplayAbilitySpec& Spec) const
 {
-	const bool bIsPredicting = (Spec.ActivationInfo.ActivationMode == EGameplayAbilityActivationMode::Predicting);
-
 	// Try to activate if activation policy is on spawn.
-	if (ActorInfo && !Spec.IsActive() && !bIsPredicting && (ActivationPolicy == EZodiacAbilityActivationPolicy::OnSpawn))
+	if (ActorInfo && !Spec.IsActive() && (ActivationPolicy == EZodiacAbilityActivationPolicy::OnSpawn))
 	{
 		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 		const AActor* AvatarActor = ActorInfo->AvatarActor.Get();

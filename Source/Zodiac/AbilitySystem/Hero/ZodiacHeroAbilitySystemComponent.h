@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZodiacAbilitySystemComponent.h"
+#include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "ZodiacHeroAbilitySystemComponent.generated.h"
 
 

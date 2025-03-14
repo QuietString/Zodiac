@@ -2,7 +2,10 @@
 
 #include "ZodiacPlayerState.h"
 
+#include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "AbilitySystem/Host/ZodiacHostAbilitySystemComponent.h"
+#include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Net/UnrealNetwork.h"
 
@@ -12,7 +15,7 @@ AZodiacPlayerState::AZodiacPlayerState(const FObjectInitializer& ObjectInitializ
 	: Super(ObjectInitializer)
 	, MyPlayerConnectionType(EZodiacPlayerConnectionType::Player)
 {
-	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHostAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
@@ -33,4 +36,30 @@ void AZodiacPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, MyPlayerConnectionType, Params);
 
 	DOREPLIFETIME(ThisClass, StatTags);
+}
+
+void AZodiacPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (!HasAuthority())
+	{
+		ServerNotifyClientIsReady();	
+	}
+}
+
+void AZodiacPlayerState::ServerNotifyClientIsReady_Implementation()
+{
+	AbilitySystemComponent->AddLooseGameplayTag(ZodiacGameplayTags::Player_PlayReady);
+
+	if (AZodiacHostCharacter* HostCharacter = GetPawn<AZodiacHostCharacter>())
+	{
+		for (auto& Hero : HostCharacter->GetHeroes())
+		{
+			if (UAbilitySystemComponent* ASC = Hero->GetAbilitySystemComponent())
+			{
+				ASC->AddLooseGameplayTag(ZodiacGameplayTags::Player_PlayReady);
+			}
+		}	
+	}
 }

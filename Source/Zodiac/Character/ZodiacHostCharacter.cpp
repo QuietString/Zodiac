@@ -27,6 +27,14 @@ AZodiacHostCharacter::AZodiacHostCharacter(const FObjectInitializer& ObjectIniti
 	CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
 }
 
+void AZodiacHostCharacter::ToggleSprint(const bool bShouldSprint)
+{
+	if (UZodiacCharacterMovementComponent* ZodiacCharMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		ZodiacCharMoveComp->ToggleSprint(bShouldSprint);
+	}
+}
+
 void AZodiacHostCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -202,6 +210,20 @@ void AZodiacHostCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 
 			{
 				ASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
 			}
+		}
+	}
+}
+
+void AZodiacHostCharacter::SetExtendedMovementModeTag(EZodiacExtendedMovementMode ExtendedMovementMode, bool bTagEnabled)
+{
+	// The Same as AZodiacCharacter, just applies to host asc instead.
+	if (UZodiacAbilitySystemComponent* ZodiacASC = GetHostAbilitySystemComponent())
+	{
+		const FGameplayTag* MovementModeTag = ZodiacGameplayTags::ExtendedMovementModeTagMap.Find(ExtendedMovementMode);
+		
+		if (MovementModeTag && MovementModeTag->IsValid())
+		{
+			ZodiacASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
 		}
 	}
 }

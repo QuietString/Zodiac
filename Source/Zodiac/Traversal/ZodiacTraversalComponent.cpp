@@ -102,7 +102,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 	{
 		return false;
 	}
-
+	
 	if (bHasCached)
 	{
 		return true;
@@ -227,18 +227,6 @@ void UZodiacTraversalComponent::TryActivateTraversalAbility()
 	}
 }
 
-void UZodiacTraversalComponent::PerformTraversalActionFromAbility()
-{
-	bIsLocalPredicted = true;
-	
-	TraversalCheckResult = CheckResultCached;
-	PerformTraversalAction(TraversalCheckResult);
-
-	// Clear cache
-	CheckResultCached = FZodiacTraversalCheckResult();
-	bHasCached = false;
-}
-
 void UZodiacTraversalComponent::PerformTraversalAction_Local()
 {
 	bIsLocalPredicted = true;
@@ -308,7 +296,7 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	if (UZodiacTraversableActorComponent* TraversableActorComponent = Cast<UZodiacTraversableActorComponent>(TraversalObjectHit.GetActor()->GetComponentByClass(UZodiacTraversableActorComponent::StaticClass())))
 	{
 		// Step 2.2: If a traversable level block was found, get the front and back ledge transforms from it.
-		TraversableActorComponent->GetLedgeTransforms(TraversalObjectHit.ImpactPoint, ActorLocation, OUT Result);
+		TraversableActorComponent->GetLedgeTransforms(Result, TraversalObjectHit.ImpactPoint, OUT ActorLocation);
 		Result.HitComponent = TraversalObjectHit.Component;
 		ActorsToIgnore.Add(HitActor);
 	}
@@ -324,8 +312,30 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 		FailReason = LOCTEXT("TraversalFailed", "No front ledge found");
 		return false;
 	}
+
+#if WITH_EDITOR
+	if (bDrawDebug && bDrawFindBlockTrace)
+	{
+		DrawDebugBox(GetWorld(), Result.FrontLedgeLocation, FVector(5.f, 5.f, 5.f), FColor::White, false);
+	}
+#endif
 	
-	if (Result.FrontLedgeNormal.Dot(ActorForwardVector) > -0.7f)
+	float DistanceToFrontLedge = (ActorLocation - Result.FrontLedgeLocation).Size2D(); 
+	if (DistanceToFrontLedge > TraceForwardDistance + CapsuleRadius)
+	{
+		FailReason = LOCTEXT("TraversalFailed", "Found front ledge is too far away");
+		return false;
+	}
+	
+	bool bIsMoving = true;
+	if (UMovementComponent* MovementComponent = OwningCharacter->GetMovementComponent())
+	{
+		bIsMoving = !FMath::IsNearlyZero(MovementComponent->Velocity.Length());
+	}
+	
+	float DotThreshold = bIsMoving ? DotThreshold_Moving : DotThreshold_Idle;
+	
+	if (Result.FrontLedgeNormal.Dot(ActorForwardVector) > DotThreshold)
 	{
 		FailReason = LOCTEXT("TraversalFailed", "Character is not facing toward a front ledge");
 		return false;
@@ -377,7 +387,7 @@ bool UZodiacTraversalComponent::CapsuleTrace(const FVector& TraceStart, const FV
 	UWorld* World = GetWorld();
 	check(World);
 	
-	ETraceTypeQuery TraceTypeQuery = UEngineTypes::ConvertToTraceType(ECC_Visibility);
+	ETraceTypeQuery TraceTypeQuery = UEngineTypes::ConvertToTraceType(TraceChannel);
 	EDrawDebugTrace::Type DrawDebugType = bDrawDebug ? EDrawDebugTrace::Type::ForDuration : EDrawDebugTrace::Type::None;
 	float DrawTime = bIsTicked ? 0.0f : DebugDuration;
 	return UKismetSystemLibrary::CapsuleTraceSingle(World, TraceStart, TraceEnd, CapsuleRadius, CapsuleHalfHeight, TraceTypeQuery, false, ActorsToIgnore, DrawDebugType, OutHit, true, FLinearColor::Red, FLinearColor::Green, DrawTime);
@@ -487,5 +497,22 @@ void UZodiacTraversalComponent::OnRepTraversalCheckResult()
 	CheckResultCached = FZodiacTraversalCheckResult();
 	bHasCached = false;
 }
+
+#if WITH_EDITOR
+void UZodiacTraversalComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.Property->GetName() == GET_MEMBER_NAME_CHECKED(UZodiacTraversalComponent, AllowedFacingAngle_Moving))
+	{
+		DotThreshold_Moving = FMath::Cos(FMath::DegreesToRadians(180.f - AllowedFacingAngle_Moving));
+	}
+
+	if (PropertyChangedEvent.Property->GetName() == GET_MEMBER_NAME_CHECKED(UZodiacTraversalComponent, AllowedFacingAngle_Idle))
+	{
+		DotThreshold_Idle = FMath::Cos(FMath::DegreesToRadians(180.f - AllowedFacingAngle_Idle));
+	}
+}
+#endif
 
 #undef LOCTEXT_NAMESPACE

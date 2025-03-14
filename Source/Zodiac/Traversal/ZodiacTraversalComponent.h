@@ -29,7 +29,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void TryActivateTraversalAbility();
 	
-	void PerformTraversalActionFromAbility();
 	void PerformTraversalAction_Local();
 
 	UFUNCTION(Server, Reliable)
@@ -63,32 +62,41 @@ protected:
 	void K2_NotifyTraversalActionFinished();
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Traversal")
+	UPROPERTY(EditAnywhere, Category = "Traversal|Check")
 	bool bEnableFindLedgeOnTick;
 
-	UPROPERTY(EditAnywhere, Category = "Traversal")
+	UPROPERTY(EditAnywhere, Category = "Traversal|Check")
 	float BaseGroundTraversalDistance = 125.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Traversal|Check", meta = (ForceUnits=deg, UIMin = 0, UIMax = 90))
+	float AllowedFacingAngle_Moving = 45.f;
+
+	UPROPERTY(EditAnywhere, Category = "Traversal|Check", meta = (ForceUnits=deg, UIMin = 0, UIMax = 90))
+	float AllowedFacingAngle_Idle = 60.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Traversal|Check")
+	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
 
 	// Distance range where a character can try traversal action.
-	UPROPERTY(EditAnywhere, Category = "Traversal")
+	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
 	FVector2f GroundForwardTraceRange = FVector2f(100.f, 200.f);
 	
-	UPROPERTY(EditAnywhere, Category = "Traversal")
+	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
 	FVector2D VaultHeightRange = FVector2D(50.0f, 125.0f);
 
-	UPROPERTY(EditAnywhere, Category = "Traversal")
+	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
 	FVector2D ClimbVaultHeightRange = FVector2D(125.0f, 275.0f);
 	
-	UPROPERTY(EditAnywhere, Category = "Traversal")
+	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
 	FVector2D HurdleHeightRange = FVector2D(50.0f, 125.0f);
 
-	UPROPERTY(EditAnywhere, Category = "Traversal")
+	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
 	FVector2D MantleHeightRange = FVector2D(50.0f, 275.0f);
 
-	UPROPERTY(EditAnywhere, Category = "Traversal")
+	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
 	FVector2D MidAirMantleHeightRange = FVector2D(50.0f, 125.0f);
 
-	UPROPERTY(EditAnywhere, Category = "Traversal")
+	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
 	FVector2D AirTraversalRange = FVector2D(0.0f, 50.0f);
 	
 private:
@@ -103,4 +111,16 @@ private:
 	bool bHasCached;
 
 	bool bIsLocalPredicted = false;
+
+	// Controlled by AllowedFacingAngle_Moving.
+	UPROPERTY(VisibleAnywhere, Category = "Traversal")
+	float DotThreshold_Moving;
+
+	// Controlled by AllowedFacingAngle_Idle.
+	UPROPERTY(VisibleAnywhere, Category = "Traversal")
+	float DotThreshold_Idle;
+	
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 };

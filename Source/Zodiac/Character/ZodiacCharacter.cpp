@@ -132,7 +132,6 @@ void AZodiacCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(ThisClass, ExtendedMovementMode, COND_SimulatedOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedAcceleration, COND_SimulatedOnly);
 }
 
@@ -254,10 +253,9 @@ void AZodiacCharacter::SimulateOrPlayHitReact_Implementation(FVector HitDirectio
 
 void AZodiacCharacter::SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode)
 {
-	ExtendedMovementMode = InMode;
-	if (HasAuthority() || IsLocallyControlled())
+	if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
 	{
-		OnRep_ExtendedMovementMode();
+		ZodiacCharMovComp->SetExtendedMovementMode(InMode);
 	}
 }
 
@@ -265,8 +263,7 @@ void AZodiacCharacter::SetExtendedMovementConfig(const FZodiacExtendedMovementCo
 {
 	if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
 	{
-		ZodiacCharMovComp->ExtendMovementConfig = InConfig;
-		SetExtendedMovementMode(InConfig.DefaultExtendedMovement);
+		ZodiacCharMovComp->SetExtendedMovementConfig(InConfig);
 	}
 }
 
@@ -560,6 +557,27 @@ void AZodiacCharacter::SetMovementModeTag(EMovementMode MovementMode, uint8 Cust
 	}
 }
 
+void AZodiacCharacter::OnExtendedMovementModeChanged(EZodiacExtendedMovementMode PreviousMode)
+{
+	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
+
+	SetExtendedMovementModeTag(PreviousMode, false);
+	SetExtendedMovementModeTag(ZodiacMoveComp->GetExtendedMovementMode(), true);
+}
+
+void AZodiacCharacter::SetExtendedMovementModeTag(EZodiacExtendedMovementMode ExtendedMovementMode, bool bTagEnabled)
+{
+	if (UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent())
+	{
+		const FGameplayTag* MovementModeTag = ZodiacGameplayTags::ExtendedMovementModeTagMap.Find(ExtendedMovementMode);
+		
+		if (MovementModeTag && MovementModeTag->IsValid())
+		{
+			ZodiacASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
+		}
+	}
+}
+
 bool AZodiacCharacter::UpdateSharedReplication()
 {
 	if (GetLocalRole() == ROLE_Authority)
@@ -603,14 +621,6 @@ void AZodiacCharacter::OnRep_ReplicatedAcceleration()
 	}
 }
 
-void AZodiacCharacter::OnRep_ExtendedMovementMode()
-{
-	if (UZodiacCharacterMovementComponent* ZodiacCharMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
-	{
-		ZodiacCharMoveComp->SetExtendedMovementMode(ExtendedMovementMode);
-	}
-}
-
 void AZodiacCharacter::FastSharedReplication_Implementation(const FSharedRepMovement& SharedRepMovement)
 {
 	if (GetWorld()->IsPlayingReplay())
@@ -639,7 +649,7 @@ void AZodiacCharacter::FastSharedReplication_Implementation(const FSharedRepMove
 		// This also sets LastRepMovement
 		OnRep_ReplicatedMovement();
 
-		// Jump force
+		// Update Jump force
 		bProxyIsJumpForceApplied = SharedRepMovement.bProxyIsJumpForceApplied;
 	}
 }

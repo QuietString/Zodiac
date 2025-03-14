@@ -88,6 +88,10 @@ protected:
 	FTransform GetTargetingTransform(EZodiacAbilityAimTraceRule TraceRule) const;
 
 	FTransform GetTargetingTransform(APawn* HostPawn, APawn* HeroPawn, EZodiacAbilityAimTraceRule Source) const;
+
+	// Executes Firing GameplayCue without any hit result. It's for firing projectiles.
+	UFUNCTION(BlueprintCallable)
+	void ExecuteFiringGameplayCueWithoutHitResult();
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ForceUnits="Hz"), Category = "Gameplay")

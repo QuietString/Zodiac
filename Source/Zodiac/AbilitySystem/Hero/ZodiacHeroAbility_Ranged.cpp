@@ -611,6 +611,17 @@ FTransform UZodiacHeroAbility_Ranged::GetTargetingTransform(APawn* HostPawn, APa
 	return FTransform(AimQuat, SourceLoc);
 }
 
+void UZodiacHeroAbility_Ranged::ExecuteFiringGameplayCueWithoutHitResult()
+{
+	if (UZodiacAbilitySystemComponent* HostASC = Cast<UZodiacAbilitySystemComponent>(GetHostAbilitySystemComponent()))
+	{
+		GameplayCueParams_Firing = FGameplayCueParameters();
+		GameplayCueParams_Firing.SourceObject = GetCurrentSocketSourceActor();
+		
+		HostASC->ExecuteGameplayCue(GameplayCueTag_Firing, GameplayCueParams_Firing);
+	}
+}
+
 void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(const FGameplayAbilityTargetDataHandle& TargetData)
 {
 	if (TargetData.Data.IsEmpty())

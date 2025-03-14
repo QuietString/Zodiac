@@ -266,11 +266,11 @@ void UZodiacReplicationGraph::InitClassReplicationInfo(FClassReplicationInfo& In
 	AActor* CDO = Class->GetDefaultObject<AActor>();
 	if (Spatialize)
 	{
-		Info.SetCullDistanceSquared(CDO->NetCullDistanceSquared);
+		Info.SetCullDistanceSquared(CDO->GetNetCullDistanceSquared());
 		UE_LOG(LogZodiacRepGraph, Log, TEXT("Setting cull distance for %s to %f (%f)"), *Class->GetName(), Info.GetCullDistanceSquared(), Info.GetCullDistance());
 	}
 
-	Info.ReplicationPeriodFrame = GetReplicationPeriodFrameForFrequency(CDO->NetUpdateFrequency);
+	Info.ReplicationPeriodFrame = GetReplicationPeriodFrameForFrequency(CDO->GetNetCullDistanceSquared());
 
 	UClass* NativeClass = Class;
 	while (!NativeClass->IsNative() && NativeClass->GetSuperClass() && NativeClass->GetSuperClass() != AActor::StaticClass())
@@ -278,7 +278,7 @@ void UZodiacReplicationGraph::InitClassReplicationInfo(FClassReplicationInfo& In
 		NativeClass = NativeClass->GetSuperClass();
 	}
 
-	UE_LOG(LogZodiacRepGraph, Log, TEXT("Setting replication period for %s (%s) to %d frames (%.2f)"), *Class->GetName(), *NativeClass->GetName(), Info.ReplicationPeriodFrame, CDO->NetUpdateFrequency);
+	UE_LOG(LogZodiacRepGraph, Log, TEXT("Setting replication period for %s (%s) to %d frames (%.2f)"), *Class->GetName(), *NativeClass->GetName(), Info.ReplicationPeriodFrame, CDO->GetNetUpdateFrequency());
 }
 
 bool UZodiacReplicationGraph::ConditionalInitClassReplicationInfo(UClass* ReplicatedClass, FClassReplicationInfo& ClassInfo)
@@ -415,7 +415,7 @@ void UZodiacReplicationGraph::InitGlobalActorClassSettings()
 	CharacterClassRepInfo.DistancePriorityScale = 1.f;
 	CharacterClassRepInfo.StarvationPriorityScale = 1.f;
 	CharacterClassRepInfo.ActorChannelFrameTimeout = 4;
-	CharacterClassRepInfo.SetCullDistanceSquared(AZodiacCharacter::StaticClass()->GetDefaultObject<AZodiacCharacter>()->NetCullDistanceSquared);
+	CharacterClassRepInfo.SetCullDistanceSquared(AZodiacCharacter::StaticClass()->GetDefaultObject<AZodiacCharacter>()->GetNetCullDistanceSquared());
 
 	SetClassInfo(ACharacter::StaticClass(), CharacterClassRepInfo);
 

@@ -77,6 +77,20 @@ void UZodiacGameplayAbility_Traversal::ActivateAbility(const FGameplayAbilitySpe
 	}
 }
 
+void UZodiacGameplayAbility_Traversal::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+
+	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
+	{
+		if (UZodiacTraversalComponent* TraversalComponent = ZodiacCharacter->FindComponentByClass<UZodiacTraversalComponent>())
+		{
+			TraversalComponent->ClearCheckResultCache();
+		}
+	}
+}
+
 void UZodiacGameplayAbility_Traversal::OnTraversalFinished()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);

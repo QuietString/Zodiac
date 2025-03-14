@@ -14,13 +14,6 @@ struct FFrame;
 
 ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Gameplay_MovementStopped);
 
-UENUM(BlueprintType)
-enum EZodiacCustomMovementMode
-{
-	Move_Custom_None = 0			UMETA(DisplayName="None"),
-	Move_Custom_Traversal			UMETA(DisplayName="Traversal")
-};
-
 UENUM(BlueprintType, DisplayName = "Movement Input Direction")
 enum class EZodiacMovementInputDirection : uint8
 {
@@ -87,38 +80,48 @@ public:
 	virtual float GetMaxSpeed() const override;
 	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 	virtual bool HandlePendingLaunch() override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	// Returns the current ground info.  Calling this will update the ground info if it's out of date.
-	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
-	const FZodiacCharacterGroundInfo& GetGroundInfo();
-
 	void SetReplicatedAcceleration(const FVector& InAcceleration);
+
+	void ToggleSprint(bool bShouldSprint);
+	void ToggleStrafe(bool bShouldStrafe);
+
+	UFUNCTION(BlueprintCallable)
+	EZodiacExtendedMovementMode GetExtendedMovementMode() const { return ExtendedMovementMode; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetExtendedMovementMode(EZodiacExtendedMovementMode InMode);
+	
+	void SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig);
 
 	// First element return primary direction, second element return secondary direction if exits. It's for diagonal inputs.
 	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
 	FZodiacMovementInputDirections GetMovementInputDirection(bool bUseExplicitInputVector = false, FVector InputVector = FVector(0)) const;
+
+	// Returns the current ground info.  Calling this will update the ground info if it's out of date.
+	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
+	const FZodiacCharacterGroundInfo& GetGroundInfo();
 	
-	void SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig);
-
-	UFUNCTION(BlueprintCallable)
-	EZodiacExtendedMovementMode GetExtendedMovementMode() const { return ExtendedMovementMode; }
-	void SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode) { ExtendedMovementMode = InMode; }
-
 protected:
+	void OnExtendedMovementModeChanged(EZodiacExtendedMovementMode PreviousMovementMode);
+	
 	float CalculateMaxSpeed() const;
 
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Walk Modes")
-	FZodiacExtendedMovementConfig ExtendMovementConfig;
-
 protected:
-	EZodiacExtendedMovementMode ExtendedMovementMode;
-	
+	// Out value 0 = forward, 1 = strafe left or right, 2 = backwards.
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Movement")
 	TObjectPtr<UCurveFloat> StrafeSpeedMapCurve;
 	
 	// Cached ground info for the character.  Do not access this directly!  It's only updated when accessed via GetGroundInfo().
 	FZodiacCharacterGroundInfo CachedGroundInfo;
+
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Walk Modes", meta = (AllowPrivateAccess = true))
+	FZodiacExtendedMovementConfig ExtendMovementConfig;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Walk Modes", meta = (AllowPrivateAccess = true))
+	EZodiacExtendedMovementMode ExtendedMovementMode;
 
 	UPROPERTY(Transient)
 	bool bHasReplicatedAcceleration = false;

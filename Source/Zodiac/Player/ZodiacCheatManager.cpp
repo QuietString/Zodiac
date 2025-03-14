@@ -3,11 +3,13 @@
 
 #include "ZodiacCheatManager.h"
 
+#include "AIController.h"
 #include "EngineUtils.h"
 #include "GameplayTagContainer.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacPlayerController.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Character/ZodiacMonster.h"
@@ -132,42 +134,6 @@ void UZodiacCheatManager::InfiniteUltimate()
 
 void UZodiacCheatManager::God()
 {
-	// auto ApplyDynamicTagForGodMode = [](UZodiacAbilitySystemComponent* ZodiacASC)
-	// {
-	// 	if (ZodiacASC)
-	// 	{
-	// 		const FGameplayTag Tag = ZodiacGameplayTags::Cheat_GodMode;
-	// 		const bool bHasTag = ZodiacASC->HasMatchingGameplayTag(Tag);
-	//
-	// 		if (bHasTag)
-	// 		{
-	// 			ZodiacASC->RemoveDynamicTagGameplayEffect(Tag);
-	// 		}
-	// 		else
-	// 		{
-	// 			ZodiacASC->AddDynamicTagGameplayEffect(Tag);
-	// 		}
-	// 	}
-	// };
-
-	// if (AZodiacPlayerController* ZodiacPC = Cast<AZodiacPlayerController>(GetOuterAPlayerController()))
-	// {
-	// 	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(ZodiacPC->GetPawn()))
-	// 	{
-	// 		for (AZodiacHeroCharacter*& Hero : HostCharacter->GetHeroes())
-	// 		{
-	// 			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
-	// 			{
-	// 				ApplyDynamicTagForGodMode(ZodiacASC);
-	// 			}
-	// 		}
-	// 	}
-	// 	else if (UZodiacAbilitySystemComponent* ZodiacASC = ZodiacPC->GetHeroAbilitySystemComponent())
-	// 	{
-	// 		ApplyDynamicTagForGodMode(ZodiacASC);
-	// 	}
-	// }
-
 	if (AZodiacHostCharacter* HostCharacter = GetHostCharacter())
 	{
 		for (auto& Hero : HostCharacter->GetHeroes())
@@ -239,10 +205,33 @@ void UZodiacCheatManager::MonstersImmortal()
 			if (UZodiacAbilitySystemComponent* ZodiacASC = Monster->GetZodiacAbilitySystemComponent())
 			{
 				ToggleDynamicTag(ZodiacASC, ZodiacGameplayTags::Status_Immortal);
-				//ZodiacASC->AddDynamicTagGameplayEffect(ZodiacGameplayTags::Status_Immortal);
 			}
 		}
 	}
+}
+
+void UZodiacCheatManager::ToggleMonsterAI()
+{
+	for (TActorIterator<AAIController> It(GetWorld()); It; ++It)
+	{
+		AAIController* AICon = *It;
+		if (AICon && AICon->BrainComponent)
+		{
+			if (UBehaviorTreeComponent* BTComp = Cast<UBehaviorTreeComponent>(AICon->BrainComponent))
+			{
+				if (BTComp->IsPaused())
+				{
+					BTComp->ResumeLogic(TEXT("CheatManager ToggleMonsterAI"));	
+				}
+				else
+				{
+					BTComp->PauseLogic(TEXT("CheatManager ToggleMonsterAI"));
+				}
+			}
+		}
+	}
+
+	UE_LOG(LogZodiacCheat, Warning, TEXT("All AI Behavior Trees stopped."));
 }
 
 void UZodiacCheatManager::ApplySetByCallerDamage(UZodiacAbilitySystemComponent* ZodiacASC, float DamageAmount)
@@ -251,7 +240,7 @@ void UZodiacCheatManager::ApplySetByCallerDamage(UZodiacAbilitySystemComponent* 
 
 	TSubclassOf<UGameplayEffect> DamageGE = UZodiacAssetManager::GetSubclass(UZodiacGameData::Get().DamageGameplayEffect_SetByCaller);
 	FGameplayEffectSpecHandle SpecHandle = ZodiacASC->MakeOutgoingSpec(DamageGE, 1.0f, ZodiacASC->MakeEffectContext());
-
+	
 	if (SpecHandle.IsValid())
 	{
 		SpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Damage, DamageAmount);

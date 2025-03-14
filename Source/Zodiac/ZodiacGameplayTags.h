@@ -4,13 +4,15 @@
 
 #include "NativeGameplayTags.h"
 
+enum class EZodiacExtendedMovementMode : uint8;
+
 namespace ZodiacGameplayTags
 {
 	ZODIAC_API	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
 
 	ZODIAC_API	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag);
 
-	// Declare all of the custom native tags that Zodiac will use
+	// Declare all the custom native tags that Zodiac will use
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_IsDead);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cooldown);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cost);
@@ -29,14 +31,16 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Behavior_SurvivesDeath);
 	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move_Sprint);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move_Fly);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Mouse);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Stick);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Hero);
 	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ability_Traversal);
+	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Damaged_Message);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Elimination);
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ability_Traversal);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Reset);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_RequestReset);
@@ -72,6 +76,8 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Invincible);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Immortal);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Physics_Collision_Disabled);
+
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_PlayReady);
 	
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Menu);
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Game);
@@ -89,8 +95,6 @@ namespace ZodiacGameplayTags
 	
 	// These are mappings from MovementMode enums to GameplayTags associated with those enums (below)
 	ZODIAC_API	extern const TMap<uint8, FGameplayTag> MovementModeTagMap;
-	ZODIAC_API	extern const TMap<uint8, FGameplayTag> CustomMovementModeTagMap;
-	ZODIAC_API	extern const TMap<FGameplayTag, uint8> TagCustomMovementModeMap;
 	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_None);
@@ -101,7 +105,19 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Flying);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Custom);
 
+	// Extended MovementMode
+	ZODIAC_API	extern const TMap<EZodiacExtendedMovementMode, FGameplayTag> ExtendedMovementModeTagMap;
+	ZODIAC_API	extern const TMap<FGameplayTag, uint8> TagExtendedMovementModeMap;
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Extended_None);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Extended_Walking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Extended_Running);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Extended_Sprinting);
+	
 	// Custom MovementMode
+	ZODIAC_API	extern const TMap<uint8, FGameplayTag> CustomMovementModeTagMap;
+	ZODIAC_API	extern const TMap<FGameplayTag, uint8> TagCustomMovementModeMap;
+	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Custom_None);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Custom_Traversal);
 

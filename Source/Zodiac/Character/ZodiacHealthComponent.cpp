@@ -186,6 +186,7 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 
 			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
 			AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
+			
 #if !UE_BUILD_SHIPPING
 			if (ZodiacConsoleVariables::CVarLogPredictionKey.GetValueOnAnyThread())
 			{
@@ -193,8 +194,29 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 			}
 #endif
 		}
+
+		// Send the "Event.Elimination" gameplay event to the instigator's ability system.  This can be used to trigger a OnElimination gameplay ability.
+		{
+			if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(DamageCauser))
+			{
+				if (UAbilitySystemComponent* InstigatorASC = HeroCharacter->GetHeroAbilitySystemComponent())
+				{
+					FGameplayEventData Payload;
+					Payload.EventTag = ZodiacGameplayTags::Event_Elimination;
+					Payload.Instigator = DamageInstigator;
+					Payload.Target = AbilitySystemComponent->GetAvatarActor();
+					Payload.OptionalObject = DamageEffectSpec->Def;
+					Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
+					Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+					Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+					Payload.EventMagnitude = DamageMagnitude;
 		
-		// Send a standardized verb message that other systems can observe
+					InstigatorASC->HandleGameplayEvent(Payload.EventTag, &Payload);
+				}	
+			}
+		}
+		
+		// Send a standardized verb message that other systems can observe. For cosmetic usages like elimination marker.
 		{
 			FZodiacVerbMessage Message;
 			Message.Channel = ZodiacGameplayTags::Gameplay_Message_Elimination;

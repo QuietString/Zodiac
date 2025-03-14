@@ -6,7 +6,7 @@
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemLog.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "AbilitySystem/ZodiacHeroAbilitySystemComponent.h"
+#include "AbilitySystem/Hero/ZodiacHeroAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/RootMotionSource.h"
 #include "Net/UnrealNetwork.h"

@@ -26,11 +26,12 @@ public:
 	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const override;
 	UZodiacAbilitySystemComponent* GetHostAbilitySystemComponent() const;
 	virtual void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled) override;
+	virtual void SetExtendedMovementModeTag(EZodiacExtendedMovementMode ExtendedMovementMode, bool bTagEnabled) override;
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
 	virtual USkeletalMeshComponent* GetRetargetedMesh() const override;
 	virtual UZodiacHealthComponent* GetHealthComponent() const override;
 	//~End of AZodiacCharacter interface
-
+	
 	//~IZodiacTraversalActorInterface
 	virtual UAbilitySystemComponent* GetTraversalAbilitySystemComponent() const override;
 	//~End of IZodiacTraversalActorInterface
@@ -63,6 +64,8 @@ public:
 	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
 
 	FVector GetHeroEyeLocationOffset() const { return HeroEyeLocationOffset; }
+
+	void ToggleSprint(bool bShouldSprint);
 	
 protected:
 	//~AActor interface

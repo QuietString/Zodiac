@@ -35,7 +35,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetOppositeLedges(TMap<USplineComponent*, USplineComponent*> InOppositeLedges);
 	
-	void GetLedgeTransforms(const FVector& HitLocation, const FVector& ActorLocation, FZodiacTraversalCheckResult& CheckResult);
+	void GetLedgeTransforms(FZodiacTraversalCheckResult& CheckResult, const FVector& HitLocation, const FVector& ActorLocation);
 
 protected:
 	USplineComponent* FindLedgeClosestToActor(const FVector& ActorLocation);

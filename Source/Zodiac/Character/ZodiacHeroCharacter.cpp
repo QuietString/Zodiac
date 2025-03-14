@@ -9,7 +9,7 @@
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHostCharacter.h"
-#include "AbilitySystem/ZodiacHeroAbilitySystemComponent.h"
+#include "AbilitySystem/Hero/ZodiacHeroAbilitySystemComponent.h"
 #include "Animation/ZodiacHeroAnimInstance.h"
 #include "ZodiacHeroAbilityManagerComponent.h"
 #include "ZodiacHeroSkeletalMeshComponent.h"
@@ -26,6 +26,7 @@ AZodiacHeroCharacter::AZodiacHeroCharacter(const FObjectInitializer& ObjectIniti
 
 	UZodiacHeroSkeletalMeshComponent* HeroMesh = CastChecked<UZodiacHeroSkeletalMeshComponent>(GetMesh());
 	HeroMesh->bIsHeroHidden = true;
+	HeroMesh->ClothTeleportMode = EClothingTeleportMode::TeleportAndReset;
 	
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHeroAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
@@ -246,11 +247,11 @@ void AZodiacHeroCharacter::Activate()
 
 	if (UZodiacHeroSkeletalMeshComponent* HeroMesh = Cast<UZodiacHeroSkeletalMeshComponent>(GetMesh()))
 	{
+		HeroMesh->bDisableClothSimulation = false;
+		HeroMesh->ForceClothNextUpdateTeleportAndReset();
 		HeroMesh->SetVisibility(true);
 		HeroMesh->bIsHeroHidden = false;
 		HeroMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		HeroMesh->bDisableClothSimulation = false;
-		HeroMesh->ForceClothNextUpdateTeleportAndReset();
 	}
 	
 	if (HostCharacter)

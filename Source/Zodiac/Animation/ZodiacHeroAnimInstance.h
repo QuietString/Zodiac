@@ -80,6 +80,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsMoving;
 
+	UPROPERTY(BlueprintReadOnly)
+	EZodiacExtendedMovementMode ExtendedMovementMode;
+	
 private:
 	UPROPERTY()
 	TObjectPtr<AZodiacCharacter> ParentCharacter;

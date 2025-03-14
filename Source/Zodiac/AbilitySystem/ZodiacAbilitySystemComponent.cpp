@@ -66,37 +66,33 @@ void UZodiacAbilitySystemComponent::CancelAbilitiesByFunc(TShouldCancelAbilityFu
 			continue;
 		}
 
-		UZodiacGameplayAbility* ZodiacAbilityCDO = CastChecked<UZodiacGameplayAbility>(AbilitySpec.Ability);
-
-		if (ZodiacAbilityCDO->GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced)
+		UZodiacGameplayAbility* ZodiacAbilityCDO = Cast<UZodiacGameplayAbility>(AbilitySpec.Ability);
+		if (!ZodiacAbilityCDO)
 		{
-			// Cancel all the spawned instances, not the CDO.
-			TArray<UGameplayAbility*> Instances = AbilitySpec.GetAbilityInstances();
-			for (UGameplayAbility* AbilityInstance : Instances)
-			{
-				UZodiacGameplayAbility* ZodiacAbilityInstance = CastChecked<UZodiacGameplayAbility>(AbilityInstance);
-
-				if (ShouldCancelFunc(ZodiacAbilityInstance, AbilitySpec.Handle))
-				{
-					if (ZodiacAbilityInstance->CanBeCanceled())
-					{
-						ZodiacAbilityInstance->CancelAbility(AbilitySpec.Handle, AbilityActorInfo.Get(), ZodiacAbilityInstance->GetCurrentActivationInfo(), bReplicateCancelAbility);
-					}
-					else
-					{
-						UE_LOG(LogZodiacAbilitySystem, Error, TEXT("CancelAbilitiesByFunc: Can't cancel ability [%s] because CanBeCanceled is false."), *ZodiacAbilityInstance->GetName());
-					}
-				}
-			}
+			UE_LOG(LogZodiacAbilitySystem, Error, TEXT("CancelAbilitiesByFunc: Non-ZodiacGameplayAbility %s was Granted to ASC. Skipping."), *AbilitySpec.Ability.GetName());
+			continue;
 		}
-		else
+
+		PRAGMA_DISABLE_DEPRECATION_WARNINGS
+				ensureMsgf(AbilitySpec.Ability->GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced, TEXT("CancelAbilitiesByFunc: All Abilities should be Instanced (NonInstanced is being deprecated due to usability issues)."));
+		PRAGMA_ENABLE_DEPRECATION_WARNINGS
+			
+				// Cancel all the spawned instances.
+				TArray<UGameplayAbility*> Instances = AbilitySpec.GetAbilityInstances();
+		for (UGameplayAbility* AbilityInstance : Instances)
 		{
-			// Cancel the non-instanced ability CDO.
-			if (ShouldCancelFunc(ZodiacAbilityCDO, AbilitySpec.Handle))
+			UZodiacGameplayAbility* ZodiacAbilityInstance = CastChecked<UZodiacGameplayAbility>(AbilityInstance);
+
+			if (ShouldCancelFunc(ZodiacAbilityInstance, AbilitySpec.Handle))
 			{
-				// Non-instanced abilities can always be canceled.
-				check(ZodiacAbilityCDO->CanBeCanceled());
-				ZodiacAbilityCDO->CancelAbility(AbilitySpec.Handle, AbilityActorInfo.Get(), FGameplayAbilityActivationInfo(), bReplicateCancelAbility);
+				if (ZodiacAbilityInstance->CanBeCanceled())
+				{
+					ZodiacAbilityInstance->CancelAbility(AbilitySpec.Handle, AbilityActorInfo.Get(), ZodiacAbilityInstance->GetCurrentActivationInfo(), bReplicateCancelAbility);
+				}
+				else
+				{
+					UE_LOG(LogZodiacAbilitySystem, Error, TEXT("CancelAbilitiesByFunc: Can't cancel ability [%s] because CanBeCanceled is false."), *ZodiacAbilityInstance->GetName());
+				}
 			}
 		}
 	}
@@ -119,7 +115,7 @@ void UZodiacAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& I
 	{
 		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
 		{
-			if (AbilitySpec.Ability && (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag)))
+			if (AbilitySpec.Ability && (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag)))
 			{
 				InputPressedSpecHandles.AddUnique(AbilitySpec.Handle);
 				InputHeldSpecHandles.AddUnique(AbilitySpec.Handle);
@@ -134,7 +130,7 @@ void UZodiacAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& 
 	{
 		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
 		{
-			if (AbilitySpec.Ability && (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag)))
+			if (AbilitySpec.Ability && (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag)))
 			{
 				InputReleasedSpecHandles.AddUnique(AbilitySpec.Handle);
 				InputHeldSpecHandles.Remove(AbilitySpec.Handle);
@@ -442,8 +438,13 @@ void UZodiacAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec
 	// Use replicated events instead so that the WaitInputPress ability task works.
 	if (Spec.IsActive())
 	{
+PRAGMA_DISABLE_DEPRECATION_WARNINGS
+		const UGameplayAbility* Instance = Spec.GetPrimaryInstance();
+		FPredictionKey OriginalPredictionKey = Instance ? Instance->GetCurrentActivationInfo().GetActivationPredictionKey() : Spec.ActivationInfo.GetActivationPredictionKey();
+PRAGMA_ENABLE_DEPRECATION_WARNINGS
+
 		// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
-		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
+		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, OriginalPredictionKey);
 	}
 }
 
@@ -455,8 +456,13 @@ void UZodiacAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpe
 	// Use replicated events instead so that the WaitInputRelease ability task works.
 	if (Spec.IsActive())
 	{
+PRAGMA_DISABLE_DEPRECATION_WARNINGS
+		const UGameplayAbility* Instance = Spec.GetPrimaryInstance();
+		FPredictionKey OriginalPredictionKey = Instance ? Instance->GetCurrentActivationInfo().GetActivationPredictionKey() : Spec.ActivationInfo.GetActivationPredictionKey();
+PRAGMA_ENABLE_DEPRECATION_WARNINGS
+
 		// Invoke the InputReleased event. This is not replicated here. If someone is listening, they may replicate the InputReleased event to the server.
-		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, Spec.ActivationInfo.GetActivationPredictionKey());
+		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, OriginalPredictionKey);
 	}
 }
 
@@ -465,9 +471,10 @@ void UZodiacAbilitySystemComponent::NotifyAbilityActivated(const FGameplayAbilit
 {
 	Super::NotifyAbilityActivated(Handle, Ability);
 
-	UZodiacGameplayAbility* ZodiacAbility = CastChecked<UZodiacGameplayAbility>(Ability);
-
-	AddAbilityToActivationGroup(ZodiacAbility->GetActivationGroup(), ZodiacAbility);
+	if (UZodiacGameplayAbility* ZodiacAbility = CastChecked<UZodiacGameplayAbility>(Ability))
+	{
+		AddAbilityToActivationGroup(ZodiacAbility->GetActivationGroup(), ZodiacAbility);
+	}
 }
 
 void UZodiacAbilitySystemComponent::NotifyAbilityEnded(FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability,
@@ -481,10 +488,33 @@ void UZodiacAbilitySystemComponent::NotifyAbilityEnded(FGameplayAbilitySpecHandl
 	}
 }
 
-void UZodiacAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Ability,
+void UZodiacAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability,
 	const FGameplayTagContainer& FailureReason)
 {
-	UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("Ability %s failed to activate (tags: %s)"), *GetPathNameSafe(Ability), *FailureReason.ToString());
+	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
+
+	if (APawn* Avatar = Cast<APawn>(GetAvatarActor()))
+	{
+		if (!Avatar->IsLocallyControlled() && Ability->IsSupportedForNetworking())
+		{
+			ClientNotifyAbilityFailed(Ability, FailureReason);
+			return;
+		}
+	}
+
+	HandleAbilityFailed(Ability, FailureReason);
+}
+
+void UZodiacAbilitySystemComponent::ClientNotifyAbilityFailed_Implementation(const UGameplayAbility* Ability,
+																			 const FGameplayTagContainer& FailureReason)
+{
+	HandleAbilityFailed(Ability, FailureReason);
+}
+
+void UZodiacAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Ability,
+                                                        const FGameplayTagContainer& FailureReason)
+{
+	//UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("Ability %s failed to activate (tags: %s)"), *GetPathNameSafe(Ability), *FailureReason.ToString());
 
 	if (const UZodiacGameplayAbility* ZodiacAbility = Cast<const UZodiacGameplayAbility>(Ability))
 	{
@@ -505,10 +535,4 @@ void UZodiacAbilitySystemComponent::AddLooseGameplayTagForDuration(FGameplayTag 
 		Duration,
 		false
 	);
-}
-
-void UZodiacAbilitySystemComponent::ClientNotifyAbilityFailed_Implementation(const UGameplayAbility* Ability,
-                                                                             const FGameplayTagContainer& FailureReason)
-{
-	HandleAbilityFailed(Ability, FailureReason);
 }

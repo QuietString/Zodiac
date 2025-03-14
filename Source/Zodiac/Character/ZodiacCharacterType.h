@@ -5,6 +5,13 @@
 #include "CoreMinimal.h"
 #include "ZodiacCharacterType.generated.h"
 
+UENUM(BlueprintType)
+enum EZodiacCustomMovementMode
+{
+	Move_Custom_None = 0			UMETA(DisplayName="None"),
+	Move_Custom_Traversal			UMETA(DisplayName="Traversal")
+};
+
 /**
  * Secondary movement modes to distinguish different movement under equal standard MovementMode 
  */
@@ -13,7 +20,8 @@ enum class EZodiacExtendedMovementMode : uint8
 {
 	None,
 	Walking,
-	Running
+	Running,
+	Sprinting
 };
 
 USTRUCT(BlueprintType, DisplayName = "Extended Movement Config")
