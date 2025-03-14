@@ -92,11 +92,7 @@ public:
 	AController* GetControllerFromActorInfo() const;
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-#if !UE_BUILD_SHIPPING
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-#endif
-
-	virtual void SetShouldBlockOtherAbilities(bool bShouldBlockAbilities) override;
 	
 	EZodiacAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 	EZodiacAbilityActivationGroup GetActivationGroup() const { return ActivationGroup; }
@@ -136,15 +132,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Activation")
 	EZodiacAbilityActivationGroup ActivationGroup;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Host")
-	bool bIsHostAbility = false;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Host", meta = (EditCondition = "bIsHostAbility"))
-	FGameplayTagContainer CancelAbilitiesWithTag_Hero;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Host", meta = (EditCondition = "bIsHostAbility"))
-	FGameplayTagContainer BlockAbilitiesWithTag_Hero;
-	
 	// Map of failure tags to simple error messages
 	UPROPERTY(EditDefaultsOnly, Category = "Advanced")
 	TMap<FGameplayTag, FText> FailureTagToUserFacingMessages;

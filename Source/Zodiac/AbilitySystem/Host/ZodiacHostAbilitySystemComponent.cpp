@@ -18,10 +18,9 @@ void UZodiacHostAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGa
 	{
 		HostCharacter = FoundCharacter;
 	}
-
-	if (AZodiacHostCharacter* FoundCharacter = Cast<AZodiacHostCharacter>(AbilityActorInfo->OwnerActor))
+	else if (AZodiacHostCharacter* FoundOwnerCharacter = Cast<AZodiacHostCharacter>(AbilityActorInfo->OwnerActor))
 	{
-		HostCharacter = FoundCharacter;
+		HostCharacter = FoundOwnerCharacter;
 	}
 	
 	if (HostCharacter)

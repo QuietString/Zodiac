@@ -6,12 +6,12 @@
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "ZodiacHostAbilitySystemComponent.generated.h"
 
-
 UCLASS()
 class ZODIAC_API UZodiacHostAbilitySystemComponent : public UZodiacAbilitySystemComponent
 {
 	GENERATED_BODY()
 
 public:
+	// Block and cancel hero abilities too.
 	virtual void ApplyAbilityBlockAndCancelTags(const FGameplayTagContainer& AbilityTags, UGameplayAbility* RequestingAbility, bool bEnableBlockTags, const FGameplayTagContainer& BlockTags, bool bExecuteCancelTags, const FGameplayTagContainer& CancelTags) override;
 };

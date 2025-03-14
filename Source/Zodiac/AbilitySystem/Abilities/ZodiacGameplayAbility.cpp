@@ -96,34 +96,18 @@ void UZodiacGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* Acto
 	TryActivateAbilityOnSpawn(ActorInfo, Spec);
 }
 
-#if !UE_BUILD_SHIPPING
 void UZodiacGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
+#if !UE_BUILD_SHIPPING
 	if (ZodiacConsoleVariables::CVarLogPredictionKey.GetValueOnAnyThread())
 	{
 		UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s, %s: AcitvationKey: %d"), HasAuthority(&CurrentActivationInfo) ? TEXT("Server") : TEXT("Client"), *GetName(), CurrentActivationInfo.GetActivationPredictionKey().Current);
 	}
-}
-
-void UZodiacGameplayAbility::SetShouldBlockOtherAbilities(bool bShouldBlockAbilities)
-{
-	Super::SetShouldBlockOtherAbilities(bShouldBlockAbilities);
-
-	if (bIsActive && GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced && bShouldBlockAbilities != bIsBlockingOtherAbilities)
-	{
-		bIsBlockingOtherAbilities = bShouldBlockAbilities;
-
-		UAbilitySystemComponent* Comp = CurrentActorInfo->AbilitySystemComponent.Get();
-		if (Comp)
-		{
-			Comp->ApplyAbilityBlockAndCancelTags(GetAssetTags(), this, bIsBlockingOtherAbilities, BlockAbilitiesWithTag_Hero, false, CancelAbilitiesWithTag_Hero);
-		}
-	}
-}
 #endif
+}
 
 void UZodiacGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo,
                                                        const FGameplayAbilitySpec& Spec) const
