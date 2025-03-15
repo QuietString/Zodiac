@@ -38,10 +38,13 @@ public:
 
 	bool GetIsFocus() const { return bIsFocus; }
 	bool GetIsADS() const { return bIsADS; }
+
+	float GetAimYaw() const { return AimYaw; }
 	
 protected:
-	void UpdateMovementData();
-	void UpdateAimingData(float DeltaSeconds);
+	inline void UpdateMovementData();
+	inline void UpdateRotationData();
+	inline void UpdateAimingData(float DeltaSeconds);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
@@ -56,6 +59,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = Aiming_Data)
 	float AimPitch;
 
+	// Root yaw amount to make the rotation of this mesh match with parent mesh.
+	UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
+	float  RootYaw_WorldSpace;
+	
 	UPROPERTY(EditDefaultsOnly, Category = Aiming_Data)
 	FVector2D AimYawClampRange = FVector2D(-60.0f, 60.0f);
 	
@@ -80,13 +87,19 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsMoving;
 
+	UPROPERTY(BlueprintReadOnly, Transient)
+	bool bIsStrafing;
+	
 	UPROPERTY(BlueprintReadOnly)
 	EZodiacExtendedMovementMode ExtendedMovementMode;
+
+	UPROPERTY(BlueprintReadOnly, Transient)
+	float MovementAngle;
 	
 private:
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<AZodiacCharacter> ParentCharacter;
 	
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UZodiacHostAnimInstance> ParentAnimInstance;
 };

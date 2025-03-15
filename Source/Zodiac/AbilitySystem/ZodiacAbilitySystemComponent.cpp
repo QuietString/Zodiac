@@ -514,7 +514,12 @@ void UZodiacAbilitySystemComponent::ClientNotifyAbilityFailed_Implementation(con
 void UZodiacAbilitySystemComponent::HandleAbilityFailed(const UGameplayAbility* Ability,
                                                         const FGameplayTagContainer& FailureReason)
 {
-	//UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("Ability %s failed to activate (tags: %s)"), *GetPathNameSafe(Ability), *FailureReason.ToString());
+#if !UE_BUILD_SHIPPING
+	if (ZodiacConsoleVariables::CVarLogAbilityActivation.GetValueOnAnyThread())
+	{
+		UE_LOG(LogZodiacAbilitySystem, Warning, TEXT("Ability %s failed to activate (tags: %s)"), *GetPathNameSafe(Ability), *FailureReason.ToString());
+	}
+#endif
 
 	if (const UZodiacGameplayAbility* ZodiacAbility = Cast<const UZodiacGameplayAbility>(Ability))
 	{

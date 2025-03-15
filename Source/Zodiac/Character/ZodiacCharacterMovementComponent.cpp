@@ -270,7 +270,7 @@ void UZodiacCharacterMovementComponent::OnExtendedMovementModeChanged(EZodiacExt
 float UZodiacCharacterMovementComponent::CalculateMaxSpeed() const
 {
 	FRotator Rotation = GetPawnOwner() ? GetPawnOwner()->GetActorRotation() : FRotator();
-	float MovementAngle = FMath::Abs(UKismetAnimationLibrary::CalculateDirection(Velocity, Rotation));
+	MovementAngle = FMath::Abs(UKismetAnimationLibrary::CalculateDirection(Velocity, Rotation));
 	
 	float StrafeMap = StrafeSpeedMapCurve ? StrafeSpeedMapCurve->GetFloatValue(MovementAngle) : 0.f;
 

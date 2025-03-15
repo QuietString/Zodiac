@@ -29,32 +29,17 @@ void UZodiacHostAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, co
 void UZodiacHostAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility,
 	bool bWasCancelled)
 {
+	// Cache whether we were still active before calling the parent
+	bool bWasActiveBefore = bIsActive;
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
-	if (IsEndAbilityValid(Handle, ActorInfo))
+	if (bWasActiveBefore && !bIsActive)
 	{
-		if (ScopeLockCount > 0)
-		{
-			UE_LOG(LogAbilitySystem, Verbose, TEXT("Attempting to end Host Ability %s but ScopeLockCount was greater than 0, adding end to the WaitingToExecute Array"), *GetName());
-			return;
-		}
-        
-		if (GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced)
-		{
-			bIsAbilityEnding = true;
-		}
-		
-		// Protect against blueprint causing us to EndAbility already
-		if (bIsActive == false && GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::NonInstanced)
-		{
-			return;
-		}
-
 		if (UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get())
 		{
 			if (IsBlockingOtherAbilities())
 			{
-				// If we're still blocking other abilities, cancel now
 				AbilitySystemComponent->ApplyAbilityBlockAndCancelTags(GetAssetTags(), nullptr, false, BlockAbilitiesWithTag_Hero, false, CancelAbilitiesWithTag_Hero);
 			}
 		}

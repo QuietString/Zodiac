@@ -4,6 +4,7 @@
 #include "ZodiacHostAnimInstance.h"
 
 #include "AbilitySystemComponent.h"
+#include "MaterialHLSLTree.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroAnimInstance.h"
 #include "Animation/AnimNodeReference.h"
@@ -32,6 +33,8 @@ void UZodiacHostAnimInstance::NativeInitializeAnimation()
 		OwningCharacter = PawnOwner;
 		OwningCharacter->CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySystemComponentInitialized::FDelegate::CreateUObject(this, &ThisClass::InitializeWithAbilitySystem));
 	}
+
+	MaxRootRotationOffset = MaxRootRotationOffset_Idle;
 }
 
 void UZodiacHostAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -55,10 +58,10 @@ void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 		UpdateRotationData();
 		UpdateVelocityData();
 		UpdateAccelerationData(DeltaSeconds);
-		UpdateMovementData();
+		UpdateMovementData(DeltaSeconds);
 		UpdateGait();
 		UpdateHeroData();
-
+		
 		if (CurrentSelectedDatabase.IsValid())
 		{
 			CurrentDatabaseTags = CurrentSelectedDatabase->Tags;
@@ -83,10 +86,11 @@ void UZodiacHostAnimInstance::UpdateRotationData()
 	WorldRotation = OwningCharacter->GetActorRotation();
 }
 
-void UZodiacHostAnimInstance::UpdateMovementData()
+void UZodiacHostAnimInstance::UpdateMovementData(float DeltaSeconds)
 {
 	ExtendedMovementMode = ZodiacCharMovComp->GetExtendedMovementMode();
-
+	MovementAngle = ZodiacCharMovComp->GetMovementAngle();
+	
 	bIsTraversal = ZodiacCharMovComp->CustomMovementMode == Move_Custom_Traversal;
 
 	bool IsAccelerationLargeEnough = UKismetMathLibrary::VSizeXY(LocalAcceleration2D) > 0.1f;
@@ -99,6 +103,23 @@ void UZodiacHostAnimInstance::UpdateMovementData()
 
 	bIsRunningIntoWall = IsAccelerationLargeEnough && IsVelocitySmall && IsSameDirection;
 	bIsMoving = (!Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1) && !bIsRunningIntoWall);
+	
+	float TargetMaxOffset;
+	
+	if (ExtendedMovementMode == EZodiacExtendedMovementMode::Sprinting)
+	{
+		TargetMaxOffset = MaxRootRotationOffset_Sprint;
+	}
+	else if (bIsFocus || bIsADS)
+	{
+		TargetMaxOffset = MaxRootRotationOffset_Focus;
+	}
+	else
+	{
+		TargetMaxOffset = MaxRootRotationOffset_Idle;
+	}
+
+	MaxRootRotationOffset = FMath::FInterpTo(MaxRootRotationOffset, TargetMaxOffset, DeltaSeconds, InterpSpeed_MaxRootRotationOffset);
 }
 
 void UZodiacHostAnimInstance::UpdateHeroData()

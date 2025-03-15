@@ -103,6 +103,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CharacterMovement")
 	const FZodiacCharacterGroundInfo& GetGroundInfo();
 	
+	float GetMovementAngle() const { return MovementAngle; }
+	
 protected:
 	void OnExtendedMovementModeChanged(EZodiacExtendedMovementMode PreviousMovementMode);
 	
@@ -123,6 +125,9 @@ private:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Walk Modes", meta = (AllowPrivateAccess = true))
 	EZodiacExtendedMovementMode ExtendedMovementMode;
 
+	UPROPERTY(Transient)
+	mutable float MovementAngle;
+	
 	UPROPERTY(Transient)
 	bool bHasReplicatedAcceleration = false;
 };

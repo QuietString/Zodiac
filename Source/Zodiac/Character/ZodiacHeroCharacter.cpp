@@ -282,6 +282,16 @@ void AZodiacHeroCharacter::Deactivate()
 	OnHeroDeactivated_BP.Broadcast(this);
 }
 
+float AZodiacHeroCharacter::GetAimYaw() const
+{
+	if (UZodiacHeroAnimInstance* HeroAnimInstance = GetHeroAnimInstance())
+	{
+		return HeroAnimInstance->GetAimYaw();
+	}
+
+	return 0.0f;
+}
+
 void AZodiacHeroCharacter::InitializeWithHostCharacter()
 {
 	HostCharacter = Cast<AZodiacHostCharacter>(Owner);

@@ -32,6 +32,7 @@ void UZodiacHeroAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 	}
 
 	UpdateMovementData();
+	UpdateRotationData();
 	UpdateAimingData(DeltaSeconds);
 }
 
@@ -90,17 +91,33 @@ void UZodiacHeroAnimInstance::UpdateMovementData()
 	bIsTraversal = ParentAnimInstance->bIsTraversal;
 
 	ExtendedMovementMode = ParentAnimInstance->ExtendedMovementMode;
+	
+	bIsStrafing = (ExtendedMovementMode != EZodiacExtendedMovementMode::Sprinting);
+	MovementAngle = ParentAnimInstance->MovementAngle;
+}
+
+void UZodiacHeroAnimInstance::UpdateRotationData()
+{
+	RootYaw_WorldSpace = ParentAnimInstance->RootTransform.Rotator().Yaw - 90.f;
 }
 
 void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 {
 	FRotator ActorRotation = ParentCharacter->GetActorRotation();
 	FRotator AimRotation = ParentCharacter->GetBaseAimRotation();
+	FRotator ControlRotation = ParentCharacter->GetControlRotation();
+	//FRotator TargetRotation = ParentCharacter->IsLocallyControlled() ? ControlRotation : AimRotation; 
+	
 	FRotator RootTransform = ParentAnimInstance->RootTransform.Rotator();
 	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
 	
 	RootYawOffset = - Delta.Yaw;
+	if (!bIsStrafing)
+	{
+		FRotator DeltaRotator = UKismetMathLibrary::NormalizedDeltaRotator(ControlRotation, ActorRotation);
+		RootYawOffset += DeltaRotator.Yaw;
+	}
+	
 	AimYaw = Delta.Yaw;
 	AimPitch = Delta.Pitch;
-	FMath::Clamp(AimYaw, AimYawClampRange.X, AimYawClampRange.Y);
 }

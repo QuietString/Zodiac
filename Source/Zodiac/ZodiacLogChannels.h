@@ -19,4 +19,9 @@ namespace ZodiacConsoleVariables
 		TEXT("zodiac.PredictionKey.ShowDebug"),
 		false,
 		TEXT(""));
+
+	inline TAutoConsoleVariable<bool> CVarLogAbilityActivation(
+		TEXT("zodiac.AbilitySystem.ActivationFail.ShowDebug"),
+		false,
+		TEXT(""));
 }
