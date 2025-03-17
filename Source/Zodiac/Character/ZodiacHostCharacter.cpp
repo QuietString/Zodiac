@@ -31,6 +31,7 @@ void AZodiacHostCharacter::ToggleSprint(const bool bShouldSprint)
 {
 	if (UZodiacCharacterMovementComponent* ZodiacCharMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
 	{
+		ReplicatedIndependentYaw.bIsAllowed = bShouldSprint;
 		ZodiacCharMoveComp->ToggleSprint(bShouldSprint);
 	}
 }

@@ -98,26 +98,43 @@ void UZodiacHeroAnimInstance::UpdateMovementData()
 
 void UZodiacHeroAnimInstance::UpdateRotationData()
 {
-	RootYaw_WorldSpace = ParentAnimInstance->RootTransform.Rotator().Yaw - 90.f;
+	RootRotationOffset = ParentAnimInstance->RootTransform.Rotator();
+	RootRotationOffset.Yaw -= 90.f;
 }
 
 void UZodiacHeroAnimInstance::UpdateAimingData(float DeltaSeconds)
 {
-	FRotator ActorRotation = ParentCharacter->GetActorRotation();
+	AimYawLast = AimYaw;
+	
 	FRotator AimRotation = ParentCharacter->GetBaseAimRotation();
 	FRotator ControlRotation = ParentCharacter->GetControlRotation();
-	//FRotator TargetRotation = ParentCharacter->IsLocallyControlled() ? ControlRotation : AimRotation; 
-	
+	FRotator TargetRotation = ParentCharacter->IsLocallyControlled() ? ControlRotation : AimRotation; 
 	FRotator RootTransform = ParentAnimInstance->RootTransform.Rotator();
-	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(AimRotation, RootTransform);
-	
-	RootYawOffset = - Delta.Yaw;
-	if (!bIsStrafing)
-	{
-		FRotator DeltaRotator = UKismetMathLibrary::NormalizedDeltaRotator(ControlRotation, ActorRotation);
-		RootYawOffset += DeltaRotator.Yaw;
-	}
-	
-	AimYaw = Delta.Yaw;
+
+	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(TargetRotation, RootTransform);
 	AimPitch = Delta.Pitch;
+	
+	if (ParentCharacter->GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		// Ignore large error caused by actor rotation de-sync when not strafing.
+		// When UCharacterMovementComponent->bOrientRotationToMovement become true, actor rotate towards input direction and AimYaw become large.
+		// In that case, we will use ReplicatedIndependentYaw, but it replicates slowly.
+		float YawDiff = FRotator::NormalizeAxis(Delta.Yaw - AimYawLast);
+		
+		if (FMath::Abs(YawDiff) < 70.f)
+		{
+			AimYaw = Delta.Yaw;
+		}
+		
+		FZodiacReplicatedIndependentYaw IndependentYaw = ParentCharacter->GetReplicatedIndependentYaw();
+		if (IndependentYaw.bIsAllowed)
+		{
+			FRotator IndependentAimRotation(0.f, IndependentYaw.GetUnpackedYaw(), 0.f);
+			AimYaw = FRotator::NormalizeAxis(IndependentYaw.GetUnpackedYaw() - RootTransform.Yaw);
+		}
+	}
+	else
+	{
+		AimYaw = Delta.Yaw;
+	}
 }

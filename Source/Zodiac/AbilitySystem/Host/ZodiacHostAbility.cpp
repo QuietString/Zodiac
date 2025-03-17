@@ -2,18 +2,9 @@
 
 
 #include "ZodiacHostAbility.h"
-
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
-#include "AbilitySystemLog.h"
 
-namespace FAbilitySystemTweaks
-{
-	int ClearAbilityTimers = 1;
-	FAutoConsoleVariableRef CVarClearAbilityTimers(TEXT("AbilitySystem.ClearAbilityTimers"), FAbilitySystemTweaks::ClearAbilityTimers, TEXT("Whether to call ClearAllTimersForObject as part of EndAbility call"), ECVF_Default);
-}
-
-int32 FScopedCanActivateAbilityLogEnabler::LogEnablerCounter = 0;
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHostAbility)
 
 void UZodiacHostAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
                                      FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate, const FGameplayEventData* TriggerEventData)

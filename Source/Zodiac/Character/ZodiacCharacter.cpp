@@ -133,6 +133,7 @@ void AZodiacCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedAcceleration, COND_SimulatedOnly);
+	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedIndependentYaw, COND_SimulatedOnly);
 }
 
 void AZodiacCharacter::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)
@@ -150,6 +151,12 @@ void AZodiacCharacter::PreReplication(IRepChangedPropertyTracker& ChangedPropert
 		ReplicatedAcceleration.AccelXYRadians   = FMath::FloorToInt((AccelXYRadians / TWO_PI) * 255.0);     // [0, 2PI] -> [0, 255]
 		ReplicatedAcceleration.AccelXYMagnitude = FMath::FloorToInt((AccelXYMagnitude / MaxAccel) * 255.0);	// [0, MaxAccel] -> [0, 255]
 		ReplicatedAcceleration.AccelZ           = FMath::FloorToInt((CurrentAccel.Z / MaxAccel) * 127.0);   // [-MaxAccel, MaxAccel] -> [-127, 127]
+	}
+
+	if (Controller && ReplicatedIndependentYaw.bIsAllowed)
+	{
+		const FRotator ControlRotation = Controller->GetControlRotation();
+		ReplicatedIndependentYaw.Yaw = FMath::FloorToInt(ControlRotation.Yaw * 255.0 / 360.0);     // [0, 360] -> [0, 255]
 	}
 }
 

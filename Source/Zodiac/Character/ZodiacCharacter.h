@@ -67,6 +67,20 @@ struct FSharedRepMovement
 	bool bProxyIsJumpForceApplied = false;
 };
 
+USTRUCT()
+struct FZodiacReplicatedIndependentYaw
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	bool bIsAllowed = false;
+	
+	UPROPERTY()
+	uint8 Yaw = 0;
+
+	double GetUnpackedYaw() { return double(Yaw) * 360.0f / 255.0f;}
+};
+
 template<>
 struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBase2<FSharedRepMovement>
 {
@@ -133,6 +147,8 @@ public:
 	virtual void OnExtendedMovementModeChanged(EZodiacExtendedMovementMode PreviousMode);
 	virtual void SetExtendedMovementModeTag(EZodiacExtendedMovementMode ExtendedMovementMode, bool bTagEnabled);
 
+	FZodiacReplicatedIndependentYaw GetReplicatedIndependentYaw() const { return ReplicatedIndependentYaw; };
+	
 protected:	
 	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner);
 	
@@ -164,10 +180,10 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
 
-private:
-	UPROPERTY(Transient)
-	bool bWantsToStrafe;
+	UPROPERTY(Replicated, Transient)
+	FZodiacReplicatedIndependentYaw ReplicatedIndependentYaw;
 
+private:
 	UPROPERTY()
 	bool bMovementDisabled = false;
 	

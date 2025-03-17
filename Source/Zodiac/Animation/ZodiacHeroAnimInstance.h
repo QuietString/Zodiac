@@ -57,12 +57,15 @@ protected:
 	float AimYaw;
 
 	UPROPERTY(BlueprintReadOnly, Category = Aiming_Data)
+	float AimYawLast;
+	
+	UPROPERTY(BlueprintReadOnly, Category = Aiming_Data)
 	float AimPitch;
 
 	// Root yaw amount to make the rotation of this mesh match with parent mesh.
 	UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
-	float  RootYaw_WorldSpace;
-	
+	FRotator RootRotationOffset;
+
 	UPROPERTY(EditDefaultsOnly, Category = Aiming_Data)
 	FVector2D AimYawClampRange = FVector2D(-60.0f, 60.0f);
 	
