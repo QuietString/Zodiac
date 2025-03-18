@@ -24,4 +24,9 @@ namespace ZodiacConsoleVariables
 		TEXT("zodiac.AbilitySystem.ActivationFail.ShowDebug"),
 		false,
 		TEXT(""));
+
+	inline TAutoConsoleVariable<bool> CVarLogMotionMatching(
+		TEXT("zodiac.MotionMatching.ShowDebug"),
+		false,
+		TEXT(""));
 }

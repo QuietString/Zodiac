@@ -49,7 +49,8 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
+	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
+	UZodiacHeroAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
 	UZodiacAbilitySystemComponent* GetHostAbilitySystemComponent() const;
 	
 	const UZodiacHeroData* GetHeroData() const { return HeroData; }
@@ -96,7 +97,7 @@ protected:
 
 	void AttachToOwner();
 
-	void OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* HostASC);
+	void OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* InHostASC);
 
 protected:
 	UPROPERTY(VisibleAnywhere)

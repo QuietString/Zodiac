@@ -7,6 +7,7 @@
 #include "AbilitySystemLog.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Hero/ZodiacHeroAbilitySystemComponent.h"
+#include "AbilitySystem/Host/ZodiacHostAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/RootMotionSource.h"
 #include "Net/UnrealNetwork.h"
@@ -114,7 +115,7 @@ void UZodiacAbilityTask_ApplyRootMotionConstantForceOnHost::OnDestroy(bool Abili
 void UZodiacAbilityTask_ApplyRootMotionConstantForceOnHost::SharedInitAndApply()
 {
 	UZodiacHeroAbilitySystemComponent* HeroASC = Cast<UZodiacHeroAbilitySystemComponent>(AbilitySystemComponent.Get());
-	UZodiacAbilitySystemComponent* HostASC = HeroASC->GetHostAbilitySystemComponent();
+	UZodiacHostAbilitySystemComponent* HostASC = HeroASC->GetHostAbilitySystemComponent();
 	
 	if (HostASC && HostASC->AbilityActorInfo->MovementComponent.IsValid())
 	{

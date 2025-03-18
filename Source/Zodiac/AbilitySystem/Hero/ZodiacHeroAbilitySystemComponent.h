@@ -7,16 +7,23 @@
 #include "ZodiacHeroAbilitySystemComponent.generated.h"
 
 
+class UZodiacHostAbilitySystemComponent;
+
 UCLASS()
 class ZODIAC_API UZodiacHeroAbilitySystemComponent : public UZodiacAbilitySystemComponent
 {
 	GENERATED_BODY()
 
 public:
-	UZodiacAbilitySystemComponent* GetHostAbilitySystemComponent() const { return HostAbilitySystemComponent; }
-	void SetHostAbilitySystemComponent(UZodiacAbilitySystemComponent* InASC);
-	
+	UZodiacHostAbilitySystemComponent* GetHostAbilitySystemComponent() const { return HostAbilitySystemComponent; }
+	void SetHostAbilitySystemComponent(UZodiacHostAbilitySystemComponent* InASC);
+
+	virtual void ApplyAbilityBlockAndCancelTags(const FGameplayTagContainer& AbilityTags, UGameplayAbility* RequestingAbility, bool bEnableBlockTags, const FGameplayTagContainer& BlockTags, bool bExecuteCancelTags, const FGameplayTagContainer& CancelTags) override;
+
+	// When should call ApplyAbilityBlockAndCancelTags from HostASC, don't call HostASC's one. 
+	virtual void ApplyAbilityBlockAndCancelTags_FromHostASC(const FGameplayTagContainer& AbilityTags, UGameplayAbility* RequestingAbility, bool bEnableBlockTags, const FGameplayTagContainer& BlockTags, bool bExecuteCancelTags, const FGameplayTagContainer& CancelTags);
+
 protected:
 	UPROPERTY()
-	TObjectPtr<UZodiacAbilitySystemComponent> HostAbilitySystemComponent;
+	TObjectPtr<UZodiacHostAbilitySystemComponent> HostAbilitySystemComponent;
 };

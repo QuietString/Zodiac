@@ -43,6 +43,11 @@ AZodiacHeroCharacter* UZodiacHeroAbility::GetHeroActorFromActorInfo() const
 	return (CurrentActorInfo ? Cast<AZodiacHeroCharacter>(GetAvatarActorFromActorInfo()) : nullptr);
 }
 
+AZodiacHeroCharacter* UZodiacHeroAbility::GetHeroCharacterFromActorInfo() const
+{
+	return (CurrentActorInfo ? Cast<AZodiacHeroCharacter>(GetAvatarActorFromActorInfo()) : nullptr);
+}
+
 UZodiacHeroAbilitySlot* UZodiacHeroAbility::GetAssociatedSlot() const
 {
 	if (FGameplayAbilitySpec* Spec = GetCurrentAbilitySpec())
@@ -135,6 +140,15 @@ bool UZodiacHeroAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Han
 			}
 		}
 	}
+
+	if (AllowedAimYaw > 0.f)
+	{
+		if (!IsInAllowedAimRange())
+		{
+			OptionalRelevantTags->AddTag(ZodiacGameplayTags::Ability_ActivateFail_OutOfAllowedAimRange);
+			return false;
+		}
+	}
 	
 	return true;
 }
@@ -149,6 +163,11 @@ void UZodiacHeroAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, co
 	{
 		HostASC->AddLooseGameplayTags(ActivationOwnedTagsHost);
 	}
+
+	UAbilitySystemComponent* Comp = ActorInfo->AbilitySystemComponent.Get();
+
+	// Block and cancel host abilities too.
+	Comp->ApplyAbilityBlockAndCancelTags(GetAssetTags(), nullptr, true, BlockAbilitiesWithTag_Host, true, CancelAbilitiesWithTag_Host);
 }
 
 bool UZodiacHeroAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -252,8 +271,22 @@ void UZodiacHeroAbility::ApplyCooldown(const FGameplayAbilitySpecHandle Handle,
 void UZodiacHeroAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	// Cache whether we were still active before calling the parent
+	bool bWasActiveBefore = bIsActive;
+	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 
+	if (bWasActiveBefore && !bIsActive)
+	{
+		if (UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get())
+		{
+			if (IsBlockingOtherAbilities())
+			{
+				AbilitySystemComponent->ApplyAbilityBlockAndCancelTags(GetAssetTags(), nullptr, false, BlockAbilitiesWithTag_Host, false, CancelAbilitiesWithTag_Host);
+			}
+		}
+	}
+	
 	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
 	{
 		HostASC->RemoveLooseGameplayTags(ActivationOwnedTagsHost);
@@ -279,6 +312,19 @@ FVector UZodiacHeroAbility::GetWeaponLocation() const
 	}
 
 	return  FVector();
+}
+
+bool UZodiacHeroAbility::IsInAllowedAimRange() const
+{
+	if (AllowedAimYaw > 0.f)
+	{
+		if (AZodiacHeroCharacter* Hero = GetHeroActorFromActorInfo())
+		{
+			return FMath::Abs(Hero->GetAimYaw()) <= AllowedAimYaw;
+		}	
+	}
+
+	return true;
 }
 
 void UZodiacHeroAbility::ApplySlotReticle()

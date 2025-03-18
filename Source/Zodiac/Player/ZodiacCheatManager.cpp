@@ -9,6 +9,7 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacPlayerController.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "AbilitySystem/Hero/ZodiacHeroAbilitySystemComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"

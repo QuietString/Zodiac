@@ -178,7 +178,7 @@ UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetZodiacAbilitySystemCompo
 {
 	if (AZodiacHeroCharacter* Hero = HeroList.GetHero(ActiveHeroIndex))
 	{
-		return Hero->GetHeroAbilitySystemComponent();
+		return Hero->GetZodiacAbilitySystemComponent();
 	}
 	
 	return nullptr;
@@ -233,7 +233,7 @@ UZodiacAbilitySystemComponent* AZodiacHostCharacter::GetHeroAbilitySystemCompone
 {
 	if (AZodiacHeroCharacter* Hero = HeroList.GetHero(ActiveHeroIndex))
 	{
-		return Hero->GetHeroAbilitySystemComponent();
+		return Hero->GetZodiacAbilitySystemComponent();
 	}
 	
 	return nullptr;

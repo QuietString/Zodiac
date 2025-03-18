@@ -3,6 +3,7 @@
 
 #include "ZodiacHostAbilitySystemComponent.h"
 
+#include "AbilitySystem/Hero/ZodiacHeroAbilitySystemComponent.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 
@@ -27,10 +28,16 @@ void UZodiacHostAbilitySystemComponent::ApplyAbilityBlockAndCancelTags(const FGa
 	{
 		for (auto& Hero : HostCharacter->GetHeroes())
 		{
-			if (UAbilitySystemComponent* ASC = Hero->GetAbilitySystemComponent())
+			if (UZodiacHeroAbilitySystemComponent* HeroASC = Hero->GetHeroAbilitySystemComponent())
 			{
-				ASC->ApplyAbilityBlockAndCancelTags(AbilityTags, nullptr, bEnableBlockTags, BlockTags, bExecuteCancelTags, CancelTags);
+				HeroASC->ApplyAbilityBlockAndCancelTags_FromHostASC(AbilityTags, nullptr, bEnableBlockTags, BlockTags, bExecuteCancelTags, CancelTags);
 			}
 		}
 	}
+}
+
+void UZodiacHostAbilitySystemComponent::ApplyAbilityBlockAndCancelTags_FromHeroASC(const FGameplayTagContainer& AbilityTags, UGameplayAbility* RequestingAbility, bool bEnableBlockTags,
+	const FGameplayTagContainer& BlockTags, bool bExecuteCancelTags, const FGameplayTagContainer& CancelTags)
+{
+	Super::ApplyAbilityBlockAndCancelTags(AbilityTags, RequestingAbility, bEnableBlockTags, BlockTags, bExecuteCancelTags, CancelTags);
 }

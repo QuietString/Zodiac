@@ -31,6 +31,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	AZodiacHeroCharacter* GetHeroActorFromActorInfo() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	AZodiacHeroCharacter* GetHeroCharacterFromActorInfo() const;
 	
 	UFUNCTION(BlueprintCallable)
 	UZodiacHeroAbilitySlot* GetAssociatedSlot() const;
@@ -73,6 +76,9 @@ public:
 	
 	FVector GetWeaponLocation() const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsInAllowedAimRange() const;
+	
 protected:
 	UFUNCTION(BlueprintCallable)
 	void ApplySlotReticle();
@@ -104,6 +110,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldowns")
 	FGameplayTagContainer CooldownTags;
+
+	// Disabled when the value is less than or equal to 0.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Activation", meta = (ClampMin = -1, CLampMax = 180))
+	float AllowedAimYaw = -1.f;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "FX")
 	uint8 ComboIndex = 0;
@@ -120,6 +130,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Tags)
 	FGameplayTagContainer ActivationBlockedTagsHost;
 
+	UPROPERTY(EditDefaultsOnly, Category = Tags)
+	FGameplayTagContainer BlockAbilitiesWithTag_Host;
+	
+	UPROPERTY(EditDefaultsOnly, Category = Tags)
+	FGameplayTagContainer CancelAbilitiesWithTag_Host;
+	
 	// List of actors that will be used for specific combo fire. Each actor has a socket for firing. These actors should be included in ActorsToSpawn in HeroAbilitySlotDefinition
 	UPROPERTY(EditAnywhere, Category = "FX")
 	TArray<TSubclassOf<AZodiacHeroAbilitySlotActor>> SocketSourceClasses;

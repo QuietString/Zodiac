@@ -199,7 +199,7 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 		{
 			if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(DamageCauser))
 			{
-				if (UAbilitySystemComponent* InstigatorASC = HeroCharacter->GetHeroAbilitySystemComponent())
+				if (UAbilitySystemComponent* InstigatorASC = HeroCharacter->GetAbilitySystemComponent())
 				{
 					FGameplayEventData Payload;
 					Payload.EventTag = ZodiacGameplayTags::Event_Elimination;

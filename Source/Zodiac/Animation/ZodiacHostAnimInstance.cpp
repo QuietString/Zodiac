@@ -7,6 +7,7 @@
 #include "MaterialHLSLTree.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroAnimInstance.h"
+#include "ZodiacLogChannels.h"
 #include "Animation/AnimNodeReference.h"
 #include "Character/ZodiacCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
@@ -202,7 +203,6 @@ void UZodiacHostAnimInstance::UpdateGait()
 				Gait = Gait_Walk;
 			default:
 				return;
-				
 			}
 		}
 	}
@@ -220,6 +220,13 @@ void UZodiacHostAnimInstance::UpdateMotionMatchingPoseSelection(const FAnimUpdat
 		if (bIsResultValid)
 		{
 			CurrentSelectedDatabase = SearchResult.SelectedDatabase;
+
+#if WITH_EDITORONLY_DATA
+		if (ZodiacConsoleVariables::CVarLogMotionMatching.GetValueOnAnyThread())
+		{
+			Debug_SelectedAnimSequence = Cast<UAnimSequence>(SearchResult.SelectedAnimation);
+		}
+#endif
 		}
 	}
 }

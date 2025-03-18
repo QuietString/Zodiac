@@ -13,6 +13,7 @@
 #include "Animation/ZodiacHeroAnimInstance.h"
 #include "ZodiacHeroAbilityManagerComponent.h"
 #include "ZodiacHeroSkeletalMeshComponent.h"
+#include "AbilitySystem/Host/ZodiacHostAbilitySystemComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -119,7 +120,12 @@ UAbilitySystemComponent* AZodiacHeroCharacter::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
-UZodiacAbilitySystemComponent* AZodiacHeroCharacter::GetHeroAbilitySystemComponent() const
+UZodiacAbilitySystemComponent* AZodiacHeroCharacter::GetZodiacAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+UZodiacHeroAbilitySystemComponent* AZodiacHeroCharacter::GetHeroAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
@@ -333,11 +339,11 @@ void AZodiacHeroCharacter::AttachToOwner()
 	}
 }
 
-void AZodiacHeroCharacter::OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* HostASC)
+void AZodiacHeroCharacter::OnHostAbilitySystemComponentInitialized(UAbilitySystemComponent* InHostASC)
 {
-	if (UZodiacAbilitySystemComponent* ZodiacASC = Cast<UZodiacAbilitySystemComponent>(HostASC))
+	if (UZodiacHostAbilitySystemComponent* HostASC = Cast<UZodiacHostAbilitySystemComponent>(InHostASC))
 	{
-		AbilitySystemComponent->SetHostAbilitySystemComponent(ZodiacASC);	
+		AbilitySystemComponent->SetHostAbilitySystemComponent(HostASC);	
 	}
 }
 

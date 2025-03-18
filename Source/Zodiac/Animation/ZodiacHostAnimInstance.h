@@ -187,4 +187,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FName> CurrentDatabaseTags;
+
+#if WITH_EDITORONLY_DATA
+	UPROPERTY(Transient, BlueprintReadOnly)
+	TObjectPtr<const UAnimSequence> Debug_SelectedAnimSequence;
+#endif
 };
