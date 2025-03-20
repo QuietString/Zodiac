@@ -198,13 +198,15 @@ void UZodiacHitReactSimulationComponent::OnPlayHitReact(FVector HitDirection, FN
 
 void UZodiacHitReactSimulationComponent::OnDeathStarted(AActor* OwningActor)
 {
-	// Stop updating simulation blending from TickComponent()	
+	// Stop updating simulation blend weights from TickComponent()	
 	SetComponentTickEnabled(false);
 
 	if (UCapsuleComponent* OwnerCapsule = OwningActor->FindComponentByClass<UCapsuleComponent>())
 	{
 		OwnerCapsule->SetCollisionProfileName(TEXT("ZodiacPawnCapsuleDying"));
 	}
+
+	TargetMeshComponent->bPauseAnims = true;
 	
 	if (OwningActor->HasAuthority())
 	{

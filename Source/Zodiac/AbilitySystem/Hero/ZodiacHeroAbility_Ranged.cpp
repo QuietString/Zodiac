@@ -631,17 +631,17 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 
 	UZodiacHeroAbilitySlot* Slot = GetAssociatedSlot();
 
+	const FHitResult* FirstHitResult = TargetData.Get(0)->GetHitResult();
+	GameplayCueParams_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*FirstHitResult);
+	GameplayCueParams_Firing.SourceObject = GetCurrentSocketSourceActor();
+	GameplayCueParams_Firing.Instigator = const_cast<AActor*>(Instigator);
+	GameplayCueParams_Firing.TargetAttachComponent = TargetAttachComponent;
+	
 	if (UZodiacAbilitySystemComponent* HostASC = Cast<UZodiacAbilitySystemComponent>(GetHostAbilitySystemComponent()))
 	{
-		const FHitResult* FirstHitResult = TargetData.Get(0)->GetHitResult();
-		GameplayCueParams_Firing = UGameplayCueFunctionLibrary::MakeGameplayCueParametersFromHitResult(*FirstHitResult);
-		GameplayCueParams_Firing.SourceObject = GetCurrentSocketSourceActor();
-		GameplayCueParams_Firing.Instigator = const_cast<AActor*>(Instigator);
-		GameplayCueParams_Firing.TargetAttachComponent = TargetAttachComponent;
-		
 		HostASC->ExecuteGameplayCue(GameplayCueTag_Firing, GameplayCueParams_Firing);
 		AdvanceCombo();
-
+		
 		for (auto& SingleTargetData : TargetData.Data)
 		{
 			const FHitResult* HitResult = SingleTargetData->GetHitResult();
@@ -653,14 +653,14 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 			}
 		}
 
-		if (ChargeUltimateEffectClass && FirstHitResult)
+		if (ChargeUltimateEffectClass && FirstHitResult->bBlockingHit && HasAuthority(&CurrentActivationInfo))
 		{
 			if (AActor* HitActor = FirstHitResult->GetActor())
 			{
 				UZodiacTeamSubsystem* TeamSubsystem = GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
 				if (TeamSubsystem->CanCauseDamage(GetZodiacHostCharacterFromActorInfo(), HitActor, false))
 				{
-					// charge ultimate when any enemies is hit
+					// charge ultimate when any enemy is hit
 					ChargeUltimate();
 				}
 			}

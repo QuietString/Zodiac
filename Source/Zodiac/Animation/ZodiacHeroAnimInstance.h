@@ -42,9 +42,9 @@ public:
 	float GetAimYaw() const { return AimYaw; }
 	
 protected:
-	inline void UpdateMovementData();
-	inline void UpdateRotationData();
-	inline void UpdateAimingData(float DeltaSeconds);
+	void UpdateMovementData();
+	void UpdateRotationData();
+	void UpdateAimingData(float DeltaSeconds);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")

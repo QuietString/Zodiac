@@ -26,6 +26,8 @@ AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
 	PhysicalAnimationComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicalAnimationComponent>(this, TEXT("PhysicalAnimationComponent"));
+
+	GetCharacterMovement()->GetNavMovementProperties()->bUseAccelerationForPaths = true;
 }
 
 UZodiacAbilitySystemComponent* AZodiacMonster::GetZodiacAbilitySystemComponent() const

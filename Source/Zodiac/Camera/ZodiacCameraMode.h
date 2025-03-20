@@ -90,6 +90,8 @@ public:
 		return CameraTypeTag;
 	}
 
+	bool GetHasCloseContact() const { return bHasCloseContact; }
+
 	virtual void DrawDebug(UCanvas* Canvas) const;
 
 protected:
@@ -143,6 +145,9 @@ protected:
 	/** If true, skips all interpolation and puts camera in ideal location.  Automatically set to false next frame. */
 	UPROPERTY(transient)
 	uint32 bResetInterpolation:1;
+
+	UPROPERTY(Transient)
+	bool bHasCloseContact = false;
 };
 
 
@@ -174,6 +179,8 @@ public:
 	// Gets the tag associated with the top layer and the blend weight of it
 	void GetBlendInfo(float& OutWeightOfTopLayer, FGameplayTag& OutTagOfTopLayer) const;
 
+	UZodiacCameraMode* GetTopCameraMode() const;
+	
 protected:
 
 	UZodiacCameraMode* GetCameraModeInstance(TSubclassOf<UZodiacCameraMode> CameraModeClass);

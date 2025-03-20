@@ -87,6 +87,9 @@ protected:
 	void ClearSlotReticle();
 
 	UFUNCTION(BlueprintCallable)
+	void ClearCameraModeAfterDuration(float Duration, FTimerHandle& RemoveHandle);
+	
+	UFUNCTION(BlueprintCallable)
 	void SetTargetAttachComponent(USceneComponent* InAttachComponent) { TargetAttachComponent = InAttachComponent; }
 
 	UFUNCTION(BlueprintCallable)

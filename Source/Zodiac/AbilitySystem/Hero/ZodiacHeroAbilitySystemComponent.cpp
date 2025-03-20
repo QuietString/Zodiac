@@ -4,6 +4,7 @@
 #include "ZodiacHeroAbilitySystemComponent.h"
 
 #include "AbilitySystem/Host/ZodiacHostAbilitySystemComponent.h"
+#include "Character/ZodiacHostCharacter.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbilitySystemComponent)
 
@@ -28,4 +29,20 @@ void UZodiacHeroAbilitySystemComponent::ApplyAbilityBlockAndCancelTags_FromHostA
 	const FGameplayTagContainer& BlockTags, bool bExecuteCancelTags, const FGameplayTagContainer& CancelTags)
 {
 	Super::ApplyAbilityBlockAndCancelTags(AbilityTags, RequestingAbility, bEnableBlockTags, BlockTags, bExecuteCancelTags, CancelTags);
+}
+
+void UZodiacHeroAbilitySystemComponent::ClearCameraModeAfterDuration(const FGameplayAbilitySpecHandle& OwningSpecHandle, float Duration, FTimerHandle& RemoveHandle)
+{
+	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetOwnerActor()))
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+    		RemoveHandle,
+    		[HostCharacter = HostCharacter, OwningSpecHandle = OwningSpecHandle]()
+    		{
+    			HostCharacter->ClearAbilityCameraMode(OwningSpecHandle);
+    		},
+    		Duration,
+    		false
+    	);	
+	}
 }

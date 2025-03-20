@@ -42,9 +42,12 @@ void AZodiacPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!HasAuthority())
+	if (APlayerController* PC = GetPlayerController())
 	{
-		ServerNotifyClientIsReady();	
+		if (PC->IsLocalPlayerController())
+		{
+			ServerNotifyClientIsReady();	
+		}
 	}
 }
 

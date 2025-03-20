@@ -81,12 +81,35 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 		DesiredView.PostProcessSettings = PostProcessSettings;
 	}
 
+	bHasCloseContact = CheckHasCloseTarget();
+	
+	if (bHasCloseContact && !bPreviousCloseContact)
+	{
+		OnCloseContactStarted.ExecuteIfBound();
+	}
+
+	if (!bHasCloseContact && bPreviousCloseContact)
+	{
+		OnCloseContactFinished.ExecuteIfBound();
+	}
+
+	bPreviousCloseContact = bHasCloseContact;
 
 	if (IsXRHeadTrackedCamera())
 	{
 		// In XR much of the camera behavior above is irrellevant, but the post process settings are not.
 		Super::GetCameraView(DeltaTime, DesiredView);
 	}
+}
+
+bool UZodiacCameraComponent::CheckHasCloseTarget()
+{
+	if (UZodiacCameraMode* TopCameraMode = CameraModeStack->GetTopCameraMode())
+	{
+		return TopCameraMode->GetHasCloseContact();
+	}
+
+	return false;
 }
 
 void UZodiacCameraComponent::UpdateCameraModes()
@@ -137,7 +160,5 @@ void UZodiacCameraComponent::DrawDebug(UCanvas* Canvas) const
 void UZodiacCameraComponent::GetBlendInfo(float& OutWeightOfTopLayer, FGameplayTag& OutTagOfTopLayer) const
 {
 	check(CameraModeStack);
-	CameraModeStack->GetBlendInfo(/*out*/ OutWeightOfTopLayer, /*out*/ OutTagOfTopLayer);
+	CameraModeStack->GetBlendInfo(OUT OutWeightOfTopLayer, OUT OutTagOfTopLayer);
 }
-
-

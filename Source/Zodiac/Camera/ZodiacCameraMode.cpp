@@ -452,7 +452,6 @@ void UZodiacCameraModeStack::GetBlendInfo(float& OutWeightOfTopLayer, FGameplayT
 	{
 		OutWeightOfTopLayer = 1.0f;
 		OutTagOfTopLayer = FGameplayTag();
-		return;
 	}
 	else
 	{
@@ -463,3 +462,12 @@ void UZodiacCameraModeStack::GetBlendInfo(float& OutWeightOfTopLayer, FGameplayT
 	}
 }
 
+UZodiacCameraMode* UZodiacCameraModeStack::GetTopCameraMode() const
+{
+	if (UZodiacCameraMode* TopEntry = CameraModeStack.Last())
+	{
+		return TopEntry;	
+	}
+
+	return nullptr;
+}

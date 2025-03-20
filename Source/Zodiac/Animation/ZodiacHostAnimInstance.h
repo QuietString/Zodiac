@@ -48,14 +48,14 @@ protected:
 	void UpdateMotionMatchingPoseSelection(const FAnimUpdateContext& Context, const FAnimNodeReference& Node);
 	
 private:
-	inline void UpdateLocationData(float DeltaSeconds);
-	inline void UpdateRotationData();
+	void UpdateLocationData(float DeltaSeconds);
+	void UpdateRotationData();
 	
-	inline void UpdateVelocityData();
-	inline void UpdateAccelerationData(float DeltaSeconds);
+	void UpdateVelocityData();
+	void UpdateAccelerationData(float DeltaSeconds);
 	
-	inline void UpdateMovementData(float DeltaSeconds);
-	inline void UpdateHeroData();
+	void UpdateMovementData(float DeltaSeconds);
+	void UpdateHeroData();
 	
 public:
 	UPROPERTY(BlueprintReadOnly, meta=(DisplayName = CharacterMovement))

@@ -33,20 +33,40 @@ protected:
 	void UpdatePreventPenetration(float DeltaTime);
 	void PreventCameraPenetration(class AActor const& ViewTarget, FVector const& SafeLoc, FVector& CameraLoc, float const& DeltaTime, float& DistBlockedPct, bool bSingleRayOnly);
 
-	bool CheckCloseContact();
+	inline bool CheckCloseContact();
+	inline void SetCloseContactOffset(const FVector& InBlendStartOffset, const FVector& InBlendEndOffset, float Weight);
 	
 	virtual void DrawDebug(UCanvas* Canvas) const override;
 
 protected:
-
+	
 	// Curve that defines local-space offsets from the target using the view pitch to evaluate the curve.
 	UPROPERTY(EditDefaultsOnly, Category = "Third Person")
 	TObjectPtr<const UCurveVector> TargetOffsetCurve;
 
+	/** If true, does collision checks to move the camera to make aim easier. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision|Close Contact")
+	bool bHandleCloseContact = true;
+
+	UPROPERTY(EditAnywhere, Category = "Collision|Close Contact")
+	float CloseContactBlendInTime = 0.3f;
+	
+	UPROPERTY(EditAnywhere, Category = "Collision|Close Contact")
+	float CloseContactBlendOutTime = 0.3f;
+	
 	// Curve that defines local-space offsets from the target applied when there is close contact at the front of the target
-	UPROPERTY(EditDefaultsOnly, Category = "Third Person")
+	UPROPERTY(EditDefaultsOnly, Category = "Collision|Close Contact")
 	TObjectPtr<const UCurveVector> CloseContactOffsetCurve;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Collision|Close Contact")
+	EZodiacCameraModeBlendFunction CloseContactBlendFunction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Collision|Close Contact")
+	float CloseContactBlendExponent = 4.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Collision|Close Contact")
+	TArray<FZodiacCloseContactFeeler> CloseContactFeelers;
+	
 	// Penetration prevention
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision")
@@ -58,16 +78,6 @@ public:
 	/** If true, does collision checks to keep the camera out of the world. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision")
 	bool bPreventPenetration = true;
-
-	/** If true, does collision checks to move the camera to make aim easier. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision")
-	bool bHandleCloseContact = true;
-
-	UPROPERTY(EditAnywhere, Category = "Collision")
-	float CloseContactBlendInTime = 0.3f;
-	
-	UPROPERTY(EditAnywhere, Category = "Collision")
-	float CloseContactBlendOutTime = 0.3f;
 	
 	/** If true, try to detect nearby walls and move the camera in anticipation.  Helps prevent popping. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision")
@@ -89,9 +99,6 @@ public:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Collision")
 	TArray<FZodiacPenetrationAvoidanceFeeler> PenetrationAvoidanceFeelers;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Collision")
-	TArray<FZodiacCloseContactFeeler> CloseContactFeelers;
 	
 	UPROPERTY(Transient)
 	float AimLineToDesiredPosBlockedPct;

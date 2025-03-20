@@ -75,7 +75,9 @@ void AZodiacHostCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	
 	CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);
-
+	CameraComponent->OnCloseContactStarted.BindUObject(this, &ThisClass::OnCloseContactStarted);
+	CameraComponent->OnCloseContactFinished.BindUObject(this, &AZodiacHostCharacter::OnCloseContactFinished);
+	
 	if (CameraComponent->bApplyTranslationOffset)
 	{
 		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())

@@ -54,11 +54,16 @@ public:
 	// Gets the tag associated with the top layer and the blend weight of it
 	void GetBlendInfo(float& OutWeightOfTopLayer, FGameplayTag& OutTagOfTopLayer) const;
 
+	FSimpleDelegate OnCloseContactStarted;
+	FSimpleDelegate OnCloseContactFinished;
+	
 protected:
 
 	virtual void OnRegister() override;
 	virtual void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView) override;
 
+	bool CheckHasCloseTarget();
+	
 	virtual void UpdateCameraModes();
 	FVector GetHeroOffset();
 
@@ -79,4 +84,8 @@ protected:
 	
 	// Offset applied to the field of view.  The offset is only for one frame, it gets cleared once it is applied.
 	float FieldOfViewOffset;
+
+private:
+	bool bHasCloseContact = false;
+	bool bPreviousCloseContact = false;
 };

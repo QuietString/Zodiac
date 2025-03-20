@@ -85,6 +85,12 @@ protected:
 	TSubclassOf<UZodiacCameraMode> DetermineCameraMode();
 
 	void UpdateHeroEyeLocationOffset();
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void OnCloseContactStarted();
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void OnCloseContactFinished();
 	
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

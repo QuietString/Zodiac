@@ -5,6 +5,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemGlobals.h"
 #include "ZodiacGameplayTags.h"
+#include "ZodiacHeroAbilitySystemComponent.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/ZodiacAbilityCost.h"
 #include "Hero/ZodiacHeroAbilitySlotActor.h"
@@ -343,6 +344,14 @@ void UZodiacHeroAbility::ClearSlotReticle()
 	}
 }
 
+void UZodiacHeroAbility::ClearCameraModeAfterDuration(float Duration, FTimerHandle& RemoveHandle)
+{
+	if (UZodiacHeroAbilitySystemComponent* HeroASC = Cast<UZodiacHeroAbilitySystemComponent>(GetHeroAbilitySystemComponentFromActorInfo()))
+	{
+		HeroASC->ClearCameraModeAfterDuration(CurrentSpecHandle, Duration, RemoveHandle);
+	}
+}
+
 AZodiacHeroAbilitySlotActor* UZodiacHeroAbility::GetCurrentSocketSourceActor() const
 {
 	if (AZodiacHeroAbilitySlotActor* const* ActorPtr = CachedSocketSourceActors.Find(ComboIndex))
@@ -385,6 +394,6 @@ void UZodiacHeroAbility::ChargeUltimate()
 {
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ChargeUltimateEffectClass, GetAbilityLevel());
 	EffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Ultimate, UltimateChargeAmount.GetValueAtLevel(GetAbilityLevel()));
-
+	
 	ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
 }

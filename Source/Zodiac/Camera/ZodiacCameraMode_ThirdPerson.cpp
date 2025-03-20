@@ -33,6 +33,11 @@ UZodiacCameraMode_ThirdPerson::UZodiacCameraMode_ThirdPerson()
 	PenetrationAvoidanceFeelers.Add(FZodiacPenetrationAvoidanceFeeler(FRotator(+20.0f, +00.0f, 0.0f), 1.00f, 1.00f, 00.f, 4));
 	PenetrationAvoidanceFeelers.Add(FZodiacPenetrationAvoidanceFeeler(FRotator(-20.0f, +00.0f, 0.0f), 0.50f, 0.50f, 00.f, 4));
 
+	CloseContactBlendExponent = 2.f;
+	CloseContactBlendFunction = EZodiacCameraModeBlendFunction::EaseInOut;
+	CloseContactBlendInTime = 0.5f;
+	CloseContactBlendOutTime = 1.f;
+	
 	CloseContactFeelers.Add(FZodiacCloseContactFeeler(250, 15, 5));
 }
 
@@ -59,21 +64,21 @@ void UZodiacCameraMode_ThirdPerson::UpdateView(float DeltaTime)
 
 void UZodiacCameraMode_ThirdPerson::UpdateTargetOffsetCurve(float DeltaTime, FRotator PivotRotation)
 {
-	bool bCloseContact = CheckCloseContact();
+	bHasCloseContact = CheckCloseContact();
 
 	// Check for change in close contact status
-	if (bCloseContact != bPreviousCloseContact)
+	if (bHasCloseContact != bPreviousCloseContact)
 	{
 		// Close contact status has changed
 		bIsBlending = true;
 		BlendElapsedTime = 0.0f;
-		BlendDuration = bCloseContact ? CloseContactBlendInTime : CloseContactBlendOutTime;
+		BlendDuration = bHasCloseContact ? CloseContactBlendInTime : CloseContactBlendOutTime;
 
 		// Record the start and end offsets
 		BlendStartOffset = TargetOffset;
 
 		// Determine the BlendEndOffset based on the new close contact status
-		if (bCloseContact)
+		if (bHasCloseContact)
 		{
 			if (CloseContactOffsetCurve)
 			{
@@ -90,7 +95,7 @@ void UZodiacCameraMode_ThirdPerson::UpdateTargetOffsetCurve(float DeltaTime, FRo
 	}
 
 	// Update previous close contact status
-	bPreviousCloseContact = bCloseContact;
+	bPreviousCloseContact = bHasCloseContact;
 
 	if (bIsBlending)
 	{
@@ -99,8 +104,9 @@ void UZodiacCameraMode_ThirdPerson::UpdateTargetOffsetCurve(float DeltaTime, FRo
 		float OffsetCurveBlendAlpha = FMath::Clamp(BlendElapsedTime / BlendDuration, 0.0f, 1.0f);
 
 		// Interpolate between start and end offsets
-		TargetOffset = FMath::Lerp(BlendStartOffset, BlendEndOffset, OffsetCurveBlendAlpha);
-
+		//TargetOffset = FMath::Lerp(BlendStartOffset, BlendEndOffset, OffsetCurveBlendAlpha);
+		SetCloseContactOffset(BlendStartOffset, BlendEndOffset, OffsetCurveBlendAlpha);
+		
 		// Check if blending is complete
 		if (OffsetCurveBlendAlpha >= 1.0f)
 		{
@@ -110,7 +116,7 @@ void UZodiacCameraMode_ThirdPerson::UpdateTargetOffsetCurve(float DeltaTime, FRo
 	else
 	{
 		// No blending; use the appropriate offset directly
-		if (bCloseContact)
+		if (bHasCloseContact)
 		{
 			if (CloseContactOffsetCurve)
 			{
@@ -455,4 +461,32 @@ bool UZodiacCameraMode_ThirdPerson::CheckCloseContact()
 	}
 
 	return false;
+}
+
+void UZodiacCameraMode_ThirdPerson::SetCloseContactOffset(const FVector& InBlendStartOffset, const FVector& InBlendEndOffset, float Weight)
+{
+	const float InvExponent = (CloseContactBlendExponent > 0.0f) ? (1.0f / CloseContactBlendExponent) : 1.0f;
+
+	switch (CloseContactBlendFunction)
+	{
+	case EZodiacCameraModeBlendFunction::Linear:
+		TargetOffset = FMath::Lerp(InBlendStartOffset, InBlendEndOffset, Weight);
+		break;
+
+	case EZodiacCameraModeBlendFunction::EaseIn:
+		TargetOffset = FMath::InterpEaseIn(InBlendStartOffset, InBlendEndOffset, Weight, InvExponent);
+		break;
+
+	case EZodiacCameraModeBlendFunction::EaseOut:
+		TargetOffset = FMath::InterpEaseOut(InBlendStartOffset, InBlendEndOffset, Weight, InvExponent);
+		break;
+
+	case EZodiacCameraModeBlendFunction::EaseInOut:
+		TargetOffset = FMath::InterpEaseInOut(InBlendStartOffset, InBlendEndOffset, Weight, InvExponent);
+		break;
+
+	default:
+		checkf(false, TEXT("SetCloseContactOffset: Invalid BlendFunction [%d]\n"), (uint8)BlendFunction);
+		break;
+	}
 }
