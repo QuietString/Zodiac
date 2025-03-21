@@ -9,6 +9,7 @@
 #include "PointCloudSliceAndDiceRuleFactory.h"
 #include "PointCloudAssetHelpers.h"
 #include "GameFramework/Actor.h"
+#include "WorldPartition/DataLayer/ActorDataLayer.h"
 
 #include "SpawnNiagaraRule.generated.h"
 

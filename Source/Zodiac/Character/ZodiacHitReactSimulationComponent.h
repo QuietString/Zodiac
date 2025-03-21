@@ -46,10 +46,8 @@ struct FZodiacPhysicalHitReactBody
 	
 	FName SimulationRootBone;
 
-	float BlendWeight;
-
-	float LastHitReactTime;
-
+	float BlendWeight = 0.f;
+	
 	bool bIsSimulated = false;
 
 	FZodiacHitDamageData LastHit;

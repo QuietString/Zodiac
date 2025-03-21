@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "PointCloudSliceAndDiceCustomOverrides.h"
+#include "UObject/Package.h"
 
 FCustomOverrides::~FCustomOverrides()
 {

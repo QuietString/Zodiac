@@ -4,6 +4,7 @@
 
 #include "PointCloud.h"
 #include "PointCloudSliceAndDiceRuleFactory.h"
+#include "WorldPartition/DataLayer/ActorDataLayer.h"
 
 #include "SpawnBlueprintsBuildRule.generated.h"
 

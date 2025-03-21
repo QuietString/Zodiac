@@ -5,7 +5,7 @@
 
 #include "Math/IntVector.h"
 #include "RenderGraphFwd.h"
-#include "RHIDefinitions.h"
+#include "RHI.h"
 
 class FRHIShaderResourceView;
 class FRHIUnorderedAccessView;
@@ -26,10 +26,10 @@ public:
 	// c++ mirror of the struct defined in CitySampleSensorGridCommon.ush
 	struct alignas(16) FSensorInfo
 	{
-		FVector Location;
-		uint32 DistanceUint;
-		FIntVector HitIndex;
-		uint32 SearchCount;
+		FVector3f Location = FVector3f::ZeroVector;
+		uint32 DistanceUint = 0;
+		FIntVector HitIndex = FIntVector::ZeroValue;
+		uint32 SearchCount = 0;
 	};
 
 	struct FTransientResources

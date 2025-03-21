@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "InstancedStruct.h"
+#include "StructUtils/InstancedStruct.h"
 #include "MassRepresentationTypes.h"
 #include "MassEntityQuery.h"
 #include "MassProcessor.h"

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Containers/UnrealString.h"
+
 namespace PointCloud
 {	
 	static const FString SchemaQuery = R"SchmStrnLtr(

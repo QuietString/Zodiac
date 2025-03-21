@@ -199,6 +199,10 @@
 		{
 			"Name": "SkeletalMeshModelingTools",
 			"Enabled": true
+		},
+		{
+			"Name": "Traffic",
+			"Enabled": true
 		}
 	]
 }

@@ -7,6 +7,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "ZodiacCameraMode.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCameraComponent)
 
@@ -17,6 +18,19 @@ UZodiacCameraComponent::UZodiacCameraComponent(const FObjectInitializer& ObjectI
 	bApplyTranslationOffset = true;
 	CameraModeStack = nullptr;
 	FieldOfViewOffset = 0.0f;
+}
+
+APlayerCameraManager* UZodiacCameraComponent::GetPlayerCameraManager()
+{
+	if (APawn* TargetPawn = Cast<APawn>(GetTargetActor()))
+	{
+		if (APlayerController* PC = TargetPawn->GetController<APlayerController>())
+		{
+			return PC->PlayerCameraManager;
+		}
+	}
+	
+	return nullptr;
 }
 
 void UZodiacCameraComponent::OnRegister()
@@ -59,7 +73,14 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 	if (UpdateCameraTranslationOffsetDelegate.IsBound())
 	{
 		FVector TargetTranslationOffset = UpdateCameraTranslationOffsetDelegate.Execute();
-		TranslationOffset = FMath::VInterpTo(TranslationOffset, TargetTranslationOffset, DeltaTime, TranslationOffsetInterpSpeed);
+		if (TranslationOffsetInterpSpeed > 0.0f)
+		{
+			TranslationOffset = FMath::VInterpTo(TranslationOffset, TargetTranslationOffset, DeltaTime, TranslationOffsetInterpSpeed);	
+		}
+		else
+		{
+			TranslationOffset = TargetTranslationOffset;
+		}
 	}
 	
 	// Fill in desired view.
@@ -81,6 +102,17 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 		DesiredView.PostProcessSettings = PostProcessSettings;
 	}
 
+	HandleCloseContact();
+	
+	if (IsXRHeadTrackedCamera())
+	{
+		// In XR much of the camera behavior above is irrellevant, but the post process settings are not.
+		Super::GetCameraView(DeltaTime, DesiredView);
+	}
+}
+
+void UZodiacCameraComponent::HandleCloseContact()
+{
 	bHasCloseContact = CheckHasCloseTarget();
 	
 	if (bHasCloseContact && !bPreviousCloseContact)
@@ -94,12 +126,6 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 	}
 
 	bPreviousCloseContact = bHasCloseContact;
-
-	if (IsXRHeadTrackedCamera())
-	{
-		// In XR much of the camera behavior above is irrellevant, but the post process settings are not.
-		Super::GetCameraView(DeltaTime, DesiredView);
-	}
 }
 
 bool UZodiacCameraComponent::CheckHasCloseTarget()

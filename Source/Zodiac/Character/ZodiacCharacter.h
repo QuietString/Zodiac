@@ -173,6 +173,10 @@ protected:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
 	UZodiacHeroData* CharacterData;
+
+	// @TODO: It's temporary testing usage for AHeroCharacter2
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
+	TArray<UZodiacHeroData*> HeroData;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
 	FZodiacInputConfig InputConfig;

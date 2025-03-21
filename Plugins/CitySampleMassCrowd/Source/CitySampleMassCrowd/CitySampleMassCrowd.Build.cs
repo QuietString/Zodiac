@@ -24,6 +24,9 @@ public class CitySampleMassCrowd : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
+				// Mass core
+				"MassEntity",
+
 				// AI/MassAI Plugin Modules
 				"MassAIBehavior",
 				"MassAIDebug",
@@ -32,9 +35,6 @@ public class CitySampleMassCrowd : ModuleRules
 				
 				// AI/MassCrowd Plugin Modules
 				"MassCrowd",
-
-				// Runtime/MassEntity Plugin Modules
-				"MassEntity",
 
 				// Runtime/MassGameplay Plugin Modules
 				"MassActors",
@@ -59,7 +59,6 @@ public class CitySampleMassCrowd : ModuleRules
 				"MotionWarping",
 				"DeveloperSettings",
 				"StateTreeModule",
-				"StructUtils",
 				"ZoneGraph",
 				"ZoneGraphDebug",
 				"MassTraffic",

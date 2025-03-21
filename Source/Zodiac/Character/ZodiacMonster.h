@@ -8,6 +8,7 @@
 #include "Traversal/ZodiacTraversalActorInterface.h"
 #include "ZodiacMonster.generated.h"
 
+class UBehaviorTree;
 class UPhysicalAnimationComponent;
 class UZodiacHeroData;
 
@@ -59,6 +60,12 @@ protected:
 	void OnSpawnSeedSet_Internal();
 	void OnSpawnConfigSet();
 
+public:
+	friend class AZodiacZombieSpawner;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UBehaviorTree> BehaviorTree;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<USkeletalMeshComponent> RetargetedMeshComponent;
@@ -83,4 +90,7 @@ private:
 	void OnRep_SpawnConfig();
 	
 	bool bHasMovementInitialized = false;
+
+	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	bool bIsSpawnedBySpawner = false;
 };

@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "PointCloudSliceAndDiceManager.h"
+#include "Engine/Level.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "PointCloudSliceAndDiceContext.h"
@@ -884,7 +885,7 @@ void USliceAndDiceManagedActors::MarkActorsToBeVisited(FPointCloudRuleInstancePt
 		Child = NewObject<USliceAndDiceManagedActors>(this);
 		Child->Parent = this;
 		Child->Mapping = Mapping;
-		Child->Rule = InRule->GetRule();
+		Child->Rule = const_cast<UPointCloudRule*>(InRule->GetRule());
 		Child->bIsDirty = true;
 		Children.Add(Child);
 	}

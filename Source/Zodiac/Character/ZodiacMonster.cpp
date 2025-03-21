@@ -8,6 +8,7 @@
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Animation/ZodiacZombieAnimInstance.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
 #include "System/ZodiacGameData.h"
@@ -181,6 +182,9 @@ void AZodiacMonster::OnSpawnSeedSet_Internal()
 void AZodiacMonster::OnSpawnConfigSet()
 {
 	check(CharacterData);
+
+	UWorld*	World = GetWorld();
+	check(World);
 	
 	const UZodiacGameData& GameData = UZodiacGameData::Get();
 	check (&GameData);
@@ -214,7 +218,11 @@ void AZodiacMonster::OnSpawnConfigSet()
 				{
 					ZombieAnimInstance->WalkSpeed = WalkSpeeds->X;
 					ZombieAnimInstance->MovementSpeedMultiplier = MovementSpeedMultiplier;
-					ZombieAnimInstance->SelectAnimsBySeed(Seed);
+					
+					if (!UKismetSystemLibrary::IsDedicatedServer(World))
+					{
+						ZombieAnimInstance->SelectAnimsBySeed(Seed);	
+					}
 				}
 			}
 		}

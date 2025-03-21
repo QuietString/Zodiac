@@ -4,6 +4,7 @@
 #include "PointCloudView.h"
 #include "PointCloudSliceAndDiceExecutionContext.h"
 #include "Engine/World.h"
+#include "UObject/Package.h"
 
 #define LOCTEXT_NAMESPACE "ExecuteBlueprintRule"
 

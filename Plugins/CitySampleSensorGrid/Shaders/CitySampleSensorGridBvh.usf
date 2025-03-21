@@ -36,7 +36,7 @@ uint ExpandBits(uint v)
 // component is assumed to be [0..1)
 uint Morton3d(float3 Location, uint OwnerIndex, uint OwnerBitCount)
 {
-	const uint OwnerMask = (1 << OwnerBitCount) - 1;
+	const uint OwnerMask = (1u << OwnerBitCount) - 1;
 	const uint OwnerShift = 32 - OwnerBitCount;
 	const uint PositionMask = ~(OwnerMask << OwnerShift);
 
@@ -49,7 +49,7 @@ uint Morton3d(float3 Location, uint OwnerIndex, uint OwnerBitCount)
 
 uint InvalidMorton3d(uint OwnerIndex, uint OwnerBitCount)
 {
-	const uint OwnerMask = (1 << OwnerBitCount) - 1;
+	const uint OwnerMask = (1u << OwnerBitCount) - 1;
 	const uint OwnerShift = 32 - OwnerBitCount;
 	const uint PositionMask = ~(OwnerMask << OwnerShift);
 
@@ -58,7 +58,7 @@ uint InvalidMorton3d(uint OwnerIndex, uint OwnerBitCount)
 
 bool IsMortonCodeValid(uint MortonCode, uint OwnerBitCount)
 {
-	const uint OwnerMask = (1 << OwnerBitCount) - 1;
+	const uint OwnerMask = (1u << OwnerBitCount) - 1;
 	const uint OwnerShift = 32 - OwnerBitCount;
 	const uint PositionMask = ~(OwnerMask << OwnerShift);
 
@@ -134,7 +134,7 @@ void PrimeBounds(uint GroupIndex : SV_GroupIndex, uint3 GroupId : SV_GroupID, ui
 	const uint OwnerIndex = DispatchThreadId.y;
 
 	float4 SensorLocation;
-	SensorLocation.w = float4(0.0f, 0.0f, 0.0f, -1.0f);
+	SensorLocation = float4(0.0f, 0.0f, 0.0f, -1.0f);
 
 	if (DispatchThreadId.x < SensorCount)
 	{
@@ -900,7 +900,7 @@ void BvhTraversal(uint3 GroupId : SV_GroupID, uint GroupIndex : SV_GroupIndex, u
 
 	if (ClosestSensorInfo.OwnerIndex != OwnerIndex)
 	{
-		const uint SensorMask = (1 << SensorGridFactor) - 1;
+		const uint SensorMask = (1u << SensorGridFactor) - 1;
 
 		// write out the result
 		FSensorInfo SensorInfo;

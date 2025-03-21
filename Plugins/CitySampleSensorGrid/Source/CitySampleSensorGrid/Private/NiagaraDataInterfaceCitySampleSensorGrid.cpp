@@ -583,7 +583,7 @@ void UNiagaraDataInterfaceCitySampleSensorGrid::SetShaderParameters(const FNiaga
 		}
 		else
 		{
-			FCitySampleSensorGridHelper::FSensorInfo DummySensorInfoData;
+			FCitySampleSensorGridHelper::FSensorInfo DummySensorInfoData{};
 			FRDGBufferRef DummySensorInfoBuffer = CreateStructuredBuffer<FCitySampleSensorGridHelper::FSensorInfo>(GraphBuilder, TEXT("CitySampleSensorGridDummySensorInfo"), { DummySensorInfoData });
 			ShaderParameters->SensorInfo = GraphBuilder.CreateSRV(DummySensorInfoBuffer);
 		}

@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Animation/MassPlayerAnimInstance.h"
-
+#include "Components/SkeletalMeshComponent.h"
 
 UMassPlayerAnimInstance::UMassPlayerAnimInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

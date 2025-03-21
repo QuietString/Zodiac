@@ -78,6 +78,9 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Status_Physics_Collision_Disabled, "Status.Physics.Collision.Disabled");
 
 	UE_DEFINE_GAMEPLAY_TAG(Player_PlayReady, "Player.PlayReady")
+
+	UE_DEFINE_GAMEPLAY_TAG(Camera_Aiming_Steady, "Camera.Aiming.Steady");
+	UE_DEFINE_GAMEPLAY_TAG(Camera_Aiming_Unstable, "Camera.Aiming.Unstable");
 	
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Menu, "UI.Layer.Menu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Layer_Game, "UI.Layer.Game");

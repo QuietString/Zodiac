@@ -4,6 +4,8 @@
 
 #include "SSliceAndDicePickerWidget.h"
 
+class UDataLayerInstance;
+
 bool GetDataLayerInstance(
 	const TSharedPtr<SWidget>& ParentWidget,
 	UWorld* InWorld,

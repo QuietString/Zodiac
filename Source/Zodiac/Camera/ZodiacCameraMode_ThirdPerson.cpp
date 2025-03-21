@@ -104,7 +104,6 @@ void UZodiacCameraMode_ThirdPerson::UpdateTargetOffsetCurve(float DeltaTime, FRo
 		float OffsetCurveBlendAlpha = FMath::Clamp(BlendElapsedTime / BlendDuration, 0.0f, 1.0f);
 
 		// Interpolate between start and end offsets
-		//TargetOffset = FMath::Lerp(BlendStartOffset, BlendEndOffset, OffsetCurveBlendAlpha);
 		SetCloseContactOffset(BlendStartOffset, BlendEndOffset, OffsetCurveBlendAlpha);
 		
 		// Check if blending is complete

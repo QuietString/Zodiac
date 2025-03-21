@@ -19,9 +19,9 @@ protected:
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tags|Host", meta = (EditCondition = "bIsHostAbility"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tags|Host")
 	FGameplayTagContainer CancelAbilitiesWithTag_Hero;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tags|Host", meta = (EditCondition = "bIsHostAbility"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tags|Host")
 	FGameplayTagContainer BlockAbilitiesWithTag_Hero;
 };

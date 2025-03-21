@@ -7,6 +7,8 @@
 #include "GameFramework/Character.h"
 #include "ZodiacCameraComponent.h"
 #include "ZodiacPlayerCameraManager.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Shakes/PerlinNoiseCameraShakePattern.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCameraMode)
 
@@ -79,6 +81,22 @@ AActor* UZodiacCameraMode::GetTargetActor() const
 	return ZodiacCameraComponent->GetTargetActor();
 }
 
+void UZodiacCameraMode::OnDeactivation()
+{
+	if (CameraShake)
+	{
+		if (UZodiacCameraComponent* ZodiacCameraComponent = Cast<UZodiacCameraComponent>(GetZodiacCameraComponent()))
+		{
+			if (APlayerCameraManager* PCM = ZodiacCameraComponent->GetPlayerCameraManager())
+			{
+				PCM->StopCameraShake(CameraShake);
+			}
+		}
+
+		CameraShake = nullptr;
+	}
+}
+
 FVector UZodiacCameraMode::GetPivotLocation() const
 {
 	const AActor* TargetActor = GetTargetActor();
@@ -128,6 +146,7 @@ void UZodiacCameraMode::UpdateCameraMode(float DeltaTime)
 {
 	UpdateView(DeltaTime);
 	UpdateBlending(DeltaTime);
+	UpdateCameraShake();
 }
 
 void UZodiacCameraMode::UpdateView(float DeltaTime)
@@ -210,6 +229,88 @@ void UZodiacCameraMode::UpdateBlending(float DeltaTime)
 		checkf(false, TEXT("UpdateBlending: Invalid BlendFunction [%d]\n"), (uint8)BlendFunction);
 		break;
 	}
+}
+
+void UZodiacCameraMode::UpdateCameraShake()
+{
+	if (!bPlayCameraShake)
+	{
+		return;
+	}
+	
+	UZodiacCameraComponent* ZodiacCameraComponent = GetZodiacCameraComponent();
+	if (!ZodiacCameraComponent)
+	{
+		return;
+	}
+
+	APlayerCameraManager* PCM = ZodiacCameraComponent->GetPlayerCameraManager();
+	if (!PCM)
+	{
+		return;
+	}
+
+	if (FramesUntilNextShakeUpdate > 0)
+	{
+		FramesUntilNextShakeUpdate--;
+		return;
+	}
+
+	if (!CameraShake)
+	{
+		CameraShake = PCM->StartCameraShake(CameraShakeClass, 1.f);	
+	}
+
+	if (UPerlinNoiseCameraShakePattern* Pattern = Cast<UPerlinNoiseCameraShakePattern>(CameraShake->GetRootShakePattern()))
+	{
+		float Speed = 0.0f;
+		float Acceleration = 0.f;
+		
+		if (LocationScalingConfig.Method == EZodiacCameraShakeScalingMethod::MovementSpeed || RotationScalingConfig.Method == EZodiacCameraShakeScalingMethod::MovementSpeed)
+		{
+			if (ACharacter* Character = Cast<ACharacter>(GetTargetActor()))
+			{
+				Speed = Character->GetVelocity().Size();
+			}
+		}
+		
+		if (LocationScalingConfig.Method == EZodiacCameraShakeScalingMethod::Acceleration || RotationScalingConfig.Method == EZodiacCameraShakeScalingMethod::Acceleration)
+		{
+			if (ACharacter* Character = Cast<ACharacter>(GetTargetActor()))
+			{
+				if (UCharacterMovementComponent* CharacterMovementComponent = Character->GetCharacterMovement())
+				{
+					Acceleration = CharacterMovementComponent->GetCurrentAcceleration().Size();
+				}
+			}
+		}
+
+		float LocationMultiplier = 1.f;
+		float LocationBaseAmount = LocationScalingConfig.BaseAmount;
+		if (LocationBaseAmount > 0.f)
+		{
+			LocationMultiplier = LocationScalingConfig.Method == EZodiacCameraShakeScalingMethod::MovementSpeed ? Speed / LocationBaseAmount :
+				LocationScalingConfig.Method == EZodiacCameraShakeScalingMethod::Acceleration ? Acceleration / LocationBaseAmount : 1.f;
+		}
+		LocationMultiplier = FMath::Max(LocationMultiplier, 0.0f);
+		
+		Pattern->LocationAmplitudeMultiplier = LocationMultiplier;
+		Pattern->LocationFrequencyMultiplier = LocationMultiplier;
+
+		float RotationMultiplier = 1.f;
+		float RotationBaseAmount = RotationScalingConfig.BaseAmount;
+		if (RotationBaseAmount > 0.f)
+		{
+			RotationMultiplier = RotationScalingConfig.Method == EZodiacCameraShakeScalingMethod::MovementSpeed ? Speed / RotationBaseAmount :
+				RotationScalingConfig.Method == EZodiacCameraShakeScalingMethod::Acceleration ? Acceleration / RotationBaseAmount : 1.f;	
+		}
+		RotationMultiplier = FMath::Max(RotationMultiplier, 0.0f);
+		
+		Pattern->RotationAmplitudeMultiplier = RotationMultiplier;
+		Pattern->RotationAmplitudeMultiplier = RotationMultiplier;
+	}
+
+	FramesUntilNextShakeUpdate = UpdateTickInterval;
 }
 
 void UZodiacCameraMode::DrawDebug(UCanvas* Canvas) const

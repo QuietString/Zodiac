@@ -2,10 +2,6 @@
 
 #pragma once
 
-class UPointCloudRule;
-class UPointCloudSliceAndDiceRule;
-class FPackageSourceControlHelper;
-
 #include "PointCloud.h"
 #include "GameFramework/Actor.h"
 #include "Math/NumericLimits.h"
@@ -14,6 +10,10 @@ class FPackageSourceControlHelper;
 #include "PointCloudSliceAndDiceShared.h"
 
 #include "PointCloudSliceAndDiceManager.generated.h"
+
+class UPointCloudRule;
+class UPointCloudSliceAndDiceRule;
+class FPackageSourceControlHelper;
 
 USTRUCT()
 struct POINTCLOUD_API FSliceAndDiceManagedActorsHashInfo

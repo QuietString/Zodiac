@@ -133,7 +133,6 @@ void SPointCloudEditor::Construct(const FArguments& InArgs, UPointCloud* InPoint
 			.FillHeight(1.0f)
 			[
 				SNew(SListView<TSharedPtr<FMetadataHolder>>)
-				.ItemHeight(24)
 				.ListItemsSource(&MetadataAttributes)
 				.OnGenerateRow(this, &SPointCloudEditor::OnGenerateMetadataRowForList)
 				.HeaderRow
@@ -152,7 +151,6 @@ void SPointCloudEditor::Construct(const FArguments& InArgs, UPointCloud* InPoint
 			//The actual list view creation			
 			[
 				SAssignNew(LoadedFiles, SListView<TSharedPtr<FString>>)
-				.ItemHeight(24)
 				.ListItemsSource(&(Datasets)) //The Items array is the source of this listview
 				.OnGenerateRow(this, &SPointCloudEditor::OnGenerateRowForList)
 				.HeaderRow

@@ -32,6 +32,21 @@ enum class EZodiacCameraModeBlendFunction : uint8
 	COUNT	UMETA(Hidden)
 };
 
+struct FZodiacCameraShakeScalingParams
+{
+	FZodiacCameraShakeScalingParams()
+		: MovementSpeed(0.f)
+		, MovementAcceleration(0.f)
+	{}
+
+	FZodiacCameraShakeScalingParams(const float MovementSpeed, const float MovementAcceleration)
+		: MovementSpeed(MovementSpeed)
+		, MovementAcceleration(MovementAcceleration)
+	{}
+	
+	float MovementSpeed;
+	float MovementAcceleration;
+};
 
 /**
  *	View data produced by the camera mode that is used to blend camera modes.
@@ -52,6 +67,31 @@ public:
 	float FieldOfView;
 };
 
+UENUM(BlueprintType)
+enum class EZodiacCameraShakeScalingMethod : uint8
+{
+	NoScaling,
+	MovementSpeed,
+	Acceleration
+};
+
+USTRUCT(BlueprintType)
+struct FZodiacCameraShakeScalingConfig
+{
+	GENERATED_BODY()
+
+	FZodiacCameraShakeScalingConfig()
+		: Method(EZodiacCameraShakeScalingMethod::NoScaling)
+		, BaseAmount(0)
+	{}
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	EZodiacCameraShakeScalingMethod Method;
+
+	// Amount of the method needed to apply full scale to this camera shake.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (EditCondition = "Method != EZodiacCameraShakeScalingMethod::NoScaling"))
+	float BaseAmount;
+};
 
 /**
  *	Base class for all camera modes.
@@ -74,13 +114,14 @@ public:
 	const FZodiacCameraModeView& GetCameraModeView() const { return View; }
 
 	// Called when this camera mode is activated on the camera mode stack.
-	virtual void OnActivation() {};
+	virtual void OnActivation(){}
 
 	// Called when this camera mode is deactivated on the camera mode stack.
-	virtual void OnDeactivation() {};
+	virtual void OnDeactivation();
 
 	void UpdateCameraMode(float DeltaTime);
-
+	void UpdateCameraShake();
+	
 	float GetBlendTime() const { return BlendTime; }
 	float GetBlendWeight() const { return BlendWeight; }
 	void SetBlendWeight(float Weight);
@@ -140,10 +181,35 @@ protected:
 
 	// Blend weight calculated using the blend alpha and function.
 	float BlendWeight;
+	
+public:
+	UPROPERTY(EditDefaultsOnly, Category = "Camera Shake")
+	bool bPlayCameraShake;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Camera Shake", meta = (ClampMin = "0.0"))
+	int32 UpdateTickInterval = 10;
+
+private:
+	UPROPERTY(Transient)
+	TObjectPtr<UCameraShakeBase> CameraShake;
+	
+	UPROPERTY(Transient)
+	int32 FramesUntilNextShakeUpdate = 0;
+	
+protected:
+	// Looping Camera Shake. Single Instance only.
+	UPROPERTY(EditAnywhere, Category = "Camera Shake", meta = (EditCondition = "bPlayCameraShake"))
+	TSubclassOf<UCameraShakeBase> CameraShakeClass;
+
+	UPROPERTY(EditAnywhere, Category = "Camera Shake", meta = (EditCondition = "bPlayCameraShake"))
+	FZodiacCameraShakeScalingConfig LocationScalingConfig;
+	
+	UPROPERTY(EditAnywhere, Category = "Camera Shake", meta = (EditCondition = "bPlayCameraShake"))
+	FZodiacCameraShakeScalingConfig RotationScalingConfig;
+	
 protected:
 	/** If true, skips all interpolation and puts camera in ideal location.  Automatically set to false next frame. */
-	UPROPERTY(transient)
+	UPROPERTY(Transient)
 	uint32 bResetInterpolation:1;
 
 	UPROPERTY(Transient)
@@ -189,7 +255,6 @@ protected:
 	void BlendStack(FZodiacCameraModeView& OutCameraModeView) const;
 
 protected:
-
 	bool bIsActive;
 
 	UPROPERTY()

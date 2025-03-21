@@ -2,7 +2,9 @@
 #include "Animation/MassCrowdAnimInstance.h"
 
 #include "Animation/MassCrowdAnimationSettings.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Engine/Canvas.h"
+#include "Engine/SkeletalMesh.h"
 
 UMassCrowdAnimInstance::UMassCrowdAnimInstance(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

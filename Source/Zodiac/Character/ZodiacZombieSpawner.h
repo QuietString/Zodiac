@@ -48,10 +48,16 @@ protected:
 	// The zombie character class to spawn
 	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
 	TMap<TSubclassOf<AZodiacMonster>, uint8> MonstersToSpawn;
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn", meta = (UIMin = 0 , UIMax = 1, ClampMin = 0, ClampMax = 1))
+	float WalkingRatioWeight = 0.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn", meta = (UIMin = 0 , UIMax = 1, ClampMin = 0, ClampMax = 1))
-	float RunningRatio = 0.f;
+	float RunningRatioWeight = 0.f;
 
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn", meta = (UIMin = 0, UIMax = 1, ClampMin = 0, ClampMax = 1))
+	float SprintingRatioWeight = 0.2f;
+	
 	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
 	TObjectPtr<UBehaviorTree> BehaviorTree;
 

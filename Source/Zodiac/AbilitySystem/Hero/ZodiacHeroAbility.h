@@ -107,6 +107,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ChargeUltimate();
 
+	UFUNCTION(BlueprintCallable)
+	void ExecuteGameplayCueOnHost(const FGameplayTag GameplayCueTag, const FGameplayCueParameters& GameplayCueParams);
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldowns")
 	FScalableFloat CooldownDuration;

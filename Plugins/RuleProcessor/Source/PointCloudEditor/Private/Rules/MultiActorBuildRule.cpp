@@ -7,6 +7,7 @@
 #include "PointCloudEditorSettings.h"
 #include "PointCloudView.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/World.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 

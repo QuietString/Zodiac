@@ -2,10 +2,12 @@
 
 #pragma once
 
+#include "Engine/DataAsset.h"
+
 #include "MassCrowdContextualAnimTypes.generated.h"
 
 USTRUCT()
-struct CITYSAMPLEMASSCROWD_API FMassCrowdContextualAnimation
+struct FMassCrowdContextualAnimation
 {
 	GENERATED_BODY()
 
@@ -17,7 +19,7 @@ struct CITYSAMPLEMASSCROWD_API FMassCrowdContextualAnimation
 };
 
 USTRUCT()
-struct CITYSAMPLEMASSCROWD_API FMassCrowdContextualAnimDescription
+struct FMassCrowdContextualAnimDescription
 {
 	GENERATED_BODY()
 
@@ -31,8 +33,8 @@ struct CITYSAMPLEMASSCROWD_API FMassCrowdContextualAnimDescription
 	FName InteractorRole;
 };
 
-UCLASS(Blueprintable)
-class CITYSAMPLEMASSCROWD_API UMassCrowdContextualAnimationDataAsset : public UDataAsset
+UCLASS(MinimalAPI, Blueprintable)
+class UMassCrowdContextualAnimationDataAsset : public UDataAsset
 {
 	GENERATED_BODY()
 

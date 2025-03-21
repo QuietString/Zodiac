@@ -8,6 +8,7 @@
 #include "ZodiacHeroAbilitySystemComponent.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/ZodiacAbilityCost.h"
+#include "AbilitySystem/Host/ZodiacHostAbilitySystemComponent.h"
 #include "Hero/ZodiacHeroAbilitySlotActor.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
@@ -396,4 +397,12 @@ void UZodiacHeroAbility::ChargeUltimate()
 	EffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Ultimate, UltimateChargeAmount.GetValueAtLevel(GetAbilityLevel()));
 	
 	ApplyGameplayEffectSpecToOwner(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle);
+}
+
+void UZodiacHeroAbility::ExecuteGameplayCueOnHost(const FGameplayTag GameplayCueTag, const FGameplayCueParameters& GameplayCueParams)
+{
+	if (UAbilitySystemComponent* HostASC = GetHostAbilitySystemComponent())
+	{
+		HostASC->ExecuteGameplayCue(GameplayCueTag, GameplayCueParams);
+	}
 }

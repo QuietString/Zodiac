@@ -36,6 +36,12 @@
 #include "Misc/FileHelper.h"
 #include "Framework/Application/SlateApplication.h"
 
+#if PLATFORM_WINDOWS
+// Alembic headers pull in Windows.h, but we want to make sure it's included via our wrapper instead.
+// This is required to avoid leaking Windows.h macros that may cause compile errors in our code.
+#include "Windows/WindowsHWrapper.h"
+#endif // PLATFORM_WINDOWS
+
 THIRD_PARTY_INCLUDES_START
 #pragma warning(push)
 #pragma warning(disable:4005) // TEXT macro redefinition

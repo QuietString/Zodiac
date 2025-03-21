@@ -37,6 +37,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Zodiac|Camera")
 	static UZodiacCameraComponent* FindCameraComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UZodiacCameraComponent>() : nullptr); }
 
+	APlayerCameraManager* GetPlayerCameraManager();
+	
 	// Returns the target actor that the camera is looking at.
 	virtual AActor* GetTargetActor() const { return GetOwner(); }
 	
@@ -62,6 +64,7 @@ protected:
 	virtual void OnRegister() override;
 	virtual void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView) override;
 
+	void HandleCloseContact();
 	bool CheckHasCloseTarget();
 	
 	virtual void UpdateCameraModes();

@@ -8,6 +8,7 @@
 #include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Camera/ZodiacPlayerCameraManager.h"
+#include "Character/ZodiacHeroCharacter2.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Development/ZodiacDeveloperSettings.h"
 
@@ -121,6 +122,17 @@ void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool
 			}
 		}
 	}
+
+	// if (AZodiacHeroCharacter2* HeroCharacter2 = Cast<AZodiacHeroCharacter2>(GetCharacter()))
+	// {
+	// 	if (IsLocalPlayerController())
+	// 	{
+	// 		if (UZodiacAbilitySystemComponent* HeroASC = HeroCharacter2->GetZodiacAbilitySystemComponent())
+	// 		{
+	// 			HeroASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+	// 		}
+	// 	}
+	// }
 	
 	Super::PostProcessInput(DeltaTime, bGamePaused);
 }

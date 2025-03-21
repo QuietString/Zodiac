@@ -653,7 +653,7 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 			}
 		}
 
-		if (ChargeUltimateEffectClass && FirstHitResult->bBlockingHit && HasAuthority(&CurrentActivationInfo))
+		if (ChargeUltimateEffectClass && FirstHitResult->bBlockingHit /*&& HasAuthority(&CurrentActivationInfo)*/)
 		{
 			if (AActor* HitActor = FirstHitResult->GetActor())
 			{

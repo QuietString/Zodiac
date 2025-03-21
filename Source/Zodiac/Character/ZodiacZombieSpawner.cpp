@@ -72,8 +72,8 @@ void AZodiacZombieSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, T
 
 	if (AllLocations.Num() < TotalNumber)
 	{
-		UE_LOG(LogZodiacSpawner, Warning, TEXT("Not enough space to spawn monsters. Need %d, but have %d points."),
-			TotalNumber, AllLocations.Num());
+		UE_LOG(LogZodiacSpawner, Warning, TEXT("%s: Not enough space to spawn monsters. Need %d, but have %d points."),
+			*GetName(), TotalNumber, AllLocations.Num());
 		return;
 	}
 	
@@ -139,9 +139,9 @@ void AZodiacZombieSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, T
 				}
 			}
 
-			if (!bSpawnSuccess)
+			if (!bSpawnSuccess && PointIndex < LocationScores.Num())
 			{
-				UE_LOG(LogZodiacSpawner, Warning, TEXT("Failed spawning %s after trying all possible spawn location"), *MonsterClass->GetName());
+				UE_LOG(LogZodiacSpawner, Warning, TEXT("%s: Failed spawning %s after trying all possible spawn location"), *GetName(), *MonsterClass->GetName());
 			}
 		}
 	}
@@ -168,6 +168,8 @@ AZodiacMonster* AZodiacZombieSpawner::SpawnMonster(const TSubclassOf<AZodiacMons
 	AZodiacMonster* Spawned = World->SpawnActor<AZodiacMonster>(ClassToSpawn, SpawnLocationWithOffset, SpawnRotation, SpawnParams);
 	if (Spawned)
 	{
+		Spawned->bIsSpawnedBySpawner = true;
+		
 		if (ZombieSpawnConfig.IsValid())
 		{
 			Spawned->SetSpawnConfig(ZombieSpawnConfig);
@@ -181,9 +183,31 @@ AZodiacMonster* AZodiacZombieSpawner::SpawnMonster(const TSubclassOf<AZodiacMons
 				int32 RandomIndex = FMath::RandRange(0, ConfigsNum -1);
 				FZodiacExtendedMovementConfig PickedConfig = MovementConfigs[RandomIndex];
 
+				float WeightSum = WalkingRatioWeight + RunningRatioWeight + SprintingRatioWeight;
+				if (WeightSum <= 0.f)
+				{
+					WeightSum = 1.f;
+				}
+				float WalkingRatio = WalkingRatioWeight / WeightSum;
+				float RunningRatio = RunningRatioWeight / WeightSum;
+				float SprintingRatio = SprintingRatioWeight / WeightSum;
+				
 				float r = FMath::FRand();
 				EZodiacExtendedMovementMode Mode = (r <= RunningRatio) ? EZodiacExtendedMovementMode::Running : EZodiacExtendedMovementMode::Walking;
-		
+				
+				if (r < RunningRatio)
+				{
+					Mode = EZodiacExtendedMovementMode::Running;
+				}
+				else if (r < RunningRatio + SprintingRatio)
+				{
+					Mode = EZodiacExtendedMovementMode::Sprinting;
+				}
+				else
+				{
+					Mode = EZodiacExtendedMovementMode::Walking;
+				}
+				
 				int32 RandomSeed = FMath::RandRange(0, UINT8_MAX);
 				FZodiacZombieSpawnConfig SpawnConfig = FZodiacZombieSpawnConfig(RandomIndex, Mode, RandomSeed);
 		

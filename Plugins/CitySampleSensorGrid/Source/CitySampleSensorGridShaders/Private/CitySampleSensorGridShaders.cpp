@@ -9,6 +9,7 @@
 #include "RenderGraphUtils.h"
 #include "ShaderPermutation.h"
 #include "ShaderParameterStruct.h"
+#include "GlobalShader.h"
 
 namespace CitySampleSensorGridShaders
 {
@@ -584,7 +585,7 @@ void FCitySampleSensorGridHelper::GenerateSortedLeaves(
 				PassParameters,
 				NumTotalSensors,
 				FeatureLevel = FeatureLevel
-			](FRHIRayTracingCommandList& RHICmdList)
+			](FRDGAsyncTask, FRHICommandList& RHICmdList)
 			{
 				FGPUSortBuffers SortBuffers;
 				SortBuffers.RemoteKeySRVs[0] = PassParameters->MortonCodeSRVs[0]->GetRHI();

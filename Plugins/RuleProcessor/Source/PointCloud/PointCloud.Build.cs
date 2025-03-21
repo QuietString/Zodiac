@@ -18,7 +18,6 @@ namespace UnrealBuildTool.Rules
 					"CoreUObject",
 					"GeometryCollectionEngine",
 					"SQLiteCore",
-					"StructUtils"
 				});
 
 			if (Target.bBuildEditor)

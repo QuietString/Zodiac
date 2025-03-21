@@ -32,7 +32,7 @@ protected:
 	void UpdateTargetOffsetCurve(float DeltaTime, FRotator PivotRotation);
 	void UpdatePreventPenetration(float DeltaTime);
 	void PreventCameraPenetration(class AActor const& ViewTarget, FVector const& SafeLoc, FVector& CameraLoc, float const& DeltaTime, float& DistBlockedPct, bool bSingleRayOnly);
-
+	
 	inline bool CheckCloseContact();
 	inline void SetCloseContactOffset(const FVector& InBlendStartOffset, const FVector& InBlendEndOffset, float Weight);
 	
@@ -66,9 +66,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Collision|Close Contact")
 	TArray<FZodiacCloseContactFeeler> CloseContactFeelers;
-	
-	// Penetration prevention
+
 public:
+	// Penetration prevention
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision")
 	float PenetrationBlendInTime = 0.1f;
 

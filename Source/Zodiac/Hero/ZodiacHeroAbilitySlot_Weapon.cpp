@@ -3,12 +3,11 @@
 #include "ZodiacHeroAbilitySlot_Weapon.h"
 
 #include "NativeGameplayTags.h"
+#include "ZodiacGameplayTags.h"
 #include "Camera/ZodiacCameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAbilitySlot_Weapon)
-
-UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Camera_SteadyAiming, "Camera.SteadyAiming");
 
 UZodiacHeroAbilitySlot_Weapon::UZodiacHeroAbilitySlot_Weapon(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -156,20 +155,30 @@ bool UZodiacHeroAbilitySlot_Weapon::UpdateMultipliers(float DeltaSeconds)
 	{
 		float TopCameraWeight;
 		FGameplayTag TopCameraTag;
-		CameraComponent->GetBlendInfo(/*out*/ TopCameraWeight, /*out*/ TopCameraTag);
+		CameraComponent->GetBlendInfo(OUT TopCameraWeight, OUT TopCameraTag);
 
-		AimingAlpha = (TopCameraTag == TAG_Camera_SteadyAiming) ? TopCameraWeight : 0.0f;
+		AimingAlpha = (TopCameraTag == ZodiacGameplayTags::Camera_Aiming_Steady) ? TopCameraWeight : 0.0f;
 	}
-	const float AimingMultiplier = FMath::GetMappedRangeValueClamped(
-		/*InputRange=*/ FVector2D(0.0f, 1.0f),
-		/*OutputRange=*/ FVector2D(1.0f, SpreadAngleMultiplier_Aiming),
-		/*Alpha=*/ AimingAlpha);
+	const float AimingMultiplier = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1.0f), FVector2D(1.0f, SpreadAngleMultiplier_Aiming), AimingAlpha);
 	const bool bAimingMultiplierAtTarget = FMath::IsNearlyEqual(AimingMultiplier, SpreadAngleMultiplier_Aiming, KINDA_SMALL_NUMBER);
 
+	// Determine if we are unstable, and apply the bonus based on how far into the camera transition we are
+	float UnstableAlpha = 0.0f;
+	if (const UZodiacCameraComponent* CameraComponent = UZodiacCameraComponent::FindCameraComponent(Pawn))
+	{
+		float TopCameraWeight;
+		FGameplayTag TopCameraTag;
+		CameraComponent->GetBlendInfo(OUT TopCameraWeight, OUT TopCameraTag);
+
+		UnstableAlpha = (TopCameraTag == ZodiacGameplayTags::Camera_Aiming_Unstable) ? TopCameraWeight : 0.0f;
+	}
+	const float UnstableMultiplier = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 1.0f), FVector2D(1.0f, SpreadAngleMultiplier_Unstable), UnstableAlpha);
+	const bool bUnstableMultiplierAtTarget = FMath::IsNearlyEqual(UnstableMultiplier, SpreadAngleMultiplier_Unstable, KINDA_SMALL_NUMBER);
+	
 	// Combine all the multipliers
-	const float CombinedMultiplier = AimingMultiplier * StandingStillMultiplier * JumpFallMultiplier;
+	const float CombinedMultiplier = UnstableMultiplier * AimingMultiplier * StandingStillMultiplier * JumpFallMultiplier;
 	CurrentSpreadAngleMultiplier = CombinedMultiplier;
 
 	// need to handle these spread multipliers indicating we are not at min spread
-	return bStandingStillMultiplierAtMin && bJumpFallMultiplierIs1 && bAimingMultiplierAtTarget;
+	return bStandingStillMultiplierAtMin && bJumpFallMultiplierIs1 && bAimingMultiplierAtTarget && bUnstableMultiplierAtTarget;
 }

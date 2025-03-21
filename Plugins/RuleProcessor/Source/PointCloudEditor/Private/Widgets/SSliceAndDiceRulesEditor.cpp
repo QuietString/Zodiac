@@ -8,6 +8,7 @@
 #include "SSliceAndDicePickerWidget.h"
 
 #include "Editor.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Styling/AppStyle.h"
 #include "Editor/PropertyEditor/Private/SDetailsView.h"
 #include "Widgets/Images/SImage.h"

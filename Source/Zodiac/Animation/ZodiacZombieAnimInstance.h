@@ -14,7 +14,7 @@ class ZODIAC_API UZodiacZombieAnimInstance : public UZodiacHostAnimInstance
 public:
 	// Don't randomize when Seed is zero.
 	UFUNCTION(BlueprintImplementableEvent)
-	void SelectAnimsBySeed(uint8 Seed);
+	void SelectAnimsBySeed(int32 Seed);
 
 public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
