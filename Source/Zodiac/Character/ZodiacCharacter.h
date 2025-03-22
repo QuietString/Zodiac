@@ -21,6 +21,7 @@ struct FInputActionValue;
 class UAbilitySystemComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnAbilitySystemComponentInitialized, UAbilitySystemComponent*);
+
 DECLARE_DELEGATE_FourParams(FOnPlayHitReact, FVector, FName, float, const FGameplayTagContainer&);
 
 /**
@@ -125,7 +126,9 @@ public:
 	/** Delegate fired when the ability system component of this actor initialized */
 	FOnAbilitySystemComponentInitialized OnAbilitySystemComponentInitialized;
 	void CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySystemComponentInitialized::FDelegate&& Delegate);
-
+	
+	void OnCharacterAttached(ACharacter* AttachedCharacter);
+	
 	virtual bool UpdateSharedReplication();
 
 	/** RPCs that is called on frames when default property replication is skipped. This replicates a single movement update to everyone. */

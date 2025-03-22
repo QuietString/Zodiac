@@ -30,6 +30,14 @@ bool UZodiacGameplayAbility_Traversal::CanActivateAbility(const FGameplayAbility
 {
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
+		if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
+		{
+			if (UZodiacTraversalComponent* TraversalComponent = ZodiacCharacter->FindComponentByClass<UZodiacTraversalComponent>())
+			{
+				// If this ability is triggered from Jump Ability, it could already have a cached result.
+				TraversalComponent->ClearCheckResultCache();
+			}
+		}
 		return false;
 	}
 

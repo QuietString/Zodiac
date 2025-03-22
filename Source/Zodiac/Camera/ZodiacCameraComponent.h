@@ -64,6 +64,7 @@ protected:
 	virtual void OnRegister() override;
 	virtual void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView) override;
 
+	void ApplyTranslationOffset(float DeltaTime, FZodiacCameraModeView& CameraModeView);
 	void HandleCloseContact();
 	bool CheckHasCloseTarget();
 	
@@ -71,24 +72,26 @@ protected:
 	FVector GetHeroOffset();
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Camera")
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Camera|Offset")
 	bool bApplyTranslationOffset;
 
-	UPROPERTY(EditAnywhere, Category = "Zodiac|Camera")
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Camera|Offset", meta = (EditCondition = "bApplyTranslationOffset"))
 	float TranslationOffsetInterpSpeed = 120.f;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Camera|Offset", meta = (EditCondition = "bApplyTranslationOffset"))
+	bool bIgnoreZAxis = false;
 	
 protected:
 	// Stack used to blend the camera modes.
 	UPROPERTY()
 	TObjectPtr<UZodiacCameraModeStack> CameraModeStack;
 
-	// Offset applied to the global translation. The offset is interpolated every frame.
-	FVector TranslationOffset;
-	
 	// Offset applied to the field of view.  The offset is only for one frame, it gets cleared once it is applied.
 	float FieldOfViewOffset;
 
 private:
 	bool bHasCloseContact = false;
 	bool bPreviousCloseContact = false;
+
+	FVector LastViewLocation;
 };

@@ -38,8 +38,9 @@ public:
 	
 	void OnStatusChanged(FGameplayTag Tag, bool bHasTag);
 
+	UFUNCTION(BlueprintCallable)               
 	FVector GetTranslationOffset() const;
-	
+
 protected:
 	UFUNCTION(BlueprintCallable)
 	void UpdateGait();
@@ -175,6 +176,9 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Rotation")
 	float MaxRootRotationOffset;
 
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Trajectory")
+	TArray<TObjectPtr<ACharacter>> ActorsToIgnoreTrajectory;
+	
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<AZodiacCharacter> OwningCharacter;

@@ -193,24 +193,24 @@ AZodiacMonster* AZodiacZombieSpawner::SpawnMonster(const TSubclassOf<AZodiacMons
 				float SprintingRatio = SprintingRatioWeight / WeightSum;
 				
 				float r = FMath::FRand();
-				EZodiacExtendedMovementMode Mode = (r <= RunningRatio) ? EZodiacExtendedMovementMode::Running : EZodiacExtendedMovementMode::Walking;
+				EZodiacExtendedMovementMode Mode;
 				
-				if (r < RunningRatio)
+				if (r < WalkingRatio)
+				{
+					Mode = EZodiacExtendedMovementMode::Walking;
+				}
+				else if (r >= WalkingRatio && r < WalkingRatio + RunningRatio)
 				{
 					Mode = EZodiacExtendedMovementMode::Running;
 				}
-				else if (r < RunningRatio + SprintingRatio)
-				{
-					Mode = EZodiacExtendedMovementMode::Sprinting;
-				}
 				else
 				{
-					Mode = EZodiacExtendedMovementMode::Walking;
+					Mode = EZodiacExtendedMovementMode::Sprinting;
 				}
 				
 				int32 RandomSeed = FMath::RandRange(0, UINT8_MAX);
 				FZodiacZombieSpawnConfig SpawnConfig = FZodiacZombieSpawnConfig(RandomIndex, Mode, RandomSeed);
-		
+				
 				Spawned->SetSpawnConfig(SpawnConfig);
 			}	
 		}

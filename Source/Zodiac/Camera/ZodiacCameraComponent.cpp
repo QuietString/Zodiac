@@ -62,6 +62,8 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 		}
 	}
 
+	ApplyTranslationOffset(DeltaTime, CameraModeView);
+	
 	// Apply any offset that was added to the field of view.
 	CameraModeView.FieldOfView += FieldOfViewOffset;
 	FieldOfViewOffset = 0.0f;
@@ -69,22 +71,9 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 	// Keep camera component in sync with the latest view.
 	SetWorldLocationAndRotation(CameraModeView.Location, CameraModeView.Rotation);
 	FieldOfView = CameraModeView.FieldOfView;
-
-	if (UpdateCameraTranslationOffsetDelegate.IsBound())
-	{
-		FVector TargetTranslationOffset = UpdateCameraTranslationOffsetDelegate.Execute();
-		if (TranslationOffsetInterpSpeed > 0.0f)
-		{
-			TranslationOffset = FMath::VInterpTo(TranslationOffset, TargetTranslationOffset, DeltaTime, TranslationOffsetInterpSpeed);	
-		}
-		else
-		{
-			TranslationOffset = TargetTranslationOffset;
-		}
-	}
 	
 	// Fill in desired view.
-	DesiredView.Location = CameraModeView.Location + GetHeroOffset() + TranslationOffset;
+	DesiredView.Location = CameraModeView.Location;
 	DesiredView.Rotation = CameraModeView.Rotation;
 	DesiredView.FOV = CameraModeView.FieldOfView;
 	DesiredView.OrthoWidth = OrthoWidth;
@@ -108,6 +97,31 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 	{
 		// In XR much of the camera behavior above is irrellevant, but the post process settings are not.
 		Super::GetCameraView(DeltaTime, DesiredView);
+	}
+
+	LastViewLocation = DesiredView.Location;
+}
+
+void UZodiacCameraComponent::ApplyTranslationOffset(float DeltaTime, FZodiacCameraModeView& CameraModeView)
+{
+	if (UpdateCameraTranslationOffsetDelegate.IsBound())
+	{
+		FVector TranslationOffset = UpdateCameraTranslationOffsetDelegate.Execute();
+		if (bIgnoreZAxis)
+		{
+			TranslationOffset.Z = 0.f;
+		}
+
+		FVector TargetLocation = CameraModeView.Location + TranslationOffset;
+		
+		if (TranslationOffsetInterpSpeed > 0.0f)
+		{
+			CameraModeView.Location = FMath::VInterpTo(LastViewLocation, TargetLocation, DeltaTime, TranslationOffsetInterpSpeed);	
+		}
+		else
+		{
+			CameraModeView.Location = TargetLocation;
+		}
 	}
 }
 

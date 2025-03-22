@@ -322,11 +322,12 @@ void AZodiacHeroCharacter::InitializeWithHostCharacter()
 
 void AZodiacHeroCharacter::AttachToOwner()
 {
-	if (ACharacter* Character = Cast<ACharacter>(Owner))
+	if (AZodiacHostCharacter* OwnerHostCharacter = Cast<AZodiacHostCharacter>(Owner))
 	{
-		if (USkeletalMeshComponent* HostMesh = Character->GetMesh())
+		if (USkeletalMeshComponent* HostMesh = OwnerHostCharacter->GetMesh())
 		{
 			AttachToComponent(HostMesh, FAttachmentTransformRules::SnapToTargetIncludingScale, NAME_None);
+			OwnerHostCharacter->OnCharacterAttached(this);
 			
 			// move up as much as UEFN mannequin height.
 			if (HasAuthority())

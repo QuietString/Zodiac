@@ -230,6 +230,14 @@ void AZodiacCharacter::CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySyste
 	}
 }
 
+void AZodiacCharacter::OnCharacterAttached(ACharacter* AttachedCharacter)
+{
+	if (UZodiacHostAnimInstance* HostAnimInstance = CastChecked<UZodiacHostAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		HostAnimInstance->ActorsToIgnoreTrajectory.Add(AttachedCharacter);
+	}
+}
+
 void AZodiacCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);

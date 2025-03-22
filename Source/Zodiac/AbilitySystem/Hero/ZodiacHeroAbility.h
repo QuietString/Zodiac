@@ -159,6 +159,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs")
 	bool bHasInitialCost = false;
 
+	// Not used. UZodiacGameplayAttribute::InitialApplyAmount is used instead.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Costs", meta = (EditCondition = "bHasInitialCost"))
 	float InitialCostAmount;
 

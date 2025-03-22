@@ -38,10 +38,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	virtual UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponent() const;
-
-	/** Delegate fired when the ability system component of this actor initialized */
-	FOnAbilitySystemComponentInitialized OnAbilitySystemComponentInitialized;
-
+	
 	// Return currently active hero
 	UFUNCTION(BlueprintCallable)
 	AZodiacHeroCharacter* GetHero() const { return HeroList.GetHero(ActiveHeroIndex); }
