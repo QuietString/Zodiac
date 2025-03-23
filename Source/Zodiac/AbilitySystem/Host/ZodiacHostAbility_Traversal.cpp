@@ -1,19 +1,18 @@
 ﻿// the.quiet.string@gmail.com
 
 
-#include "ZodiacGameplayAbility_Traversal.h"
+#include "ZodiacHostAbility_Traversal.h"
 
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Character/ZodiacCharacter.h"
 #include "Traversal/ZodiacTraversalComponent.h"
-#include "Traversal/ZodiacTraversalTypes.h"
-#include "GameplayAbilities/Public/Abilities/Tasks/AbilityTask_WaitDelay.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacGameplayAbility_Traversal)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHostAbility_Traversal)
 
-UZodiacGameplayAbility_Traversal::UZodiacGameplayAbility_Traversal(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+UZodiacHostAbility_Traversal::UZodiacHostAbility_Traversal(const FObjectInitializer& ObjectInitializer)
+: Super(ObjectInitializer)
 {
 	if (HasAnyFlags(RF_ClassDefaultObject))
 	{
@@ -25,8 +24,8 @@ UZodiacGameplayAbility_Traversal::UZodiacGameplayAbility_Traversal(const FObject
 	}
 }
 
-bool UZodiacGameplayAbility_Traversal::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                                            const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+bool UZodiacHostAbility_Traversal::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,
+	const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags))
 	{
@@ -63,8 +62,8 @@ bool UZodiacGameplayAbility_Traversal::CanActivateAbility(const FGameplayAbility
 	return false;
 }
 
-void UZodiacGameplayAbility_Traversal::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-                                                         const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UZodiacHostAbility_Traversal::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
@@ -87,8 +86,8 @@ void UZodiacGameplayAbility_Traversal::ActivateAbility(const FGameplayAbilitySpe
 	}
 }
 
-void UZodiacGameplayAbility_Traversal::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+void UZodiacHostAbility_Traversal::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateCancelAbility)
 {
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
 
@@ -101,7 +100,7 @@ void UZodiacGameplayAbility_Traversal::CancelAbility(const FGameplayAbilitySpecH
 	}
 }
 
-void UZodiacGameplayAbility_Traversal::OnTraversalFinished()
+void UZodiacHostAbility_Traversal::OnTraversalFinished()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

@@ -6,11 +6,9 @@
 #include "AbilitySystemComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacInteractionTransformInterface.h"
-#include "ZodiacLogChannels.h"
 #include "ZodiacTraversableActorComponent.h"
 #include "ZodiacTraversalActorInterface.h"
 #include "ZodiacTraversalTypes.h"
-#include "Character/ZodiacCharacter.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
@@ -58,10 +56,11 @@ void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 				if (CharMovComp->CustomMovementMode != Move_Custom_Traversal)
 				{
 					bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
-					FText FailReason;
+					FGameplayTag FailReason;
 					FZodiacTraversalCheckResult Result;
 					FVector LastLocation;
-					bool bLedgeFound = CheckFrontLedge(bIsInAir, Result, FailReason, LastLocation, true);
+					AActor* BlockingActor = nullptr;
+					bool bLedgeFound = CheckFrontLedge(bIsInAir, Result, FailReason, LastLocation, true, BlockingActor);
 			
 					OnFrontLedgeChecked(bLedgeFound, Result.FrontLedgeLocation, Result.FrontLedgeNormal);
 			
@@ -84,7 +83,7 @@ void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 }
 
-bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
+bool UZodiacTraversalComponent::CanTraversalAction(FGameplayTag& FailReason, FVector& FrontLedgeNormal, AActor*& BlockingActor)
 {
 	ACharacter* Character = GetPawn<ACharacter>();
 	if (!Character)
@@ -128,8 +127,12 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 	Result.bIsMidAir = bIsInAir;
 	
 	FVector CeilingCheckEndLocation;
-	if (!CheckFrontLedge(bIsInAir,Result,FailReason, CeilingCheckEndLocation, false))
+	if (!CheckFrontLedge(bIsInAir,Result,FailReason, CeilingCheckEndLocation, false, BlockingActor))
 	{
+		if (FailReason == ZodiacGameplayTags::Traversal_FailReason_OutOfAngle)
+		{
+			FrontLedgeNormal = Result.FrontLedgeNormal;
+		}
 		return false;
 	}
 	
@@ -184,7 +187,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 
 	if (!DetermineTraversalType(Result))
 	{
-		FailReason = LOCTEXT("TraversalCheckFailed", "Couldn't determine proper action type.");
+		FailReason = ZodiacGameplayTags::Traversal_FailReason_NoProperActionType;
 		return 	false;
 	}
 
@@ -192,7 +195,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FText& FailReason)
 	
 	if (!FindMatchingAnimMontage(Result))
 	{
-		FailReason = LOCTEXT("TraversalFailed", "Couldn't find matching anim montage");
+		FailReason = ZodiacGameplayTags::Traversal_FailReason_NoMatchingMontage;
 		return 	false;
 	}
 	
@@ -252,7 +255,7 @@ void UZodiacTraversalComponent::Server_PerformTraversalAction_Implementation(FZo
 	bHasCached = false;
 }
 
-bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalCheckResult& Result, FText& FailReason, FVector& LastTraceLocation, bool bIsTicked)
+bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalCheckResult& Result, FGameplayTag& FailReason, FVector& LastTraceLocation, bool bIsTicked, AActor*& BlockingActor)
 {
 	bool bDrawDebug = false;
 	bool bDrawFindBlockTrace = false;
@@ -288,7 +291,7 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	
 	if (!CapsuleTrace(TraceStart, TraceEnd, TraversalObjectHit, OUT CapsuleRadius, CapsuleHalfHeight, bDrawFindBlockTrace, DebugDuration, bIsTicked, ActorsToIgnore))
 	{
-		FailReason = LOCTEXT("TraversalFailed", "No trace hit");
+		FailReason = ZodiacGameplayTags::Traversal_FailReason_NoTraceHit; 
 		return false;
 	}
 
@@ -302,14 +305,14 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	}
 	else
 	{
-		FailReason = LOCTEXT("TraversalFailed", "No traversal object found");
+		FailReason = ZodiacGameplayTags::Traversal_FailReason_NoTraceHit;
 		return false;
 	}
 	
 	// Step 3.1 If the traversable level block has a valid front ledge, continue the function. If not, exit early.
 	if (!Result.bHasFrontLedge)
 	{
-		FailReason = LOCTEXT("TraversalFailed", "No front ledge found");
+		FailReason = ZodiacGameplayTags::Traversal_FailReason_NoFrontLedgeFound;
 		return false;
 	}
 
@@ -323,7 +326,7 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	float DistanceToFrontLedge = (ActorLocation - Result.FrontLedgeLocation).Size2D(); 
 	if (DistanceToFrontLedge > TraceForwardDistance + CapsuleRadius)
 	{
-		FailReason = LOCTEXT("TraversalFailed", "Found front ledge is too far away");
+		FailReason = ZodiacGameplayTags::Traversal_FailReason_OutOfDistance;
 		return false;
 	}
 	
@@ -337,7 +340,7 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	
 	if (Result.FrontLedgeNormal.Dot(ActorForwardVector) > DotThreshold)
 	{
-		FailReason = LOCTEXT("TraversalFailed", "Character is not facing toward a front ledge");
+		FailReason = ZodiacGameplayTags::Traversal_FailReason_OutOfAngle;
 		return false;
 	}
 	
@@ -350,7 +353,8 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	CapsuleTrace(CeilingCheckStartLocation, CeilingCheckEndLocation, CeilingHit, CapsuleRadius, CapsuleHalfHeight, bDrawCeilingTrace, DebugDuration, bIsTicked, ActorsToIgnore);
 	if (CeilingHit.bBlockingHit || CeilingHit.bStartPenetrating)
 	{
-		FailReason = FText::Format(LOCTEXT("TraversalFailed", "Too close ceiling for traversal action. Hit component: {0}"), FText::FromString(CeilingHit.Component->GetName()));
+		BlockingActor = CeilingHit.GetActor();
+		FailReason = ZodiacGameplayTags::Traversal_FailReason_BlockedByCeiling;
 		return 	false;
 	}
 

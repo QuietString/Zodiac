@@ -71,8 +71,6 @@ public:
 	{
 		return TagToCountMap.Contains(Tag);
 	}
-
-	FOnStackChanged OnStackChanged;
 	
 	//~FFastArraySerializer contract
 	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize);

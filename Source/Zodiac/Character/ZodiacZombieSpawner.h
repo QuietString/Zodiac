@@ -76,6 +76,14 @@ protected:
 private:
 	UPROPERTY()
 	TSet<TObjectPtr<AZodiacMonster>> SpawnedMonsters;
+	
+	int32 TotalNumberToInitialSpawn;
+	
+	// Tracks how many monsters of each class are waiting to respawn.
+	UPROPERTY()
+	TMap<TSubclassOf<AZodiacMonster>, uint8> AccumulatedRespawnRequests;
 
-	int32 TotalMonstersToSpawn;
+	// How many monsters to respawn at once, per type.
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = "1"))
+	int32 BunchRespawnSize = 4;
 };

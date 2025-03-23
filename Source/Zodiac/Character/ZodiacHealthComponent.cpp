@@ -6,11 +6,9 @@
 #include "ZodiacLogChannels.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroCharacter.h"
-#include "ZodiacHostCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
-#include "GameFramework/PlayerState.h"
 #include "Engine/World.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Messages/ZodiacMessageTypes.h"
@@ -90,7 +88,7 @@ void UZodiacHealthComponent::InitializeWithAbilitySystem(UZodiacAbilitySystemCom
 	HealthSet->OnMaxHealthChanged.AddUObject(this, &ThisClass::HandleMaxHealthChanged);
 	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
 
-	// TEMP: Reset attributes to default values.  Eventually this will be driven by a spread sheet.
+	// TEMP: Reset attributes to default values.  Eventually this will be driven by a spreadsheet.
 	AbilitySystemComponent->SetNumericAttributeBase(UZodiacHealthSet::GetHealthAttribute(), HealthSet->GetMaxHealth());
 
 	ClearGameplayTags();
@@ -241,7 +239,7 @@ void UZodiacHealthComponent::OnRep_DeathState(EZodiacDeathState OldDeathState)
 
 	if (OldDeathState > NewDeathState)
 	{
-		// The server is trying to set us back but we've already predicted past the server state.
+		// The server is trying to set us back, but we've already predicted past the server state.
 		UE_LOG(LogZodiac, Warning, TEXT("ZodiacHealthComponent: Predicted past server death state [%d] -> [%d] for owner [%s]."), (uint8)OldDeathState, (uint8)NewDeathState, *GetNameSafe(GetOwner()));
 		return;
 	}

@@ -565,9 +565,12 @@ void UZodiacCameraModeStack::GetBlendInfo(float& OutWeightOfTopLayer, FGameplayT
 
 UZodiacCameraMode* UZodiacCameraModeStack::GetTopCameraMode() const
 {
-	if (UZodiacCameraMode* TopEntry = CameraModeStack.Last())
+	if (!CameraModeStack.IsEmpty())
 	{
-		return TopEntry;	
+		if (UZodiacCameraMode* TopEntry = CameraModeStack.Last())
+		{
+			return TopEntry;	
+		}	
 	}
 
 	return nullptr;

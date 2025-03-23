@@ -86,12 +86,15 @@ public:
 
 	void ToggleSprint(bool bShouldSprint);
 	void ToggleStrafe(bool bShouldStrafe);
-
-	UFUNCTION(BlueprintCallable)
+	
+	UFUNCTION(BlueprintGetter)
 	EZodiacExtendedMovementMode GetExtendedMovementMode() const { return ExtendedMovementMode; }
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintSetter)
 	void SetExtendedMovementMode(EZodiacExtendedMovementMode InMode);
+
+	UFUNCTION(BlueprintGetter)
+	FZodiacExtendedMovementConfig GetExtendedMovementConfig() const { return ExtendedMovementConfig; }
 	
 	void SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig);
 
@@ -119,12 +122,12 @@ protected:
 	FZodiacCharacterGroundInfo CachedGroundInfo;
 
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Walk Modes", meta = (AllowPrivateAccess = true))
-	FZodiacExtendedMovementConfig ExtendMovementConfig;
-
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Walk Modes", meta = (AllowPrivateAccess = true))
+	UPROPERTY(Replicated, BlueprintGetter=GetExtendedMovementMode, BlueprintSetter=SetExtendedMovementMode)
 	EZodiacExtendedMovementMode ExtendedMovementMode;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, BlueprintGetter=GetExtendedMovementConfig, Category = "Walk Modes", meta = (AllowPrivateAccess = true))
+	FZodiacExtendedMovementConfig ExtendedMovementConfig;
+	
 	UPROPERTY(Transient)
 	mutable float MovementAngle;
 	

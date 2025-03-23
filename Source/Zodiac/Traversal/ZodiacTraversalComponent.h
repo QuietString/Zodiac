@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "ZodiacTraversalTypes.h"
 #include "ModularGameplay/Public/Components/PawnComponent.h"
 #include "ZodiacTraversalComponent.generated.h"
@@ -24,7 +25,7 @@ public:
 	//~End of UActorComponent interface
 
 	UFUNCTION(BlueprintCallable, meta = (ExpandBoolAsExecs = "ReturnValue"))
-	bool CanTraversalAction(FText& FailReason);
+	bool CanTraversalAction(FGameplayTag& FailReason, FVector& FrontLedgeNormal, AActor*& BlockingActor);
 	
 	UFUNCTION(BlueprintCallable)
 	void TryActivateTraversalAbility();
@@ -35,7 +36,7 @@ public:
 	void Server_PerformTraversalAction(FZodiacTraversalCheckResult CheckResult);
 	
 	// Used only for traversal location visualization
-	bool CheckFrontLedge(bool bIsInAir, FZodiacTraversalCheckResult& Result, FText& FailReason, FVector& LastTraceLocation, bool bIsTicked);
+	bool CheckFrontLedge(bool bIsInAir, FZodiacTraversalCheckResult& Result, FGameplayTag& FailReason, FVector& LastTraceLocation, bool bIsTicked, AActor*& BlockingActor);
 	
 	FSimpleDelegate OnTraversalFinished;
 
@@ -68,10 +69,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Traversal|Check")
 	float BaseGroundTraversalDistance = 125.f;
 	
-	UPROPERTY(EditAnywhere, Category = "Traversal|Check", meta = (ForceUnits=deg, UIMin = 0, UIMax = 90))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Traversal|Check", meta = (ForceUnits=deg, UIMin = 0, UIMax = 90))
 	float AllowedFacingAngle_Moving = 45.f;
 
-	UPROPERTY(EditAnywhere, Category = "Traversal|Check", meta = (ForceUnits=deg, UIMin = 0, UIMax = 90))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Traversal|Check", meta = (ForceUnits=deg, UIMin = 0, UIMax = 90))
 	float AllowedFacingAngle_Idle = 60.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Traversal|Check")

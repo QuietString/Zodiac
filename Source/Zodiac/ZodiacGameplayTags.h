@@ -96,6 +96,15 @@ namespace ZodiacGameplayTags
 
 	// Gameplay Message channels
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_Message_Elimination);
+
+	// Traversal Action
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_NoTraceHit);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_NoFrontLedgeFound);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_OutOfAngle);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_OutOfDistance);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_BlockedByCeiling);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_NoProperActionType);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_NoMatchingMontage);
 	
 	// These are mappings from MovementMode enums to GameplayTags associated with those enums (below)
 	ZODIAC_API	extern const TMap<uint8, FGameplayTag> MovementModeTagMap;

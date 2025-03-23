@@ -24,9 +24,9 @@ UZodiacCharacterMovementComponent::UZodiacCharacterMovementComponent(const FObje
 {
 	SetIsReplicatedByDefault(true);
 	
-	ExtendMovementConfig.DefaultExtendedMovement = EZodiacExtendedMovementMode::Running;
-	ExtendMovementConfig.MovementSpeedsMap.Add(EZodiacExtendedMovementMode::Walking, FVector(200.f, 175.f, 150.f));
-	ExtendMovementConfig.MovementSpeedsMap.Add(EZodiacExtendedMovementMode::Running, FVector(500.f, 350.f, 300.f));
+	ExtendedMovementConfig.DefaultExtendedMovement = EZodiacExtendedMovementMode::Running;
+	ExtendedMovementConfig.MovementSpeedsMap.Add(EZodiacExtendedMovementMode::Walking, FVector(200.f, 175.f, 150.f));
+	ExtendedMovementConfig.MovementSpeedsMap.Add(EZodiacExtendedMovementMode::Running, FVector(500.f, 350.f, 300.f));
 }
 
 void UZodiacCharacterMovementComponent::SimulateMovement(float DeltaTime)
@@ -104,7 +104,7 @@ void UZodiacCharacterMovementComponent::ToggleSprint(bool bShouldSprint)
 	// Don't strafe when sprinting
 	ToggleStrafe(!bShouldSprint);
 		
-	EZodiacExtendedMovementMode NewMode = bShouldSprint ? EZodiacExtendedMovementMode::Sprinting : ExtendMovementConfig.DefaultExtendedMovement;
+	EZodiacExtendedMovementMode NewMode = bShouldSprint ? EZodiacExtendedMovementMode::Sprinting : ExtendedMovementConfig.DefaultExtendedMovement;
 	SetExtendedMovementMode(NewMode);
 }
 
@@ -126,7 +126,7 @@ void UZodiacCharacterMovementComponent::SetExtendedMovementMode(EZodiacExtendedM
 
 void UZodiacCharacterMovementComponent::SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig)
 {
-	ExtendMovementConfig = InConfig;
+	ExtendedMovementConfig = InConfig;
 	SetExtendedMovementMode(InConfig.DefaultExtendedMovement);
 }
 
@@ -280,7 +280,7 @@ float UZodiacCharacterMovementComponent::CalculateMaxSpeed() const
 		StrafeMap = 0.f;
 	}
 
-	const FVector* FindVector = ExtendMovementConfig.MovementSpeedsMap.Find(ExtendedMovementMode);
+	const FVector* FindVector = ExtendedMovementConfig.MovementSpeedsMap.Find(ExtendedMovementMode);
 	
 	FVector DesiredSpeedRange = FindVector ? *FindVector : FVector();
 

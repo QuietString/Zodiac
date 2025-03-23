@@ -93,6 +93,16 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_WidgetChanged, "HUD.Message.WidgetChanged");
 
 	UE_DEFINE_GAMEPLAY_TAG(Gameplay_Message_Elimination, "Gameplay.Message.Elimination");
+
+	// Traversal Actions
+	UE_DEFINE_GAMEPLAY_TAG(Traversal_FailReason_NoTraceHit, "Traversal.FailReason.NoTraceHit");
+	UE_DEFINE_GAMEPLAY_TAG(Traversal_FailReason_NoFrontLedgeFound, "Traversal.FailReason.NoFrontLedgeFound");
+	UE_DEFINE_GAMEPLAY_TAG(Traversal_FailReason_OutOfAngle, "Traversal.FailReason.OutOfAngle");
+	UE_DEFINE_GAMEPLAY_TAG(Traversal_FailReason_OutOfDistance, "Traversal.FailReason.OutOfDistance");
+	UE_DEFINE_GAMEPLAY_TAG(Traversal_FailReason_BlockedByCeiling, "Traversal.FailReason.BlockedByCeiling");
+	UE_DEFINE_GAMEPLAY_TAG(Traversal_FailReason_NoProperActionType, "Traversal.FailReason.NoProperActionType");
+	UE_DEFINE_GAMEPLAY_TAG(Traversal_FailReason_NoMatchingMontage, "Traversal.FailReason.NoMatchingMontage");
+
 	
 	// These are mapped to the movement modes inside GetMovementModeTagMap()
 	UE_DEFINE_GAMEPLAY_TAG(Movement_Mode, "Movement.Mode");

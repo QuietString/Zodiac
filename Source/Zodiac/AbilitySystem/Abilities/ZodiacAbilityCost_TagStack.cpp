@@ -53,7 +53,7 @@ void UZodiacAbilityCost_TagStack::ApplyCost(const UZodiacGameplayAbility* Abilit
 		if (const UZodiacHeroAbility* HeroAbility = Cast<UZodiacHeroAbility>(Ability))
 		{
 			FScalableFloat QuantityToUse = HeroAbility->ShouldUseInitialCost() ? Quantity_Initial : Quantity;
-			const float QuantityReal = QuantityToUse.GetValueAtLevel(1);
+			const float QuantityReal = QuantityToUse.GetValueAtLevel(0);
 			const int32 StackCost = FMath::TruncToInt(QuantityReal);
 	
 			if (UZodiacHeroAbilitySlot* AbilitySlot = HeroAbility->GetAssociatedSlot())
