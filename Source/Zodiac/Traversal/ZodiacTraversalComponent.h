@@ -25,7 +25,7 @@ public:
 	//~End of UActorComponent interface
 
 	UFUNCTION(BlueprintCallable, meta = (ExpandBoolAsExecs = "ReturnValue"))
-	bool CanTraversalAction(FGameplayTag& FailReason, FVector& FrontLedgeNormal, AActor*& BlockingActor);
+	bool CanTraversalAction(FGameplayTag& FailReason, FVector& FrontLedgeLocation, FVector& FrontLedgeNormal, AActor*& BlockingActor);
 	
 	UFUNCTION(BlueprintCallable)
 	void TryActivateTraversalAbility();

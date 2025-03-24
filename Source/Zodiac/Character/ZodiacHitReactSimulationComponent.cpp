@@ -217,16 +217,6 @@ void UZodiacHitReactSimulationComponent::OnDeathStarted(AActor* OwningActor)
 	{
 		StartRagdoll();	
 	}
-	
-	// if (OwningActor->HasAuthority())
-	// {
-	// 	TargetMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	// }
-	//
-	// if (GetNetMode() != NM_DedicatedServer)
-	// {
-	// 	StartRagdoll();	
-	// }
 }
 
 void UZodiacHitReactSimulationComponent::StartRagdoll()

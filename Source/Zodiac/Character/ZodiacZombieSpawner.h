@@ -18,11 +18,18 @@ class ZODIAC_API AZodiacZombieSpawner : public AActor
 	GENERATED_BODY()
 
 protected:
+	void RegisterToSubsystem();
 	virtual void BeginPlay() override;
 
 public:
 	void SpawnAllMonsters();
 
+	TSet<TObjectPtr<AZodiacMonster>> GetAllMonsters() const { return SpawnedMonsters; }
+	
+	bool GetIsEnabled() const { return bIsEnabled; }
+	bool GetSpawnOnBeginPlay() const { return bSpawnOnBeginPlay; }
+	bool GetUseTrigger() const { return bUseTrigger; }
+	
 protected:
 	void OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap, FZodiacZombieSpawnConfig SpawnConfig);
 	
@@ -34,7 +41,13 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bIsEnabled = true;
+	
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
+	bool bSpawnOnBeginPlay = true;
 
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
+	bool bUseTrigger = false;
+	
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bRespawnWhenDies;
 

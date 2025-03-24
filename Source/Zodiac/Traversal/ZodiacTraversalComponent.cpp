@@ -83,7 +83,7 @@ void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 }
 
-bool UZodiacTraversalComponent::CanTraversalAction(FGameplayTag& FailReason, FVector& FrontLedgeNormal, AActor*& BlockingActor)
+bool UZodiacTraversalComponent::CanTraversalAction(FGameplayTag& FailReason, FVector& FrontLedgeLocation, FVector& FrontLedgeNormal, AActor*& BlockingActor)
 {
 	ACharacter* Character = GetPawn<ACharacter>();
 	if (!Character)
@@ -131,6 +131,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FGameplayTag& FailReason, FVe
 	{
 		if (FailReason == ZodiacGameplayTags::Traversal_FailReason_OutOfAngle)
 		{
+			FrontLedgeLocation = Result.FrontLedgeLocation;
 			FrontLedgeNormal = Result.FrontLedgeNormal;
 		}
 		return false;

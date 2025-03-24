@@ -5,6 +5,7 @@
 #include "AIController.h"
 #include "ZodiacLogChannels.h"
 #include "ZodiacMonster.h"
+#include "AI/ZodiacAISubsystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "System/ZodiacGameData.h"
@@ -17,18 +18,40 @@ namespace ZombieSpawnerQueryParamNames
 	FName SpaceBetween = FName("SimpleGrid.SpaceBetween");
 }
 
+void AZodiacZombieSpawner::RegisterToSubsystem()
+{
+	// Register this spawner to ZodiacAISubsystem.
+	if (UWorld* World = GetWorld())
+	{
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UZodiacAISubsystem* AISubsystem = GI->GetSubsystem<UZodiacAISubsystem>())
+			{
+				AISubsystem->RegisterSpawner(this);
+			}
+		}
+	}
+}
+
 void AZodiacZombieSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority() && bIsEnabled)
+	if (!HasAuthority() || !bIsEnabled)
 	{
-		TotalNumberToInitialSpawn = 0;
-		for (auto& [K, V] : MonstersToSpawn)
-		{
-			TotalNumberToInitialSpawn += V;
-		}
-		
+		return;
+	}
+
+	RegisterToSubsystem();
+
+	TotalNumberToInitialSpawn = 0;
+	for (auto& [K, V] : MonstersToSpawn)
+	{
+		TotalNumberToInitialSpawn += V;
+	}
+
+	if (bSpawnOnBeginPlay)
+	{
 		SpawnAllMonsters();
 	}
 }

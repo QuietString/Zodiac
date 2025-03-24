@@ -6,10 +6,12 @@
 #include "AIController.h"
 #include "EngineUtils.h"
 #include "GameplayTagContainer.h"
+#include "OnlineSubsystemUtils.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacPlayerController.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Hero/ZodiacHeroAbilitySystemComponent.h"
+#include "AI/ZodiacAISubsystem.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
@@ -158,6 +160,34 @@ void UZodiacCheatManager::SpawnZombies()
 		{
 			Spawner->SpawnAllMonsters();	
 		}
+	}
+}
+
+void UZodiacCheatManager::PauseZombies()
+{
+	UWorld* World = GetWorld();
+	check(World);
+	UGameInstance* GameInstance = World->GetGameInstance();
+	check(GameInstance);
+	
+	UZodiacAISubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAISubsystem>();
+	if (AISubsystem)
+	{
+		AISubsystem->PauseAllMonsters();
+	}
+}
+
+void UZodiacCheatManager::ResumeZombies()
+{
+	UWorld* World = GetWorld();
+	check(World);
+	UGameInstance* GameInstance = World->GetGameInstance();
+	check(GameInstance);
+	
+	UZodiacAISubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAISubsystem>();
+	if (AISubsystem)
+	{
+		AISubsystem->ResumeAllMonsters();
 	}
 }
 

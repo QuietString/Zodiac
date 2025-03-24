@@ -57,6 +57,12 @@ public:
 	//
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void SpawnZombies();
+
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void PauseZombies();
+
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void ResumeZombies();
 	
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void AddTagToAllMonsters(FString TagName);

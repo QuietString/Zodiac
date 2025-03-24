@@ -45,9 +45,10 @@ bool UZodiacHostAbility_Traversal::CanActivateAbility(const FGameplayAbilitySpec
 		if (UZodiacTraversalComponent* TraversalComponent = ZodiacCharacter->FindComponentByClass<UZodiacTraversalComponent>())
 		{
 			FGameplayTag FailReason;
+			FVector FrontLedgeLocation;
 			FVector FrontLedgeNormal;
 			AActor* BlockingActor = nullptr;
-			bool Result = TraversalComponent->CanTraversalAction(FailReason, FrontLedgeNormal, BlockingActor);
+			bool Result = TraversalComponent->CanTraversalAction(FailReason, FrontLedgeLocation, FrontLedgeNormal, BlockingActor);
 
 #if WITH_EDITOR
 			if (!Result && ZodiacConsoleVariables::CVarTraversalDrawDebug.GetValueOnAnyThread())

@@ -45,9 +45,10 @@ void UZodiacGameplayAbility_Jump::ActivateAbility(const FGameplayAbilitySpecHand
 		if (UZodiacTraversalComponent* TraversalComponent = ZodiacCharacter->FindComponentByClass<UZodiacTraversalComponent>())
 		{
 			FGameplayTag FailReason;
+			FVector FrontLedgeLocation;
 			FVector FrontLedgeNormal;
 			AActor* BlockingActor = nullptr;
-			if (TraversalComponent->CanTraversalAction(FailReason, FrontLedgeNormal, BlockingActor))
+			if (TraversalComponent->CanTraversalAction(FailReason, FrontLedgeLocation, FrontLedgeNormal, BlockingActor))
 			{
 				TraversalComponent->TryActivateTraversalAbility();
 			}
