@@ -35,22 +35,6 @@ public:
 	TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
 };
 
-USTRUCT(BlueprintType, DisplayName = "HUD Message Widget Changed")
-struct FZodiacHUDMessage_WidgetChanged
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<AController> Controller = nullptr;
-
-	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<UZodiacHeroAbilitySlot> Slot;
-	
-	UPROPERTY(BlueprintReadWrite)
-	TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets;
-};
-
 USTRUCT(BlueprintType, DisplayName = "HUD Message Reticle Changed")
 struct FZodiacHUDMessage_ReticleChanged
 {
@@ -65,6 +49,19 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite)
 	TArray<TSubclassOf<UZodiacReticleWidgetBase>> Widgets;
+};
+
+USTRUCT(BlueprintType, DisplayName = "HUD Message Hero Global Reticles Changed")
+struct FZodiacHUDMessage_GlobalReticleChanged
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AController> Controller = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	TArray<TSubclassOf<UZodiacReticleWidgetBase>> Reticles;
 };
 
 USTRUCT(BlueprintType, DisplayName = "HUD Message Health Changed")
@@ -124,8 +121,8 @@ public:
 
 protected:
 	void SendChangeReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Widgets, UZodiacHeroAbilitySlot* Slot);
-	void SendChangeWidgetMessage(const TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>>& Widgets, UZodiacHeroAbilitySlot* Slot);
 	void SendChangeSlotWidgetsMessage(TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets);
+	void SendChangeGlobalReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Reticles);
 	
 	void ClearAbilityReticle();
 	

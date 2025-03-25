@@ -49,7 +49,6 @@ namespace ZodiacGameplayTags
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Type_Damage_Explosive);
 	
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_DamageMultiplier);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Amount);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cost);
@@ -91,11 +90,12 @@ namespace ZodiacGameplayTags
 
 	// Gameplay HUD Message channels
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_ReticleChanged);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_GlobalReticleChanged);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_HealthChanged);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_WidgetChanged);
 
-	// Gameplay Message channels
-	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_Message_Elimination);
+	// Message channels
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Message_Gameplay_Elimination);
 
 	// Traversal Action
 	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_NoTraceHit);

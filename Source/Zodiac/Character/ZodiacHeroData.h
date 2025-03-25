@@ -7,6 +7,7 @@
 
 #include "ZodiacHeroData.generated.h"
 
+class UZodiacReticleWidgetBase;
 class UZodiacHeroAbilitySlotDefinition;
 class UZodiacAbilitySet;
 
@@ -21,6 +22,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Ability")
 	TArray<TObjectPtr<UZodiacHeroAbilitySlotDefinition>> AbilitySlots;
+
+	UPROPERTY(editAnywhere, Category = "Widget")
+	TArray<TSubclassOf<UZodiacReticleWidgetBase>> GlobalReticles;
 	
 	UPROPERTY(EditAnywhere, Category = "Movement")
 	FZodiacExtendedMovementConfig ExtendedMovementConfig;

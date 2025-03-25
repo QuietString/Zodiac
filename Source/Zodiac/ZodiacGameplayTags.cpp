@@ -45,7 +45,6 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Type_Damage_Explosive, "Effect.Type.Damage.Explosive");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Damage, "SetByCaller.Damage", "SetByCaller tag used by damage gameplay effects.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_DamageMultiplier, "SetByCaller.DamageMultiplier", "SetByCaller tag used to apply damage multiplier.");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Duration, "SetByCaller.Duration");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Amount, "SetByCaller.Amount");
 	UE_DEFINE_GAMEPLAY_TAG(SetByCaller_Cost, "SetByCaller.Cost");
@@ -89,10 +88,11 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(UI_Action_Escape, "UI.Action.Escape");
 
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_ReticleChanged, "HUD.Message.ReticleChanged");
+	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_GlobalReticleChanged, "HUD.Message.GlobalReticleChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_HealthChanged, "HUD.Message.HealthChanged");
 	UE_DEFINE_GAMEPLAY_TAG(HUD_Message_WidgetChanged, "HUD.Message.WidgetChanged");
 
-	UE_DEFINE_GAMEPLAY_TAG(Gameplay_Message_Elimination, "Gameplay.Message.Elimination");
+	UE_DEFINE_GAMEPLAY_TAG(Message_Gameplay_Elimination, "Message.Gameplay.Elimination");
 
 	// Traversal Actions
 	UE_DEFINE_GAMEPLAY_TAG(Traversal_FailReason_NoTraceHit, "Traversal.FailReason.NoTraceHit");

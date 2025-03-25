@@ -203,7 +203,13 @@ void AZodiacMonster::OnSpawnConfigSet()
 	{
 		for (auto& [K, V] : MovementConfig.MovementSpeedsMap)
 		{
-			V = V * MovementSpeedMultiplier;
+			V *= MovementSpeedMultiplier;
+
+			if (K == EZodiacExtendedMovementMode::Sprinting)
+			{
+				float ClampedSpeed = FMath::Clamp(V.X, 630.f, 680.f);
+				V = FVector(ClampedSpeed, ClampedSpeed, ClampedSpeed);
+			}
 		}
 		
 		// Change movement speed

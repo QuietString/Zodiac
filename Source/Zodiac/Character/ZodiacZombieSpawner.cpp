@@ -37,7 +37,7 @@ void AZodiacZombieSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!HasAuthority() || !bIsEnabled)
+	if (!HasAuthority())
 	{
 		return;
 	}

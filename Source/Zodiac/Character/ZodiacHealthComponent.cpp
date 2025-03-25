@@ -193,7 +193,7 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 #endif
 		}
 
-		// Send the "Event.Elimination" gameplay event to the instigator's ability system.  This can be used to trigger a OnElimination gameplay ability.
+		// Send the "Event.Elimination" gameplay event to the instigator's ability system.  This can be used to trigger an OnElimination gameplay ability.
 		{
 			if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(DamageCauser))
 			{
@@ -217,7 +217,7 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 		// Send a standardized verb message that other systems can observe. For cosmetic usages like elimination marker.
 		{
 			FZodiacVerbMessage Message;
-			Message.Channel = ZodiacGameplayTags::Gameplay_Message_Elimination;
+			Message.Channel = ZodiacGameplayTags::Message_Gameplay_Elimination;
 			Message.Instigator = DamageInstigator;
 			Message.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
 			Message.Target = AbilitySystemComponent->GetAvatarActor();

@@ -51,7 +51,7 @@ void AZodiacSpawnTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AA
 	// Trigger spawners
 	for (AZodiacZombieSpawner* Spawner : SpawnersToTrigger)
 	{
-		if (Spawner && Spawner->GetIsEnabled() && Spawner->GetUseTrigger())
+		if (Spawner && Spawner->GetUseTrigger())
 		{
 			Spawner->SpawnAllMonsters();
 		}

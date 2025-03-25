@@ -23,28 +23,8 @@ namespace ZodiacConsoleVariables
 		ECVF_Default);
 }
 
-struct FDamageStatics
-{
-	FGameplayEffectAttributeCaptureDefinition BaseDamageDef;
-	FGameplayEffectAttributeCaptureDefinition HealthDef;
-
-	FDamageStatics()
-	{
-		BaseDamageDef = FGameplayEffectAttributeCaptureDefinition(UZodiacCombatSet::GetBaseDamageAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
-		HealthDef = FGameplayEffectAttributeCaptureDefinition(UZodiacHealthSet::GetHealthAttribute(), EGameplayEffectAttributeCaptureSource::Source, true);
-	}
-};
-
-static FDamageStatics& DamageStatics()
-{
-	static FDamageStatics Statics;
-	return Statics;
-}
-
 UZodiacDamageExecution::UZodiacDamageExecution()
 {
-	RelevantAttributesToCapture.Add(DamageStatics().BaseDamageDef);
-	RelevantAttributesToCapture.Add(DamageStatics().HealthDef);
 }
 
 void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -65,11 +45,8 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 	EvaluateParameters.SourceTags = SourceTags;
 	EvaluateParameters.TargetTags = TargetTags;
 	
-	float BaseDamage = 0.0f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BaseDamageDef, EvaluateParameters, BaseDamage);
+	float BaseDamage = Spec.GetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Damage, true, 0.f);
 	
-	float DamageMultiplier = Spec.GetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_DamageMultiplier, false, 1.0f);
-
 	const AActor* EffectCauser = TypedContext->GetEffectCauser();
 	const FHitResult* HitActorResult = TypedContext->GetHitResult();
 
@@ -143,17 +120,5 @@ void UZodiacDamageExecution::Execute_Implementation(const FGameplayEffectCustomE
 		}
 #endif
 	}
-
-	// float Health = 0.f;
-	// ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().HealthDef, EvaluateParameters, Health);
-	// if (Health <= DamageDone)
-	// {
-	// 	if (UGameplayEffect* EliminationEffect = EliminationEffectClass->GetDefaultObject<UGameplayEffect>())
-	// 	{
-	// 		FGameplayEffectContextHandle EffectContext = SourceASC->MakeEffectContext();
-	// 		EffectContext.AddSourceObject(this);
-	// 		
-	// 	}
-	// }
 #endif
 }

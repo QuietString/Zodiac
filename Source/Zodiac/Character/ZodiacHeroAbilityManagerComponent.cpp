@@ -216,6 +216,7 @@ void UZodiacHeroAbilityManagerComponent::OnHeroActivated()
 	}
 	
 	SendChangeSlotWidgetsMessage(Widgets);
+	SendChangeGlobalReticleMessage(HeroData->GlobalReticles);
 	
 	if (AZodiacHeroCharacter* Hero = Cast<AZodiacHeroCharacter>(GetOwner()))
 	{
@@ -243,17 +244,6 @@ void UZodiacHeroAbilityManagerComponent::SendChangeReticleMessage(const TArray<T
 	MessageSubsystem.BroadcastMessage(Channel, Message);
 }
 
-void UZodiacHeroAbilityManagerComponent::SendChangeWidgetMessage(const TArray<TSubclassOf<UZodiacAbilitySlotWidgetBase>>& Widgets,
-                                                                 UZodiacHeroAbilitySlot* Slot)
-{
-	FZodiacHUDMessage_WidgetChanged Message;
-	Message.Controller = GetHostController();
-	Message.Slot = Slot;
-	Message.Widgets = Widgets;
-	const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_WidgetChanged;
-	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSubsystem.BroadcastMessage(Channel, Message);
-}
 
 void UZodiacHeroAbilityManagerComponent::SendChangeSlotWidgetsMessage(TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets)
 {
@@ -261,6 +251,16 @@ void UZodiacHeroAbilityManagerComponent::SendChangeSlotWidgetsMessage(TMap<TObje
 	Message.Controller = GetHostController();
 	Message.Widgets = Widgets;
 	const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_WidgetChanged;
+	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSubsystem.BroadcastMessage(Channel, Message);
+}
+
+void UZodiacHeroAbilityManagerComponent::SendChangeGlobalReticleMessage(const TArray<TSubclassOf<UZodiacReticleWidgetBase>>& Reticles)
+{
+	FZodiacHUDMessage_GlobalReticleChanged Message;
+	Message.Controller = GetHostController();
+	Message.Reticles = Reticles;
+	const FGameplayTag Channel = ZodiacGameplayTags::HUD_Message_GlobalReticleChanged;
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 	MessageSubsystem.BroadcastMessage(Channel, Message);
 }

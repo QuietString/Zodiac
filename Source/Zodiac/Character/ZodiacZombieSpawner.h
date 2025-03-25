@@ -26,7 +26,6 @@ public:
 
 	TSet<TObjectPtr<AZodiacMonster>> GetAllMonsters() const { return SpawnedMonsters; }
 	
-	bool GetIsEnabled() const { return bIsEnabled; }
 	bool GetSpawnOnBeginPlay() const { return bSpawnOnBeginPlay; }
 	bool GetUseTrigger() const { return bUseTrigger; }
 	
@@ -39,9 +38,6 @@ protected:
 	void OnMonsterDestroyed(AActor* DestroyedActor);
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
-	bool bIsEnabled = true;
-	
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bSpawnOnBeginPlay = true;
 
