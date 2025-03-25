@@ -88,7 +88,7 @@ protected:
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void OnCloseContactFinished();
-	
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UZodiacCameraComponent> CameraComponent;

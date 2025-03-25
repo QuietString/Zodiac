@@ -4,7 +4,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Engine/Canvas.h"
-#include "GameFramework/Character.h"
+#include "Character/ZodiacHostCharacter.h"
 #include "ZodiacCameraComponent.h"
 #include "ZodiacPlayerCameraManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -105,7 +105,7 @@ FVector UZodiacCameraMode::GetPivotLocation() const
 	if (const APawn* TargetPawn = Cast<APawn>(TargetActor))
 	{
 		// Height adjustments for characters to account for crouching.
-		if (const ACharacter* TargetCharacter = Cast<ACharacter>(TargetPawn))
+		if (const AZodiacHostCharacter* TargetCharacter = Cast<AZodiacHostCharacter>(TargetPawn))
 		{
 			const ACharacter* TargetCharacterCDO = TargetCharacter->GetClass()->GetDefaultObject<ACharacter>();
 			check(TargetCharacterCDO);
@@ -116,11 +116,15 @@ FVector UZodiacCameraMode::GetPivotLocation() const
 			const UCapsuleComponent* CapsuleCompCDO = TargetCharacterCDO->GetCapsuleComponent();
 			check(CapsuleCompCDO);
 
+			const UZodiacCameraComponent* ZodiacCameraComponent = GetZodiacCameraComponent();
+			check(ZodiacCameraComponent);
+			
 			const float DefaultHalfHeight = CapsuleCompCDO->GetUnscaledCapsuleHalfHeight();
 			const float ActualHalfHeight = CapsuleComp->GetUnscaledCapsuleHalfHeight();
 			const float HeightAdjustment = (DefaultHalfHeight - ActualHalfHeight) + TargetCharacterCDO->BaseEyeHeight;
-
-			return TargetCharacter->GetActorLocation() + (FVector::UpVector * HeightAdjustment);
+			const FVector TranslationOffset = ZodiacCameraComponent->TranslationOffset;
+			
+			return TargetCharacter->GetActorLocation() + (FVector::UpVector * HeightAdjustment) + TranslationOffset;
 		}
 
 		return TargetPawn->GetPawnViewLocation();

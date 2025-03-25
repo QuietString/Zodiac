@@ -48,6 +48,7 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 {
 	check(CameraModeStack);
 
+	UpdateTranslationOffset(DeltaTime);
 	UpdateCameraModes();
 
 	FZodiacCameraModeView CameraModeView;
@@ -61,8 +62,6 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 			PC->SetControlRotation(CameraModeView.ControlRotation);
 		}
 	}
-
-	ApplyTranslationOffset(DeltaTime, CameraModeView);
 	
 	// Apply any offset that was added to the field of view.
 	CameraModeView.FieldOfView += FieldOfViewOffset;
@@ -98,30 +97,29 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 		// In XR much of the camera behavior above is irrellevant, but the post process settings are not.
 		Super::GetCameraView(DeltaTime, DesiredView);
 	}
-
-	LastViewLocation = DesiredView.Location;
 }
 
-void UZodiacCameraComponent::ApplyTranslationOffset(float DeltaTime, FZodiacCameraModeView& CameraModeView)
+void UZodiacCameraComponent::UpdateTranslationOffset(float DeltaTime)
 {
 	if (UpdateCameraTranslationOffsetDelegate.IsBound())
 	{
-		FVector TranslationOffset = UpdateCameraTranslationOffsetDelegate.Execute();
+		FVector TargetOffset = UpdateCameraTranslationOffsetDelegate.Execute();
+		
 		if (bIgnoreZAxis)
 		{
-			TranslationOffset.Z = 0.f;
+			TargetOffset.Z = 0.f;
 		}
 
-		FVector TargetLocation = CameraModeView.Location + TranslationOffset;
-		
 		if (TranslationOffsetInterpSpeed > 0.0f)
 		{
-			CameraModeView.Location = FMath::VInterpTo(LastViewLocation, TargetLocation, DeltaTime, TranslationOffsetInterpSpeed);	
+			TranslationOffset = FMath::VInterpTo(LastTranslationOffset, TargetOffset, DeltaTime, TranslationOffsetInterpSpeed);	
 		}
 		else
 		{
-			CameraModeView.Location = TargetLocation;
+			TranslationOffset = TargetOffset;
 		}
+		
+		LastTranslationOffset = TranslationOffset;
 	}
 }
 
