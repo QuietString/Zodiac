@@ -329,15 +329,22 @@ USplineComponent* UZodiacTraversableActorComponent::FindLedgeClosestToActor(cons
 		FVector LedgeLocation = Ledge->FindLocationClosestToWorldLocation(ActorLocation, ESplineCoordinateSpace::World);
 		FVector LocationOffset = Ledge->FindUpVectorClosestToWorldLocation(ActorLocation, ESplineCoordinateSpace::World) * 10.0f;
 		FVector LedgeLocationWithOffset = LedgeLocation + LocationOffset;
+
+		float CurrentDistance = FVector::Distance(ActorLocation, LedgeLocationWithOffset);
 		
-		float CurrentDistance = FVector::Distance(ActorLocation, LedgeLocationWithOffset); 
-		if (CurrentDistance < ClosestDistance)
+		// Compare Location Z value to filter ledge below the target character. 
+		if (CurrentDistance < ClosestDistance && ActorLocation.Z < LedgeLocationWithOffset.Z)
 		{
 			ClosestDistance = CurrentDistance;
 			ClosestIndex = CurrentIndex;
 		} 
 
 		CurrentIndex++;
+	}
+
+	if (ClosestIndex == INDEX_NONE)
+	{
+		return nullptr;
 	}
 
 	return Ledges[ClosestIndex];

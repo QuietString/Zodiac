@@ -74,6 +74,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Traversal|Check", meta = (ForceUnits=deg, UIMin = 0, UIMax = 90))
 	float AllowedFacingAngle_Idle = 60.f;
+
+	// Amount of Z offset of capsule trace start location to avoid getting trace hit of a traversal ledge near feet.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Traversal|Check", meta = (ClampMin = -100, ClampMax = 100))
+	float BottomTraceAvoidance = 10.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Traversal|Check")
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;

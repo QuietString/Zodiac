@@ -175,7 +175,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FGameplayTag& FailReason, FVe
 									+ Result.BackLedgeNormal * (CapsuleRadius + 2)
 									- FVector(0.0f, 0.0f, Result.ObstacleHeight - CapsuleHalfHeight + 50.0f);
 	FHitResult FloorHit;
-	if (CapsuleTrace(FloorCheckStartLocation, FloorCheckEndLocation, FloorHit, OUT CapsuleRadius, CapsuleHalfHeight, bDrawFloorTrace, DebugDuration, false, ActorsToIgnore))
+	if (CapsuleTrace(FloorCheckStartLocation, FloorCheckEndLocation, FloorHit, CapsuleRadius, CapsuleHalfHeight, bDrawFloorTrace, DebugDuration, false, ActorsToIgnore))
 	{
 		Result.bHasBackFloor = true;
 		Result.BackFloorLocation = FloorHit.ImpactPoint;
@@ -290,7 +290,7 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 
 	Result.bIsMidAir = bIsInAir;
 	
-	if (!CapsuleTrace(TraceStart, TraceEnd, TraversalObjectHit, OUT CapsuleRadius, CapsuleHalfHeight, bDrawFindBlockTrace, DebugDuration, bIsTicked, ActorsToIgnore))
+	if (!CapsuleTrace(TraceStart, TraceEnd, TraversalObjectHit, CapsuleRadius, CapsuleHalfHeight, bDrawFindBlockTrace, DebugDuration, bIsTicked, ActorsToIgnore))
 	{
 		FailReason = ZodiacGameplayTags::Traversal_FailReason_NoTraceHit; 
 		return false;
@@ -300,7 +300,7 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	if (UZodiacTraversableActorComponent* TraversableActorComponent = Cast<UZodiacTraversableActorComponent>(TraversalObjectHit.GetActor()->GetComponentByClass(UZodiacTraversableActorComponent::StaticClass())))
 	{
 		// Step 2.2: If a traversable level block was found, get the front and back ledge transforms from it.
-		TraversableActorComponent->GetLedgeTransforms(Result, TraversalObjectHit.ImpactPoint, OUT ActorLocation);
+		TraversableActorComponent->GetLedgeTransforms(Result, TraversalObjectHit.ImpactPoint, ActorLocation);
 		Result.HitComponent = TraversalObjectHit.Component;
 		ActorsToIgnore.Add(HitActor);
 	}
@@ -395,7 +395,12 @@ bool UZodiacTraversalComponent::CapsuleTrace(const FVector& TraceStart, const FV
 	ETraceTypeQuery TraceTypeQuery = UEngineTypes::ConvertToTraceType(TraceChannel);
 	EDrawDebugTrace::Type DrawDebugType = bDrawDebug ? EDrawDebugTrace::Type::ForDuration : EDrawDebugTrace::Type::None;
 	float DrawTime = bIsTicked ? 0.0f : DebugDuration;
-	return UKismetSystemLibrary::CapsuleTraceSingle(World, TraceStart, TraceEnd, CapsuleRadius, CapsuleHalfHeight, TraceTypeQuery, false, ActorsToIgnore, DrawDebugType, OutHit, true, FLinearColor::Red, FLinearColor::Green, DrawTime);
+
+	FVector TraceStartWithBottomTraceAvoidance = TraceStart + FVector(0.0f, 0.0f, BottomTraceAvoidance);
+	FVector TraceEndWithBottomTraceAvoidance = TraceEnd + FVector(0.0f, 0.0f, BottomTraceAvoidance);
+	float CapsuleHalfHeightWithBottomTraceAvoidance = CapsuleHalfHeight - BottomTraceAvoidance/2;
+	
+	return UKismetSystemLibrary::CapsuleTraceSingle(World, TraceStartWithBottomTraceAvoidance, TraceEndWithBottomTraceAvoidance, CapsuleRadius, CapsuleHalfHeightWithBottomTraceAvoidance, TraceTypeQuery, false, ActorsToIgnore, DrawDebugType, OutHit, true, FLinearColor::Red, FLinearColor::Green, DrawTime);
 }
 
 bool UZodiacTraversalComponent::DetermineTraversalType(FZodiacTraversalCheckResult& CheckResult)

@@ -284,6 +284,8 @@ AZodiacMonster* AZodiacZombieSpawner::SpawnMonster(const TSubclassOf<AZodiacMons
 			if (UBlackboardComponent* BlackboardComponent = AC->GetBlackboardComponent())
 			{
 				BlackboardComponent->SetValueAsFloat(FName("SearchRadius"), TargetSearchRadius);
+				BlackboardComponent->SetValueAsBool(FName("SearchTargetInRadius"), bUseTargetSearchRadius); 
+				
 			}
 		}
 		

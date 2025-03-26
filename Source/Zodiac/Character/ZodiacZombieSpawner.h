@@ -102,7 +102,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
 	TObjectPtr<UBehaviorTree> BehaviorTree;
 
-	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn", meta = (ClampMin = 0))
+	// If false, no distance limit for finding target actor.
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
+	bool bUseTargetSearchRadius = false;
+	
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn", meta = (ClampMin = 0, EditCondition = "bUseTargetSearchRadius"))
 	float TargetSearchRadius = 10000.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spacing")
