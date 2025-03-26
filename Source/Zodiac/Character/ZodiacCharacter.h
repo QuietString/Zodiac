@@ -11,6 +11,7 @@
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacCharacter.generated.h"
 
+class UZodiacPreMovementComponentTickComponent;
 class UZodiacHeroData;
 struct FZodiacExtendedMovementConfig;
 enum class EZodiacExtendedMovementMode : uint8;
@@ -105,7 +106,7 @@ public:
 	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
 	//~End of AActor interface
 
-	virtual void Tick(float DeltaSeconds) override;
+	virtual void BeginPlay() override;
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -190,6 +191,10 @@ protected:
 	UPROPERTY(Replicated, Transient)
 	FZodiacReplicatedIndependentYaw ReplicatedIndependentYaw;
 
+private:
+	UPROPERTY(meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UZodiacPreMovementComponentTickComponent> PreMovementComponentTick;
+	
 private:
 	UPROPERTY()
 	bool bMovementDisabled = false;

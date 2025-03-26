@@ -7,7 +7,7 @@
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroData.h"
-#include "ZodiacLogChannels.h"
+#include "ZodiacPreMovementComponentTickComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "Animation/ZodiacHostAnimInstance.h"
 #include "Components/CapsuleComponent.h"
@@ -113,19 +113,21 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
 	ZodiacMoveComp->GravityScale = 1.0f;
 	ZodiacMoveComp->MaxAcceleration = 800.0f;
+	ZodiacMoveComp->BrakingDecelerationWalking = 1500.f;
 	ZodiacMoveComp->BrakingFrictionFactor = 1.0f;
 	ZodiacMoveComp->BrakingFriction = 6.0f;
 	ZodiacMoveComp->GroundFriction = 5.0f;
-	ZodiacMoveComp->BrakingDecelerationWalking = 750.0f;
 	ZodiacMoveComp->JumpZVelocity = 500.f;
 	ZodiacMoveComp->RotationRate = FRotator(0, 0, -1.f);
-	ZodiacMoveComp->bUseControllerDesiredRotation = false;
+	ZodiacMoveComp->bUseControllerDesiredRotation = true;
 	ZodiacMoveComp->bOrientRotationToMovement = false;
 	ZodiacMoveComp->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 	ZodiacMoveComp->bAllowPhysicsRotationDuringAnimRootMotion = false;
 	ZodiacMoveComp->GetNavAgentPropertiesRef().bCanCrouch = true;
 	ZodiacMoveComp->bCanWalkOffLedgesWhenCrouching = true;
 	ZodiacMoveComp->SetCrouchedHalfHeight(65.0f);
+
+	PreMovementComponentTick = ObjectInitializer.CreateDefaultSubobject<UZodiacPreMovementComponentTickComponent>(this, TEXT("PreMovementComponentTick"));
 }
 
 void AZodiacCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -158,6 +160,13 @@ void AZodiacCharacter::PreReplication(IRepChangedPropertyTracker& ChangedPropert
 		const FRotator ControlRotation = Controller->GetControlRotation();
 		ReplicatedIndependentYaw.Yaw = FMath::FloorToInt(ControlRotation.Yaw * 255.0 / 360.0);     // [0, 360] -> [0, 255]
 	}
+}
+
+void AZodiacCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GetCharacterMovement()->AddTickPrerequisiteComponent(PreMovementComponentTick);
 }
 
 UAbilitySystemComponent* AZodiacCharacter::GetAbilitySystemComponent() const
@@ -238,10 +247,6 @@ void AZodiacCharacter::OnCharacterAttached(ACharacter* AttachedCharacter)
 	}
 }
 
-void AZodiacCharacter::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-}
 
 void AZodiacCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
 {

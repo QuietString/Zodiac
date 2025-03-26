@@ -18,6 +18,13 @@ namespace ZombieSpawnerQueryParamNames
 	FName SpaceBetween = FName("SimpleGrid.SpaceBetween");
 }
 
+AZodiacZombieSpawner::AZodiacZombieSpawner(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+}
+
 void AZodiacZombieSpawner::RegisterToSubsystem()
 {
 	// Register this spawner to ZodiacAISubsystem.
@@ -83,86 +90,123 @@ void AZodiacZombieSpawner::SpawnAllMonsters()
 void AZodiacZombieSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap, FZodiacZombieSpawnConfig SpawnConfig)
 {
 	if (!Result.IsValid() || !Result->IsSuccessful())
+    {
+        UE_LOG(LogZodiacSpawner, Log, TEXT("Initial EQS query failed or no results."));
+        return;
+    }
+
+    // Gather all item locations + their scores
+    TArray<FVector> AllLocations;
+    Result->GetAllAsLocations(AllLocations);
+
+    // If you have to get item scores, do it now
+    TArray<float> AllScores;
+    AllScores.Reserve(AllLocations.Num());
+    for (int32 i = 0; i < AllLocations.Num(); ++i)
+    {
+        AllScores.Add(Result->GetItemScore(i));
+    }
+
+    // We copy the data so the lambda can operate on it in a background thread
+    // (We can't safely reference 'Result' or big arrays that might go out of scope.)
+    TMap<TSubclassOf<AZodiacMonster>, uint8> LocalMonsterMap = MonsterToSpawnMap;
+    bool bCloserLocationToSpawner = bSelectCloserLocationToSpawner;
+    float LocalRandomSkipping = RandomSkipping;
+
+    // 1) Launch background task to compute final spawn transforms:
+    AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [=, this]()
+    {
+        // This array will hold the final result: a list of FPendingSpawnInfo
+        TArray<FPendingSpawnInfo> ComputedSpawns;
+        ComputedSpawns.Reserve(5000); // Just guess a max. Optional optimization
+
+        // Sort or process your AllLocations/AllScores as needed:
+        // Example: if bCloserLocationToSpawner => sort descending by score
+        TArray<int32> SortedIndices;
+        SortedIndices.Reserve(AllLocations.Num());
+        for (int32 i = 0; i < AllLocations.Num(); i++)
+        {
+            SortedIndices.Add(i);
+        }
+
+        if (bCloserLocationToSpawner)
+        {
+            // Sort indices by descending score
+            SortedIndices.Sort([&AllScores](int32 A, int32 B){
+                return AllScores[A] > AllScores[B];
+            });
+        }
+
+        // Now create spawn info for each monster in LocalMonsterMap
+        int32 IndexForLocations = 0;
+        for (auto& Pair : LocalMonsterMap)
+        {
+            TSubclassOf<AZodiacMonster> MonsterClass = Pair.Key;
+            int32 NumberNeeded = Pair.Value;
+
+            int32 SpawnCount = 0;
+            while (SpawnCount < NumberNeeded && IndexForLocations < SortedIndices.Num())
+            {
+                const int32 LocIdx = SortedIndices[IndexForLocations++];
+                // Possibly skip for random skipping
+                if (FMath::FRand() < LocalRandomSkipping)
+                {
+                    continue;
+                }
+
+                FVector ChosenLocation = AllLocations[LocIdx];
+
+                // Build and add a new spawn info struct
+                FPendingSpawnInfo Info(MonsterClass, ChosenLocation, SpawnConfig);
+                ComputedSpawns.Add(Info);
+                SpawnCount++;
+            }
+        }
+
+        // 2) Once we have the TArray<FPendingSpawnInfo>, we need to pass it back
+        // to the game thread. We'll use a lambda posted to the game thread:
+        AsyncTask(ENamedThreads::GameThread, [this, ComputedSpawns]()
+        {
+            // Now we’re back on the game thread:
+
+            // Append to our spawner’s PendingSpawns
+            PendingSpawns.Append(ComputedSpawns);
+
+            if (!bDeferredSpawningInProgress)
+            {
+                bDeferredSpawningInProgress = true;
+                // Start spawning them in small batches each tick
+                StartDeferredSpawning();
+            }
+        });
+    });
+}
+
+void AZodiacZombieSpawner::StartDeferredSpawning()
+{
+	SetActorTickEnabled(true);
+}
+
+void AZodiacZombieSpawner::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// Spawn up to SpawnsPerFrame monsters
+	int32 NumToSpawnThisFrame = FMath::Min(SpawnsPerFrame, PendingSpawns.Num());
+	for (int32 i = 0; i < NumToSpawnThisFrame; i++)
 	{
-		UE_LOG(LogZodiacSpawner, Log, TEXT("Initial EQS query failed or no results."));
-		return;
+		const FPendingSpawnInfo& Info = PendingSpawns[i];
+		SpawnMonster(Info.MonsterClass, Info.SpawnLocation, Info.SpawnConfig);
 	}
+    
+	// Remove them from the front
+	PendingSpawns.RemoveAt(0, NumToSpawnThisFrame);
 	
-	// 1. Gather all item locations + scores
-	TArray<FVector> AllLocations;
-	Result->GetAllAsLocations(AllLocations);
-
-	// 2. Count how many monsters total
-	int32 TotalNumber = 0;
-	for (auto& Pair : MonsterToSpawnMap)
+	// If no more pending spawns, disable ticking
+	if (PendingSpawns.Num() == 0)
 	{
-		TotalNumber += Pair.Value;
-	}
-
-	if (AllLocations.Num() < TotalNumber)
-	{
-		UE_LOG(LogZodiacSpawner, Warning, TEXT("%s: Not enough space to spawn monsters. Need %d, but have %d points."),
-			*GetName(), TotalNumber, AllLocations.Num());
-		return;
-	}
-	
-	// We'll make a small struct to store location + score
-	struct FLocationScore
-	{
-		FVector Location;
-		float Score;
-	};
-
-	TArray<FLocationScore> LocationScores;
-	LocationScores.Reserve(AllLocations.Num());
-
-	for (int32 i = 0; i < AllLocations.Num(); i++)
-	{
-		FLocationScore LS;
-		LS.Location = AllLocations[i];
-		LS.Score = Result->GetItemScore(i);
-		LocationScores.Add(LS);
-	}
-
-	if (bSelectCloserLocationToSpawner)
-	{
-		// 3. Sort by score (descending)
-		LocationScores.Sort([](const FLocationScore& A, const FLocationScore& B)
-		{
-			return A.Score > B.Score; // highest score first
-		});	
-	}
-	
-	// We'll iterate through MonsterToSpawnMap, spawning in the top-scored locations first
-	int32 PointIndex = 0;
-
-	for (auto& Pair : MonsterToSpawnMap)
-	{
-		TSubclassOf<AZodiacMonster> MonsterClass = Pair.Key;
-		int32 NumberToSpawn = Pair.Value;
-
-		int32 SpawnCount = 0;
-		while (SpawnCount < NumberToSpawn && PointIndex < LocationScores.Num())
-		{
-			FVector SpawnLocation = LocationScores[PointIndex].Location;
-			PointIndex++;
-
-			if (FMath::FRand() < RandomSkipping)
-			{
-				// Skip for random spacing
-				continue;
-			}
-
-			if (AActor* NewMonster = SpawnMonster(MonsterClass, SpawnLocation, SpawnConfig))
-			{
-				SpawnCount++;
-			}
-		}
-
-		if (SpawnCount < NumberToSpawn)
-		{
-			UE_LOG(LogZodiacSpawner, Warning, TEXT("%s couldn't spawn %d %ss due to a shortage of spawn locations"), *GetName(), NumberToSpawn - SpawnCount, *MonsterClass->GetName());
-		}
+		bDeferredSpawningInProgress = false;
+		SetActorTickEnabled(false);
 	}
 }
 
@@ -281,7 +325,7 @@ void AZodiacZombieSpawner::OnMonsterDestroyed(AActor* DestroyedActor)
 	}
 	
 	// Check if we reached our batch threshold
-	if ((TotalRequestCounts >= BunchRespawnSize) || BunchRespawnSize >= TotalNumberToInitialSpawn)
+	if ((TotalRequestCounts >= RespawnBatchSize) || RespawnBatchSize >= TotalNumberToInitialSpawn)
 	{
 		if (LocationQuery)
 		{
