@@ -56,9 +56,6 @@ public:
 	// Monster cheats
 	//
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void SpawnZombies();
-
-	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void PauseZombies();
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)

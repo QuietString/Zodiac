@@ -8,6 +8,7 @@
 #include "Traversal/ZodiacTraversalActorInterface.h"
 #include "ZodiacMonster.generated.h"
 
+
 class UBehaviorTree;
 class UPhysicalAnimationComponent;
 class UZodiacHeroData;
@@ -56,13 +57,17 @@ public:
 	FZodiacZombieSpawnConfig GetZombieSpawnConfig() const { return SpawnConfig; }
 	void SetSpawnConfig(const FZodiacZombieSpawnConfig& InSpawnConfig);
 	
+	virtual void Multicast_Sleep_Implementation() override;
+	virtual void Multicast_WakeUp_Implementation(const FVector& SpawnLocation, const FRotator& SpawnRotation) override;
+	
 protected:
 	void OnSpawnSeedSet_Internal();
 	void OnSpawnConfigSet();
 
 public:
 	friend class AZodiacZombieSpawner;
-	
+	friend class AZodiacAIPawnSpawner;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UBehaviorTree> BehaviorTree;
 
@@ -91,6 +96,7 @@ private:
 	
 	bool bHasMovementInitialized = false;
 
+	// Flag to decide use class default behavior or not.
 	UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	bool bIsSpawnedBySpawner = false;
 };

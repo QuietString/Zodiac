@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "ZodiacCharacterType.generated.h"
 
+class UBehaviorTree;
+
 UENUM(BlueprintType)
 enum EZodiacCustomMovementMode
 {
@@ -48,6 +50,21 @@ public:
 		: MovementConfigTemplateIndex(INDEX_NONE)
 		, DefaultMovementMode(EZodiacExtendedMovementMode::None)
 		, Seed(INDEX_NONE)
+		, BehaviorTree(nullptr)
+		, bUseTargetSearchRadius(false)
+		, TargetSearchRadius(0.f)
+		, bRespawnWhenDies(false)
+	{}
+
+	FZodiacZombieSpawnConfig(const int32 Index, const EZodiacExtendedMovementMode MovementMode, const int32 Seed, UBehaviorTree* BehaviorTree, const bool bUseTargetSearchRadius, const float 
+	TargetSearchRadius, const bool bRespawnWhenDies = false)
+		: MovementConfigTemplateIndex(Index)
+		, DefaultMovementMode(MovementMode)
+		, Seed(Seed)
+		, BehaviorTree(BehaviorTree)
+		, bUseTargetSearchRadius(bUseTargetSearchRadius)
+		, TargetSearchRadius(TargetSearchRadius)
+		, bRespawnWhenDies(bRespawnWhenDies)
 	{}
 
 	FZodiacZombieSpawnConfig(const int32 Index, const EZodiacExtendedMovementMode MovementMode, const int32 Seed)
@@ -65,5 +82,17 @@ public:
 	UPROPERTY()
 	int32 Seed;
 
+	UPROPERTY(NotReplicated)
+	TObjectPtr<UBehaviorTree> BehaviorTree;
+
+	UPROPERTY(notreplicated)
+	bool bUseTargetSearchRadius;
+
+	UPROPERTY(NotReplicated)
+	float TargetSearchRadius;
+
+	UPROPERTY(NotReplicated)
+	bool bRespawnWhenDies;
+	
 	bool IsValid() const { return (MovementConfigTemplateIndex != INDEX_NONE); }
 };

@@ -81,8 +81,12 @@ public:
 
 protected:
 	virtual void InitializeComponent() override;
+	void ResetPhysicsSetup();
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	UFUNCTION()
+	void OnWakeUp();
 	
 	EZodiacPhysicalHitReactBodyType DetermineBodyType(FName HitBone) const;
 	
@@ -144,4 +148,7 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<UPhysicalAnimationComponent> PhysicalAnimationComponent;
+
+	UPROPERTY(Transient)
+	FVector OriginalRelativeScale;
 };

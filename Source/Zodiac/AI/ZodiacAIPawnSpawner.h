@@ -3,70 +3,53 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ZodiacCharacterType.h"
+#include "Character/ZodiacCharacterType.h"
 #include "GameFramework/Actor.h"
-#include "ZodiacZombieSpawner.generated.h"
+#include "ZodiacAIPawnSpawner.generated.h"
 
+class UZodiacAIPawnSubsystem;
 class UBehaviorTree;
 class UEnvQuery;
 struct FEnvQueryResult;
 class AZodiacMonster;
 
-USTRUCT()
-struct FPendingSpawnInfo
-{
-	GENERATED_BODY()
-
-	UPROPERTY()
-	TSubclassOf<AZodiacMonster> MonsterClass;
-
-	UPROPERTY()
-	FVector SpawnLocation;
-
-	// Any other data you need, e.g. random seeds, MovementMode, etc.
-	// We'll keep it simple here.
-	FZodiacZombieSpawnConfig SpawnConfig;
-
-	FPendingSpawnInfo()
-		: MonsterClass(nullptr), SpawnLocation(FVector::ZeroVector) {}
-
-	FPendingSpawnInfo(TSubclassOf<AZodiacMonster> InClass, const FVector& InLoc, const FZodiacZombieSpawnConfig& InConfig)
-		: MonsterClass(InClass), SpawnLocation(InLoc), SpawnConfig(InConfig) {}
-};
-
 UCLASS(BlueprintType, Blueprintable)
-class ZODIAC_API AZodiacZombieSpawner : public AActor
+class ZODIAC_API AZodiacAIPawnSpawner : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	AZodiacZombieSpawner(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	AZodiacAIPawnSpawner(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	
 protected:
 	void RegisterToSubsystem();
 
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 public:
-	void SpawnAllMonsters();
-
-	TSet<TObjectPtr<AZodiacMonster>> GetAllMonsters() const { return SpawnedMonsters; }
+	void SpawnAllMonstersFromPool();
 	
-	bool GetSpawnOnBeginPlay() const { return bSpawnOnBeginPlay; }
-	bool GetUseTrigger() const { return bUseTrigger; }
-	
-protected:
-	void OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap, FZodiacZombieSpawnConfig SpawnConfig);
-	void StartDeferredSpawning();
+	FZodiacZombieSpawnConfig GenerateSpawnConfig();
 
-	virtual void Tick(float DeltaTime) override;
+	void AddMonstersToPool();
 
-	AZodiacMonster* SpawnMonster(const TSubclassOf<AZodiacMonster> ClassToSpawn, const FVector& SpawnLocation, FZodiacZombieSpawnConfig ZombieSpawnConfig);
-	
 	UFUNCTION()
-	void OnMonsterDestroyed(AActor* DestroyedActor);
+	void OnPawnDeathFinished(AActor* DeadActor);
+	
+	void TryBatchSpawn();
+
+	UFUNCTION()
+	void OnPawnReadyToRespawn(AActor* SleepingActor);
 
 protected:
+	void OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap);
+
+	AZodiacMonster* SpawnMonsterFromPool(const TSubclassOf<AZodiacMonster>& ClassToSpawn, const FVector& SpawnLocation);
+
+	friend UZodiacAIPawnSubsystem;
+	
+public:
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bSpawnOnBeginPlay = true;
 
@@ -82,9 +65,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bSelectCloserLocationToSpawner = true;
 
-	// How many monsters we spawn per frame in the “batched” approach
-	UPROPERTY(EditAnywhere, Category="Spawner|Spawn")
-	int32 SpawnsPerFrame = 5;
+	UPROPERTY(editAnywhere, Category = "Spawner|Spawn")
+	float RespawnDelay = 1.f;
 	
 	// The zombie character class to spawn
 	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
@@ -119,22 +101,19 @@ protected:
 	float RandomSkipping = 0.f;
 
 private:
-	UPROPERTY()
-	TSet<TObjectPtr<AZodiacMonster>> SpawnedMonsters;
-	
-	int32 TotalNumberToInitialSpawn;
-
-	// Keep an array (or queue) of “pending” spawns we will process
-	TArray<FPendingSpawnInfo> PendingSpawns;
-
-	// Whether we’re currently spawning in a deferred manner
-	bool bDeferredSpawningInProgress = false;
+	int32 TotalNumberOfInitialSpawn;
 	
 	// Tracks how many monsters of each class are waiting to respawn.
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TMap<TSubclassOf<AZodiacMonster>, uint8> AccumulatedRespawnRequests;
 
-	// How many monsters to respawn at once, per type.
+	// How many monsters to respawn at once. We use batch to execute EQS less frequently.
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = "1"))
-	int32 RespawnBatchSize = 4;
+	int32 RespawnBatchSize = 10;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UZodiacAIPawnSubsystem> AIPawnSubsystem;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<AZodiacMonster>> SpawnedMonsters;
 };

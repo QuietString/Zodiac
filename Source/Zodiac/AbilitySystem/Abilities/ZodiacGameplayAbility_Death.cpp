@@ -54,6 +54,10 @@ void UZodiacGameplayAbility_Death::EndAbility(const FGameplayAbilitySpecHandle H
 	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
+	// Always try to finish the death when the ability ends in case the ability doesn't.
+	// This won't do anything if the death hasn't been started.
+	FinishDeath();
+	
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 

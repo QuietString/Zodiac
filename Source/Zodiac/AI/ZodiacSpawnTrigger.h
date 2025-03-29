@@ -6,8 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "ZodiacSpawnTrigger.generated.h"
 
+class AZodiacAIPawnSpawner;
 class UBoxComponent;
-class AZodiacZombieSpawner;
 
 UCLASS()
 class ZODIAC_API AZodiacSpawnTrigger : public AActor
@@ -31,7 +31,7 @@ protected:
 public:
 	// Which spawner(s) to trigger when the player overlaps this volume
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawner Trigger")
-	TArray<AZodiacZombieSpawner*> SpawnersToTrigger;
+	TArray<AZodiacAIPawnSpawner*> SpawnersToTrigger;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawner Trigger")
 	bool bTriggerOnlyOnce = true;

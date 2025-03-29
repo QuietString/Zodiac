@@ -25,6 +25,11 @@ AZodiacHeroCharacter::AZodiacHeroCharacter(const FObjectInitializer& ObjectIniti
 {
 	bReplicates = true;
 
+	// We are driving a character from AHostCharacter.
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->PrimaryComponentTick.bCanEverTick = false;
+	GetCharacterMovement()->PrimaryComponentTick.bStartWithTickEnabled = false;
+	
 	UZodiacHeroSkeletalMeshComponent* HeroMesh = CastChecked<UZodiacHeroSkeletalMeshComponent>(GetMesh());
 	HeroMesh->bIsHeroHidden = true;
 	HeroMesh->ClothTeleportMode = EClothingTeleportMode::TeleportAndReset;
@@ -50,7 +55,7 @@ void AZodiacHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 void AZodiacHeroCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-
+	
 	if (HasAuthority())
 	{
 		InitializeWithHostCharacter();

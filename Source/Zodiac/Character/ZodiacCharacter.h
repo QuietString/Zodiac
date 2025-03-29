@@ -25,6 +25,10 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnAbilitySystemComponentInitialized, UAbili
 
 DECLARE_DELEGATE_FourParams(FOnPlayHitReact, FVector, FName, float, const FGameplayTagContainer&);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FZodiacAIPawnOnWakeUpSignature);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FZodiacCharacterSleepAfterDeathDelegateSignature, AActor*, DeadActor);
+
 /**
  * FZodiacReplicatedAcceleration: Compressed representation of acceleration
  */
@@ -105,7 +109,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
 	//~End of AActor interface
-
+	
 	virtual void BeginPlay() override;
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 	
@@ -152,6 +156,18 @@ public:
 	virtual void SetExtendedMovementModeTag(EZodiacExtendedMovementMode ExtendedMovementMode, bool bTagEnabled);
 
 	FZodiacReplicatedIndependentYaw GetReplicatedIndependentYaw() const { return ReplicatedIndependentYaw; };
+
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multicast_Sleep();
+
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multicast_WakeUp(const FVector& SpawnLocation, const FRotator& SpawnRotation);
+	
+	UPROPERTY(BlueprintAssignable)
+	FZodiacAIPawnOnWakeUpSignature OnWakeUp;
+
+	UPROPERTY(BlueprintAssignable)
+	FZodiacAIPawnOnWakeUpSignature OnSleep;
 	
 protected:	
 	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner);
@@ -177,7 +193,7 @@ protected:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
 	UZodiacHeroData* CharacterData;
-
+	
 	// @TODO: It's temporary testing usage for AHeroCharacter2
 	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
 	TArray<UZodiacHeroData*> HeroData;

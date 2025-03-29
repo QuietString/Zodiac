@@ -151,7 +151,7 @@ void UZodiacHealthComponent::HandleHealthChanged(AActor* DamageInstigator, AActo
 #if WITH_EDITOR
 	if (ZodiacConsoleVariables::EnableLogHealthChange)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("health changed from %.1f to %.1f"), OldValue, NewValue);
+		UE_LOG(LogZodiac, Warning, TEXT("%s's health changed from %.1f to %.1f"), *GetOwner()->GetName(), OldValue, NewValue);
 	}
 #endif
 }
@@ -184,13 +184,6 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 
 			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
 			AbilitySystemComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
-			
-#if !UE_BUILD_SHIPPING
-			if (ZodiacConsoleVariables::CVarLogPredictionKey.GetValueOnAnyThread())
-			{
-				UE_LOG(LogZodiacAbilitySystem, Log, TEXT("%s death event key: %d"), HasAuthority() ? TEXT("Server") : TEXT("Client"), AbilitySystemComponent->ScopedPredictionKey.Current);	
-			}
-#endif
 		}
 
 		// Send the "Event.Elimination" gameplay event to the instigator's ability system.  This can be used to trigger an OnElimination gameplay ability.
@@ -315,6 +308,17 @@ void UZodiacHealthComponent::FinishDeath()
 	check(Owner);
 
 	OnDeathFinished.Broadcast(Owner);
-
+	
 	Owner->ForceNetUpdate();
+}
+
+void UZodiacHealthComponent::ResetHealthAndDeathState()
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->SetNumericAttributeBase(UZodiacHealthSet::GetHealthAttribute(), HealthSet->GetMaxHealth());
+	}
+
+	DeathState = EZodiacDeathState::NotDead;
+	ClearGameplayTags();
 }

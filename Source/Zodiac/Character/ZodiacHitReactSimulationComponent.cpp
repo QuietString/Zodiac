@@ -15,6 +15,7 @@ UZodiacHitReactSimulationComponent::UZodiacHitReactSimulationComponent(const FOb
 	: Super(ObjectInitializer)
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
 	PrimaryComponentTick.TickGroup = TG_PrePhysics;
 	bWantsInitializeComponent = true;
 }
@@ -50,6 +51,7 @@ void UZodiacHitReactSimulationComponent::InitializeComponent()
 	if (USkeletalMeshComponent* SkeletalMeshComponent = OwnerCharacter->GetRetargetedMesh())
 	{
 		TargetMeshComponent = SkeletalMeshComponent;
+		OriginalRelativeScale = TargetMeshComponent->GetRelativeScale3D();
 		ensureMsgf(TargetMeshComponent, TEXT("Hit React Simulation Component needs Skeletal Mesh Component from owner actor"));
 	}
 
@@ -60,6 +62,42 @@ void UZodiacHitReactSimulationComponent::InitializeComponent()
 	}
 	
 	OwnerCharacter->OnSimulateOrPlayHitReact.BindUObject(this, &ThisClass::OnPlayHitReact);
+	OwnerCharacter->OnWakeUp.AddDynamic(this, &ThisClass::OnWakeUp);
+}
+
+void UZodiacHitReactSimulationComponent::ResetPhysicsSetup()
+{
+	if (AActor* Owner = GetOwner())
+	{
+		// Resume mesh animations.
+		TArray<USkeletalMeshComponent*> Components;
+		Owner->GetComponents(USkeletalMeshComponent::StaticClass(), Components);
+		for (auto& Mesh : Components)
+		{
+			Mesh->bPauseAnims = false;
+		}	
+	}
+		
+	if (TargetMeshComponent)
+	{
+		TargetMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+		TargetMeshComponent->SetCollisionProfileName(TEXT("ZodiacHeroMesh"));
+		TargetMeshComponent->SetEnableGravity(false);
+		TargetMeshComponent->SetAllBodiesSimulatePhysics(false);
+		TargetMeshComponent->SetAllBodiesPhysicsBlendWeight(0.f);
+		TargetMeshComponent->ResetRelativeTransform();
+		TargetMeshComponent->SetRelativeScale3D(OriginalRelativeScale);
+
+		if (PhysicalAnimationComponent)
+		{
+			PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(Root, NAME_None, true, true);
+
+			PhysicalAnimationComponent->SetSkeletalMeshComponent(TargetMeshComponent);
+			PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(UpperBodyRoot, UpperBodyProfile);
+			PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(LeftLegRoot, LowerBodyProfile);
+			PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(RightLegRoot, LowerBodyProfile);
+		}
+	}
 }
 
 void UZodiacHitReactSimulationComponent::BeginPlay()
@@ -72,31 +110,23 @@ void UZodiacHitReactSimulationComponent::BeginPlay()
 	}
 	else
 	{
-		if (TargetMeshComponent)
-		{
-			TargetMeshComponent->SetEnableGravity(false);
-
-			if (PhysicalAnimationComponent)
-			{	
-				PhysicalAnimationComponent->SetSkeletalMeshComponent(TargetMeshComponent);
-				PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(UpperBodyRoot, UpperBodyProfile);
-				PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(LeftLegRoot, LowerBodyProfile);
-				PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(RightLegRoot, LowerBodyProfile);
-			}
-		}
+		ResetPhysicsSetup();
 	}
 }
 
 void UZodiacHitReactSimulationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
+	
 	if (TargetMeshComponent)
 	{
+		bool bHasAnySimulatedBody = false;
 		for (FZodiacPhysicalHitReactBody& TargetBody : TargetBodies)
 		{
 			if (TargetBody.BlendWeight > 0.f)
 			{
+				bHasAnySimulatedBody = true;
+
 				float Duration = TargetBody.LastHit.bIsExplosive ? HitReactDuration_Explosive : HitReactDuration;
 				float BlendWeightDiminishSpeed = 1 / Duration;
 				float BlendWeightDelta = - (DeltaTime * BlendWeightDiminishSpeed);
@@ -119,7 +149,18 @@ void UZodiacHitReactSimulationComponent::TickComponent(float DeltaTime, ELevelTi
 				TargetBody.bIsSimulated = false;
 			}
 		}
+
+		// Stop ticking when no simulated bodies exist.
+		if (!bHasAnySimulatedBody)
+		{
+			SetComponentTickEnabled(false);
+		}
 	}
+}
+
+void UZodiacHitReactSimulationComponent::OnWakeUp()
+{
+	ResetPhysicsSetup();
 }
 
 EZodiacPhysicalHitReactBodyType UZodiacHitReactSimulationComponent::DetermineBodyType(FName HitBone) const
@@ -194,6 +235,9 @@ void UZodiacHitReactSimulationComponent::OnPlayHitReact(FVector HitDirection, FN
 	TargetMeshComponent->SetAllBodiesBelowSimulatePhysics(TargetBody->SimulationRootBone, true);
 	TargetMeshComponent->SetAllBodiesBelowPhysicsBlendWeight(TargetBody->SimulationRootBone, TargetBody->BlendWeight);
 	TargetMeshComponent->AddImpulse(HitDamageData.Impulse * HitReactStrength, HitBone, true);
+
+	// To update physics blend weights
+	SetComponentTickEnabled(true);
 }
 
 void UZodiacHitReactSimulationComponent::OnDeathStarted(AActor* OwningActor)
@@ -250,7 +294,7 @@ void UZodiacHitReactSimulationComponent::StartRagdoll()
 		
 		float ImpulseMultiplier = LastHit.bIsExplosive ? RagdollStrength_Explosive : RagdollStrength;
 		FVector Impulse = LastHit.Impulse * ImpulseMultiplier;
-
+		
 		// For non-explosive damage, impulse is applied twice for a same damage. First one from PlayHitReact(), second one from this,
 		// which is okay since death hit react should be stronger.
 		TargetMeshComponent->AddImpulse(Impulse, LastHit.HitBone, true);

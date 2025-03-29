@@ -74,6 +74,8 @@ public:
 
 	// Ends the death sequence for the owner.
 	virtual void FinishDeath();
+
+	void ResetHealthAndDeathState();
 	
 public:
 

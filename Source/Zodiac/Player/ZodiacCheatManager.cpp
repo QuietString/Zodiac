@@ -6,17 +6,15 @@
 #include "AIController.h"
 #include "EngineUtils.h"
 #include "GameplayTagContainer.h"
-#include "OnlineSubsystemUtils.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacPlayerController.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Hero/ZodiacHeroAbilitySystemComponent.h"
-#include "AI/ZodiacAISubsystem.h"
+#include "AI/ZodiacAIPawnSubsystem.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Character/ZodiacHeroCharacter.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Character/ZodiacMonster.h"
-#include "Character/ZodiacZombieSpawner.h"
 #include "Development/ZodiacDeveloperSettings.h"
 #include "System/ZodiacAssetManager.h"
 #include "System/ZodiacGameData.h"
@@ -149,20 +147,6 @@ void UZodiacCheatManager::God()
 	}
 }
 
-void UZodiacCheatManager::SpawnZombies()
-{
-	UWorld* World = GetWorld();
-	check(World);
-	
-	for (TActorIterator<AZodiacZombieSpawner> It(World); It; ++It)
-	{
-		if (AZodiacZombieSpawner* Spawner = *It)
-		{
-			Spawner->SpawnAllMonsters();	
-		}
-	}
-}
-
 void UZodiacCheatManager::PauseZombies()
 {
 	UWorld* World = GetWorld();
@@ -170,7 +154,7 @@ void UZodiacCheatManager::PauseZombies()
 	UGameInstance* GameInstance = World->GetGameInstance();
 	check(GameInstance);
 	
-	UZodiacAISubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAISubsystem>();
+	UZodiacAIPawnSubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAIPawnSubsystem>();
 	if (AISubsystem)
 	{
 		AISubsystem->PauseAllMonsters();
@@ -184,7 +168,7 @@ void UZodiacCheatManager::ResumeZombies()
 	UGameInstance* GameInstance = World->GetGameInstance();
 	check(GameInstance);
 	
-	UZodiacAISubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAISubsystem>();
+	UZodiacAIPawnSubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAIPawnSubsystem>();
 	if (AISubsystem)
 	{
 		AISubsystem->ResumeAllMonsters();

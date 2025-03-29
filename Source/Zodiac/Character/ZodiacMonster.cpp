@@ -3,11 +3,13 @@
 
 #include "ZodiacMonster.h"
 
+#include "BrainComponent.h"
 #include "ZodiacAIController.h"
 #include "ZodiacHealthComponent.h"
 #include "ZodiacHeroData.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Animation/ZodiacZombieAnimInstance.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
@@ -138,6 +140,90 @@ void AZodiacMonster::SetSpawnConfig(const FZodiacZombieSpawnConfig& InSpawnConfi
 	}
 }
 
+void AZodiacMonster::Multicast_Sleep_Implementation()
+{
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+	SetActorLocation(FVector::ZeroVector, false, nullptr, ETeleportType::ResetPhysics);
+
+	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+	{
+		Capsule->SetCollisionProfileName(TEXT("ZodiacPawnCapsule"));
+	}
+	
+	if (UMovementComponent* MovementComponent = GetMovementComponent())
+	{
+		MovementComponent->SetComponentTickEnabled(false);
+	}
+	
+	if (USkeletalMeshComponent* MeshComponent = GetMesh())
+	{
+		MeshComponent->InitAnim(true);
+		MeshComponent->ResetAnimInstanceDynamics();
+		MeshComponent->SetComponentTickEnabled(false);
+	}
+
+	if (RetargetedMeshComponent)
+	{
+		RetargetedMeshComponent->SetComponentTickEnabled(false);
+		RetargetedMeshComponent->ResetAnimInstanceDynamics();
+		RetargetedMeshComponent->ResetAllBodiesSimulatePhysics();
+	}
+	
+	if (AAIController* AC = GetController<AAIController>())
+	{
+		if (UBrainComponent* BrainComponent = AC->GetBrainComponent())
+		{
+			FString StopReason = TEXT("Sleep By AZodiacMonster");
+			BrainComponent->StopLogic(StopReason);	
+		}
+	}
+
+	if (HealthComponent)
+	{
+		HealthComponent->ResetHealthAndDeathState();
+	}
+	
+	OnSleep.Broadcast();
+}
+
+void AZodiacMonster::Multicast_WakeUp_Implementation(const FVector& SpawnLocation, const FRotator& SpawnRotation)
+{
+	FVector ActorScale = GetActorScale();
+	FTransform SpawnTransform = FTransform(SpawnRotation, SpawnLocation, ActorScale);
+	SetActorTransform(SpawnTransform, false, nullptr, ETeleportType::ResetPhysics);
+	
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+	
+	if (UMovementComponent* MovementComponent = GetMovementComponent())
+	{
+		MovementComponent->SetComponentTickEnabled(true);
+	}
+	
+	if (USkeletalMeshComponent* MeshComponent = GetMesh())
+	{
+		MeshComponent->SetComponentTickEnabled(true);
+	}
+
+	if (RetargetedMeshComponent)
+	{
+		RetargetedMeshComponent->SetComponentTickEnabled(true);
+	}
+	
+	if (AAIController* AC = GetController<AAIController>())
+	{
+		AC->RunBehaviorTree(BehaviorTree);
+		
+		if (UBrainComponent* BrainComponent = AC->GetBrainComponent())
+		{
+			BrainComponent->RestartLogic();
+		}
+	}
+	
+	OnWakeUp.Broadcast();
+}
+
 void AZodiacMonster::OnSpawnSeedSet_Internal()
 {
 	check(CharacterData);
@@ -188,6 +274,11 @@ void AZodiacMonster::OnSpawnConfigSet()
 	
 	const UZodiacGameData& GameData = UZodiacGameData::Get();
 	check (&GameData);
+
+	if (HasAuthority() && SpawnConfig.BehaviorTree.Get())
+	{
+		BehaviorTree = SpawnConfig.BehaviorTree;
+	}
 	
 	TArray<FZodiacExtendedMovementConfig> MovementConfigs = GameData.MovementConfigTemplates;
 	int32 Index = SpawnConfig.MovementConfigTemplateIndex;

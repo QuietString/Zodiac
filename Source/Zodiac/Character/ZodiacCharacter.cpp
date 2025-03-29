@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
+#include "ZodiacHealthComponent.h"
 #include "ZodiacHeroData.h"
 #include "ZodiacPreMovementComponentTickComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
@@ -309,7 +310,7 @@ void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* In
 		{
 			if (AbilitySet)
 			{
-				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
+				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 			}
 		}
 	}
@@ -607,6 +608,14 @@ void AZodiacCharacter::SetExtendedMovementModeTag(EZodiacExtendedMovementMode Ex
 			ZodiacASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
 		}
 	}
+}
+
+void AZodiacCharacter::Multicast_WakeUp_Implementation(const FVector& SpawnLocation, const FRotator& SpawnRotation)
+{
+}
+
+void AZodiacCharacter::Multicast_Sleep_Implementation()
+{
 }
 
 bool AZodiacCharacter::UpdateSharedReplication()

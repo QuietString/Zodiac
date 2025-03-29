@@ -4,7 +4,7 @@
 #include "ZodiacSpawnTrigger.h"
 
 #include "Character/ZodiacHostCharacter.h"
-#include "Character/ZodiacZombieSpawner.h"
+#include "ZodiacAIPawnSpawner.h"
 #include "Components/BoxComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSpawnTrigger)
@@ -49,11 +49,11 @@ void AZodiacSpawnTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AA
 	bAlreadyTriggered = true;
 
 	// Trigger spawners
-	for (AZodiacZombieSpawner* Spawner : SpawnersToTrigger)
+	for (AZodiacAIPawnSpawner* Spawner : SpawnersToTrigger)
 	{
-		if (Spawner && Spawner->GetUseTrigger())
+		if (Spawner && Spawner->bUseTrigger)
 		{
-			Spawner->SpawnAllMonsters();
+			Spawner->SpawnAllMonstersFromPool();
 		}
 	}
 }
