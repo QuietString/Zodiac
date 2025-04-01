@@ -47,6 +47,9 @@ public:
 	virtual void InfiniteAmmo();
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	virtual void ChargeUltimate();
+	
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void InfiniteUltimate();
 	
 	// Prevents the owning player from taking any damage.
@@ -56,22 +59,38 @@ public:
 	// Monster cheats
 	//
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void PauseZombies();
+	void PauseZombies();
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void ResumeZombies();
+	void ResumeZombies();
+
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	void SpawnDebugAIPawns();
+
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	void KillDebugAIPawns();
+
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	void SpawnAllAIPawns();
 	
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void AddTagToAllMonsters(FString TagName);
+	void KillAllAIPawns();
+	
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	void AddTagToAllMonsters(FString TagName);
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void AllMonstersInvincible();
+	void AllMonstersInvincible();
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void MonstersImmortal();
+	void MonstersImmortal();
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void ToggleMonsterAI();
+	void ToggleMonsterAI();
+
+	// Debug Mesh
+	UFUNCTION(Exec)
+	void ToggleMeshVisibility();
 	
 protected:
 	void ApplySetByCallerDamage(UZodiacAbilitySystemComponent* ZodiacASC, float DamageAmount);

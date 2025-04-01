@@ -124,6 +124,17 @@ void UZodiacCharacterMovementComponent::SetExtendedMovementMode(EZodiacExtendedM
 	}
 }
 
+void UZodiacCharacterMovementComponent::SetMovementModeToDefault()
+{
+	if (CustomMovementMode != 0)
+	{
+		SetMovementMode(MOVE_Walking, 0);
+	}
+	
+	EZodiacExtendedMovementMode DefaultMode = ExtendedMovementConfig.DefaultExtendedMovement;
+	SetExtendedMovementMode(DefaultMode);
+}
+
 void UZodiacCharacterMovementComponent::SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig)
 {
 	ExtendedMovementConfig = InConfig;

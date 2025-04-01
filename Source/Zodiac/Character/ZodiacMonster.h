@@ -8,9 +8,10 @@
 #include "Traversal/ZodiacTraversalActorInterface.h"
 #include "ZodiacMonster.generated.h"
 
+class UZodiacHitReactSimulationComponent;
+class UPhysicalAnimationComponent;
 
 class UBehaviorTree;
-class UPhysicalAnimationComponent;
 class UZodiacHeroData;
 
 UENUM(BlueprintType)
@@ -77,9 +78,12 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UPhysicalAnimationComponent> PhysicalAnimationComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	TObjectPtr<UZodiacHitReactSimulationComponent> HitReactSimulationComponent;
 	
 	// A randomizer seed for movement speed, walk/run animations when it's spawned by ZodiacZombieSpawner.
 	UPROPERTY(ReplicatedUsing = OnRep_SpawnSeed)

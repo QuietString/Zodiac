@@ -12,8 +12,10 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
-#include "PhysicsEngine/PhysicalAnimationComponent.h"
 #include "System/ZodiacGameData.h"
+#include "PhysicsEngine/PhysicalAnimationComponent.h"
+#include "ZodiacHitReactSimulationComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacMonster)
 
@@ -28,8 +30,13 @@ AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	RetargetedMeshComponent->SetupAttachment(GetMesh(), NAME_None);
 	
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
-	PhysicalAnimationComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicalAnimationComponent>(this, TEXT("PhysicalAnimationComponent"));
 
+	PhysicalAnimationComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicalAnimationComponent>(this, TEXT("PhysicalAnimationComponent"));
+	PhysicalAnimationComponent->PrimaryComponentTick.bStartWithTickEnabled = false;
+
+	HitReactSimulationComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHitReactSimulationComponent>(this, TEXT("HitReactSimulationComponent"));
+	HitReactSimulationComponent->PrimaryComponentTick.bStartWithTickEnabled = false;
+	
 	GetCharacterMovement()->GetNavMovementProperties()->bUseAccelerationForPaths = true;
 }
 
@@ -71,7 +78,7 @@ UAbilitySystemComponent* AZodiacMonster::GetTraversalAbilitySystemComponent() co
 void AZodiacMonster::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	if (CharacterData && !bHasMovementInitialized)
 	{
 		if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
@@ -175,7 +182,7 @@ void AZodiacMonster::Multicast_Sleep_Implementation()
 		if (UBrainComponent* BrainComponent = AC->GetBrainComponent())
 		{
 			FString StopReason = TEXT("Sleep By AZodiacMonster");
-			BrainComponent->StopLogic(StopReason);	
+			BrainComponent->StopLogic(StopReason);
 		}
 	}
 
@@ -218,6 +225,12 @@ void AZodiacMonster::Multicast_WakeUp_Implementation(const FVector& SpawnLocatio
 		if (UBrainComponent* BrainComponent = AC->GetBrainComponent())
 		{
 			BrainComponent->RestartLogic();
+		}
+
+		if (UBlackboardComponent* BlackBoard = AC->GetBlackboardComponent())
+		{
+			BlackBoard->SetValueAsBool(FName("UseTargetSearchRadius"), SpawnConfig.bUseTargetSearchRadius);
+			BlackBoard->SetValueAsFloat(FName("SearchRadius"), SpawnConfig.TargetSearchRadius);
 		}
 	}
 	

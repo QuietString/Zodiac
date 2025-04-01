@@ -33,15 +33,21 @@ public:
 	FZodiacZombieSpawnConfig GenerateSpawnConfig();
 
 	void AddMonstersToPool();
-
+	
+	void SendAllMonstersBackToPool();
+	void SendMonsterBackToPool(AZodiacMonster* MonsterToSend);
+	
 	UFUNCTION()
 	void OnPawnDeathFinished(AActor* DeadActor);
 	
-	void TryBatchSpawn();
-
 	UFUNCTION()
 	void OnPawnReadyToRespawn(AActor* SleepingActor);
 
+	void TryBatchSpawn();
+
+	UFUNCTION()
+	void PerformQueuedSpawn(const TMap<TSubclassOf<AZodiacMonster>, uint8>& MonsterToSpawnMap);
+	
 protected:
 	void OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap);
 
@@ -116,4 +122,6 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AZodiacMonster>> SpawnedMonsters;
+
+	bool bIsSpawnQueued = false;
 };

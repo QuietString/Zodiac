@@ -92,6 +92,8 @@ public:
 	float PlayRate;
 	
 public:
+	bool IsValid() const { return bHasFrontLedge; }
+	
 	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
 
 	/** Utility to return the Component that was hit. */

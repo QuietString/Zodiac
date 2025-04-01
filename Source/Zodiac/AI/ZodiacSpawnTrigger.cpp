@@ -36,8 +36,8 @@ void AZodiacSpawnTrigger::BeginPlay()
 
 void AZodiacSpawnTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AZodiacHostCharacter* OverlappingCharacter = Cast<AZodiacHostCharacter>(OtherActor);
-	if (!OverlappingCharacter)
+	AZodiacHostCharacter* OverlappingHostCharacter = Cast<AZodiacHostCharacter>(OtherActor);
+	if (!OverlappingHostCharacter)
 	{
 		return;
 	}

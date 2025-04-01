@@ -16,6 +16,8 @@
 void UZodiacHeroAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
+
+	UE_LOG(LogTemp, Warning, TEXT("%s: %s Hero Anim Instance Initialized"), GetOwningActor()->HasAuthority() ? TEXT("Server") : TEXT("Client"), *GetOwningActor()->GetName());
 }
 
 void UZodiacHeroAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
@@ -34,6 +36,8 @@ void UZodiacHeroAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 	UpdateMovementData();
 	UpdateRotationData();
 	UpdateAimingData(DeltaSeconds);
+
+	GameplayTagPropertyReverseMap.TickUpdateProperties();
 }
 
 void UZodiacHeroAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponent* InASC)
@@ -41,6 +45,9 @@ void UZodiacHeroAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponen
 	check(InASC);
 	
 	GameplayTagPropertyMap.Initialize(this, InASC);
+	GameplayTagPropertyReverseMap.Initialize(this, InASC);
+
+	UE_LOG(LogTemp, Warning, TEXT("%s: %s Hero Anim Instance ASC Initialized"), GetOwningActor()->HasAuthority() ? TEXT("Server") : TEXT("Client"), *GetOwningActor()->GetName());
 }
 
 AZodiacCharacter* UZodiacHeroAnimInstance::GetParentCharacter() const

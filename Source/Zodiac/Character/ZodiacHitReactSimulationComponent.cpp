@@ -154,6 +154,7 @@ void UZodiacHitReactSimulationComponent::TickComponent(float DeltaTime, ELevelTi
 		if (!bHasAnySimulatedBody)
 		{
 			SetComponentTickEnabled(false);
+			PhysicalAnimationComponent->SetComponentTickEnabled(false);
 		}
 	}
 }
@@ -237,6 +238,7 @@ void UZodiacHitReactSimulationComponent::OnPlayHitReact(FVector HitDirection, FN
 	TargetMeshComponent->AddImpulse(HitDamageData.Impulse * HitReactStrength, HitBone, true);
 
 	// To update physics blend weights
+	PhysicalAnimationComponent->SetComponentTickEnabled(true);
 	SetComponentTickEnabled(true);
 }
 

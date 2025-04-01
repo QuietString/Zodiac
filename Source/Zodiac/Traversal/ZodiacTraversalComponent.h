@@ -43,13 +43,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnFrontLedgeChecked(bool bLedgeFound, FVector Location, FVector Normal);
 
+	void ClearPerformResult();
+
 	FZodiacTraversalCheckResult GetCachedCheckResult() { return CheckResultCached; };
 	void ClearCheckResultCache();
 	
 protected:
 	float GetTraversalForwardTraceDistance(bool bIsInAir) const;
 	bool CapsuleTrace(const FVector& TraceStart, const FVector& TraceEnd, FHitResult& OutHit, float CapsuleRadius, float CapsuleHalfHeight, bool bDrawDebug, float
-	                  DebugDuration, bool bIsTicked, const TArray<AActor*>& ActorsToIgnore);
+	                  DebugDuration, bool bIsTicked, const TArray<AActor*>& ActorsToIgnore, const TArray<UPrimitiveComponent*>& ComponentsToIgnore);
 	bool DetermineTraversalType(FZodiacTraversalCheckResult& CheckResult);
 	bool FindMatchingAnimMontage(FZodiacTraversalCheckResult& CheckResult);
 	

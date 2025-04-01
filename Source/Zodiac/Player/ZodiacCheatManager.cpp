@@ -119,6 +119,10 @@ void UZodiacCheatManager::InfiniteAmmo()
 	}
 }
 
+void UZodiacCheatManager::ChargeUltimate()
+{
+}
+
 void UZodiacCheatManager::InfiniteUltimate()
 {
 	if (AZodiacHostCharacter* HostCharacter = GetHostCharacter())
@@ -172,6 +176,62 @@ void UZodiacCheatManager::ResumeZombies()
 	if (AISubsystem)
 	{
 		AISubsystem->ResumeAllMonsters();
+	}
+}
+
+void UZodiacCheatManager::SpawnDebugAIPawns()
+{
+	UWorld* World = GetWorld();
+	check(World);
+	UGameInstance* GameInstance = World->GetGameInstance();
+	check(GameInstance);
+	
+	UZodiacAIPawnSubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAIPawnSubsystem>();
+	if (AISubsystem)
+	{
+		AISubsystem->SpawnDebugPawns();
+	}
+}
+
+void UZodiacCheatManager::KillDebugAIPawns()
+{
+	UWorld* World = GetWorld();
+	check(World);
+	UGameInstance* GameInstance = World->GetGameInstance();
+	check(GameInstance);
+	
+	UZodiacAIPawnSubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAIPawnSubsystem>();
+	if (AISubsystem)
+	{
+		AISubsystem->KillDebugPawns();
+	}
+}
+
+void UZodiacCheatManager::SpawnAllAIPawns()
+{
+	UWorld* World = GetWorld();
+	check(World);
+	UGameInstance* GameInstance = World->GetGameInstance();
+	check(GameInstance);
+	
+	UZodiacAIPawnSubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAIPawnSubsystem>();
+	if (AISubsystem)
+	{
+		AISubsystem->HatchAllPawnsFromPool();
+	}
+}
+
+void UZodiacCheatManager::KillAllAIPawns()
+{
+	UWorld* World = GetWorld();
+	check(World);
+	UGameInstance* GameInstance = World->GetGameInstance();
+	check(GameInstance);
+	
+	UZodiacAIPawnSubsystem* AISubsystem = GameInstance->GetSubsystem<UZodiacAIPawnSubsystem>();
+	if (AISubsystem)
+	{
+		AISubsystem->SendAllPawnsBackToPool();
 	}
 }
 
@@ -247,6 +307,21 @@ void UZodiacCheatManager::ToggleMonsterAI()
 	}
 
 	UE_LOG(LogZodiacCheat, Warning, TEXT("All AI Behavior Trees stopped."));
+}
+
+void UZodiacCheatManager::ToggleMeshVisibility()
+{
+	UWorld* World = GetWorld();
+	check(World);
+
+	for (TActorIterator<AZodiacCharacter> It(GetWorld()); It; ++It)
+	{
+		if (AZodiacCharacter* ZodiacCharacter = *It)
+		{
+			ZodiacCharacter->GetRetargetedMesh()->ToggleVisibility();
+			ZodiacCharacter->GetMesh()->ToggleVisibility();	
+		}
+	}
 }
 
 void UZodiacCheatManager::ApplySetByCallerDamage(UZodiacAbilitySystemComponent* ZodiacASC, float DamageAmount)

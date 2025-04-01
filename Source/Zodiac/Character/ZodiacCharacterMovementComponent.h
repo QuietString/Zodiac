@@ -93,6 +93,9 @@ public:
 	UFUNCTION(BlueprintSetter)
 	void SetExtendedMovementMode(EZodiacExtendedMovementMode InMode);
 
+	UFUNCTION(BlueprintCallable)
+	void SetMovementModeToDefault();
+	
 	UFUNCTION(BlueprintGetter)
 	FZodiacExtendedMovementConfig GetExtendedMovementConfig() const { return ExtendedMovementConfig; }
 	

@@ -6,6 +6,7 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacLogChannels.h"
 #include "Character/ZodiacCharacter.h"
+#include "Character/ZodiacCharacterMovementComponent.h"
 #include "Traversal/ZodiacTraversalComponent.h"
 #include "Traversal/ZodiacTraversalTypes.h"
 #include "GameplayAbilities/Public/Abilities/Tasks/AbilityTask_WaitDelay.h"
@@ -75,10 +76,8 @@ void UZodiacGameplayAbility_Traversal::ActivateAbility(const FGameplayAbilitySpe
 		{
 			TraversalComponent->OnTraversalFinished.BindUObject(this, &ThisClass::OnTraversalFinished);
 
-			if (IsLocallyControlled())
-			{
-				TraversalComponent->PerformTraversalAction_Local();
-			}
+			FZodiacTraversalCheckResult CheckResult = TraversalComponent->GetCachedCheckResult();
+			TraversalComponent->Server_PerformTraversalAction(CheckResult);
 
 			// Automatically ends ability after some time in case.
 			UAbilityTask_WaitDelay* WaitDelay =  UAbilityTask_WaitDelay::WaitDelay(this, 5.0f);
@@ -102,7 +101,33 @@ void UZodiacGameplayAbility_Traversal::CancelAbility(const FGameplayAbilitySpecH
 	}
 }
 
+void UZodiacGameplayAbility_Traversal::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+	bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
+	{
+		if (UZodiacTraversalComponent* TraversalComponent = ZodiacCharacter->FindComponentByClass<UZodiacTraversalComponent>())
+		{
+			FZodiacTraversalCheckResult CheckResult = TraversalComponent->GetCachedCheckResult();
+			TraversalComponent->ClearPerformResult();
+		}
+
+		if (!bHasEndedByNotify)
+		{
+			if (UZodiacCharacterMovementComponent* ZodiacCharMoveComp = Cast<UZodiacCharacterMovementComponent>(ZodiacCharacter->GetCharacterMovement()))
+			{
+				ZodiacCharMoveComp->SetMovementModeToDefault();
+			}
+		}
+	}
+
+	bHasEndedByNotify = false;
+}
+
 void UZodiacGameplayAbility_Traversal::OnTraversalFinished()
 {
+	bHasEndedByNotify = true;
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

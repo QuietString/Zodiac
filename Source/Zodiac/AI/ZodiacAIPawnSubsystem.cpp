@@ -7,8 +7,16 @@
 #include "BrainComponent.h"
 #include "Character/ZodiacMonster.h"
 #include "ZodiacAIPawnSpawner.h"
+#include "ZodiacLogChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAIPawnSubsystem)
+
+static TAutoConsoleVariable<int32> CVarMaxGlobalAIPawns(
+	TEXT("Zodiac.ai.MaxGlobalAIPawns"),
+	40,
+	TEXT("Maximum global AI pawns at once."),
+	ECVF_Default
+);
 
 void UZodiacAIPawnSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -38,7 +46,7 @@ void UZodiacAIPawnSubsystem::UnregisterSpawner(AZodiacAIPawnSpawner* Spawner)
 	});
 }
 
-FZodiacSpawnerPool* UZodiacAIPawnSubsystem::FindSpawnerPool(const AZodiacAIPawnSpawner* Spawner)
+FZodiacSpawnerPool* UZodiacAIPawnSubsystem::FindSpawnerPool(AZodiacAIPawnSpawner* Spawner)
 {
 	for (FZodiacSpawnerPool& Entry : SpawnerPools)
 	{
@@ -51,7 +59,7 @@ FZodiacSpawnerPool* UZodiacAIPawnSubsystem::FindSpawnerPool(const AZodiacAIPawnS
 	return nullptr;
 }
 
-FZodiacSpawnerPool& UZodiacAIPawnSubsystem::FindOrAddSpawnerPool(const AZodiacAIPawnSpawner* Spawner)
+FZodiacSpawnerPool& UZodiacAIPawnSubsystem::FindOrAddSpawnerPool(AZodiacAIPawnSpawner* Spawner)
 {
 	for (FZodiacSpawnerPool& Entry : SpawnerPools)
 	{
@@ -85,7 +93,7 @@ FZodiacAIPawnClassPool& UZodiacAIPawnSubsystem::FindOrAddMonsterClassPool(FZodia
 	return SpawnerPool.ClassPools[NewIndex];
 }
 
-void UZodiacAIPawnSubsystem::AddMonsterToPool(const AZodiacAIPawnSpawner* Spawner, const TSubclassOf<AZodiacMonster>& ClassToSpawn, const FZodiacZombieSpawnConfig& SpawnConfig)
+void UZodiacAIPawnSubsystem::AddMonsterToPool(AZodiacAIPawnSpawner* Spawner, const TSubclassOf<AZodiacMonster>& ClassToSpawn, const FZodiacZombieSpawnConfig& SpawnConfig)
 {
 	UWorld* World = GetWorld();
 	if (!World || !ClassToSpawn)
@@ -117,7 +125,7 @@ void UZodiacAIPawnSubsystem::AddMonsterToPool(const AZodiacAIPawnSpawner* Spawne
 	Instances.Add(Spawned);
 }
 
-void UZodiacAIPawnSubsystem::ReleaseMonsterToPool(const AZodiacAIPawnSpawner* Spawner, AZodiacMonster* Monster)
+void UZodiacAIPawnSubsystem::SendMonsterBackToPool(AZodiacAIPawnSpawner* Spawner, AZodiacMonster* Monster)
 {
 	if (!Monster || !Spawner)
 	{
@@ -135,9 +143,37 @@ void UZodiacAIPawnSubsystem::ReleaseMonsterToPool(const AZodiacAIPawnSpawner* Sp
 
 	// 4) Actually store the monster in the pool
 	ClassPool.Instances.AddUnique(Monster);
+	
+	ActiveMonsters.Remove(Monster);
+
+	// See if we can spawn something from the queue
+	ProcessSpawnRequests();
 }
 
-AZodiacMonster* UZodiacAIPawnSubsystem::HatchMonsterFromPool(const AZodiacAIPawnSpawner* Spawner, const TSubclassOf<AZodiacMonster>& RequestedClass)
+void UZodiacAIPawnSubsystem::HatchAllPawnsFromPool()
+{
+	for (auto& SpawnerPool : SpawnerPools)
+	{
+		if (AZodiacAIPawnSpawner* Spawner = SpawnerPool.Spawner.Get())
+		{
+			Spawner->SpawnAllMonstersFromPool();
+		}
+	}
+}
+
+void UZodiacAIPawnSubsystem::SendAllPawnsBackToPool()
+{
+	
+	for (auto& SpawnerPool : SpawnerPools)
+	{
+		if (AZodiacAIPawnSpawner* Spawner = SpawnerPool.Spawner.Get())
+		{
+			Spawner->SendAllMonstersBackToPool();
+		}
+	}
+}
+
+AZodiacMonster* UZodiacAIPawnSubsystem::HatchMonsterFromPool(AZodiacAIPawnSpawner* Spawner, const TSubclassOf<AZodiacMonster>& RequestedClass)
 {
 	if (!Spawner || !RequestedClass)
 	{
@@ -165,10 +201,94 @@ AZodiacMonster* UZodiacAIPawnSubsystem::HatchMonsterFromPool(const AZodiacAIPawn
 	{
 		return nullptr;
 	}
-
+	
 	// 3) Pop from the array
 	AZodiacMonster* Monster = ClassPoolPtr->Instances.Pop(EAllowShrinking::No);
+	if (Monster)
+	{
+		ActiveMonsters.Add(Monster);
+	}
+
 	return Monster;
+}
+
+void UZodiacAIPawnSubsystem::QueueSpawnRequest(AZodiacAIPawnSpawner* Spawner, const TMap<TSubclassOf<AZodiacMonster>, uint8>& RequestedMap)
+{
+	if (!Spawner)
+	{
+		return;
+	}
+
+	FSpawnRequest NewRequest(Spawner, RequestedMap);
+	SpawnRequestsQueue.Add(NewRequest);
+	ProcessSpawnRequests();
+
+	UE_LOG(LogZodiacSpawner, Log, TEXT("Spawn request added from %s."), *Spawner->GetActorNameOrLabel());
+}
+
+void UZodiacAIPawnSubsystem::ProcessSpawnRequests()
+{
+	// We'll keep popping from the front of the array (like a queue)
+	// while there's enough capacity. 
+	
+	int32 i = 0;
+	while (i < SpawnRequestsQueue.Num())
+	{
+		const FSpawnRequest& Request = SpawnRequestsQueue[i];
+		AZodiacAIPawnSpawner* Spawner = Request.Spawner.Get();
+		if (!Spawner)
+		{
+			SpawnRequestsQueue.RemoveAt(i);
+			continue;
+		}
+
+		int32 CurrentLimit = CVarMaxGlobalAIPawns.GetValueOnGameThread();
+		int32 CurrentlyActive = GetNumberOfActivePawns();
+		int32 CurrentlySpawning = 0;
+		for (auto& [K, V] : CachedNumberOfSpawning)
+		{
+			CurrentlySpawning += V;
+		}
+		
+		int32 CapacityLeft = CurrentLimit - CurrentlyActive - CurrentlySpawning;
+		
+		int32 RequiredSpawnCount = 0;
+		for (auto& Pair : Request.MonsterToSpawnMap)
+		{
+			RequiredSpawnCount += Pair.Value;
+		}
+		
+		if (RequiredSpawnCount <= CapacityLeft)
+		{
+			// We have enough capacity for the spawn request. 
+			Spawner->PerformQueuedSpawn(Request.MonsterToSpawnMap);
+			CachedNumberOfSpawning.Add(Spawner, RequiredSpawnCount);
+			
+			// Remove the request from the queue
+			SpawnRequestsQueue.RemoveAt(i);
+			
+			UE_LOG(LogZodiacSpawner, Log, TEXT("Perform queued spawn request. Requested: %d, Capacity left: %d"), RequiredSpawnCount, CapacityLeft);
+		}
+		else
+		{
+			break; 
+		}
+	}
+}
+
+int32 UZodiacAIPawnSubsystem::GetNumberOfActivePawns() const
+{
+	return ActiveMonsters.Num();
+}
+
+int32 UZodiacAIPawnSubsystem::GetCurrentSpawnLimit() const
+{
+	return CVarMaxGlobalAIPawns.GetValueOnGameThread();
+}
+
+void UZodiacAIPawnSubsystem::NotifySpawnFinished(AZodiacAIPawnSpawner* Spawner)
+{
+	CachedNumberOfSpawning.Remove(Spawner);
 }
 
 void UZodiacAIPawnSubsystem::PauseAllMonsters()
@@ -208,6 +328,42 @@ void UZodiacAIPawnSubsystem::ResumeAllMonsters()
 						AC->BrainComponent->ResumeLogic(Reason);
 					}
 				}
+			}
+		}
+	}
+}
+
+void UZodiacAIPawnSubsystem::SpawnDebugPawns()
+{
+	for (auto& Spawner : RegisteredSpawners)
+	{
+		if (Spawner.IsValid())
+		{
+			if (Spawner->ActorHasTag(FName("Debug")))
+			{
+				// Spawn only when it's not spawned yet.
+				if (Spawner->SpawnedMonsters.Num() != Spawner->TotalNumberOfInitialSpawn)
+				{
+					Spawner->SpawnAllMonstersFromPool();	
+				}
+				else
+				{
+					UE_LOG(LogZodiacSpawner, Display, TEXT("Debug pawns already spawned"));
+				}
+			}
+		}
+	}
+}
+
+void UZodiacAIPawnSubsystem::KillDebugPawns()
+{
+	for (auto& Spawner : RegisteredSpawners)
+	{
+		if (Spawner.IsValid())
+		{
+			if (Spawner->ActorHasTag(FName("Debug")))
+			{
+				Spawner->SendAllMonstersBackToPool();
 			}
 		}
 	}

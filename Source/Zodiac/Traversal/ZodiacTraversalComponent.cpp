@@ -16,6 +16,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "Utility/ZodiacKismetSystemLibrary.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacTraversalComponent)
 
@@ -40,7 +41,7 @@ void UZodiacTraversalComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ThisClass, TraversalCheckResult);
+	DOREPLIFETIME_CONDITION(ThisClass, TraversalCheckResult, COND_SkipOwner);
 }
 
 void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -145,6 +146,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FGameplayTag& FailReason, FVe
 	ActorsToIgnore.Add(OwningCharacter);
 	ActorsToIgnore.Add(Result.HitComponent->GetOwner());
 	OwningCharacter->GetAttachedActors(ActorsToIgnore, false);
+	TArray<UPrimitiveComponent*> ComponentsToIgnore;
 
 	// Step 3.3: Save the height of the obstacle using the delta between the actor and front ledge transform.
 	Result.ObstacleHeight = FMath::Abs(((ActorLocation - FVector(0.0f, 0.0f, CapsuleHalfHeight)) - Result.FrontLedgeLocation).Z);
@@ -155,7 +157,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FGameplayTag& FailReason, FVe
 										+ Result.BackLedgeNormal * (CapsuleRadius + 2)
 										+ FVector(0.0f, 0.0f, CapsuleHalfHeight + 2);
 	FHitResult BackLedgeHit;
-	if (Result.bHasBackLedge && CapsuleTrace(FrontRoomCheckStartLocation, FrontRoomCheckEndLocation, BackLedgeHit, CapsuleRadius, CapsuleHalfHeight, bDrawBackLedgeTrace, DebugDuration, false, ActorsToIgnore))
+	if (Result.bHasBackLedge && CapsuleTrace(FrontRoomCheckStartLocation, FrontRoomCheckEndLocation, BackLedgeHit, CapsuleRadius, CapsuleHalfHeight, bDrawBackLedgeTrace, DebugDuration, false, ActorsToIgnore, ComponentsToIgnore))
 	{
 		// Step 3.5: If there is not room, save the obstacle depth using the difference between the front ledge and the trace impact point, and invalidate the back ledge.
 		Result.ObstacleDepth = (BackLedgeHit.ImpactPoint - Result.FrontLedgeLocation).Length();
@@ -175,7 +177,7 @@ bool UZodiacTraversalComponent::CanTraversalAction(FGameplayTag& FailReason, FVe
 									+ Result.BackLedgeNormal * (CapsuleRadius + 2)
 									- FVector(0.0f, 0.0f, Result.ObstacleHeight - CapsuleHalfHeight + 50.0f);
 	FHitResult FloorHit;
-	if (CapsuleTrace(FloorCheckStartLocation, FloorCheckEndLocation, FloorHit, CapsuleRadius, CapsuleHalfHeight, bDrawFloorTrace, DebugDuration, false, ActorsToIgnore))
+	if (CapsuleTrace(FloorCheckStartLocation, FloorCheckEndLocation, FloorHit, CapsuleRadius, CapsuleHalfHeight, bDrawFloorTrace, DebugDuration, false, ActorsToIgnore, ComponentsToIgnore))
 	{
 		Result.bHasBackFloor = true;
 		Result.BackFloorLocation = FloorHit.ImpactPoint;
@@ -241,6 +243,7 @@ void UZodiacTraversalComponent::PerformTraversalAction_Local()
 	{
 		Server_PerformTraversalAction(TraversalCheckResult);	
 	}
+	
 	// Clear cache
 	CheckResultCached = FZodiacTraversalCheckResult();
 	bHasCached = false;
@@ -281,6 +284,7 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(OwningCharacter);
 	OwningCharacter->GetAttachedActors(ActorsToIgnore, false);
+	TArray<UPrimitiveComponent*> ComponentsToIgnore;
 	
 	// Step 2.1: Find a Traversable Level Block. If found, set the Hit Component, if not, exit the function.
 	float TraceForwardDistance = GetTraversalForwardTraceDistance(bIsInAir);
@@ -290,7 +294,7 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 
 	Result.bIsMidAir = bIsInAir;
 	
-	if (!CapsuleTrace(TraceStart, TraceEnd, TraversalObjectHit, CapsuleRadius, CapsuleHalfHeight, bDrawFindBlockTrace, DebugDuration, bIsTicked, ActorsToIgnore))
+	if (!CapsuleTrace(TraceStart, TraceEnd, TraversalObjectHit, CapsuleRadius, CapsuleHalfHeight, bDrawFindBlockTrace, DebugDuration, bIsTicked, ActorsToIgnore, ComponentsToIgnore))
 	{
 		FailReason = ZodiacGameplayTags::Traversal_FailReason_NoTraceHit; 
 		return false;
@@ -302,7 +306,6 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 		// Step 2.2: If a traversable level block was found, get the front and back ledge transforms from it.
 		TraversableActorComponent->GetLedgeTransforms(Result, TraversalObjectHit.ImpactPoint, ActorLocation);
 		Result.HitComponent = TraversalObjectHit.Component;
-		ActorsToIgnore.Add(HitActor);
 	}
 	else
 	{
@@ -351,8 +354,9 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 										+ FVector(0.0f, 0.0f, CapsuleHalfHeight + 2)
 										+ Result.FrontLedgeNormal * (CapsuleRadius + 2); // end trace before capsule collide with FrontLedge
 	FHitResult CeilingHit;
-	CapsuleTrace(CeilingCheckStartLocation, CeilingCheckEndLocation, CeilingHit, CapsuleRadius, CapsuleHalfHeight, bDrawCeilingTrace, DebugDuration, bIsTicked, ActorsToIgnore);
-	if (CeilingHit.bBlockingHit || CeilingHit.bStartPenetrating)
+	ComponentsToIgnore.Add(Result.HitComponent.Get()); // Ignore hit component where front ledge exists.
+	CapsuleTrace(CeilingCheckStartLocation, CeilingCheckEndLocation, CeilingHit, CapsuleRadius, CapsuleHalfHeight, bDrawCeilingTrace, DebugDuration, bIsTicked, ActorsToIgnore, ComponentsToIgnore);
+	if (CeilingHit.bBlockingHit)
 	{
 		BlockingActor = CeilingHit.GetActor();
 		FailReason = ZodiacGameplayTags::Traversal_FailReason_BlockedByCeiling;
@@ -361,6 +365,11 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 
 	LastTraceLocation = CeilingCheckEndLocation; 
 	return true;
+}
+
+void UZodiacTraversalComponent::ClearPerformResult()
+{
+	TraversalCheckResult = FZodiacTraversalCheckResult();
 }
 
 void UZodiacTraversalComponent::ClearCheckResultCache()
@@ -387,7 +396,7 @@ float UZodiacTraversalComponent::GetTraversalForwardTraceDistance(bool bIsInAir)
 }
 
 bool UZodiacTraversalComponent::CapsuleTrace(const FVector& TraceStart, const FVector& TraceEnd, FHitResult& OutHit, float CapsuleRadius, float CapsuleHalfHeight, bool bDrawDebug, float
-                                             DebugDuration, bool bIsTicked, const TArray<AActor*>& ActorsToIgnore)
+                                             DebugDuration, bool bIsTicked, const TArray<AActor*>& ActorsToIgnore, const TArray<UPrimitiveComponent*>& ComponentsToIgnore)
 {
 	UWorld* World = GetWorld();
 	check(World);
@@ -400,7 +409,7 @@ bool UZodiacTraversalComponent::CapsuleTrace(const FVector& TraceStart, const FV
 	FVector TraceEndWithBottomTraceAvoidance = TraceEnd + FVector(0.0f, 0.0f, BottomTraceAvoidance);
 	float CapsuleHalfHeightWithBottomTraceAvoidance = CapsuleHalfHeight - BottomTraceAvoidance/2;
 	
-	return UKismetSystemLibrary::CapsuleTraceSingle(World, TraceStartWithBottomTraceAvoidance, TraceEndWithBottomTraceAvoidance, CapsuleRadius, CapsuleHalfHeightWithBottomTraceAvoidance, TraceTypeQuery, false, ActorsToIgnore, DrawDebugType, OutHit, true, FLinearColor::Red, FLinearColor::Green, DrawTime);
+	return UZodiacKismetSystemLibrary::CapsuleTraceSingle(World, TraceStartWithBottomTraceAvoidance, TraceEndWithBottomTraceAvoidance, CapsuleRadius, CapsuleHalfHeightWithBottomTraceAvoidance, TraceTypeQuery, false, ActorsToIgnore, ComponentsToIgnore, DrawDebugType, OutHit, true, FLinearColor::Red, FLinearColor::Green, DrawTime);
 }
 
 bool UZodiacTraversalComponent::DetermineTraversalType(FZodiacTraversalCheckResult& CheckResult)
@@ -497,6 +506,11 @@ void UZodiacTraversalComponent::K2_NotifyTraversalActionFinished()
 void UZodiacTraversalComponent::OnRepTraversalCheckResult()
 {
 	if (GetOwnerRole() == ROLE_AutonomousProxy && bIsLocalPredicted)
+	{
+		return;
+	}
+	
+	if (!TraversalCheckResult.IsValid())
 	{
 		return;
 	}

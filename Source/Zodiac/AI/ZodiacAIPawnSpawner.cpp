@@ -12,7 +12,7 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAIPawnSpawner)
 
-namespace ZombieSpawnerQueryParamNames2
+namespace ZombieSpawnerQueryParamNames
 {
 	FName GridSize = FName("SimpleGrid.GridSize");
 	FName SpaceBetween = FName("SimpleGrid.SpaceBetween");
@@ -57,11 +57,13 @@ void AZodiacAIPawnSpawner::PostInitializeComponents()
 void AZodiacAIPawnSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	if (!HasAuthority())
 	{
 		return;
 	}
+
+	check(AIPawnSubsystem);
 
 	TotalNumberOfInitialSpawn = 0;
 	for (auto& [K, V] : MonstersToSpawn)
@@ -79,25 +81,15 @@ void AZodiacAIPawnSpawner::BeginPlay()
 
 void AZodiacAIPawnSpawner::SpawnAllMonstersFromPool()
 {
-	if (!HasAuthority() || !LocationQuery)
+	if (!HasAuthority())
 	{
 		return;
 	}
-	
-	if (LocationQuery)
+
+	if (!bIsSpawnQueued)
 	{
-		FEnvQueryRequest Request(LocationQuery, this);
-		Request.SetFloatParam(ZombieSpawnerQueryParamNames2::GridSize, GridSize);
-		Request.SetFloatParam(ZombieSpawnerQueryParamNames2::SpaceBetween, SpawnSpacing);
-		
-		FQueryFinishedSignature QueryFinishedDelegate = FQueryFinishedSignature::CreateLambda(
-	[this](TSharedPtr<FEnvQueryResult> Res)
-			{
-				OnQueryFinished(Res, MonstersToSpawn);
-			}
-		);
-		
-		Request.Execute(EEnvQueryRunMode::AllMatching, QueryFinishedDelegate);
+		AIPawnSubsystem->QueueSpawnRequest(this, MonstersToSpawn);
+		bIsSpawnQueued = true;	
 	}
 }
 
@@ -169,12 +161,46 @@ void AZodiacAIPawnSpawner::AddMonstersToPool()
 	}
 }
 
+void AZodiacAIPawnSpawner::SendAllMonstersBackToPool()
+{
+	TArray<AZodiacMonster*> LocalCopy = SpawnedMonsters;
+	
+	for (auto& SpawnedMonster : LocalCopy)
+	{
+		SendMonsterBackToPool(SpawnedMonster);
+	}
+}
+
+void AZodiacAIPawnSpawner::SendMonsterBackToPool(AZodiacMonster* MonsterToSend)
+{
+	SpawnedMonsters.Remove(MonsterToSend);
+	
+	MonsterToSend->Multicast_Sleep();
+	
+	if (AIPawnSubsystem)
+	{
+		AIPawnSubsystem->SendMonsterBackToPool(this, MonsterToSend);
+	}
+}
+
 void AZodiacAIPawnSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap)
 {
 	if (!Result.IsValid() || !Result->IsSuccessful())
 	{
 		UE_LOG(LogZodiacSpawner, Log, TEXT("%s: Initial EQS query failed or no results."), *GetName());
 		return;
+	}
+
+	if (!AIPawnSubsystem)
+	{
+		UE_LOG(LogZodiacSpawner, Warning, TEXT("No AIPawnSubsystem found"));
+		return;
+	}
+	
+	int32 TotalSpawnCount = 0;
+	for (auto& Pair : MonsterToSpawnMap)
+	{
+		TotalSpawnCount += Pair.Value;
 	}
 
 	// Gather all item locations + their scores
@@ -222,22 +248,15 @@ void AZodiacAIPawnSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, T
 			FVector ChosenLocation = AllLocations[LocIdx];
 
 			AZodiacMonster* Spawned = SpawnMonsterFromPool(MonsterClass, ChosenLocation);
-			SpawnCount++;
-
 			if (Spawned)
 			{
 				SpawnedMonsters.AddUnique(Spawned);
-				if (UZodiacHealthComponent* HealthComponent = UZodiacHealthComponent::FindHealthComponent(Spawned))
-				{
-					HealthComponent->OnDeathFinished.AddUniqueDynamic(this, &ThisClass::OnPawnDeathFinished);
-				}            			
-			}
-			else
-			{
-				UE_LOG(LogZodiacSpawner, Warning, TEXT("Failed to spawn %s from the pool"), *MonsterClass->GetName());
+				SpawnCount++;
 			}
 		}
 	}
+
+	AIPawnSubsystem->NotifySpawnFinished(this);
 }
 
 AZodiacMonster* AZodiacAIPawnSpawner::SpawnMonsterFromPool(const TSubclassOf<AZodiacMonster>& ClassToSpawn, const FVector& SpawnLocation)
@@ -257,6 +276,11 @@ AZodiacMonster* AZodiacAIPawnSpawner::SpawnMonsterFromPool(const TSubclassOf<AZo
 	
 	if (AZodiacMonster* Fetched = AIPawnSubsystem->HatchMonsterFromPool(this, ClassToSpawn))
 	{
+		if (UZodiacHealthComponent* HealthComponent = UZodiacHealthComponent::FindHealthComponent(Fetched))
+		{
+			HealthComponent->OnDeathFinished.AddUniqueDynamic(this, &ThisClass::OnPawnDeathFinished);
+		}
+		
 		Fetched->Multicast_WakeUp(SpawnLocation, SpawnRotation);
 
 		return Fetched;
@@ -273,15 +297,8 @@ void AZodiacAIPawnSpawner::OnPawnDeathFinished(AActor* DeadActor)
 		return;
 	}
 
-	SpawnedMonsters.Remove(DeadMonster);
+	SendMonsterBackToPool(DeadMonster);
 	
-	DeadMonster->Multicast_Sleep();
-	
-	if (AIPawnSubsystem)
-	{
-		AIPawnSubsystem->ReleaseMonsterToPool(this, DeadMonster);
-	}
-
 	if (!bRespawnWhenDies)
 	{
 		return;
@@ -295,46 +312,10 @@ void AZodiacAIPawnSpawner::OnPawnDeathFinished(AActor* DeadActor)
 	RespawnDelay, false);
 }
 
-void AZodiacAIPawnSpawner::TryBatchSpawn()
-{
-	int32 TotalRequestCounts = 0;
-	for (auto& [K, V] : AccumulatedRespawnRequests)
-	{
-		TotalRequestCounts += V;
-	}
-
-	// Respawn when the number of accumulated requests reaches RespawnBatchSize,
-	// or the number of initial spawn was less than RespawnBatchSize.
-	bool bShouldBatchRespawn = (TotalRequestCounts >= RespawnBatchSize) ? true : (RespawnBatchSize >= TotalNumberOfInitialSpawn);
-	if (bShouldBatchRespawn)
-	{
-		if (LocationQuery)
-		{
-			TMap<TSubclassOf<AZodiacMonster>, uint8> SpawnNumberMap = AccumulatedRespawnRequests;
-
-			FEnvQueryRequest Request(LocationQuery, this);
-			Request.SetFloatParam(ZombieSpawnerQueryParamNames2::GridSize, GridSize);
-			Request.SetFloatParam(ZombieSpawnerQueryParamNames2::SpaceBetween, SpawnSpacing);
-
-			// We'll pass in a small callback lambda capturing the local TMap
-			FQueryFinishedSignature QueryFinishedDelegate = FQueryFinishedSignature::CreateLambda(
-				[this, SpawnNumberMap](TSharedPtr<FEnvQueryResult> Res)
-				{
-					OnQueryFinished(Res, SpawnNumberMap);
-				}
-			);
-            
-			Request.Execute(EEnvQueryRunMode::AllMatching, QueryFinishedDelegate);
-
-			AccumulatedRespawnRequests.Empty();
-		}
-	}
-}
-
 void AZodiacAIPawnSpawner::OnPawnReadyToRespawn(AActor* SleepingActor)
 {
 	AZodiacMonster* SleepingMonster = Cast<AZodiacMonster>(SleepingActor);
-	if (!SleepingMonster)
+	if (!SleepingMonster || !AIPawnSubsystem)
 	{
 		return;
 	}
@@ -346,3 +327,43 @@ void AZodiacAIPawnSpawner::OnPawnReadyToRespawn(AActor* SleepingActor)
 	TryBatchSpawn();
 }
 
+void AZodiacAIPawnSpawner::TryBatchSpawn()
+{
+	int32 TotalRequestCounts = 0;
+	for (auto& [K, V] : AccumulatedRespawnRequests)
+	{
+		TotalRequestCounts += V;
+	}
+
+	// Respawn when the number of accumulated requests reaches RespawnBatchSize,
+	// or the number of initial spawn was less than RespawnBatchSize.
+	bool bShouldBatchRespawn = (TotalRequestCounts >= RespawnBatchSize) ? true : (RespawnBatchSize >= TotalNumberOfInitialSpawn);
+	if (bShouldBatchRespawn && !bIsSpawnQueued)
+	{
+		AIPawnSubsystem->QueueSpawnRequest(this, AccumulatedRespawnRequests);
+		AccumulatedRespawnRequests.Empty();
+		bIsSpawnQueued = true;
+	}
+}
+
+void AZodiacAIPawnSpawner::PerformQueuedSpawn(const TMap<TSubclassOf<AZodiacMonster>, uint8>& MonsterToSpawnMap)
+{
+	if (!HasAuthority() || !LocationQuery)
+	{
+		return;
+	}
+    
+	FEnvQueryRequest Request(LocationQuery, this);
+	Request.SetFloatParam(ZombieSpawnerQueryParamNames::GridSize, GridSize);
+	Request.SetFloatParam(ZombieSpawnerQueryParamNames::SpaceBetween, SpawnSpacing);
+
+	FQueryFinishedSignature QueryFinishedDelegate = FQueryFinishedSignature::CreateLambda(
+		[this, MonsterToSpawnMap](TSharedPtr<FEnvQueryResult> Res)
+		{
+			OnQueryFinished(Res, MonsterToSpawnMap);
+		}
+	);
+	Request.Execute(EEnvQueryRunMode::AllMatching, QueryFinishedDelegate);
+
+	bIsSpawnQueued = false;
+}

@@ -40,7 +40,7 @@ AZodiacHeroCharacter::AZodiacHeroCharacter(const FObjectInitializer& ObjectIniti
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	 
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
-	
+
 	AbilityManagerComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHeroAbilityManagerComponent>(this, TEXT("Ability Manager"));
 	AbilityManagerComponent->SetComponentTickEnabled(true);
 }
@@ -174,6 +174,8 @@ void AZodiacHeroCharacter::InitializeAbilitySystem()
 		}
 	}
 
+	GetMesh()->LinkAnimClassLayers(AnimLayerClass);
+	
 	if (UZodiacHeroAnimInstance* HeroAnimInstance = GetHeroAnimInstance())
 	{
 		HeroAnimInstance->InitializeWithAbilitySystem(AbilitySystemComponent);
@@ -321,8 +323,6 @@ void AZodiacHeroCharacter::InitializeWithHostCharacter()
 			AbilityManagerComponent->BindMessageDelegates();	
 		}
 	}
-
-	GetMesh()->LinkAnimClassLayers(AnimLayerClass);
 }
 
 void AZodiacHeroCharacter::AttachToOwner()
