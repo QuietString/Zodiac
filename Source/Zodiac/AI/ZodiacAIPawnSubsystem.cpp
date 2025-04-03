@@ -267,7 +267,7 @@ void UZodiacAIPawnSubsystem::ProcessSpawnRequests()
 			// Remove the request from the queue
 			SpawnRequestsQueue.RemoveAt(i);
 			
-			UE_LOG(LogZodiacSpawner, Log, TEXT("Perform queued spawn request. Requested: %d, Capacity left: %d"), RequiredSpawnCount, CapacityLeft);
+			UE_LOG(LogZodiacSpawner, Log, TEXT("Perform queued spawn request. Requested: %d, Capacity left: %d, Active + Spawning: %d"), RequiredSpawnCount, CapacityLeft, CurrentlyActive + CurrentlySpawning);
 		}
 		else
 		{

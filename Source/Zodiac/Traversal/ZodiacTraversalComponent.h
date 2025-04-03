@@ -21,6 +21,7 @@ public:
 	//~UActorComponent interface
 	virtual void OnRegister() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	//~End of UActorComponent interface
 
@@ -36,7 +37,7 @@ public:
 	void Server_PerformTraversalAction(FZodiacTraversalCheckResult CheckResult);
 	
 	// Used only for traversal location visualization
-	bool CheckFrontLedge(bool bIsInAir, FZodiacTraversalCheckResult& Result, FGameplayTag& FailReason, FVector& LastTraceLocation, bool bIsTicked, AActor*& BlockingActor);
+	bool CheckFrontLedge(FZodiacTraversalCheckResult& Result, FGameplayTag& FailReason, FVector& LastTraceLocation, bool bIsTicked, AActor*& BlockingActor);
 	
 	FSimpleDelegate OnTraversalFinished;
 
@@ -68,8 +69,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Traversal|Check")
 	bool bEnableFindLedgeOnTick;
 
-	UPROPERTY(EditAnywhere, Category = "Traversal|Check")
-	float BaseGroundTraversalDistance = 125.f;
+	// Distance range where a character can try traversal action.
+	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
+	FVector2f GroundForwardTraceRange = FVector2f(100.f, 200.f);
+
+	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
+	FVector2f AirForwardTraversalRange = FVector2f(50.0f, 200.0f);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Traversal|Check", meta = (ForceUnits=deg, UIMin = 0, UIMax = 90))
 	float AllowedFacingAngle_Moving = 45.f;
@@ -83,10 +88,6 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Traversal|Check")
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
-
-	// Distance range where a character can try traversal action.
-	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
-	FVector2f GroundForwardTraceRange = FVector2f(100.f, 200.f);
 	
 	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
 	FVector2D VaultHeightRange = FVector2D(50.0f, 125.0f);
@@ -100,12 +101,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
 	FVector2D MantleHeightRange = FVector2D(50.0f, 275.0f);
 
-	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
-	FVector2D MidAirMantleHeightRange = FVector2D(50.0f, 125.0f);
-
-	UPROPERTY(EditAnywhere, Category = "Traversal|Action")
-	FVector2D AirTraversalRange = FVector2D(0.0f, 50.0f);
-	
 private:
 	UPROPERTY(ReplicatedUsing=OnRepTraversalCheckResult)
 	FZodiacTraversalCheckResult TraversalCheckResult;

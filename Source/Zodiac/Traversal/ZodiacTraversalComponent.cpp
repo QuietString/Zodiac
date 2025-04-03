@@ -12,7 +12,6 @@
 #include "Character/ZodiacCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -44,6 +43,16 @@ void UZodiacTraversalComponent::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	DOREPLIFETIME_CONDITION(ThisClass, TraversalCheckResult, COND_SkipOwner);
 }
 
+void UZodiacTraversalComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (GetOwnerRole() == ROLE_SimulatedProxy)
+	{
+		SetComponentTickEnabled(false);
+	}
+}
+
 void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -56,12 +65,11 @@ void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			{
 				if (CharMovComp->CustomMovementMode != Move_Custom_Traversal)
 				{
-					bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
 					FGameplayTag FailReason;
 					FZodiacTraversalCheckResult Result;
 					FVector LastLocation;
 					AActor* BlockingActor = nullptr;
-					bool bLedgeFound = CheckFrontLedge(bIsInAir, Result, FailReason, LastLocation, true, BlockingActor);
+					bool bLedgeFound = CheckFrontLedge(Result, FailReason, LastLocation, true, BlockingActor);
 			
 					OnFrontLedgeChecked(bLedgeFound, Result.FrontLedgeLocation, Result.FrontLedgeNormal);
 			
@@ -124,11 +132,10 @@ bool UZodiacTraversalComponent::CanTraversalAction(FGameplayTag& FailReason, FVe
 	
 	FZodiacTraversalCheckResult Result;
 	
-	bool bIsInAir = !Character->GetCharacterMovement()->IsMovingOnGround();
-	Result.bIsMidAir = bIsInAir;
+	Result.MovementMode = Character->GetCharacterMovement()->MovementMode;
 	
 	FVector CeilingCheckEndLocation;
-	if (!CheckFrontLedge(bIsInAir,Result,FailReason, CeilingCheckEndLocation, false, BlockingActor))
+	if (!CheckFrontLedge(Result,FailReason,CeilingCheckEndLocation, false, BlockingActor))
 	{
 		if (FailReason == ZodiacGameplayTags::Traversal_FailReason_OutOfAngle)
 		{
@@ -259,7 +266,7 @@ void UZodiacTraversalComponent::Server_PerformTraversalAction_Implementation(FZo
 	bHasCached = false;
 }
 
-bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalCheckResult& Result, FGameplayTag& FailReason, FVector& LastTraceLocation, bool bIsTicked, AActor*& BlockingActor)
+bool UZodiacTraversalComponent::CheckFrontLedge(FZodiacTraversalCheckResult& Result, FGameplayTag& FailReason, FVector& LastTraceLocation, bool bIsTicked, AActor*& BlockingActor)
 {
 	bool bDrawDebug = false;
 	bool bDrawFindBlockTrace = false;
@@ -287,12 +294,21 @@ bool UZodiacTraversalComponent::CheckFrontLedge(bool bIsInAir, FZodiacTraversalC
 	TArray<UPrimitiveComponent*> ComponentsToIgnore;
 	
 	// Step 2.1: Find a Traversable Level Block. If found, set the Hit Component, if not, exit the function.
+
+	EMovementMode MovementMode = MOVE_None;
+	bool bIsInAir = false;
+	if (UCharacterMovementComponent* CharacterMovementComponent = OwningCharacter->GetCharacterMovement())
+	{
+		MovementMode = CharacterMovementComponent->MovementMode;
+		bIsInAir = !CharacterMovementComponent->IsMovingOnGround();
+	}
+	
 	float TraceForwardDistance = GetTraversalForwardTraceDistance(bIsInAir);
 	FVector TraceStart = ActorLocation;
 	FVector TraceEnd = ActorLocation + ActorForwardVector * TraceForwardDistance;
 	FHitResult TraversalObjectHit;
 
-	Result.bIsMidAir = bIsInAir;
+	Result.MovementMode = MovementMode;
 	
 	if (!CapsuleTrace(TraceStart, TraceEnd, TraversalObjectHit, CapsuleRadius, CapsuleHalfHeight, bDrawFindBlockTrace, DebugDuration, bIsTicked, ActorsToIgnore, ComponentsToIgnore))
 	{
@@ -385,7 +401,10 @@ float UZodiacTraversalComponent::GetTraversalForwardTraceDistance(bool bIsInAir)
 
 	if (bIsInAir)
 	{
-		return AirTraversalRange.Y;
+		// Reachable distance during 0.5 seconds.
+		float TravelDistance = OwningCharacter->GetCharacterMovement()->Velocity.Size2D() * 0.5f;
+		float ForwardDistanceClamped = FMath::Clamp(TravelDistance, AirForwardTraversalRange.X, AirForwardTraversalRange.Y);
+		return ForwardDistanceClamped;
 	}
 	else
 	{
@@ -440,16 +459,9 @@ bool UZodiacTraversalComponent::DetermineTraversalType(FZodiacTraversalCheckResu
 	}
 
 	bool CanGroundMantle = UKismetMathLibrary::InRange_FloatFloat(R.ObstacleHeight, MantleHeightRange.X, MantleHeightRange.Y);
-	if (R.bHasFrontLedge && CanGroundMantle && bLongEnoughToStepOn && !CheckResult.bIsMidAir)
+	if (R.bHasFrontLedge && CanGroundMantle && bLongEnoughToStepOn)
 	{
 		R.ActionType = EZodiacTraversalActionType::Mantle;
-		return true;
-	}
-
-	bool CanMidAirMantle = UKismetMathLibrary::InRange_FloatFloat(R.ObstacleHeight, MidAirMantleHeightRange.X, MidAirMantleHeightRange.Y);
-	if (R.bHasFrontLedge && CanMidAirMantle && bLongEnoughToStepOn && CheckResult.bIsMidAir)
-	{
-		R.ActionType = EZodiacTraversalActionType::MidAirMantle;
 		return true;
 	}
 
@@ -474,7 +486,7 @@ bool UZodiacTraversalComponent::FindMatchingAnimMontage(FZodiacTraversalCheckRes
 			FZodiacTraversalChooserParams ChooserParams;
 			ChooserParams.ActionType = CheckResult.ActionType;
 			ChooserParams.Speed = CheckResult.Speed;
-			ChooserParams.bIsMidAir = CheckResult.bIsMidAir;
+			ChooserParams.MovementMode = CheckResult.MovementMode;
 			ChooserParams.ObstacleHeight = CheckResult.ObstacleHeight;
 			ChooserParams.ObstacleDepth = CheckResult.ObstacleDepth;
 			

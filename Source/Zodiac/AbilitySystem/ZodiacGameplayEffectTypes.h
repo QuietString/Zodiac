@@ -32,7 +32,7 @@ public:
     // Runtime / Internal
     // --------------------------------------------------
 
-    /** We store a pointer to the FBoolProperty once we find it (so we don't do the find each tick). */
+    /** We store a pointer to the FBoolProperty once we find it. */
     TFieldPath<FProperty> FoundProperty;
 
     /** The last known value we read from that property. */

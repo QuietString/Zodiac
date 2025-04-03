@@ -67,7 +67,8 @@ public class Zodiac : ModuleRules
 				"AudioModulation",
 				"GameSubtitles",
 				"PoseSearch",
-				"EngineCameras"
+				"EngineCameras",
+				"NavigationSystem",
 			}
 		);
 	}
