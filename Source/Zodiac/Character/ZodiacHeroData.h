@@ -23,7 +23,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ability")
 	TArray<TObjectPtr<UZodiacHeroAbilitySlotDefinition>> AbilitySlots;
 
-	UPROPERTY(editAnywhere, Category = "Widget")
+	UPROPERTY(EditAnywhere, Category = "Widget")
 	TArray<TSubclassOf<UZodiacReticleWidgetBase>> GlobalReticles;
 	
 	UPROPERTY(EditAnywhere, Category = "Movement")

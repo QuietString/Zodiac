@@ -316,7 +316,7 @@ void AZodiacMonster::OnSpawnConfigSet()
 			}
 		}
 		
-		// Change movement speed
+		// Randomize movement speed
 		ZodiacCharMovComp->SetExtendedMovementConfig(MovementConfig);
 		bHasMovementInitialized = true;
 
@@ -336,6 +336,10 @@ void AZodiacMonster::OnSpawnConfigSet()
 				}
 			}
 		}
+
+		// Randomize jump velocity
+		float JumpVelocityMultiplier = FMath::GetMappedRangeValueClamped(FVector2d(0, 150), FVector2d(0.75f, 1.f), Seed);
+		ZodiacCharMovComp->JumpZVelocity *= JumpVelocityMultiplier;
 	}
 }
 

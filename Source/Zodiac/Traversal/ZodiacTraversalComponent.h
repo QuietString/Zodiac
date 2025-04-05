@@ -115,11 +115,11 @@ private:
 	bool bIsLocalPredicted = false;
 
 	// Controlled by AllowedFacingAngle_Moving.
-	UPROPERTY(VisibleAnywhere, Category = "Traversal")
+	UPROPERTY()
 	float DotThreshold_Moving;
 
 	// Controlled by AllowedFacingAngle_Idle.
-	UPROPERTY(VisibleAnywhere, Category = "Traversal")
+	UPROPERTY()
 	float DotThreshold_Idle;
 	
 #if WITH_EDITOR

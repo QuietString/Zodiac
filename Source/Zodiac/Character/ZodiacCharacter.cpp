@@ -315,16 +315,16 @@ void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* In
 		}
 	}
 	
-	for (auto& Data : HeroData)
-	{
-		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : Data->AbilitySets)
-		{
-			if (AbilitySet)
-			{
-				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
-			}
-		}
-	}
+	// for (auto& Data : HeroData)
+	// {
+	// 	for (TObjectPtr<UZodiacAbilitySet> AbilitySet : Data->AbilitySets)
+	// 	{
+	// 		if (AbilitySet)
+	// 		{
+	// 			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
+	// 		}
+	// 	}
+	// }
 }
 
 void AZodiacCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

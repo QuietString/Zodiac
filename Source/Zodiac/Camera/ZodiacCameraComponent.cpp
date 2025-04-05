@@ -94,7 +94,7 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 	
 	if (IsXRHeadTrackedCamera())
 	{
-		// In XR much of the camera behavior above is irrellevant, but the post process settings are not.
+		// In XR much of the camera behavior above is irrelevant, but the post process settings are not.
 		Super::GetCameraView(DeltaTime, DesiredView);
 	}
 }

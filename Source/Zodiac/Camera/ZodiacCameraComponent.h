@@ -81,12 +81,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Zodiac|Camera|Offset", meta = (EditCondition = "bApplyTranslationOffset"))
 	bool bIgnoreZAxis = true;
 
-	UPROPERTY(Transient)
-	FVector TranslationOffset;
+	FVector TranslationOffset = FVector();
 
 private:
-	UPROPERTY(Transient)
-	FVector LastTranslationOffset;
+	FVector LastTranslationOffset = FVector();
 	
 protected:
 	// Stack used to blend the camera modes.

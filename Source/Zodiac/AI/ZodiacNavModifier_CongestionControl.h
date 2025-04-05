@@ -13,6 +13,12 @@ class ZODIAC_API AZodiacNavModifier_CongestionControl : public AZodiacNavModifie
 
 public:
 	AZodiacNavModifier_CongestionControl(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	
+	virtual void PostInitializeComponents() override;
+
+protected:
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Congestion")
@@ -41,6 +47,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 #if WITH_EDITOR
+	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 };

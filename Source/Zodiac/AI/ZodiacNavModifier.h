@@ -9,6 +9,7 @@
 class UNavArea;
 class UBoxComponent;
 class UNavModifierComponent;
+class UBillboardComponent;
 
 UCLASS()
 class ZODIAC_API AZodiacNavModifier : public AActor
@@ -28,4 +29,10 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category="Navigation")
 	void SetNavArea(TSubclassOf<UNavArea> NewAreaClass);
+
+#if WITH_EDITORONLY_DATA
+private:
+	UPROPERTY()
+	UBillboardComponent* SpriteComponent;
+#endif
 };
