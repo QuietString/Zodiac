@@ -142,15 +142,6 @@ bool UZodiacHeroAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Han
 			}
 		}
 	}
-
-	if (AllowedAimYaw > 0.f)
-	{
-		if (!IsInAllowedAimRange())
-		{
-			OptionalRelevantTags->AddTag(ZodiacGameplayTags::Ability_ActivateFail_OutOfAllowedAimRange);
-			return false;
-		}
-	}
 	
 	return true;
 }
@@ -314,19 +305,6 @@ FVector UZodiacHeroAbility::GetWeaponLocation() const
 	}
 
 	return  FVector();
-}
-
-bool UZodiacHeroAbility::IsInAllowedAimRange() const
-{
-	if (AllowedAimYaw > 0.f)
-	{
-		if (AZodiacHeroCharacter* Hero = GetHeroActorFromActorInfo())
-		{
-			return FMath::Abs(Hero->GetAimYaw()) <= AllowedAimYaw;
-		}	
-	}
-
-	return true;
 }
 
 void UZodiacHeroAbility::ApplySlotReticle()

@@ -76,9 +76,6 @@ public:
 	
 	FVector GetWeaponLocation() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	bool IsInAllowedAimRange() const;
-	
 protected:
 	UFUNCTION(BlueprintCallable)
 	void ApplySlotReticle();
@@ -117,10 +114,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Cooldowns")
 	FGameplayTagContainer CooldownTags;
 
-	// Disabled when the value is less than or equal to 0.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Activation", meta = (ClampMin = -1, CLampMax = 180))
-	float AllowedAimYaw = -1.f;
-	
 	UPROPERTY(BlueprintReadOnly, Category = "FX")
 	uint8 ComboIndex = 0;
 

@@ -85,9 +85,6 @@ public:
 	UFUNCTION(BlueprintPure)
 	bool GetIsActive() const { return bIsActive; }
 
-	UFUNCTION(BlueprintPure)
-	float GetAimYaw() const;
-	
 protected:
 	void InitializeWithHostCharacter();
 

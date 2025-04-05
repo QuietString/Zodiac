@@ -33,7 +33,30 @@ void AZodiacHostCharacter::ToggleSprint(const bool bShouldSprint)
 	{
 		ReplicatedIndependentYaw.bIsAllowed = bShouldSprint;
 		ZodiacCharMoveComp->ToggleSprint(bShouldSprint);
+
+		// Don't strafe when sprinting
+		ZodiacCharMoveComp->ToggleStrafe(!bShouldSprint);
 	}
+}
+
+bool AZodiacHostCharacter::GetIsStrafing() const
+{
+	if (UZodiacCharacterMovementComponent* ZodiacCharacterMovementComponent = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		return ZodiacCharacterMovementComponent->GetIsStrafing();
+	}
+
+	return false;
+}
+
+float AZodiacHostCharacter::GetAimYaw() const
+{
+	if (UZodiacHostAnimInstance* HostAnimInstance = Cast<UZodiacHostAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		return HostAnimInstance->AimYaw;
+	}
+
+	return 0.0f;
 }
 
 void AZodiacHostCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -56,6 +56,7 @@ private:
 	void UpdateAccelerationData(float DeltaSeconds);
 	
 	void UpdateMovementData(float DeltaSeconds);
+	void UpdateAimingData();
 	void UpdateHeroData();
 	
 public:
@@ -96,6 +97,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsMoving;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsStrafing;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsRunningIntoWall;
 	
@@ -178,6 +182,14 @@ public:
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Trajectory")
 	TArray<TObjectPtr<ACharacter>> ActorsToIgnoreTrajectory;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Aiming")
+	float AimYaw;
+	
+	float AimYaw_Last;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Aiming")
+	float AimPitch;
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)

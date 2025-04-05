@@ -63,6 +63,12 @@ public:
 	FVector GetHeroEyeLocationOffset() const { return HeroEyeLocationOffset; }
 
 	void ToggleSprint(bool bShouldSprint);
+
+	UFUNCTION(BlueprintPure)
+	bool GetIsStrafing() const;
+	
+	UFUNCTION(BlueprintPure)
+	float GetAimYaw() const;
 	
 protected:
 	//~AActor interface

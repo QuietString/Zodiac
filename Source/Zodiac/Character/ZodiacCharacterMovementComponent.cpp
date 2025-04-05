@@ -101,9 +101,6 @@ void UZodiacCharacterMovementComponent::SetReplicatedAcceleration(const FVector&
 
 void UZodiacCharacterMovementComponent::ToggleSprint(bool bShouldSprint)
 {
-	// Don't strafe when sprinting
-	ToggleStrafe(!bShouldSprint);
-		
 	EZodiacExtendedMovementMode NewMode = bShouldSprint ? EZodiacExtendedMovementMode::Sprinting : ExtendedMovementConfig.DefaultExtendedMovement;
 	SetExtendedMovementMode(NewMode);
 }
@@ -112,6 +109,7 @@ void UZodiacCharacterMovementComponent::ToggleStrafe(bool bShouldStrafe)
 {
 	bUseControllerDesiredRotation = bShouldStrafe;
 	bOrientRotationToMovement = !bShouldStrafe;
+	bIsStrafing = bShouldStrafe;
 }
 
 void UZodiacCharacterMovementComponent::SetExtendedMovementMode(EZodiacExtendedMovementMode InMode)

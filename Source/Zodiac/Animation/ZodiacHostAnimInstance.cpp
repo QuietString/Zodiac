@@ -60,6 +60,7 @@ void UZodiacHostAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds
 		UpdateVelocityData();
 		UpdateAccelerationData(DeltaSeconds);
 		UpdateMovementData(DeltaSeconds);
+		UpdateAimingData();
 		UpdateGait();
 		UpdateHeroData();
 		
@@ -104,6 +105,7 @@ void UZodiacHostAnimInstance::UpdateMovementData(float DeltaSeconds)
 
 	bIsRunningIntoWall = IsAccelerationLargeEnough && IsVelocitySmall && IsSameDirection;
 	bIsMoving = (!Velocity.Equals(FVector(0, 0, 0), 0.1) && !FutureVelocity.Equals(FVector(0, 0, 0), 0.1) && !bIsRunningIntoWall);
+	bIsStrafing = ZodiacCharMovComp->GetIsStrafing();
 	
 	float TargetMaxOffset;
 	
@@ -121,6 +123,42 @@ void UZodiacHostAnimInstance::UpdateMovementData(float DeltaSeconds)
 	}
 
 	MaxRootRotationOffset = FMath::FInterpTo(MaxRootRotationOffset, TargetMaxOffset, DeltaSeconds, InterpSpeed_MaxRootRotationOffset);
+}
+
+void UZodiacHostAnimInstance::UpdateAimingData()
+{
+	AimYaw_Last = AimYaw;
+	
+	FRotator AimRotation = OwningCharacter->GetBaseAimRotation();
+	FRotator ControlRotation = OwningCharacter->GetControlRotation();
+	FRotator TargetRotation = OwningCharacter->IsLocallyControlled() ? ControlRotation : AimRotation; 
+	FRotator RootRotator = RootTransform.Rotator();
+
+	FRotator Delta = UKismetMathLibrary::NormalizedDeltaRotator(TargetRotation, RootRotator);
+	AimPitch = Delta.Pitch;
+	
+	if (OwningCharacter->GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		// Ignore large error caused by actor rotation de-sync when not strafing.
+		// When UCharacterMovementComponent->bOrientRotationToMovement become true, actor rotate towards input direction and AimYaw become large.
+		// In that case, we will use ReplicatedIndependentYaw, but it replicates slowly.
+		float YawDiff = FRotator::NormalizeAxis(Delta.Yaw - AimYaw_Last);
+		if (FMath::Abs(YawDiff) < 70.f)
+		{
+			AimYaw = Delta.Yaw;
+		}
+		
+		FZodiacReplicatedIndependentYaw IndependentYaw = OwningCharacter->GetReplicatedIndependentYaw();
+		if (IndependentYaw.bIsAllowed)
+		{
+			FRotator IndependentAimRotation(0.f, IndependentYaw.GetUnpackedYaw(), 0.f);
+			AimYaw = FRotator::NormalizeAxis(IndependentYaw.GetUnpackedYaw() - RootRotator.Yaw);
+		}
+	}
+	else
+	{
+		AimYaw = Delta.Yaw;
+	}
 }
 
 void UZodiacHostAnimInstance::UpdateHeroData()

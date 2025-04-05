@@ -86,6 +86,8 @@ public:
 
 	void ToggleSprint(bool bShouldSprint);
 	void ToggleStrafe(bool bShouldStrafe);
+
+	bool GetIsStrafing() const { return bIsStrafing; }
 	
 	UFUNCTION(BlueprintGetter)
 	EZodiacExtendedMovementMode GetExtendedMovementMode() const { return ExtendedMovementMode; }
@@ -136,4 +138,6 @@ private:
 	
 	UPROPERTY(Transient)
 	bool bHasReplicatedAcceleration = false;
+
+	bool bIsStrafing = false;
 };

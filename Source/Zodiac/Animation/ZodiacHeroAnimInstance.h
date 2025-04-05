@@ -41,12 +41,10 @@ public:
 	bool GetIsFocus() const { return bIsFocus; }
 	bool GetIsADS() const { return bIsADS; }
 
-	float GetAimYaw() const { return AimYaw; }
-	
 protected:
 	void UpdateMovementData();
 	void UpdateRotationData();
-	void UpdateAimingData(float DeltaSeconds);
+	void UpdateAimingData();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GameplayTags")
@@ -62,21 +60,12 @@ protected:
 	float AimYaw;
 
 	UPROPERTY(BlueprintReadOnly, Category = Aiming_Data)
-	float AimYawLast;
-	
-	UPROPERTY(BlueprintReadOnly, Category = Aiming_Data)
 	float AimPitch;
 
 	// Root yaw amount to make the rotation of this mesh match with parent mesh.
 	UPROPERTY(BlueprintReadOnly, Category = Rotation_Data)
 	FRotator RootRotationOffset;
 
-	UPROPERTY(EditDefaultsOnly, Category = Aiming_Data)
-	FVector2D AimYawClampRange = FVector2D(-60.0f, 60.0f);
-	
-	UPROPERTY(EditDefaultsOnly, Category = Aiming_Data)
-	float AimYawBlendSpeed = 5.0f;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Aiming_Data)
 	FVector2D RootYawOffsetAngleClamp = FVector2D(-120.f, 100.f);
 	

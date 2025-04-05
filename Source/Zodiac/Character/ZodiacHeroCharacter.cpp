@@ -272,6 +272,9 @@ void AZodiacHeroCharacter::Activate()
 		if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(HostCharacter->GetCharacterMovement()))
 		{
 			HostCharacter->SetExtendedMovementConfig(HeroData->ExtendedMovementConfig);
+
+			bool bShouldStrafe = (HeroData->ExtendedMovementConfig.DefaultExtendedMovement != EZodiacExtendedMovementMode::Sprinting);
+			ZodiacCharMovComp->ToggleStrafe(bShouldStrafe);
 		}
 	}
 	
@@ -293,16 +296,6 @@ void AZodiacHeroCharacter::Deactivate()
 
 	OnHeroDeactivated.Broadcast();
 	OnHeroDeactivated_BP.Broadcast(this);
-}
-
-float AZodiacHeroCharacter::GetAimYaw() const
-{
-	if (UZodiacHeroAnimInstance* HeroAnimInstance = GetHeroAnimInstance())
-	{
-		return HeroAnimInstance->GetAimYaw();
-	}
-
-	return 0.0f;
 }
 
 void AZodiacHeroCharacter::InitializeWithHostCharacter()
