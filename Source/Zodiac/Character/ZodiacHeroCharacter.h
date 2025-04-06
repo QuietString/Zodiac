@@ -34,6 +34,7 @@ public:
 
 	//~AActor interface
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void OnRep_Owner() override;
@@ -126,6 +127,8 @@ private:
 	bool bIsActive = false;
 
 	bool bIsInitialized = false;
+
+	FTransform DefaultMeshTransform;
 	
 	UFUNCTION()
 	void OnRep_IsActive(bool OldValue);

@@ -8,7 +8,6 @@
 #include "ZodiacHeroData.h"
 #include "ZodiacHostCharacter.h"
 #include "ZodiacHealthComponent.h"
-#include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Hero/ZodiacHeroAbilityFragment_Reticle.h"
@@ -216,7 +215,10 @@ void UZodiacHeroAbilityManagerComponent::OnHeroActivated()
 	}
 	
 	SendChangeSlotWidgetsMessage(Widgets);
-	SendChangeGlobalReticleMessage(HeroData->GlobalReticles);
+	if (HeroData)
+	{
+		SendChangeGlobalReticleMessage(HeroData->GlobalReticles);	
+	}
 	
 	if (AZodiacHeroCharacter* Hero = Cast<AZodiacHeroCharacter>(GetOwner()))
 	{
@@ -243,7 +245,6 @@ void UZodiacHeroAbilityManagerComponent::SendChangeReticleMessage(const TArray<T
 	UGameplayMessageSubsystem& MessageSubsystem = UGameplayMessageSubsystem::Get(GetWorld());
 	MessageSubsystem.BroadcastMessage(Channel, Message);
 }
-
 
 void UZodiacHeroAbilityManagerComponent::SendChangeSlotWidgetsMessage(TMap<TObjectPtr<UZodiacHeroAbilitySlot>, TSubclassOf<UZodiacAbilitySlotWidgetBase>> Widgets)
 {

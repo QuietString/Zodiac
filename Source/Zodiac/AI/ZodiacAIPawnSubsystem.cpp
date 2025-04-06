@@ -18,9 +18,30 @@ static TAutoConsoleVariable<int32> CVarMaxGlobalAIPawns(
 	ECVF_Default
 );
 
+static FAutoConsoleCommand GShowSpawnStateCmd(
+	TEXT("Zodiac.ai.ShowSpawnState"),
+	TEXT("Print current overall spawn state, e.g. Active, Queued, Spawning counts."),
+	FConsoleCommandWithWorldDelegate::CreateStatic(
+		&UZodiacAIPawnSubsystem::ShowSpawnStateConsoleCommand
+	)
+);
+
 void UZodiacAIPawnSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+}
+
+void UZodiacAIPawnSubsystem::ShowSpawnStateConsoleCommand(UWorld* World)
+{
+	if (!World) return;
+    
+	UGameInstance* GI = World->GetGameInstance();
+	if (!GI) return;
+
+	if (UZodiacAIPawnSubsystem* AISubsystem = GI->GetSubsystem<UZodiacAIPawnSubsystem>())
+	{
+		AISubsystem->PrintCurrentState();
+	}
 }
 
 void UZodiacAIPawnSubsystem::RegisterSpawner(AZodiacAIPawnSpawner* Spawner)
@@ -251,27 +272,121 @@ void UZodiacAIPawnSubsystem::ProcessSpawnRequests()
 		}
 		
 		int32 CapacityLeft = CurrentLimit - CurrentlyActive - CurrentlySpawning;
+		if (CapacityLeft <= 0)
+        {
+            // No capacity left at all; skip spawning further requests
+            break;
+        }
 		
-		int32 RequiredSpawnCount = 0;
+		int32 TotalNeeded = 0;
 		for (auto& Pair : Request.MonsterToSpawnMap)
 		{
-			RequiredSpawnCount += Pair.Value;
+			TotalNeeded += Pair.Value;
 		}
 		
-		if (RequiredSpawnCount <= CapacityLeft)
+		if (TotalNeeded <= CapacityLeft)
 		{
 			// We have enough capacity for the spawn request. 
 			Spawner->PerformQueuedSpawn(Request.MonsterToSpawnMap);
-			CachedNumberOfSpawning.Add(Spawner, RequiredSpawnCount);
+			CachedNumberOfSpawning.Add(Spawner, TotalNeeded);
 			
 			// Remove the request from the queue
 			SpawnRequestsQueue.RemoveAt(i);
 			
-			UE_LOG(LogZodiacSpawner, Log, TEXT("Perform queued spawn request. Requested: %d, Capacity left: %d, Active + Spawning: %d"), RequiredSpawnCount, CapacityLeft, CurrentlyActive + CurrentlySpawning);
+			UE_LOG(LogZodiacSpawner, Log, TEXT("Perform queued spawn request. Requested: %d, Capacity left: %d, Active + Spawning: %d"), TotalNeeded, CapacityLeft, CurrentlyActive + CurrentlySpawning);
+		}
+		else if (CapacityLeft >= Spawner->MinimumPartialSpawnCount)
+		{
+			// We only have partial capacity
+			TMap<TSubclassOf<AZodiacMonster>, uint8> PartialRequest;
+			TMap<TSubclassOf<AZodiacMonster>, uint8> LeftoverRequest;
+
+			// Split the request so we spawn as many as we can
+			SplitSpawnRequest(Request.MonsterToSpawnMap, CapacityLeft, PartialRequest, LeftoverRequest);
+
+			// How many are we actually spawning in partial?
+			int32 PartialCount = 0;
+			for (auto& Pair : PartialRequest)
+			{
+				PartialCount += Pair.Value;
+			}
+
+			if (PartialCount > 0)
+			{
+				// Perform partial spawn
+				Spawner->PerformQueuedSpawn(PartialRequest);
+				CachedNumberOfSpawning.Add(Spawner, PartialCount);
+
+				UE_LOG(LogZodiacSpawner, Log, TEXT("Perform partial spawn: %d out of %d. Leftover re-queued."), PartialCount, TotalNeeded);
+			}
+			else
+			{
+				// If partialCount is 0, it means capacityLeft was 0 or negative,
+				// so we can’t spawn anything.
+				// We'll break out of the loop so we wait for capacity next time
+				break;
+			}
+
+			// The leftover we re-queue at the BACK of SpawnRequestsQueue
+			if (LeftoverRequest.Num() > 0)
+			{
+				FSpawnRequest LeftoverF(Request.Spawner.Get(), LeftoverRequest);
+				// push it at the end
+				SpawnRequestsQueue.Add(LeftoverF);
+			}
+
+			// We remove the original request from the queue
+			SpawnRequestsQueue.RemoveAt(i);
+			
+			break;
 		}
 		else
 		{
-			break; 
+			i++;
+			continue; // move on to check next request
+		}
+	}
+}
+
+void UZodiacAIPawnSubsystem::SplitSpawnRequest(const TMap<TSubclassOf<AZodiacMonster>, uint8>& OriginalRequest, int32 Capacity, TMap<TSubclassOf<AZodiacMonster>, uint8>& OutPartialRequest,
+	TMap<TSubclassOf<AZodiacMonster>, uint8>& OutLeftoverRequest)
+{
+	OutPartialRequest.Empty();
+	OutLeftoverRequest = OriginalRequest;
+
+	int32 RemainingCapacity = Capacity;
+
+	for (const TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : OriginalRequest)
+	{
+		TSubclassOf<AZodiacMonster> MonsterClass = Pair.Key;
+		int32 RequestedCount = Pair.Value;
+
+		if (RequestedCount <= RemainingCapacity)
+		{
+			// We can fully spawn this monster type 
+			OutPartialRequest.Add(MonsterClass, RequestedCount);
+
+			// So it’s no longer leftover
+			OutLeftoverRequest.Remove(MonsterClass);
+
+			RemainingCapacity -= RequestedCount;
+			if (RemainingCapacity <= 0)
+			{
+				break; // no more capacity
+			}
+		}
+		else
+		{
+			// We can only spawn a portion 
+			int32 PartialAmount = RemainingCapacity;
+			OutPartialRequest.Add(MonsterClass, PartialAmount);
+
+			// The leftover for this class = RequestedCount - PartialAmount
+			int32 RemainForClass = RequestedCount - PartialAmount;
+			OutLeftoverRequest.FindOrAdd(MonsterClass) = RemainForClass;
+
+			RemainingCapacity = 0;
+			break; // no more capacity
 		}
 	}
 }
@@ -367,4 +482,57 @@ void UZodiacAIPawnSubsystem::KillDebugPawns()
 			}
 		}
 	}
+}
+
+void UZodiacAIPawnSubsystem::PrintCurrentState() const
+{
+	// Pull whatever data you want to show
+	int32 CurrentActive = GetNumberOfActivePawns();
+
+	int32 CurrentlySpawning = 0;
+	for (auto& KV : CachedNumberOfSpawning)
+	{
+		CurrentlySpawning += KV.Value;
+	}
+
+	int32 NumQueued = SpawnRequestsQueue.Num();
+
+	// If you want the sum of leftover TMaps in each request, you can do that here
+	int32 QueuedMonsters = 0;
+	for (auto& Request : SpawnRequestsQueue)
+	{
+		for (auto& Pair : Request.MonsterToSpawnMap)
+		{
+			QueuedMonsters += Pair.Value;
+		}
+	}
+
+	int32 Limit = CVarMaxGlobalAIPawns.GetValueOnGameThread();
+
+	// Print to log and/or screen
+	UE_LOG(LogTemp, Display,
+		TEXT("=== ZODIAC AI Pawn State ===\n")
+		TEXT(" MaxGlobalAIPawns Limit: %d\n")
+		TEXT(" Currently Active: %d\n")
+		TEXT(" Currently Spawning (EQS pending): %d\n")
+		TEXT(" Number of queued requests: %d\n")
+		TEXT(" Total queued monster count: %d\n"),
+		Limit,
+		CurrentActive,
+		CurrentlySpawning,
+		NumQueued,
+		QueuedMonsters
+	);
+
+	// If you want to also show it on screen in editor or dev builds:
+#if !UE_BUILD_SHIPPING
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			(uint64)-1, 5.f, FColor::Green,
+			FString::Printf(TEXT("[ZODIAC AI STATE] Active=%d | Spawning=%d | QueueReq=%d | QueueMon=%d / Limit=%d"),
+				CurrentActive, CurrentlySpawning, NumQueued, QueuedMonsters, Limit)
+		);
+	}
+#endif
 }

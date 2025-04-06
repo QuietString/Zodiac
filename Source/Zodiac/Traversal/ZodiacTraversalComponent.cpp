@@ -11,6 +11,7 @@
 #include "ZodiacTraversalTypes.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -78,7 +79,12 @@ void UZodiacTraversalComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 					{
 						if (GEngine)
 						{
-							GEngine->AddOnScreenDebugMessage(9135, 0, FColor::Green, FailReason.ToString());
+							FString Reason = FailReason.ToString();
+							if (BlockingActor)
+							{
+								Reason += FString::Printf(TEXT(", Blocking Actor: %s"), *BlockingActor->GetName());	
+							}
+							GEngine->AddOnScreenDebugMessage(9135, 0, FColor::Green, Reason);
 						}
 					}
 #endif	
@@ -375,7 +381,6 @@ bool UZodiacTraversalComponent::CheckFrontLedge(FZodiacTraversalCheckResult& Res
 	if (CeilingHit.bBlockingHit)
 	{
 		BlockingActor = CeilingHit.GetActor();
-		FailReason = ZodiacGameplayTags::Traversal_FailReason_BlockedByCeiling;
 		return 	false;
 	}
 

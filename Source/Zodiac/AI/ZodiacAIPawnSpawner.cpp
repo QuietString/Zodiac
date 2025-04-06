@@ -341,7 +341,6 @@ void AZodiacAIPawnSpawner::TryBatchSpawn()
 	if (bShouldBatchRespawn && !bIsSpawnQueued)
 	{
 		AIPawnSubsystem->QueueSpawnRequest(this, AccumulatedRespawnRequests);
-		AccumulatedRespawnRequests.Empty();
 		bIsSpawnQueued = true;
 	}
 }
@@ -352,7 +351,33 @@ void AZodiacAIPawnSpawner::PerformQueuedSpawn(const TMap<TSubclassOf<AZodiacMons
 	{
 		return;
 	}
-    
+
+	// Make a local copy to update
+	TMap<TSubclassOf<AZodiacMonster>, uint8> UpdatedRequests = AccumulatedRespawnRequests;
+
+	for (const TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : MonsterToSpawnMap)
+	{
+		const TSubclassOf<AZodiacMonster>& MonsterClass = Pair.Key;
+		const uint8 SpawnRequest = Pair.Value;
+
+		// If we have leftover requests for this class
+		if (UpdatedRequests.Contains(MonsterClass))
+		{
+			uint8 OldCount = UpdatedRequests[MonsterClass];
+            
+			if (SpawnRequest >= OldCount)
+			{
+				UpdatedRequests.Remove(MonsterClass);
+			}
+			else
+			{
+				UpdatedRequests[MonsterClass] = OldCount - SpawnRequest;
+			}
+		}
+	}
+
+	AccumulatedRespawnRequests = UpdatedRequests;
+	
 	FEnvQueryRequest Request(LocationQuery, this);
 	Request.SetFloatParam(ZombieSpawnerQueryParamNames::GridSize, GridSize);
 	Request.SetFloatParam(ZombieSpawnerQueryParamNames::SpaceBetween, SpawnSpacing);
@@ -365,5 +390,11 @@ void AZodiacAIPawnSpawner::PerformQueuedSpawn(const TMap<TSubclassOf<AZodiacMons
 	);
 	Request.Execute(EEnvQueryRunMode::AllMatching, QueryFinishedDelegate);
 
-	bIsSpawnQueued = false;
+	int32 TotalRemainingRequestsCount = 0;
+	for (auto& [K, V] : AccumulatedRespawnRequests)
+	{
+		TotalRemainingRequestsCount += V;
+	}
+	
+	bIsSpawnQueued = (TotalRemainingRequestsCount > 0);
 }

@@ -70,7 +70,9 @@ class ZODIAC_API UZodiacAIPawnSubsystem : public UGameInstanceSubsystem
 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-
+	
+	static void ShowSpawnStateConsoleCommand(UWorld* World);
+	
 	void RegisterSpawner(AZodiacAIPawnSpawner* Spawner);
 	void UnregisterSpawner(AZodiacAIPawnSpawner* Spawner);
 
@@ -88,6 +90,7 @@ public:
 
 	void QueueSpawnRequest(AZodiacAIPawnSpawner* Spawner, const TMap<TSubclassOf<AZodiacMonster>, uint8>& RequestedMap);
 	void ProcessSpawnRequests();
+	void SplitSpawnRequest(const TMap<TSubclassOf<AZodiacMonster>, uint8>& OriginalRequest,	int32 Capacity,	TMap<TSubclassOf<AZodiacMonster>, uint8>& OutPartialRequest, TMap<TSubclassOf<AZodiacMonster>, uint8>& OutLeftoverRequest);
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetNumberOfActivePawns() const;
@@ -104,6 +107,9 @@ public:
 	void SpawnDebugPawns();
 	void KillDebugPawns();
 
+protected:
+	void PrintCurrentState() const;
+	
 protected:
 	UPROPERTY()
 	TArray<FZodiacSpawnerPool> SpawnerPools;

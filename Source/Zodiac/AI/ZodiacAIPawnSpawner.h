@@ -71,6 +71,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bSelectCloserLocationToSpawner = true;
 
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = 0))
+	int32 MinimumPartialSpawnCount = 0;
+	
 	UPROPERTY(editAnywhere, Category = "Spawner|Spawn")
 	float RespawnDelay = 1.f;
 	

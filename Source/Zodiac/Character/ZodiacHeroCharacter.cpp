@@ -52,6 +52,13 @@ void AZodiacHeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME_CONDITION(ThisClass, bIsActive, COND_InitialOnly);
 }
 
+void AZodiacHeroCharacter::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	DefaultMeshTransform = GetMesh()->GetRelativeTransform();
+}
+
 void AZodiacHeroCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -265,6 +272,7 @@ void AZodiacHeroCharacter::Activate()
 		HeroMesh->SetVisibility(true);
 		HeroMesh->bIsHeroHidden = false;
 		HeroMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		HeroMesh->SetRelativeTransform(DefaultMeshTransform, false, nullptr, ETeleportType::TeleportPhysics);
 	}
 	
 	if (HostCharacter)
