@@ -44,6 +44,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Third Person")
 	TObjectPtr<const UCurveVector> TargetOffsetCurve;
 
+	// Curve that defines local-space offsets from the target using the view yaw to evaluate the curve.
+	UPROPERTY(EditDefaultsOnly, Category = "Third Person")
+	TObjectPtr<const UCurveVector> TargetOffsetCurveByYaw;
+	
 	/** If true, does collision checks to move the camera to make aim easier. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Collision|Close Contact")
 	bool bHandleCloseContact = true;

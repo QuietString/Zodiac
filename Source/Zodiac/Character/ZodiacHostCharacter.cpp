@@ -108,6 +108,7 @@ void AZodiacHostCharacter::PostInitializeComponents()
 			if (UZodiacHostAnimInstance* HostAnimInstance = Cast<UZodiacHostAnimInstance>(AnimInstance))
 			{
 				CameraComponent->UpdateCameraTranslationOffsetDelegate.BindUObject(HostAnimInstance, &UZodiacHostAnimInstance::GetTranslationOffset);
+				CameraComponent->AimYawPtr = &HostAnimInstance->AimYaw;
 			}
 		}	
 	}
@@ -126,6 +127,24 @@ void AZodiacHostCharacter::BeginPlay()
 	{
 		ChangeHero(0);	
 	}
+}
+
+void AZodiacHostCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
+	{
+		if (UZodiacHostAnimInstance* HostAnimInstance = Cast<UZodiacHostAnimInstance>(AnimInstance))
+		{
+			if (CameraComponent->UpdateCameraTranslationOffsetDelegate.IsBound())
+			{
+				CameraComponent->UpdateCameraTranslationOffsetDelegate.Unbind();	
+			}
+			
+			CameraComponent->AimYawPtr = nullptr;
+		}
+	}	
 }
 
 void AZodiacHostCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)

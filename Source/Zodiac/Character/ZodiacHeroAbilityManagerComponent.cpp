@@ -87,10 +87,14 @@ void UZodiacHeroAbilityManagerComponent::BeginPlay()
 					Slot->AddStatTagStack(Tag, Count);
 				}
 			}
-			else
+
+			if (AZodiacHostCharacter* HostCharacter = Hero->GetHostCharacter())
 			{
-				Slot->OnReticleApplied.BindUObject(this, &ThisClass::SendChangeReticleMessage);
-				Slot->OnReticleCleared.BindUObject(this, &ThisClass::ClearAbilityReticle);	
+				if (HostCharacter->IsLocallyControlled())
+				{
+					Slot->OnReticleApplied.BindUObject(this, &ThisClass::SendChangeReticleMessage);
+					Slot->OnReticleCleared.BindUObject(this, &ThisClass::ClearAbilityReticle);
+				}
 			}
 		}
 	}

@@ -47,6 +47,8 @@ public:
 
 	// Delegate used to update translation offset
 	FZodiacCameraOffsetDelegate UpdateCameraTranslationOffsetDelegate;
+
+	float* AimYawPtr = nullptr;
 	
 	// Add an offset to the field of view.  The offset is only for one frame, it gets cleared once it is applied.
 	void AddFieldOfViewOffset(float FovOffset) { FieldOfViewOffset += FovOffset; }
@@ -83,6 +85,8 @@ public:
 
 	FVector TranslationOffset = FVector();
 
+	float AimYaw = 0.0f;
+	
 private:
 	FVector LastTranslationOffset = FVector();
 	

@@ -9,6 +9,7 @@
 #include "Engine/Canvas.h"
 #include "GameFramework/CameraBlockingVolume.h"
 #include "ZodiacCameraAssistInterface.h"
+#include "ZodiacCameraComponent.h"
 #include "Character/ZodiacMonster.h"
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Controller.h"
@@ -91,6 +92,14 @@ void UZodiacCameraMode_ThirdPerson::UpdateTargetOffsetCurve(float DeltaTime, FRo
 			{
 				BlendEndOffset = TargetOffsetCurve->GetVectorValue(PivotRotation.Pitch);
 			}
+
+			if (TargetOffsetCurveByYaw)
+			{
+				if (UZodiacCameraComponent* ZodiacCameraComponent = GetZodiacCameraComponent())
+				{
+					BlendEndOffset += TargetOffsetCurveByYaw->GetVectorValue(ZodiacCameraComponent->AimYaw);
+				}
+			}
 		}
 	}
 
@@ -127,6 +136,14 @@ void UZodiacCameraMode_ThirdPerson::UpdateTargetOffsetCurve(float DeltaTime, FRo
 			if (TargetOffsetCurve)
 			{
 				TargetOffset = TargetOffsetCurve->GetVectorValue(PivotRotation.Pitch);
+			}
+
+			if (TargetOffsetCurveByYaw)
+			{
+				if (UZodiacCameraComponent* ZodiacCameraComponent = GetZodiacCameraComponent())
+				{
+					TargetOffset += TargetOffsetCurveByYaw->GetVectorValue(ZodiacCameraComponent->AimYaw);
+				}
 			}
 		}
 	}

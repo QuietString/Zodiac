@@ -204,6 +204,10 @@ void UZodiacHitReactSimulationComponent::OnPlayHitReact(FVector HitDirection, FN
 	UWorld* World = GetWorld();
 	check(World);
 
+	// To update physics blend weights
+	PhysicalAnimationComponent->SetComponentTickEnabled(true);
+	SetComponentTickEnabled(true);
+	
 	FZodiacHitDamageData HitDamageData;
 	
 	EZodiacPhysicalHitReactBodyType HitBodyType = DetermineBodyType(HitBone);
@@ -236,10 +240,6 @@ void UZodiacHitReactSimulationComponent::OnPlayHitReact(FVector HitDirection, FN
 	TargetMeshComponent->SetAllBodiesBelowSimulatePhysics(TargetBody->SimulationRootBone, true);
 	TargetMeshComponent->SetAllBodiesBelowPhysicsBlendWeight(TargetBody->SimulationRootBone, TargetBody->BlendWeight);
 	TargetMeshComponent->AddImpulse(HitDamageData.Impulse * HitReactStrength, HitBone, true);
-
-	// To update physics blend weights
-	PhysicalAnimationComponent->SetComponentTickEnabled(true);
-	SetComponentTickEnabled(true);
 }
 
 void UZodiacHitReactSimulationComponent::OnDeathStarted(AActor* OwningActor)

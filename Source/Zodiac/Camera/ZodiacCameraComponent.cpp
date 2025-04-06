@@ -48,6 +48,11 @@ void UZodiacCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& De
 {
 	check(CameraModeStack);
 
+	if (AimYawPtr)
+	{
+		AimYaw = *AimYawPtr;
+	}
+	
 	UpdateTranslationOffset(DeltaTime);
 	UpdateCameraModes();
 

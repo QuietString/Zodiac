@@ -248,7 +248,6 @@ void AZodiacCharacter::OnCharacterAttached(ACharacter* AttachedCharacter)
 	}
 }
 
-
 void AZodiacCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
 {
 	check(Canvas);
