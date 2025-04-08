@@ -91,6 +91,10 @@ public:
 	// Debug Mesh
 	UFUNCTION(Exec)
 	void ToggleMeshVisibility();
+
+	// Day and Night
+	UFUNCTION(Exec)
+	void ToggleDayNight();
 	
 protected:
 	void ApplySetByCallerDamage(UZodiacAbilitySystemComponent* ZodiacASC, float DamageAmount);

@@ -16,6 +16,7 @@
 #include "Character/ZodiacHostCharacter.h"
 #include "Character/ZodiacMonster.h"
 #include "Development/ZodiacDeveloperSettings.h"
+#include "GameModes/ZodiacGameState.h"
 #include "System/ZodiacAssetManager.h"
 #include "System/ZodiacGameData.h"
 
@@ -321,6 +322,20 @@ void UZodiacCheatManager::ToggleMeshVisibility()
 			ZodiacCharacter->GetRetargetedMesh()->ToggleVisibility();
 			ZodiacCharacter->GetMesh()->ToggleVisibility();	
 		}
+	}
+}
+
+void UZodiacCheatManager::ToggleDayNight()
+{
+	if (!IsRunningDedicatedServer())
+	{
+		UWorld* World = GetWorld();
+		check(World);
+		
+		if (AZodiacGameState* ZodiacGameState = AZodiacGameState::GetZodiacGameState(World))
+		{
+			ZodiacGameState->OnToggleDayNight.Broadcast();
+		}	
 	}
 }
 
