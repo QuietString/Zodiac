@@ -11,6 +11,8 @@
 #include "Character/ZodiacHeroCharacter2.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Development/ZodiacDeveloperSettings.h"
+#include "Teams/ZodiacTeamSubsystem.h"
+#include "Utility/ZodiacKismetSystemLibrary.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacPlayerController)
 
@@ -26,7 +28,7 @@ AZodiacPlayerController::AZodiacPlayerController(const FObjectInitializer& Objec
 
 AZodiacPlayerState* AZodiacPlayerController::GetZodiacPlayerState() const
 {
-	return CastChecked<AZodiacPlayerState>(PlayerState);
+	return Cast<AZodiacPlayerState>(PlayerState);
 }
 
 UZodiacAbilitySystemComponent* AZodiacPlayerController::GetHeroAbilitySystemComponent()
@@ -46,14 +48,12 @@ AZodiacHostCharacter* AZodiacPlayerController::GetHostCharacter() const
 
 FGenericTeamId AZodiacPlayerController::GetGenericTeamId() const
 {
-	return GetZodiacPlayerState()->GetGenericTeamId();
-}
-
-void AZodiacPlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-
-	EnableCheats();
+	if (AZodiacPlayerState* ZodiacPlayerState = GetZodiacPlayerState())
+	{
+		return ZodiacPlayerState->GetGenericTeamId();
+	}
+	
+	return FGenericTeamId();
 }
 
 void AZodiacPlayerController::ServerCheat_Implementation(const FString& Msg)
@@ -105,6 +105,23 @@ void AZodiacPlayerController::OnPossess(APawn* InPawn)
 #endif
 }
 
+void AZodiacPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	EnableCheats();
+}
+
+void AZodiacPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (IsLocalController())
+	{
+		CheckCrosshairTarget();
+	}
+}
+
 void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
 	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
@@ -135,4 +152,72 @@ void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool
 	// }
 	
 	Super::PostProcessInput(DeltaTime, bGamePaused);
+}
+
+void AZodiacPlayerController::CheckCrosshairTarget()
+{
+    bAimingAtEnemy = false;
+    CurrentAimTarget = nullptr;
+
+    // 1) Get camera location & forward vector
+    FVector CamLoc;
+    FRotator CamRot;
+    GetPlayerViewPoint(CamLoc, CamRot);
+
+    // Basic trace line: camera forward
+    const FVector TraceStart = CamLoc;
+    const FVector TraceEnd   = CamLoc + (CamRot.Vector() * TraceDistance);
+
+    // 2) Compute the projection param for your Pawn's location
+    APawn* MyPawn = GetPawn();
+    FVector OwnerLoc = MyPawn ? MyPawn->GetActorLocation() : TraceStart; // fallback
+
+    FVector Dir = TraceEnd - TraceStart;
+    float DotDirDir = Dir | Dir; // same as Dir.SizeSquared()
+
+    float t = 0.f; // we’ll store the projection parameter
+    if (DotDirDir > KINDA_SMALL_NUMBER)
+    {
+        // (OwnerLoc - TraceStart) dot Dir / (Dir dot Dir)
+        t = ((OwnerLoc - TraceStart) | Dir) / DotDirDir;
+
+        // Optionally clamp t so the start can’t go beyond the original line segment
+        t = FMath::Clamp(t, 0.f, 1.f);
+    }
+
+    // 3) The new start is the projection from OwnerLoc onto that line
+    FVector AdjustedStart = TraceStart + (t * Dir);
+
+    // 4) Do the sphere sweep from AdjustedStart to TraceEnd
+    FCollisionQueryParams Params(SCENE_QUERY_STAT(CrosshairTrace), false, MyPawn);
+
+    FHitResult Hit;
+    GetWorld()->SweepSingleByChannel(
+        Hit,
+        AdjustedStart,
+        TraceEnd,
+        FQuat::Identity,
+        TraceChannel,
+        FCollisionShape::MakeSphere(TraceSphereRadius),
+        Params
+    );
+
+    if (Hit.bBlockingHit)
+    {
+        AActor* HitActor = Hit.GetActor();
+        if (HitActor)
+        {
+            CurrentAimTarget = HitActor;
+
+            // Check if it's an enemy
+            if (UZodiacTeamSubsystem* TeamSubsystem = GetWorld()->GetSubsystem<UZodiacTeamSubsystem>())
+            {
+                EZodiacTeamComparison CompareResult = TeamSubsystem->CompareTeams(this, HitActor);
+                if (CompareResult == EZodiacTeamComparison::DifferentTeams)
+                {
+                    bAimingAtEnemy = true;
+                }
+            }
+        }
+    }
 }

@@ -114,8 +114,12 @@ private:
 	
 	// Tracks how many monsters of each class are waiting to respawn.
 	UPROPERTY(Transient)
-	TMap<TSubclassOf<AZodiacMonster>, uint8> AccumulatedRespawnRequests;
+	TMap<TSubclassOf<AZodiacMonster>, uint8> ReadyToRespawnMap;
 
+	// Queued respawn requests in AIPawnSubsystem.
+	UPROPERTY(Transient)
+	TMap<TSubclassOf<AZodiacMonster>, uint8> PendingRespawnRequests;
+	
 	// How many monsters to respawn at once. We use batch to execute EQS less frequently.
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = "1"))
 	int32 RespawnBatchSize = 10;
@@ -125,6 +129,4 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AZodiacMonster>> SpawnedMonsters;
-
-	bool bIsSpawnQueued = false;
 };

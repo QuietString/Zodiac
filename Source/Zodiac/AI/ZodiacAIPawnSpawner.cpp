@@ -22,7 +22,7 @@ AZodiacAIPawnSpawner::AZodiacAIPawnSpawner(const FObjectInitializer& ObjectIniti
 	: Super(ObjectInitializer)
 {
 	SetReplicates(false);
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	PrimaryActorTick.bStartWithTickEnabled = false;
 }
 
@@ -86,11 +86,8 @@ void AZodiacAIPawnSpawner::SpawnAllMonstersFromPool()
 		return;
 	}
 
-	if (!bIsSpawnQueued)
-	{
-		AIPawnSubsystem->QueueSpawnRequest(this, MonstersToSpawn);
-		bIsSpawnQueued = true;	
-	}
+	PendingRespawnRequests = MonstersToSpawn;
+	AIPawnSubsystem->QueueSpawnRequest(this, PendingRespawnRequests);
 }
 
 FZodiacZombieSpawnConfig AZodiacAIPawnSpawner::GenerateSpawnConfig()
@@ -133,7 +130,7 @@ FZodiacZombieSpawnConfig AZodiacAIPawnSpawner::GenerateSpawnConfig()
 			Mode = EZodiacExtendedMovementMode::Sprinting;
 		}
 		
-		int32 RandomSeed = FMath::RandRange(0, UINT8_MAX);
+		int32 RandomSeed = FMath::RandRange(1, UINT8_MAX);
 		
 		return FZodiacZombieSpawnConfig(RandomIndex, Mode, RandomSeed, BehaviorTree, bUseTargetSearchRadius, TargetSearchRadius, bRespawnWhenDies);
 	}
@@ -321,8 +318,8 @@ void AZodiacAIPawnSpawner::OnPawnReadyToRespawn(AActor* SleepingActor)
 	}
 	
 	TSubclassOf<AZodiacMonster> MonsterClass = SleepingMonster->GetClass();
-	const int32 NewCount = AccumulatedRespawnRequests.FindOrAdd(MonsterClass) + 1;
-	AccumulatedRespawnRequests[MonsterClass] = NewCount;
+	const int32 NewCount = ReadyToRespawnMap.FindOrAdd(MonsterClass) + 1;
+	ReadyToRespawnMap[MonsterClass] = NewCount;
 
 	TryBatchSpawn();
 }
@@ -330,7 +327,7 @@ void AZodiacAIPawnSpawner::OnPawnReadyToRespawn(AActor* SleepingActor)
 void AZodiacAIPawnSpawner::TryBatchSpawn()
 {
 	int32 TotalRequestCounts = 0;
-	for (auto& [K, V] : AccumulatedRespawnRequests)
+	for (auto& [K, V] : ReadyToRespawnMap)
 	{
 		TotalRequestCounts += V;
 	}
@@ -338,10 +335,11 @@ void AZodiacAIPawnSpawner::TryBatchSpawn()
 	// Respawn when the number of accumulated requests reaches RespawnBatchSize,
 	// or the number of initial spawn was less than RespawnBatchSize.
 	bool bShouldBatchRespawn = (TotalRequestCounts >= RespawnBatchSize) ? true : (RespawnBatchSize >= TotalNumberOfInitialSpawn);
-	if (bShouldBatchRespawn && !bIsSpawnQueued)
+	if (bShouldBatchRespawn && PendingRespawnRequests.IsEmpty())
 	{
-		AIPawnSubsystem->QueueSpawnRequest(this, AccumulatedRespawnRequests);
-		bIsSpawnQueued = true;
+		PendingRespawnRequests = ReadyToRespawnMap;
+		AIPawnSubsystem->QueueSpawnRequest(this, PendingRespawnRequests);
+		ReadyToRespawnMap.Empty();
 	}
 }
 
@@ -353,7 +351,8 @@ void AZodiacAIPawnSpawner::PerformQueuedSpawn(const TMap<TSubclassOf<AZodiacMons
 	}
 
 	// Make a local copy to update
-	TMap<TSubclassOf<AZodiacMonster>, uint8> UpdatedRequests = AccumulatedRespawnRequests;
+	TMap<TSubclassOf<AZodiacMonster>, uint8> RespawnLeftOvers = PendingRespawnRequests;
+	PendingRespawnRequests.Empty();
 
 	for (const TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : MonsterToSpawnMap)
 	{
@@ -361,22 +360,26 @@ void AZodiacAIPawnSpawner::PerformQueuedSpawn(const TMap<TSubclassOf<AZodiacMons
 		const uint8 SpawnRequest = Pair.Value;
 
 		// If we have leftover requests for this class
-		if (UpdatedRequests.Contains(MonsterClass))
+		if (RespawnLeftOvers.Contains(MonsterClass))
 		{
-			uint8 OldCount = UpdatedRequests[MonsterClass];
+			uint8 OldCount = RespawnLeftOvers[MonsterClass];
             
 			if (SpawnRequest >= OldCount)
 			{
-				UpdatedRequests.Remove(MonsterClass);
+				RespawnLeftOvers.Remove(MonsterClass);
 			}
 			else
 			{
-				UpdatedRequests[MonsterClass] = OldCount - SpawnRequest;
+				RespawnLeftOvers[MonsterClass] = OldCount - SpawnRequest;
 			}
 		}
 	}
 
-	AccumulatedRespawnRequests = UpdatedRequests;
+	for (auto& [K, V] : RespawnLeftOvers)
+	{
+		const int32 NewCount = ReadyToRespawnMap.FindOrAdd(K) + 1;
+		ReadyToRespawnMap[K] = NewCount;
+	}
 	
 	FEnvQueryRequest Request(LocationQuery, this);
 	Request.SetFloatParam(ZombieSpawnerQueryParamNames::GridSize, GridSize);
@@ -389,12 +392,4 @@ void AZodiacAIPawnSpawner::PerformQueuedSpawn(const TMap<TSubclassOf<AZodiacMons
 		}
 	);
 	Request.Execute(EEnvQueryRunMode::AllMatching, QueryFinishedDelegate);
-
-	int32 TotalRemainingRequestsCount = 0;
-	for (auto& [K, V] : AccumulatedRespawnRequests)
-	{
-		TotalRemainingRequestsCount += V;
-	}
-	
-	bIsSpawnQueued = (TotalRemainingRequestsCount > 0);
 }

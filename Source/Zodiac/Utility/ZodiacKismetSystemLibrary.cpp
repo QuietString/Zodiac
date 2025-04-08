@@ -64,9 +64,12 @@ bool UZodiacKismetSystemLibrary::BeamTraceMultiByChannel(const UObject* WorldCon
     CornerStarts.Add(Start - Right - MyUp);    // bottom-left
     CornerEnds.Add(End - Right - MyUp);
 
+    CornerStarts.Add(Start);    // center
+    CornerEnds.Add(End);
+    
     bool bAnyHit = false;
 
-    // Perform 4 line traces
+    // Perform 5 line traces
     for (int32 i = 0; i < CornerStarts.Num(); i++)
     {
         TArray<FHitResult> CornerHits;

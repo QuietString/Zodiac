@@ -29,8 +29,6 @@ public:
 	//~IZodiacTeamAgentInterface interface
 	virtual FGenericTeamId GetGenericTeamId() const override;
 	//~End of IZodiacTeamAgentInterface interface
-
-	virtual void BeginPlay() override;
 	
 	// Run a cheat command on the server.
 	UFUNCTION(Reliable, Server, WithValidation)
@@ -42,6 +40,36 @@ public:
 
 	//~APlayerController interface
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 	//~End of APlayerController interface
+
+	void CheckCrosshairTarget();
+	
+	// Blueprint function so the UI can easily check if we’re aiming at an enemy
+	UFUNCTION(BlueprintPure, Category="Crosshair")
+	bool IsCrosshairOnEnemy() const { return bAimingAtEnemy; }
+
+	// If you also want to expose *which* actor is aimed at:
+	UFUNCTION(BlueprintPure, Category="Crosshair")
+	AActor* GetCurrentAimTarget() const { return CurrentAimTarget.Get(); }
+
+protected:
+	UPROPERTY()
+	bool bAimingAtEnemy = false;
+
+	UPROPERTY()
+	TWeakObjectPtr<AActor> CurrentAimTarget;
+
+	// The radius for the sphere trace
+	UPROPERTY(EditAnywhere, Category="Crosshair")
+	float TraceSphereRadius = 5.f;
+
+	// The distance from camera to trace forward
+	UPROPERTY(EditAnywhere, Category="Crosshair")
+	float TraceDistance = 5000.f;
+
+	UPROPERTY(EditAnywhere, Category="Crosshair")
+	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
 };

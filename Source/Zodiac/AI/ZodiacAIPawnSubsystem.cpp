@@ -506,25 +506,39 @@ void UZodiacAIPawnSubsystem::PrintCurrentState() const
 			QueuedMonsters += Pair.Value;
 		}
 	}
+	
+	int32 NumSpawners = SpawnerPools.Num();
 
+	int32 TotalPawnsInPools = 0;
+	for (const FZodiacSpawnerPool& SpawnerPool : SpawnerPools)
+	{
+		for (const FZodiacAIPawnClassPool& ClassPool : SpawnerPool.ClassPools)
+		{
+			TotalPawnsInPools += ClassPool.Instances.Num();
+		}
+	}
+	
 	int32 Limit = CVarMaxGlobalAIPawns.GetValueOnGameThread();
 
 	// Print to log and/or screen
 	UE_LOG(LogTemp, Display,
 		TEXT("=== ZODIAC AI Pawn State ===\n")
 		TEXT(" MaxGlobalAIPawns Limit: %d\n")
+		TEXT(" Spawner Count: %d\n")
+		TEXT(" Total Pawns in Pools: %d\n")
 		TEXT(" Currently Active: %d\n")
 		TEXT(" Currently Spawning (EQS pending): %d\n")
 		TEXT(" Number of queued requests: %d\n")
 		TEXT(" Total queued monster count: %d\n"),
 		Limit,
+		NumSpawners,
+		TotalPawnsInPools,
 		CurrentActive,
 		CurrentlySpawning,
 		NumQueued,
 		QueuedMonsters
 	);
 
-	// If you want to also show it on screen in editor or dev builds:
 #if !UE_BUILD_SHIPPING
 	if (GEngine)
 	{
