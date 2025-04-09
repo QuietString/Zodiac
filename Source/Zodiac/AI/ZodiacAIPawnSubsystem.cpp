@@ -13,7 +13,7 @@
 
 static TAutoConsoleVariable<int32> CVarMaxGlobalAIPawns(
 	TEXT("Zodiac.ai.MaxGlobalAIPawns"),
-	40,
+	50,
 	TEXT("Maximum global AI pawns at once."),
 	ECVF_Default
 );

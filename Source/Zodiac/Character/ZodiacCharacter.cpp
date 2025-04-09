@@ -244,7 +244,7 @@ void AZodiacCharacter::OnCharacterAttached(ACharacter* AttachedCharacter)
 {
 	if (UZodiacHostAnimInstance* HostAnimInstance = CastChecked<UZodiacHostAnimInstance>(GetMesh()->GetAnimInstance()))
 	{
-		HostAnimInstance->ActorsToIgnoreTrajectory.Add(AttachedCharacter);
+		HostAnimInstance->ActorsToIgnoreTrajectory.AddUnique(AttachedCharacter);
 	}
 }
 
