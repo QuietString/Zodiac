@@ -33,9 +33,10 @@ protected:
 	void UpdatePreventPenetration(float DeltaTime);
 	void PreventCameraPenetration(class AActor const& ViewTarget, FVector const& SafeLoc, FVector& CameraLoc, float const& DeltaTime, float& DistBlockedPct, bool bSingleRayOnly);
 	
-	inline bool CheckCloseContact();
-	inline void SetCloseContactOffset(const FVector& InBlendStartOffset, const FVector& InBlendEndOffset, float Weight);
-	
+	bool CheckCloseContact();
+	void SetCloseContactOffset(const FVector& InBlendStartOffset, const FVector& InBlendEndOffset, float Weight);
+
+	virtual void OnDeactivation() override;
 	virtual void DrawDebug(UCanvas* Canvas) const override;
 
 protected:

@@ -131,7 +131,46 @@ void SSemiUniformGridPanel::ClearChildren()
 	Children.Empty();
 }
 
-bool SSemiUniformGridPanel::IsSlotAvailable(int32 Column, int32 Row)
+bool SSemiUniformGridPanel::FindNearestEmptySlot(const FVector2D& InLocalPos, int32 OutColumn, int32 OutRow) const
+{
+	const float CellW = MinDesiredSlotWidth.Get();
+	const float CellH = MinDesiredSlotHeight.Get();
+
+	// Initial guess
+	int32 StartCol = FMath::Max(0, FMath::FloorToInt(InLocalPos.X / CellW));
+	int32 StartRow = FMath::Max(0, FMath::FloorToInt(InLocalPos.Y / CellH));
+
+	// A simple spiral search up to some max radius
+	const int32 MaxDist = 25; // adjust to taste
+	for (int32 d = 0; d <= MaxDist; ++d)
+	{
+		for (int32 dy = -d; dy <= d; ++dy)
+		{
+			for (int32 dx = -d; dx <= d; ++dx)
+			{
+				int32 TestCol = StartCol + dx;
+				int32 TestRow = StartRow + dy;
+
+				if (TestCol >= 0 && TestRow >= 0)
+				{
+					if (IsSlotAvailable(TestCol, TestRow))
+					{
+						OutColumn = TestCol;
+						OutRow = TestRow;
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	// If no empty found, fallback to (0,0)
+	OutColumn = 0;
+	OutRow = 0;
+	return false;
+}
+
+bool SSemiUniformGridPanel::IsSlotAvailable(int32 Column, int32 Row) const
 {
 	for (int32 ChildIndex = 0; ChildIndex < Children.Num(); ++ChildIndex)
 	{

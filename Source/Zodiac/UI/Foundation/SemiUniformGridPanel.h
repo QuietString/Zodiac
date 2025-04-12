@@ -58,7 +58,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Child Layout")
 	void SetMinDesiredSlotHeight(float InMinDesiredSlotHeight);
 
-	ZODIAC_API bool IsSlotAvailable(int32 Column, int32 Row);
+	ZODIAC_API bool IsSlotAvailable(int32 Column, int32 Row) const;
 public:
 
 	//~ UWidget interface

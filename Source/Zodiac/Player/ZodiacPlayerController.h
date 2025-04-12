@@ -47,6 +47,9 @@ public:
 
 	void CheckCrosshairTarget();
 	
+	UFUNCTION(BlueprintCallable, meta = (DeterminesOutputType="ActorClass", DynamicOutputParam="OutActors"))
+	void GetNearActorsFromAimCenter(TSubclassOf<AActor> ActorClass, TArray<AActor*>& OutActors, float MaxAngle, float MaxRange);
+	
 	// Blueprint function so the UI can easily check if we’re aiming at an enemy
 	UFUNCTION(BlueprintPure, Category="Crosshair")
 	bool IsCrosshairOnEnemy() const { return bAimingAtEnemy; }

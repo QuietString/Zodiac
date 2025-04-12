@@ -60,7 +60,7 @@ void USemiUniformGridPanel::SetMinDesiredSlotHeight(float InMinDesiredSlotHeight
 	}
 }
 
-bool USemiUniformGridPanel::IsSlotAvailable(int32 Column, int32 Row)
+bool USemiUniformGridPanel::IsSlotAvailable(int32 Column, int32 Row) const
 {
 	if (MySemiUniformGridPanel.IsValid())
 	{

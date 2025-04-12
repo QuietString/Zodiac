@@ -205,8 +205,10 @@ public:
 	/** Removes all slots from the panel */
 	void ClearChildren();
 
-	bool IsSlotAvailable(int32 Column, int32 Row);
+	bool FindNearestEmptySlot(const FVector2D& InLocalPos, int32 OutColumn, int32 OutRow) const;
 	
+	bool IsSlotAvailable(int32 Column, int32 Row) const;
+
 protected:
 	// Begin SWidget overrides.
 	virtual FVector2D ComputeDesiredSize(float) const override;

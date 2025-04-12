@@ -506,3 +506,10 @@ void UZodiacCameraMode_ThirdPerson::SetCloseContactOffset(const FVector& InBlend
 		break;
 	}
 }
+
+void UZodiacCameraMode_ThirdPerson::OnDeactivation()
+{
+	Super::OnDeactivation();
+	
+	bPreviousCloseContact = false;
+}

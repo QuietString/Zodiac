@@ -3,11 +3,13 @@
 
 #include "ZodiacPlayerController.h"
 
+#include "EngineUtils.h"
 #include "ZodiacPlayerState.h"
 #include "ZodiacCheatManager.h"
 #include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "Camera/ZodiacPlayerCameraManager.h"
+#include "Character/ZodiacHealthComponent.h"
 #include "Character/ZodiacHeroCharacter2.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Development/ZodiacDeveloperSettings.h"
@@ -220,4 +222,78 @@ void AZodiacPlayerController::CheckCrosshairTarget()
             }
         }
     }
+}
+
+void AZodiacPlayerController::GetNearActorsFromAimCenter(TSubclassOf<AActor> ActorClass, TArray<AActor*>& OutActors, float MaxAngle, float MaxRange)
+{
+	APawn* OwningPawn = GetPawn();
+	if (!OwningPawn || !ActorClass)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	check(World);
+
+	OutActors.Reset();
+	
+    // Get camera location & forward
+    FVector CameraLoc;
+    FRotator CameraRot;
+    GetPlayerViewPoint(CameraLoc, CameraRot);
+
+    // Collect potential targets
+    TArray<AActor*> PotentialTargets;
+	
+    // Find all Pawns in the world.
+    for (TActorIterator<AActor> It(World, ActorClass); It; ++It)
+    {
+        AActor* OtherActor = *It;
+    	
+        if (OtherActor == OwningPawn) continue; // Skip self
+    	if (OtherActor->IsHidden()) continue; // Skip hidden
+    	
+        if (UZodiacHealthComponent* HealthComponent = UZodiacHealthComponent::FindHealthComponent(OtherActor))
+        {
+	        if (HealthComponent->IsDeadOrDying())
+	        {
+	        	// Skip dead actors
+		        continue;
+	        }
+        }
+
+    	UZodiacTeamSubsystem* TeamSubsystem = GetWorld()->GetSubsystem<UZodiacTeamSubsystem>();
+    	check(TeamSubsystem);
+    	
+    	if (!TeamSubsystem->CanCauseDamage(OwningPawn, OtherActor, false))
+    	{
+    		// Skip friendly actors
+    		continue;
+    	}
+    	
+        FVector ToTarget = OtherActor->GetActorLocation() - CameraLoc;
+        float DistSqr = ToTarget.SizeSquared();
+        if (DistSqr > FMath::Square(MaxRange))
+        {
+            continue; // Too far
+        }
+
+        // Angle from camera forward (dot product approach)
+        float Dot = FVector::DotProduct(CameraRot.Vector().GetSafeNormal(), ToTarget.GetSafeNormal());
+        float AngleDeg = FMath::RadiansToDegrees(acosf(Dot));
+        if (AngleDeg <= MaxAngle)
+        {
+            PotentialTargets.Add(OtherActor);
+        }
+    }
+
+    // Sort potential targets by distance
+    PotentialTargets.Sort([CameraLoc](AActor& A, AActor& B)
+    {
+        float DistA = (A.GetActorLocation() - CameraLoc).SizeSquared();
+        float DistB = (B.GetActorLocation() - CameraLoc).SizeSquared();
+        return DistA < DistB; // ascending
+    });
+
+    OutActors = PotentialTargets;
 }
