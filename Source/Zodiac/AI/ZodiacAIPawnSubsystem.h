@@ -109,7 +109,15 @@ public:
 
 protected:
 	void PrintCurrentState() const;
-	
+	void DespawnByTimeOut(float DeltaTime);
+
+	bool Tick(float DeltaTime);
+
+public:
+	// How long (in seconds) a monster can be target-less before being despawned
+	UPROPERTY(BlueprintReadWrite, Config, Category="AI", meta=(ClampMin="0.0"))
+	float TargetActorLostTimeout;
+
 protected:
 	UPROPERTY()
 	TArray<FZodiacSpawnerPool> SpawnerPools;
@@ -123,9 +131,19 @@ protected:
 	// A queue of pending spawn requests that couldn’t spawn immediately
 	UPROPERTY()
 	TArray<FSpawnRequest> SpawnRequestsQueue;
-
+	
+	// How long each monster has been target-less
+	UPROPERTY(Transient)
+	TMap<TObjectPtr<AZodiacMonster>, float> TimeWithoutTarget;
+	
 private:
+	UPROPERTY(Config)
+	float TickInterval;
+	
 	// Since ZodiacAIPawnSpawner uses EQS query which is asynchronous, we have to cache spawn count until it actually spawn them to calculate capacity.
 	UPROPERTY(Transient)
 	TMap<TObjectPtr<AZodiacAIPawnSpawner>, int32> CachedNumberOfSpawning;
+
+	FTSTicker::FDelegateHandle TickHandle;
+	
 };

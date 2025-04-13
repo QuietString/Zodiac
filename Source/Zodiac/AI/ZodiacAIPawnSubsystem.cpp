@@ -26,9 +26,25 @@ static FAutoConsoleCommand GShowSpawnStateCmd(
 	)
 );
 
+static TAutoConsoleVariable<float> CVar_TargetActorLostTimeout(
+	TEXT("Zodiac.ai.TargetActorLostTimeout"),
+	60.0f,
+	TEXT("How long (in seconds) a monster can be target-less before being despawned."),
+	ECVF_Default
+);
+
 void UZodiacAIPawnSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	
+	// Set the console variable's default to match the config-laded value:
+	IConsoleVariable* Var = IConsoleManager::Get().FindConsoleVariable(TEXT("Zodiac.ai.TargetActorLostTimeout"));
+	if (Var)
+	{
+		Var->Set(TargetActorLostTimeout, ECVF_SetByConstructor);
+	}
+	
+	TickHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &ThisClass::Tick), TickInterval);
 }
 
 void UZodiacAIPawnSubsystem::ShowSpawnStateConsoleCommand(UWorld* World)
@@ -124,7 +140,8 @@ void UZodiacAIPawnSubsystem::AddMonsterToPool(AZodiacAIPawnSpawner* Spawner, con
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
+	SpawnParams.Owner = Spawner;
+	
 	AZodiacMonster* Spawned = World->SpawnActor<AZodiacMonster>(ClassToSpawn, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 	if (!Spawned)
 	{
@@ -135,7 +152,8 @@ void UZodiacAIPawnSubsystem::AddMonsterToPool(AZodiacAIPawnSpawner* Spawner, con
 	Spawned->Multicast_Sleep();
 	
 	Spawned->SetSpawnConfig(SpawnConfig);
-
+	Spawned->Spawner = Spawner;
+	
 	// 1) Find or create the pool for that spawner
 	FZodiacSpawnerPool& SpawnerPool = FindOrAddSpawnerPool(Spawner);
 
@@ -521,7 +539,7 @@ void UZodiacAIPawnSubsystem::PrintCurrentState() const
 	int32 Limit = CVarMaxGlobalAIPawns.GetValueOnGameThread();
 
 	// Print to log and/or screen
-	UE_LOG(LogTemp, Display,
+	UE_LOG(LogZodiacSpawner, Display,
 		TEXT("=== ZODIAC AI Pawn State ===\n")
 		TEXT(" MaxGlobalAIPawns Limit: %d\n")
 		TEXT(" Spawner Count: %d\n")
@@ -549,4 +567,75 @@ void UZodiacAIPawnSubsystem::PrintCurrentState() const
 		);
 	}
 #endif
+}
+
+void UZodiacAIPawnSubsystem::DespawnByTimeOut(float DeltaTime)
+{
+	TArray<AZodiacMonster*> MonstersToDespawn;
+	
+	for (AZodiacMonster* Monster : ActiveMonsters)
+	{
+		if (!Monster)
+		{
+			continue;	
+		}
+		
+		AZodiacAIPawnSpawner* Spawner = Monster->Spawner.Get();
+		
+		if (!Spawner || !Spawner->bDespawnWhenNoTarget)
+		{
+			continue;
+		}
+		
+		// If monster->TargetActor is valid => reset timer
+		if (Monster->TargetActor)
+		{
+			TimeWithoutTarget.FindOrAdd(Monster) = 0.0f;
+		}
+		else
+		{
+			// Accumulate time
+			float& AccTime = TimeWithoutTarget.FindOrAdd(Monster);
+			AccTime += DeltaTime;
+
+			// If we exceed the timeout, mark for despawn
+			if (AccTime >= TargetActorLostTimeout)
+			{
+				MonstersToDespawn.Add(Monster);
+			}
+		}
+	}
+
+	// Now actually despawn those that timed out
+	for (AZodiacMonster* Monster : MonstersToDespawn)
+	{
+		if (Monster && Monster->IsValidLowLevelFast())
+		{
+			if (AZodiacAIPawnSpawner* Spawner = Monster->Spawner.Get())
+			{
+				Spawner->SendMonsterBackToPool(Monster);
+
+				TimeWithoutTarget.Remove(Monster);
+
+				UE_LOG(LogZodiacSpawner, Log, TEXT("Monster %s lost target for too long, returning to pool."), *Monster->GetName());
+			}
+		}
+	}
+}
+
+bool UZodiacAIPawnSubsystem::Tick(float DeltaTime)
+{
+	UWorld* World = GetWorld();
+
+	if (!World || World->GetNetMode() > NM_Client)
+	{
+		return true;
+	}
+	
+	TargetActorLostTimeout = CVar_TargetActorLostTimeout.GetValueOnGameThread();
+	
+	// Watch out DeltaTime is time difference from previous frame, not difference from previous Tick time.
+	DespawnByTimeOut(TickInterval);
+	
+	return true;
 }

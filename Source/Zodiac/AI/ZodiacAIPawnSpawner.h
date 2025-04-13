@@ -74,8 +74,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = 0))
 	int32 MinimumPartialSpawnCount = 0;
 	
-	UPROPERTY(editAnywhere, Category = "Spawner|Spawn")
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	float RespawnDelay = 1.f;
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
+	bool bDespawnWhenNoTarget = false;
 	
 	// The zombie character class to spawn
 	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")

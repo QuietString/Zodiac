@@ -66,12 +66,17 @@ protected:
 	void OnSpawnConfigSet();
 
 public:
-	friend class AZodiacZombieSpawner;
 	friend class AZodiacAIPawnSpawner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UBehaviorTree> BehaviorTree;
 
+	UPROPERTY(Transient, BlueprintReadWrite, Category = "AI")
+	TObjectPtr<AActor> TargetActor;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "AI")
+	TWeakObjectPtr<AZodiacAIPawnSpawner> Spawner;
+	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<USkeletalMeshComponent> RetargetedMeshComponent;
