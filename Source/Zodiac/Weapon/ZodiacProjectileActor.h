@@ -16,8 +16,15 @@ class ZODIAC_API AZodiacProjectileActor : public AActor
 public:
 	AZodiacProjectileActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION()
+	void OnHomingTargetDeathStarted(AActor* OwningActor);
+	void StartHoming();
+	void StopHoming(bool bUseGravity);
+	
 	void UpdateHomingState(float DeltaTime);
 	bool CheckTargetLost(float DeltaTime);
 
@@ -32,12 +39,20 @@ public:
 	float MaxHomingAngle = 30.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Homing")
-	float AllowedOutOfAngleTime = 0.5f;
+	float AllowedOutOfAngleTime = 0.f;
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Homing")
 	float OutOfAngleDuration;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
+	bool bDisableTickWhenReachTarget = true;
+	
+	UPROPERTY(Transient, BlueprintReadWrite, Category = "Projectile")
+	bool bHasReachedTarget = false;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
+
+	bool bIsHoming = false;
 };

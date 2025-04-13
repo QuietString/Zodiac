@@ -151,4 +151,6 @@ private:
 
 	UPROPERTY(Transient)
 	FVector OriginalRelativeScale;
+
+	bool bHasRagdollStarted = false;
 };

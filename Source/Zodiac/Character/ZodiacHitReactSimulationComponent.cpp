@@ -11,6 +11,13 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHitReactSimulationComponent)
 
+namespace ZodiacCollisionProfileName
+{
+	FName HeroMesh = FName(TEXT("ZodiacHeroMesh"));
+	FName Dying = FName(TEXT("ZodiacPawnCapsuleDying"));
+	FName Ragdoll = FName(TEXT("Ragdoll"));
+}
+
 UZodiacHitReactSimulationComponent::UZodiacHitReactSimulationComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -81,7 +88,7 @@ void UZodiacHitReactSimulationComponent::ResetPhysicsSetup()
 	if (TargetMeshComponent)
 	{
 		TargetMeshComponent->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
-		TargetMeshComponent->SetCollisionProfileName(TEXT("ZodiacHeroMesh"));
+		TargetMeshComponent->SetCollisionProfileName(ZodiacCollisionProfileName::HeroMesh);
 		TargetMeshComponent->SetEnableGravity(false);
 		TargetMeshComponent->SetAllBodiesSimulatePhysics(false);
 		TargetMeshComponent->SetAllBodiesPhysicsBlendWeight(0.f);
@@ -98,6 +105,8 @@ void UZodiacHitReactSimulationComponent::ResetPhysicsSetup()
 			PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(RightLegRoot, LowerBodyProfile);
 		}
 	}
+
+	bHasRagdollStarted = false;
 }
 
 void UZodiacHitReactSimulationComponent::BeginPlay()
@@ -234,7 +243,7 @@ void UZodiacHitReactSimulationComponent::OnPlayHitReact(FVector HitDirection, FN
 	HitDamageData.HitBone = HitBone;
 
 	TargetBody->LastHit = HitDamageData;
-	TargetBody->BlendWeight = (TargetBody->BodyType == EZodiacPhysicalHitReactBodyType::UpperBody) ? bIsExplosive ? 0.7f : 1.f : 0.3f;
+	TargetBody->BlendWeight = (TargetBody->BodyType == EZodiacPhysicalHitReactBodyType::UpperBody) ? bIsExplosive ? 0.7f : Magnitude > 40.f ? 1.f : 0.6f : 0.3f;
 	TargetBody->bIsSimulated = true;
 	
 	TargetMeshComponent->SetAllBodiesBelowSimulatePhysics(TargetBody->SimulationRootBone, true);
@@ -249,7 +258,7 @@ void UZodiacHitReactSimulationComponent::OnDeathStarted(AActor* OwningActor)
 
 	if (UCapsuleComponent* OwnerCapsule = OwningActor->FindComponentByClass<UCapsuleComponent>())
 	{
-		OwnerCapsule->SetCollisionProfileName(TEXT("ZodiacPawnCapsuleDying"));
+		OwnerCapsule->SetCollisionProfileName(ZodiacCollisionProfileName::Dying);
 	}
 
 	TargetMeshComponent->bPauseAnims = true;
@@ -261,7 +270,11 @@ void UZodiacHitReactSimulationComponent::OnDeathStarted(AActor* OwningActor)
 	}
 	else
 	{
-		StartRagdoll();	
+		if (!bHasRagdollStarted)
+		{
+			StartRagdoll();
+			bHasRagdollStarted = true;
+		}
 	}
 }
 
@@ -280,7 +293,7 @@ void UZodiacHitReactSimulationComponent::StartRagdoll()
 		// Clear hit react profile.
 		PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(Root, NAME_None, true, true);
 		TargetMeshComponent->SetEnableGravity(true);
-		TargetMeshComponent->SetCollisionProfileName(TEXT("Ragdoll"));
+		TargetMeshComponent->SetCollisionProfileName(ZodiacCollisionProfileName::Ragdoll);
 		TargetMeshComponent->SetAllBodiesSimulatePhysics(true);
 		TargetMeshComponent->SetAllBodiesPhysicsBlendWeight(1.f);
 
