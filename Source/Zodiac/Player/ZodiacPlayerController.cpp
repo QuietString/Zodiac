@@ -224,7 +224,7 @@ void AZodiacPlayerController::CheckCrosshairTarget()
     }
 }
 
-void AZodiacPlayerController::GetNearActorsFromAimCenter(TSubclassOf<AActor> ActorClass, TArray<AActor*>& OutActors, float MaxAngle, float MaxRange)
+void AZodiacPlayerController::GetNearActorsFromAimCenter(TSubclassOf<AActor> ActorClass, TArray<AActor*>& OutActors, float MaxAngle, float MaxRange, bool bVisibleActorsOnly)
 {
 	APawn* OwningPawn = GetPawn();
 	if (!OwningPawn || !ActorClass)
@@ -283,6 +283,27 @@ void AZodiacPlayerController::GetNearActorsFromAimCenter(TSubclassOf<AActor> Act
         float AngleDeg = FMath::RadiansToDegrees(acosf(Dot));
         if (AngleDeg <= MaxAngle)
         {
+        	// If filtering for visibility, trace from the camera to the actor.
+        	if (bVisibleActorsOnly)
+        	{
+        		FHitResult HitResult;
+        		FVector Start = CameraLoc;
+        		FVector End = OtherActor->GetActorLocation();
+                
+        		// Set up query parameters (ignoring self).
+        		FCollisionQueryParams QueryParams;
+        		QueryParams.AddIgnoredActor(OwningPawn);
+        		QueryParams.AddIgnoredActor(this);
+
+        		bool bHit = World->LineTraceSingleByChannel(HitResult, Start, End, TraceChannel, QueryParams);
+                
+        		// If something was hit, and it isn't the intended actor, skip it.
+        		if (bHit && HitResult.GetActor() != OtherActor)
+        		{
+        			continue;
+        		}
+        	}
+        	
             PotentialTargets.Add(OtherActor);
         }
     }
