@@ -6,6 +6,7 @@
 #include "ZodiacLogChannels.h"
 #include "Character/ZodiacMonster.h"
 #include "AI/ZodiacAIPawnSubsystem.h"
+#include "Algo/RandomShuffle.h"
 #include "Character/ZodiacHealthComponent.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "System/ZodiacGameData.h"
@@ -183,77 +184,88 @@ void AZodiacAIPawnSpawner::SendMonsterBackToPool(AZodiacMonster* MonsterToSend)
 void AZodiacAIPawnSpawner::OnQueryFinished(TSharedPtr<FEnvQueryResult> Result, TMap<TSubclassOf<AZodiacMonster>, uint8> MonsterToSpawnMap)
 {
 	if (!Result.IsValid() || !Result->IsSuccessful())
-	{
-		UE_LOG(LogZodiacSpawner, Log, TEXT("%s: Initial EQS query failed or no results."), *GetName());
-		return;
-	}
+    {
+        UE_LOG(LogZodiacSpawner, Log, TEXT("%s: EQS failed or no results."), *GetName());
+        return;
+    }
+    if (!AIPawnSubsystem)
+    {
+        UE_LOG(LogZodiacSpawner, Warning, TEXT("No AIPawnSubsystem!"));
+        return;
+    }
 
-	if (!AIPawnSubsystem)
-	{
-		UE_LOG(LogZodiacSpawner, Warning, TEXT("No AIPawnSubsystem found"));
-		return;
-	}
+    // 1) Count total spawns
+    int32 TotalSpawnCount = 0;
+    for (auto& Pair : MonsterToSpawnMap)
+    {
+        TotalSpawnCount += Pair.Value;
+    }
+
+    // 2) Build a single, random-shuffled list of monsters to spawn
+    TArray<TSubclassOf<AZodiacMonster>> MonsterSpawnList;
+    MonsterSpawnList.Reserve(TotalSpawnCount);
+    for (auto& Pair : MonsterToSpawnMap)
+    {
+        for (int32 i = 0; i < Pair.Value; i++)
+        {
+            MonsterSpawnList.Add(Pair.Key);
+        }
+    }
 	
-	int32 TotalSpawnCount = 0;
-	for (auto& Pair : MonsterToSpawnMap)
-	{
-		TotalSpawnCount += Pair.Value;
-	}
+    Algo::RandomShuffle(MonsterSpawnList); // Randomize the spawn order
 
-	// Gather all item locations + their scores
-	TArray<FVector> AllLocations;
-	Result->GetAllAsLocations(AllLocations);
-	
-	TArray<float> AllScores;
-	AllScores.Reserve(AllLocations.Num());
-	for (int32 i = 0; i < AllLocations.Num(); ++i)
-	{
-		AllScores.Add(Result->GetItemScore(i));
-	}
+    // 3) Get all EQS locations + scores
+    TArray<FVector> AllLocations;
+    Result->GetAllAsLocations(AllLocations);
 
-	TArray<int32> SortedIndices;
-	SortedIndices.Reserve(AllLocations.Num());
-	for (int32 i = 0; i < AllLocations.Num(); i++)
-	{
-		SortedIndices.Add(i);
-	}
+    TArray<float> AllScores;
+    AllScores.Reserve(AllLocations.Num());
+    for (int32 i = 0; i < AllLocations.Num(); i++)
+    {
+        AllScores.Add(Result->GetItemScore(i));
+    }
 
-	if (bSelectCloserLocationToSpawner)
-	{
-		// Sort indices by descending score
-		SortedIndices.Sort([&AllScores](int32 A, int32 B){
-			return AllScores[A] > AllScores[B];
-		});
-	}
-	
-	int32 IndexForLocations = 0;
-	for (auto& Pair : MonsterToSpawnMap)
-	{
-		TSubclassOf<AZodiacMonster> MonsterClass = Pair.Key;
-		int32 NumberNeeded = Pair.Value;
+    // 4) Sort location indices by descending score if you want closer/higher scored first
+    TArray<int32> SortedIndices;
+    SortedIndices.Reserve(AllLocations.Num());
+    for (int32 i = 0; i < AllLocations.Num(); i++)
+    {
+        SortedIndices.Add(i);
+    }
+    if (bSelectCloserLocationToSpawner)
+    {
+        SortedIndices.Sort([&AllScores](int32 A, int32 B){
+            return AllScores[A] > AllScores[B];
+        });
+    }
 
-		int32 SpawnCount = 0;
-		while (SpawnCount < NumberNeeded && IndexForLocations < SortedIndices.Num())
-		{
-			const int32 LocIdx = SortedIndices[IndexForLocations++];
-			// Possibly skip for random skipping
-			if (FMath::FRand() < RandomSkipping)
-			{
-				continue;
-			}
+    // 5) Assign each monster from the shuffled list to the next best location
+    int32 LocIndex = 0;
+    for (int32 i = 0; i < MonsterSpawnList.Num(); i++)
+    {
+        if (LocIndex >= SortedIndices.Num())
+        {
+            // no more locations
+            break;
+        }
 
-			FVector ChosenLocation = AllLocations[LocIdx];
+        // Possibly skip for random spacing
+        if (FMath::FRand() < RandomSkipping)
+        {
+            continue;
+        }
 
-			AZodiacMonster* Spawned = SpawnMonsterFromPool(MonsterClass, ChosenLocation);
-			if (Spawned)
-			{
-				SpawnedMonsters.AddUnique(Spawned);
-				SpawnCount++;
-			}
-		}
-	}
+        TSubclassOf<AZodiacMonster> ThisClass = MonsterSpawnList[i];
+        int32 LocIdx = SortedIndices[LocIndex++];
+        FVector SpawnLoc = AllLocations[LocIdx];
 
-	AIPawnSubsystem->NotifySpawnFinished(this);
+        if (AZodiacMonster* Spawned = SpawnMonsterFromPool(ThisClass, SpawnLoc))
+        {
+            SpawnedMonsters.AddUnique(Spawned);
+        }
+    }
+
+    AIPawnSubsystem->NotifySpawnFinished(this);
 }
 
 AZodiacMonster* AZodiacAIPawnSpawner::SpawnMonsterFromPool(const TSubclassOf<AZodiacMonster>& ClassToSpawn, const FVector& SpawnLocation)

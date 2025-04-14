@@ -39,9 +39,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Congestion")
 	TSubclassOf<UNavArea> CongestedAreaClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Congestion", meta = (ClampMin = 0))
+	float TimeToWaitBeforeChange = 0.f;
+
 	/** Whether we are currently using the congested area */
 	bool bIsUsingCongestedArea = false;
 
+private:
+	float AccumulatedCongestedTime = 0.f;
+	
 public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
