@@ -19,8 +19,8 @@
 // Trace used by weapons, will trace through multiple pawns rather than stopping on the first hit
 #define ZODIAC_TRACE_CHANNEL_WEAPON_MULTI							ECC_GameTraceChannel4
 
-#define ZODIAC_TRACE_CHANNEL_TRAVERSAL_PAWN_IGNORED					ECC_GameTraceChannel5
+#define ZODIAC_TRACE_CHANNEL_TRAVERSAL								ECC_GameTraceChannel5
 
-#define ZODIAC_TRACE_CHANNEL_ZONE_PAWN_SPAWNABLE					ECC_GameTraceChannel6
+#define ZODIAC_TRACE_CHANNEL_TRAVERSAL_PAWN_IGNORED					ECC_GameTraceChannel6
 
-#define ZODIAC_TRACE_CHANNEL_TRAVERSAL								ECC_GameTraceChannel7
+#define ZODIAC_TRACE_CHANNEL_ZONE_PAWN_SPAWNABLE					ECC_GameTraceChannel7

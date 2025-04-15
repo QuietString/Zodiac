@@ -15,10 +15,12 @@ class ZODIAC_API AZodiacProjectileActor : public AActor
 
 public:
 	AZodiacProjectileActor(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Explosion")
+	TArray<FHitResult> GetExplosionHitResults(TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility);
 	
 	UFUNCTION()
 	void OnHomingTargetDeathStarted(AActor* OwningActor);
@@ -29,7 +31,19 @@ public:
 	bool CheckTargetLost(float DeltaTime);
 
 public:
-	UPROPERTY(Replicated, EditInstanceOnly, BlueprintReadWrite, Category = "Homing", meta = (ExposeOnSpawn))
+	/** Radius used when searching for pawns/actors at explosion time. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Explosion")
+	float ExplosionRadius = 300.0f;
+
+	// Radius used for actual hit location and normal for each target actor
+	// It should be smaller than projectile collision radius/extent
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Explosion")
+	float SingleTargetTraceRadius = 20.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Homing", meta = (ExposeOnSpawn))
+	bool bSpawnWithHomingEnabled = false;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "Homing", meta = (ExposeOnSpawn))
 	TObjectPtr<AActor> HomingTarget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Homing")
@@ -55,4 +69,8 @@ private:
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
 	bool bIsHoming = false;
+
+	// To ignore when projectile trace
+	UPROPERTY(Transient)
+	TArray<AActor*> HeroActors;
 };
