@@ -13,8 +13,6 @@ class ZODIAC_API AZodiacNavModifier_CongestionControl : public AZodiacNavModifie
 
 public:
 	AZodiacNavModifier_CongestionControl(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-	
-	virtual void PostInitializeComponents() override;
 
 protected:
 	UFUNCTION()

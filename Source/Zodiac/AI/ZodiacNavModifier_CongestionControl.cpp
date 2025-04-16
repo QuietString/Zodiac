@@ -16,16 +16,6 @@ AZodiacNavModifier_CongestionControl::AZodiacNavModifier_CongestionControl(const
 	PrimaryActorTick.TickInterval = 0.2f;
 }
 
-void AZodiacNavModifier_CongestionControl::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	if (BoxComponent)
-	{
-		BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
-	}
-}
-
 void AZodiacNavModifier_CongestionControl::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -47,8 +37,16 @@ void AZodiacNavModifier_CongestionControl::BeginPlay()
 {
 	Super::BeginPlay();
 
-	bIsUsingCongestedArea = false;
-	SetNavArea(NormalAreaClass);
+	if (HasAuthority())
+	{
+		if (BoxComponent)
+		{
+			BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
+		}
+	
+		bIsUsingCongestedArea = false;
+		SetNavArea(NormalAreaClass);
+	}
 }
 
 void AZodiacNavModifier_CongestionControl::Tick(float DeltaSeconds)

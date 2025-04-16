@@ -8,6 +8,7 @@
 #include "Character/ZodiacMonster.h"
 #include "ZodiacAIPawnSpawner.h"
 #include "ZodiacLogChannels.h"
+#include "Algo/RandomShuffle.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAIPawnSubsystem)
 
@@ -372,39 +373,50 @@ void UZodiacAIPawnSubsystem::SplitSpawnRequest(const TMap<TSubclassOf<AZodiacMon
 	OutPartialRequest.Empty();
 	OutLeftoverRequest = OriginalRequest;
 
-	int32 RemainingCapacity = Capacity;
+	// 1) Gather the TMap into an array of (MonsterClass, Count)
+	TArray<TPair<TSubclassOf<AZodiacMonster>, uint8>> RequestArray;
+	RequestArray.Reserve(OriginalRequest.Num());
 
 	for (const TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : OriginalRequest)
 	{
+		RequestArray.Add(Pair);
+	}
+
+	// 2) Shuffle the array
+	Algo::RandomShuffle(RequestArray);
+	
+	int32 RemainingCapacity = Capacity;
+
+	// 3) Process in random order
+	for (TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : RequestArray)
+	{
+		if (RemainingCapacity <= 0)
+		{
+			break;
+		}
+
 		TSubclassOf<AZodiacMonster> MonsterClass = Pair.Key;
 		int32 RequestedCount = Pair.Value;
 
 		if (RequestedCount <= RemainingCapacity)
 		{
-			// We can fully spawn this monster type 
+			// We can fully fill this class from capacity
 			OutPartialRequest.Add(MonsterClass, RequestedCount);
-
-			// So it’s no longer leftover
 			OutLeftoverRequest.Remove(MonsterClass);
 
 			RemainingCapacity -= RequestedCount;
-			if (RemainingCapacity <= 0)
-			{
-				break; // no more capacity
-			}
 		}
 		else
 		{
-			// We can only spawn a portion 
+			// partial
 			int32 PartialAmount = RemainingCapacity;
 			OutPartialRequest.Add(MonsterClass, PartialAmount);
 
-			// The leftover for this class = RequestedCount - PartialAmount
 			int32 RemainForClass = RequestedCount - PartialAmount;
 			OutLeftoverRequest.FindOrAdd(MonsterClass) = RemainForClass;
 
 			RemainingCapacity = 0;
-			break; // no more capacity
+			break;
 		}
 	}
 }
