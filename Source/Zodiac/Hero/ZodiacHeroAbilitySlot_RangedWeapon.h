@@ -44,7 +44,7 @@ protected:
 	// List of special tags that affect how damage is dealt
 	// These tags will be compared to tags in the physical material of the thing being hit
 	// If more than one tag is present, the multipliers will be combined multiplicatively
-	UPROPERTY(EditAnywhere, Category = "Weapon Config")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon Config")
 	TMap<FGameplayTag, float> MaterialDamageMultiplier;
 
 private:
