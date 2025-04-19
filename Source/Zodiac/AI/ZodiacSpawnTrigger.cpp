@@ -5,6 +5,7 @@
 
 #include "Character/ZodiacHostCharacter.h"
 #include "ZodiacAIPawnSpawner.h"
+#include "Components/BillboardComponent.h"
 #include "Components/BoxComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacSpawnTrigger)
@@ -20,6 +21,30 @@ AZodiacSpawnTrigger::AZodiacSpawnTrigger(const FObjectInitializer& ObjectInitial
 	RootComponent = TriggerBox;
 	TriggerBox->SetBoxExtent(Extent);
 	TriggerBox->SetCollisionProfileName("SpawnTrigger");
+
+#if WITH_EDITOR
+	SpriteComponent = CreateEditorOnlyDefaultSubobject<UBillboardComponent>(TEXT("Sprite"));
+	if (!IsRunningCommandlet() && SpriteComponent)
+	{
+		struct FConstructorStatics
+		{
+			ConstructorHelpers::FObjectFinderOptional<UTexture2D> SpriteTexture;
+			FConstructorStatics()
+				: SpriteTexture(TEXT("/Engine/EditorResources/S_TriggerBox"))
+			{
+			}
+		};
+		static FConstructorStatics ConstructorStatics;
+
+		SpriteComponent->Sprite = ConstructorStatics.SpriteTexture.Get();
+		SpriteComponent->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+		SpriteComponent->bHiddenInGame = true;
+		SpriteComponent->SetVisibleFlag(true);
+		SpriteComponent->SetupAttachment(RootComponent);
+		SpriteComponent->SetAbsolute(false, false, true);
+		SpriteComponent->bIsScreenSizeScaled = true;
+	}
+#endif
 }
 
 void AZodiacSpawnTrigger::BeginPlay()
@@ -30,7 +55,7 @@ void AZodiacSpawnTrigger::BeginPlay()
 	{
 		TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &AZodiacSpawnTrigger::OnOverlapBegin);
     
-		bAlreadyTriggered = false;	
+		bHasTriggered = false;	
 	}
 }
 
@@ -42,18 +67,22 @@ void AZodiacSpawnTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AA
 		return;
 	}
 
-	if (bTriggerOnlyOnce && bAlreadyTriggered)
+	if (bTriggerOnlyOnce && bHasTriggered)
 	{
 		return;
 	}
-	bAlreadyTriggered = true;
 
-	// Trigger spawners
+	// Trigger spawners despawn
+	for (AZodiacAIPawnSpawner* Spawner : SpawnersToTriggerDespawn)
+	{
+		Spawner->SendAllMonstersBackToPool();	
+	}
+	
+	// Trigger spawners spawn
 	for (AZodiacAIPawnSpawner* Spawner : SpawnersToTrigger)
 	{
-		if (Spawner && Spawner->bUseTrigger)
-		{
-			Spawner->SpawnAllMonstersFromPool();
-		}
+		Spawner->SpawnAllMonstersFromPool();
 	}
+	
+	bHasTriggered = true;
 }

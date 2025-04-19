@@ -14,14 +14,6 @@ class UPhysicalAnimationComponent;
 class UBehaviorTree;
 class UZodiacHeroData;
 
-UENUM(BlueprintType)
-enum EZodiacAIState : uint8
-{
-	Idle,
-	Wandering,
-	Chasing
-};
-
 UCLASS(BlueprintType, Blueprintable)
 class ZODIAC_API AZodiacMonster : public AZodiacCharacter, public IZodiacTraversalActorInterface
 {

@@ -53,24 +53,24 @@ public:
 		, BehaviorTree(nullptr)
 		, bUseTargetSearchRadius(false)
 		, TargetSearchRadius(0.f)
+		, WaitTimeAfterSpawn(0.f)
+		, WaitTimeRandomDeviation(0.f)
 		, bRespawnWhenDies(false)
+		, bAllowSwitchingExtendedMovementMode(false)
 	{}
 
 	FZodiacZombieSpawnConfig(const int32 Index, const EZodiacExtendedMovementMode MovementMode, const int32 Seed, UBehaviorTree* BehaviorTree, const bool bUseTargetSearchRadius, const float 
-	TargetSearchRadius, const bool bRespawnWhenDies = false)
+	TargetSearchRadius, float WaitTimeAfterSpawn = 0.f, float WaitTimeRandomDeviation = 0.f, const bool bRespawnWhenDies = false, const bool bAllowSwitchingExtendedMovementMode = false)
 		: MovementConfigTemplateIndex(Index)
 		, DefaultMovementMode(MovementMode)
 		, Seed(Seed)
 		, BehaviorTree(BehaviorTree)
 		, bUseTargetSearchRadius(bUseTargetSearchRadius)
 		, TargetSearchRadius(TargetSearchRadius)
+		, WaitTimeAfterSpawn(WaitTimeAfterSpawn)
+		, WaitTimeRandomDeviation(WaitTimeRandomDeviation)
 		, bRespawnWhenDies(bRespawnWhenDies)
-	{}
-
-	FZodiacZombieSpawnConfig(const int32 Index, const EZodiacExtendedMovementMode MovementMode, const int32 Seed)
-		: MovementConfigTemplateIndex(Index)
-		, DefaultMovementMode(MovementMode)
-		, Seed(Seed)
+		, bAllowSwitchingExtendedMovementMode(bAllowSwitchingExtendedMovementMode)
 	{}
 	
 	UPROPERTY()
@@ -92,7 +92,16 @@ public:
 	float TargetSearchRadius;
 
 	UPROPERTY(NotReplicated)
-	bool bRespawnWhenDies;
+	float WaitTimeAfterSpawn;
+
+	UPROPERTY(NotReplicated)
+	float WaitTimeRandomDeviation;
 	
+	UPROPERTY(NotReplicated)
+	bool bRespawnWhenDies;
+
+	UPROPERTY(NotReplicated)
+	bool bAllowSwitchingExtendedMovementMode;
+
 	bool IsValid() const { return (MovementConfigTemplateIndex != INDEX_NONE); }
 };

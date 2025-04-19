@@ -133,7 +133,7 @@ FZodiacZombieSpawnConfig AZodiacAIPawnSpawner::GenerateSpawnConfig()
 		
 		int32 RandomSeed = FMath::RandRange(1, UINT8_MAX);
 		
-		return FZodiacZombieSpawnConfig(RandomIndex, Mode, RandomSeed, BehaviorTree, bUseTargetSearchRadius, TargetSearchRadius, bRespawnWhenDies);
+		return FZodiacZombieSpawnConfig(RandomIndex, Mode, RandomSeed, BehaviorTree, bUseTargetSearchRadius, TargetSearchRadius, WaitTimeAfterSpawn, WaitTimeRandomDeviation, bRespawnWhenDies, bAllowSwitchingExtendedMovementMode);
 	}
 
 	return FZodiacZombieSpawnConfig();

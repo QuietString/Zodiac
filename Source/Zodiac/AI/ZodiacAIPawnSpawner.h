@@ -57,20 +57,19 @@ protected:
 	
 public:
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
+	TObjectPtr<UEnvQuery> LocationQuery;
+	
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bSpawnOnBeginPlay = true;
 
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
-	bool bUseTrigger = false;
-	
-	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bRespawnWhenDies;
 
-	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
-	TObjectPtr<UEnvQuery> LocationQuery;
-
-	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
-	bool bSelectCloserLocationToSpawner = true;
-
+	// How many monsters to respawn at once. We use batch to execute EQS less frequently.
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = "1", EditCondition = "bRespawnWhenDies"))
+	int32 RespawnBatchSize = 10;
+	
+	// Required minimum count for spawning when can't spawn all due to AI Pawn capacity.
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = 0))
 	int32 MinimumPartialSpawnCount = 0;
 	
@@ -102,6 +101,16 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn", meta = (ClampMin = 0, EditCondition = "bUseTargetSearchRadius"))
 	float TargetSearchRadius = 10000.f;
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
+	float WaitTimeAfterSpawn = 0;
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
+	float WaitTimeRandomDeviation = 0;
+
+	// If true, pawns can change ExtendedMovementMode according to AI State
+	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")
+	bool bAllowSwitchingExtendedMovementMode;
 	
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spacing")
 	float GridSize = 500.f;
@@ -109,6 +118,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spacing")
 	float SpawnSpacing = 120.f;
 
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spacing")
+	bool bSelectCloserLocationToSpawner = true;
+	
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spacing", meta = (UIMin = 0, UIMax = 1, ClampMin = 0, ClampMax = 1))
 	float RandomSkipping = 0.f;
 
@@ -123,10 +135,6 @@ private:
 	UPROPERTY(Transient)
 	TMap<TSubclassOf<AZodiacMonster>, uint8> PendingRespawnRequests;
 	
-	// How many monsters to respawn at once. We use batch to execute EQS less frequently.
-	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = "1"))
-	int32 RespawnBatchSize = 10;
-
 	UPROPERTY(Transient)
 	TObjectPtr<UZodiacAIPawnSubsystem> AIPawnSubsystem;
 

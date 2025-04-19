@@ -21,17 +21,16 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
-						AActor* OtherActor,
-						UPrimitiveComponent* OtherComp,
-						int32 OtherBodyIndex,
-						bool bFromSweep,
-						const FHitResult &SweepResult);
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 
 public:
-	// Which spawner(s) to trigger when the player overlaps this volume
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawner Trigger")
+	// Which spawner(s) to trigger spawn when the player overlaps this volume
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category="Spawner Trigger")
 	TArray<AZodiacAIPawnSpawner*> SpawnersToTrigger;
+
+	// Which spawner(s) to trigger despawn when the player overlaps this volume
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category="Spawner Trigger")
+	TArray<AZodiacAIPawnSpawner*> SpawnersToTriggerDespawn;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawner Trigger")
 	bool bTriggerOnlyOnce = true;
@@ -43,5 +42,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Spawner Trigger")
 	TObjectPtr<UBoxComponent> TriggerBox;
 
-	bool bAlreadyTriggered;
+	bool bHasTriggered;
+
+#if WITH_EDITORONLY_DATA
+private:
+	UPROPERTY()
+	UBillboardComponent* SpriteComponent;
+#endif
 };

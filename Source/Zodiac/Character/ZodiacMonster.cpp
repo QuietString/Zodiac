@@ -231,6 +231,9 @@ void AZodiacMonster::Multicast_WakeUp_Implementation(const FVector& SpawnLocatio
 		{
 			BlackBoard->SetValueAsBool(FName("UseTargetSearchRadius"), SpawnConfig.bUseTargetSearchRadius);
 			BlackBoard->SetValueAsFloat(FName("SearchRadius"), SpawnConfig.TargetSearchRadius);
+			BlackBoard->SetValueAsFloat(FName("WaitTime"), SpawnConfig.WaitTimeAfterSpawn);
+			BlackBoard->SetValueAsFloat(FName("WaitTimeRandomDeviation"), SpawnConfig.WaitTimeRandomDeviation);
+			BlackBoard->SetValueAsBool(FName("CanSwitchExtendedMovementMode"), SpawnConfig.bAllowSwitchingExtendedMovementMode);
 		}
 	}
 	

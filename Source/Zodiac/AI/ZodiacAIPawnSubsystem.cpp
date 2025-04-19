@@ -14,7 +14,7 @@
 
 static TAutoConsoleVariable<int32> CVarMaxGlobalAIPawns(
 	TEXT("Zodiac.ai.MaxGlobalAIPawns"),
-	50,
+	60,
 	TEXT("Maximum global AI pawns at once."),
 	ECVF_Default
 );
@@ -39,10 +39,16 @@ void UZodiacAIPawnSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	
 	// Set the console variable's default to match the config-laded value:
-	IConsoleVariable* Var = IConsoleManager::Get().FindConsoleVariable(TEXT("Zodiac.ai.TargetActorLostTimeout"));
-	if (Var)
+	IConsoleVariable* TimeOutVar = IConsoleManager::Get().FindConsoleVariable(TEXT("Zodiac.ai.TargetActorLostTimeout"));
+	if (TimeOutVar)
 	{
-		Var->Set(TargetActorLostTimeout, ECVF_SetByConstructor);
+		TimeOutVar->Set(TargetActorLostTimeout, ECVF_SetByConstructor);
+	}
+
+	IConsoleVariable* MaxPawnVar = IConsoleManager::Get().FindConsoleVariable(TEXT("Zodiac.ai.MaxGlobalAIPawns"));
+	if (MaxPawnVar)
+	{
+		MaxPawnVar->Set(MaxGlobalAIPawns, ECVF_SetByConstructor);
 	}
 	
 	TickHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &ThisClass::Tick), TickInterval);
@@ -312,7 +318,7 @@ void UZodiacAIPawnSubsystem::ProcessSpawnRequests()
 			// Remove the request from the queue
 			SpawnRequestsQueue.RemoveAt(i);
 			
-			UE_LOG(LogZodiacSpawner, Log, TEXT("Perform queued spawn request. Requested: %d, Capacity left: %d, Active + Spawning: %d"), TotalNeeded, CapacityLeft, CurrentlyActive + CurrentlySpawning);
+			UE_LOG(LogZodiacSpawner, Log, TEXT("Perform queued spawn request. Requested: %d, Active + Spawning: %d, Capacity left: %d"), TotalNeeded, CurrentlyActive + CurrentlySpawning, CapacityLeft);
 		}
 		else if (CapacityLeft >= Spawner->MinimumPartialSpawnCount)
 		{
@@ -371,54 +377,61 @@ void UZodiacAIPawnSubsystem::SplitSpawnRequest(const TMap<TSubclassOf<AZodiacMon
 	TMap<TSubclassOf<AZodiacMonster>, uint8>& OutLeftoverRequest)
 {
 	OutPartialRequest.Empty();
-	OutLeftoverRequest = OriginalRequest;
+    OutLeftoverRequest = OriginalRequest;
 
-	// 1) Gather the TMap into an array of (MonsterClass, Count)
-	TArray<TPair<TSubclassOf<AZodiacMonster>, uint8>> RequestArray;
-	RequestArray.Reserve(OriginalRequest.Num());
+    if (Capacity <= 0 || OriginalRequest.Num() == 0)
+    {
+        return;
+    }
 
-	for (const TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : OriginalRequest)
-	{
-		RequestArray.Add(Pair);
-	}
+    // 1. Copy the request into a working array and shuffle its order (shuffling is optional but prevents bias)
+    TArray<TPair<TSubclassOf<AZodiacMonster>, uint8>> WorkArray;
+    WorkArray.Reserve(OriginalRequest.Num());
 
-	// 2) Shuffle the array
-	Algo::RandomShuffle(RequestArray);
-	
-	int32 RemainingCapacity = Capacity;
+    for (const TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : OriginalRequest)
+    {
+        WorkArray.Add(Pair);
+    }
 
-	// 3) Process in random order
-	for (TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : RequestArray)
-	{
-		if (RemainingCapacity <= 0)
-		{
-			break;
-		}
+	// randomise start class
+    Algo::RandomShuffle(WorkArray);
 
-		TSubclassOf<AZodiacMonster> MonsterClass = Pair.Key;
-		int32 RequestedCount = Pair.Value;
+    // 2. Round‑robin allocation
+    int32 RemainingCapacity = Capacity;
+    bool bAnyClassStillNeeds = true;
 
-		if (RequestedCount <= RemainingCapacity)
-		{
-			// We can fully fill this class from capacity
-			OutPartialRequest.Add(MonsterClass, RequestedCount);
-			OutLeftoverRequest.Remove(MonsterClass);
+    while (RemainingCapacity > 0 && bAnyClassStillNeeds)
+    {
+        bAnyClassStillNeeds = false;
 
-			RemainingCapacity -= RequestedCount;
-		}
-		else
-		{
-			// partial
-			int32 PartialAmount = RemainingCapacity;
-			OutPartialRequest.Add(MonsterClass, PartialAmount);
+        for (TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : WorkArray)
+        {
+            if (RemainingCapacity == 0)
+            {
+                break;
+            }
 
-			int32 RemainForClass = RequestedCount - PartialAmount;
-			OutLeftoverRequest.FindOrAdd(MonsterClass) = RemainForClass;
+            if (Pair.Value > 0) // this class still needs pawns
+            {
+                // Give ONE pawn of this class
+                OutPartialRequest.FindOrAdd(Pair.Key)++;
+                Pair.Value--;
+                RemainingCapacity--;
 
-			RemainingCapacity = 0;
-			break;
-		}
-	}
+                bAnyClassStillNeeds = true;
+            }
+        }
+    }
+
+    // 3. Build the leftover map
+    OutLeftoverRequest.Empty();
+    for (const TPair<TSubclassOf<AZodiacMonster>, uint8>& Pair : WorkArray)
+    {
+        if (Pair.Value > 0)
+        {
+            OutLeftoverRequest.Add(Pair.Key, Pair.Value);
+        }
+    }
 }
 
 int32 UZodiacAIPawnSubsystem::GetNumberOfActivePawns() const

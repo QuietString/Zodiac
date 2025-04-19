@@ -108,7 +108,9 @@ public:
 	void KillDebugPawns();
 
 protected:
+	UFUNCTION(BlueprintCallable)
 	void PrintCurrentState() const;
+	
 	void DespawnByTimeOut(float DeltaTime);
 
 	bool Tick(float DeltaTime);
@@ -118,6 +120,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, Config, Category="AI", meta=(ClampMin="0.0"))
 	float TargetActorLostTimeout;
 
+	// How many pawns exists concurrently
+	UPROPERTY(BlueprintReadWrite, Config, Category="AI", meta=(ClampMin="0"))
+	int32 MaxGlobalAIPawns;
+	
 protected:
 	UPROPERTY()
 	TArray<FZodiacSpawnerPool> SpawnerPools;
