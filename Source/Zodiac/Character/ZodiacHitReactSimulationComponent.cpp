@@ -18,6 +18,20 @@ namespace ZodiacCollisionProfileName
 	FName Ragdoll = FName(TEXT("Ragdoll"));
 }
 
+namespace
+{
+	inline float GetEasedBlendWeight(float Start, float End, float Alpha, EZodiacHitReactBlendMode Mode, float Exp)
+	{
+		switch (Mode)
+		{
+		case EZodiacHitReactBlendMode::EaseIn:     return FMath::InterpEaseIn (Start, End, Alpha, Exp);
+		case EZodiacHitReactBlendMode::EaseOut:    return FMath::InterpEaseOut(Start, End, Alpha, Exp);
+		case EZodiacHitReactBlendMode::EaseInOut:  return FMath::InterpEaseInOut(Start, End, Alpha, Exp);
+		default: /*Linear*/						   return FMath::Lerp(Start, End, Alpha);
+		}
+	}
+}
+
 UZodiacHitReactSimulationComponent::UZodiacHitReactSimulationComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -127,7 +141,7 @@ void UZodiacHitReactSimulationComponent::TickComponent(float DeltaTime, ELevelTi
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	if (TargetMeshComponent)
+	if (TargetMeshComponent && GetWorld())
 	{
 		bool bHasAnySimulatedBody = false;
 		for (FZodiacPhysicalHitReactBody& TargetBody : TargetBodies)
@@ -136,13 +150,16 @@ void UZodiacHitReactSimulationComponent::TickComponent(float DeltaTime, ELevelTi
 			{
 				bHasAnySimulatedBody = true;
 
+				float Elapsed   = GetWorld()->GetTimeSeconds() - TargetBody.LastHit.HitTime;
 				float Duration = TargetBody.LastHit.bIsExplosive ? HitReactDuration_Explosive : HitReactDuration;
-				float BlendWeightDiminishSpeed = 1 / Duration;
-				float BlendWeightDelta = - (DeltaTime * BlendWeightDiminishSpeed);
-				TargetMeshComponent->AccumulateAllBodiesBelowPhysicsBlendWeight(TargetBody.SimulationRootBone, BlendWeightDelta);
+				float InterpSpeed = 1.f / FMath::Max(Duration, KINDA_SMALL_NUMBER);
+				float Alpha = FMath::Clamp(Elapsed / FMath::Max(Duration, KINDA_SMALL_NUMBER), 0.f, 1.f);
+
+				TargetBody.BlendWeight = GetEasedBlendWeight(TargetBody.InitialBlendWeight, 0.f, Alpha, BlendMode, BlendEaseExponent);
+				TargetMeshComponent->SetAllBodiesBelowPhysicsBlendWeight(TargetBody.SimulationRootBone, TargetBody.BlendWeight);
 				
-				// Record current blend weight
-				TargetBody.BlendWeight = FMath::Min(TargetBody.BlendWeight + BlendWeightDelta, 1.f);
+				//TargetBody.BlendWeight = FMath::FInterpTo(TargetBody.BlendWeight, 0.f, DeltaTime, InterpSpeed);
+				//TargetMeshComponent->SetAllBodiesBelowPhysicsBlendWeight(TargetBody.SimulationRootBone, TargetBody.BlendWeight);
 			}
 			else if (TargetBody.bIsSimulated)
 			{
@@ -171,6 +188,19 @@ void UZodiacHitReactSimulationComponent::TickComponent(float DeltaTime, ELevelTi
 void UZodiacHitReactSimulationComponent::OnWakeUp()
 {
 	ResetPhysicsSetup();
+}
+
+FName UZodiacHitReactSimulationComponent::FindSimulationRootForHit(FName HitBone) const
+{
+	if (!TargetMeshComponent) return NAME_None;
+	
+	if (TargetMeshComponent->BoneIsChildOf(HitBone, LeftClavicle)) return LeftClavicle;
+	if (TargetMeshComponent->BoneIsChildOf(HitBone, RightClavicle)) return RightClavicle;
+
+	if (TargetMeshComponent->BoneIsChildOf(HitBone, LeftLegRoot))  return LeftLegRoot;
+	if (TargetMeshComponent->BoneIsChildOf(HitBone, RightLegRoot)) return RightLegRoot;
+
+	return UpperBodyRoot;
 }
 
 EZodiacPhysicalHitReactBodyType UZodiacHitReactSimulationComponent::DetermineBodyType(FName HitBone) const
@@ -244,11 +274,14 @@ void UZodiacHitReactSimulationComponent::OnPlayHitReact(FVector HitDirection, FN
 
 	TargetBody->LastHit = HitDamageData;
 	TargetBody->BlendWeight = (TargetBody->BodyType == EZodiacPhysicalHitReactBodyType::UpperBody) ? bIsExplosive ? 0.7f : Magnitude > 40.f ? 1.f : 0.6f : 0.3f;
+	TargetBody->InitialBlendWeight = TargetBody->BlendWeight;
 	TargetBody->bIsSimulated = true;
 	
 	TargetMeshComponent->SetAllBodiesBelowSimulatePhysics(TargetBody->SimulationRootBone, true);
 	TargetMeshComponent->SetAllBodiesBelowPhysicsBlendWeight(TargetBody->SimulationRootBone, TargetBody->BlendWeight);
-	TargetMeshComponent->AddImpulse(HitDamageData.Impulse * HitReactStrength, HitBone, true);
+
+	const FVector HitLoc = TargetMeshComponent->GetSocketLocation(HitBone);
+	TargetMeshComponent->AddImpulseAtLocation(HitDamageData.Impulse * HitReactStrength, HitLoc, HitBone);
 }
 
 void UZodiacHitReactSimulationComponent::OnDeathStarted(AActor* OwningActor)

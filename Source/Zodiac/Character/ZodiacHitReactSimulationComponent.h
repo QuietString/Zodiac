@@ -9,6 +9,15 @@
 
 class UZodiacHitReactSimulationComponent;
 
+UENUM(BlueprintType, DisplayName = "EHitReactBlendMode")
+enum class EZodiacHitReactBlendMode : uint8
+{
+	Linear      UMETA(DisplayName="Linear"),
+	EaseIn      UMETA(DisplayName="Ease‑In"),
+	EaseOut     UMETA(DisplayName="Ease‑Out"),
+	EaseInOut   UMETA(DisplayName="Ease‑In‑Out")
+};
+
 UENUM(BlueprintType)
 enum class EZodiacPhysicalHitReactBodyType : uint8
 {
@@ -47,6 +56,7 @@ struct FZodiacPhysicalHitReactBody
 	FName SimulationRootBone;
 
 	float BlendWeight = 0.f;
+	float InitialBlendWeight = 1.f;
 	
 	bool bIsSimulated = false;
 
@@ -87,6 +97,11 @@ protected:
 
 	UFUNCTION()
 	void OnWakeUp();
+
+	// Return the first “branch root” (clavicle_l, clavicle_r, spine_01, thigh_l …) that
+	// is an ancestor of HitBone.  Used to restrict physics to the correct limb only.
+	// Currently not used.  
+	FName FindSimulationRootForHit(FName HitBone) const;
 	
 	EZodiacPhysicalHitReactBodyType DetermineBodyType(FName HitBone) const;
 	
@@ -111,6 +126,12 @@ protected:
 	FName UpperBodyRoot = FName("spine_01");
 
 	UPROPERTY(EditAnywhere, Category = "HitReact|MeshConfig|UpperBody")
+	FName LeftClavicle = FName("clavicle_l");
+
+	UPROPERTY(EditAnywhere, Category = "HitReact|MeshConfig|UpperBody")
+	FName RightClavicle = FName("clavicle_r");
+	
+	UPROPERTY(EditAnywhere, Category = "HitReact|MeshConfig|UpperBody")
 	FName UpperBodyProfile = FName("HitReact");
 
 	UPROPERTY(EditAnywhere, Category = "HitReact|MeshConfig|LowerBody")
@@ -125,6 +146,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "HitReact|MeshConfig|LowerBody")
 	FName LowerBodyProfile = FName("HitReact_LowerBody");
 
+	// Blend mode for diminishing physics weight for restoring original body pose after hit.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HitReact|Blend")
+	EZodiacHitReactBlendMode BlendMode = EZodiacHitReactBlendMode::Linear;
+
+	// Exponent for the Ease curves
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HitReact|Blend", meta=(ClampMin="1.0"))
+	float BlendEaseExponent = 2.f;
+	
 	UPROPERTY(EditAnywhere, Category = "HitReact")
 	float HitReactDuration = 0.34f;
 	
