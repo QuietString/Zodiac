@@ -42,6 +42,9 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Event_RequestReset, "Event.RequestReset", "Event to request a player's pawn to be instantly replaced with a new one at a valid spawn location.");
 
 	// Effects
+	UE_DEFINE_GAMEPLAY_TAG(Effect_Type_Damage, "Effect.Type.Damage");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_Type_Damage_None, "Effect.Type.Damage.None");
+	UE_DEFINE_GAMEPLAY_TAG(Effect_Type_Damage_Bullet, "Effect.Type.Damage.Bullet");
 	UE_DEFINE_GAMEPLAY_TAG(Effect_Type_Damage_Explosive, "Effect.Type.Damage.Explosive");
 	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(SetByCaller_Damage, "SetByCaller.Damage", "SetByCaller tag used by damage gameplay effects.");

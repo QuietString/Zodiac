@@ -9,6 +9,43 @@
 
 class UZodiacHitReactSimulationComponent;
 
+USTRUCT(BlueprintType)
+struct FZodiacHitReactDamageConfig
+{
+	GENERATED_BODY()
+
+	FZodiacHitReactDamageConfig()
+		: BlendDuration(0.34f)
+		, BlendWeightRange(FVector2D(0.f, 1.f))
+		, DamageRange(10.f, 50.f)
+		, ImpulseStrength(40.f)
+		, RagdollStrength(65.f)
+	{}
+
+	// Duration for physical hit react simulation blending. 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float BlendDuration;
+	
+	// Initial blend weight range for the simulation. 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FVector2D BlendWeightRange;
+
+	// Damage range to scale initial blend weight.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FVector2D DamageRange;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float ImpulseStrength;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float RagdollStrength;
+
+	float GetScaledBlendWeightByDamage(const float Damage) const
+	{
+		return FMath::GetMappedRangeValueClamped(DamageRange, BlendWeightRange, Damage);
+	}
+};
+
 UENUM(BlueprintType, DisplayName = "EHitReactBlendMode")
 enum class EZodiacHitReactBlendMode : uint8
 {
@@ -30,16 +67,16 @@ enum class EZodiacPhysicalHitReactBodyType : uint8
 struct FZodiacHitDamageData
 {
 	FZodiacHitDamageData()
-	{
-		HitBone = NAME_None;
-		Impulse = FVector();
-		bIsExplosive = false;
-	}
-	
-	FName HitBone;
-	FVector Impulse;
-	bool bIsExplosive;
+	{}
+
+	FGameplayTag DamageType;
 	float HitTime;
+	FName HitBone;
+	FVector BaseImpulse;
+	float BlendDuration;
+
+	float HitReactImpulseMultiplier;
+	float RagdollImpulseMultiplier;
 };
 
 struct FZodiacPhysicalHitReactBody
@@ -98,6 +135,9 @@ protected:
 	UFUNCTION()
 	void OnWakeUp();
 
+	FGameplayTag GetDamageType(const FGameplayTagContainer& Tags) const;
+	const FZodiacHitReactDamageConfig& GetDamageHitReactConfig(const FGameplayTag DamageType) const;
+	
 	// Return the first “branch root” (clavicle_l, clavicle_r, spine_01, thigh_l …) that
 	// is an ancestor of HitBone.  Used to restrict physics to the correct limb only.
 	// Currently not used.  
@@ -109,7 +149,6 @@ protected:
 
 	UFUNCTION()
 	void OnDeathStarted(AActor* OwningActor);
-	
 	void StartRagdoll();
 
 protected:
@@ -153,6 +192,12 @@ protected:
 	// Exponent for the Ease curves
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="HitReact|Blend", meta=(ClampMin="1.0"))
 	float BlendEaseExponent = 2.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="HitReact", meta=(Categories="Effect.Type.Damage"))
+	TMap<FGameplayTag, FZodiacHitReactDamageConfig> BlendConfigs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HitReact")
+	FZodiacHitReactDamageConfig DefaultBlendConfig = FZodiacHitReactDamageConfig();
 	
 	UPROPERTY(EditAnywhere, Category = "HitReact")
 	float HitReactDuration = 0.34f;

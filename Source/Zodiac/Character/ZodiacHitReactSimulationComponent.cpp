@@ -6,6 +6,7 @@
 #include "ZodiacCharacter.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHealthComponent.h"
+#include "ZodiacLogChannels.h"
 #include "Components/CapsuleComponent.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
 
@@ -151,15 +152,12 @@ void UZodiacHitReactSimulationComponent::TickComponent(float DeltaTime, ELevelTi
 				bHasAnySimulatedBody = true;
 
 				float Elapsed   = GetWorld()->GetTimeSeconds() - TargetBody.LastHit.HitTime;
-				float Duration = TargetBody.LastHit.bIsExplosive ? HitReactDuration_Explosive : HitReactDuration;
+				float Duration = TargetBody.LastHit.BlendDuration;
 				float InterpSpeed = 1.f / FMath::Max(Duration, KINDA_SMALL_NUMBER);
 				float Alpha = FMath::Clamp(Elapsed / FMath::Max(Duration, KINDA_SMALL_NUMBER), 0.f, 1.f);
 
 				TargetBody.BlendWeight = GetEasedBlendWeight(TargetBody.InitialBlendWeight, 0.f, Alpha, BlendMode, BlendEaseExponent);
 				TargetMeshComponent->SetAllBodiesBelowPhysicsBlendWeight(TargetBody.SimulationRootBone, TargetBody.BlendWeight);
-				
-				//TargetBody.BlendWeight = FMath::FInterpTo(TargetBody.BlendWeight, 0.f, DeltaTime, InterpSpeed);
-				//TargetMeshComponent->SetAllBodiesBelowPhysicsBlendWeight(TargetBody.SimulationRootBone, TargetBody.BlendWeight);
 			}
 			else if (TargetBody.bIsSimulated)
 			{
@@ -167,7 +165,7 @@ void UZodiacHitReactSimulationComponent::TickComponent(float DeltaTime, ELevelTi
 				TargetMeshComponent->SetAllBodiesBelowSimulatePhysics(TargetBody.SimulationRootBone, false);
 
 				// Recover normal physical profile from explosive profile.
-				if (TargetBody.LastHit.bIsExplosive)
+				if (TargetBody.LastHit.DamageType == ZodiacGameplayTags::Effect_Type_Damage_Explosive)
 				{
 					PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(UpperBodyRoot, UpperBodyProfile, true, true);	
 				}
@@ -188,6 +186,36 @@ void UZodiacHitReactSimulationComponent::TickComponent(float DeltaTime, ELevelTi
 void UZodiacHitReactSimulationComponent::OnWakeUp()
 {
 	ResetPhysicsSetup();
+}
+
+FGameplayTag UZodiacHitReactSimulationComponent::GetDamageType(const FGameplayTagContainer& Tags) const
+{
+	const FGameplayTag DamageTagRoot = ZodiacGameplayTags::Effect_Type_Damage;
+	
+	for (const FGameplayTag& Tag : Tags)
+	{
+		if (Tag.MatchesTag(DamageTagRoot))
+		{
+			if (Tag != DamageTagRoot)
+			{
+				return Tag;
+			}
+		}
+	}
+
+	return ZodiacGameplayTags::Effect_Type_Damage_None;
+}
+
+const FZodiacHitReactDamageConfig& UZodiacHitReactSimulationComponent::GetDamageHitReactConfig(const FGameplayTag DamageType) const
+{
+	if (const FZodiacHitReactDamageConfig* ConfigPtr = BlendConfigs.Find(DamageType))
+	{
+		return *ConfigPtr;
+	}
+
+	UE_LOG(LogZodiac, Warning, TEXT("Default Blend config selected"));
+	
+	return DefaultBlendConfig;
 }
 
 FName UZodiacHitReactSimulationComponent::FindSimulationRootForHit(FName HitBone) const
@@ -266,22 +294,29 @@ void UZodiacHitReactSimulationComponent::OnPlayHitReact(FVector HitDirection, FN
 	{
 		return;
 	}
-	
-	HitDamageData.bIsExplosive = bIsExplosive;
-	HitDamageData.HitTime = World->GetTimeSeconds();
-	HitDamageData.Impulse = HitDirection * Magnitude;
+
+	const FGameplayTag DamageType = GetDamageType(InstigatorTags);
+	const FZodiacHitReactDamageConfig& BlendConfig = GetDamageHitReactConfig(DamageType);
+
+	HitDamageData.DamageType = DamageType;
 	HitDamageData.HitBone = HitBone;
+	HitDamageData.HitTime = World->GetTimeSeconds();
+	HitDamageData.BaseImpulse = HitDirection * Magnitude;
+	HitDamageData.BlendDuration = BlendConfig.BlendDuration;
+	HitDamageData.HitReactImpulseMultiplier = BlendConfig.ImpulseStrength;
+	HitDamageData.RagdollImpulseMultiplier = BlendConfig.RagdollStrength;
 
 	TargetBody->LastHit = HitDamageData;
-	TargetBody->BlendWeight = (TargetBody->BodyType == EZodiacPhysicalHitReactBodyType::UpperBody) ? bIsExplosive ? 0.7f : Magnitude > 40.f ? 1.f : 0.6f : 0.3f;
+	TargetBody->BlendWeight = (TargetBody->BodyType == EZodiacPhysicalHitReactBodyType::UpperBody) ? BlendConfig.GetScaledBlendWeightByDamage(Magnitude) : 0.3f;
 	TargetBody->InitialBlendWeight = TargetBody->BlendWeight;
 	TargetBody->bIsSimulated = true;
+
+	const FVector HitLoc = TargetMeshComponent->GetSocketLocation(HitBone);
+	const FVector HitReactImpulse = HitDamageData.BaseImpulse * HitDamageData.HitReactImpulseMultiplier;
 	
 	TargetMeshComponent->SetAllBodiesBelowSimulatePhysics(TargetBody->SimulationRootBone, true);
 	TargetMeshComponent->SetAllBodiesBelowPhysicsBlendWeight(TargetBody->SimulationRootBone, TargetBody->BlendWeight);
-
-	const FVector HitLoc = TargetMeshComponent->GetSocketLocation(HitBone);
-	TargetMeshComponent->AddImpulseAtLocation(HitDamageData.Impulse * HitReactStrength, HitLoc, HitBone);
+	TargetMeshComponent->AddImpulseAtLocation(HitReactImpulse, HitLoc, HitBone);
 }
 
 void UZodiacHitReactSimulationComponent::OnDeathStarted(AActor* OwningActor)
@@ -340,11 +375,9 @@ void UZodiacHitReactSimulationComponent::StartRagdoll()
 			}
 		}
 		
-		float ImpulseMultiplier = LastHit.bIsExplosive ? RagdollStrength_Explosive : RagdollStrength;
-		FVector Impulse = LastHit.Impulse * ImpulseMultiplier;
-		
 		// For non-explosive damage, impulse is applied twice for a same damage. First one from PlayHitReact(), second one from this,
-		// which is okay since death hit react should be stronger.
-		TargetMeshComponent->AddImpulse(Impulse, LastHit.HitBone, true);
+		// which is find of okay since death hit react should be stronger, but needs to fix.
+		FVector RagdollImpulse = LastHit.BaseImpulse * LastHit.RagdollImpulseMultiplier;
+		TargetMeshComponent->AddImpulse(RagdollImpulse, LastHit.HitBone, true);
 	}
 }
