@@ -30,11 +30,19 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	void TryActivateTraversalAbility();
+
+	void OnTraversalAbilityCanceled();
 	
 	void PerformTraversalAction_Local();
 
 	UFUNCTION(Server, Reliable)
 	void Server_PerformTraversalAction(FZodiacTraversalCheckResult CheckResult);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_StopTraversalAction();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StopTraversalAction();
 	
 	// Used only for traversal location visualization
 	bool CheckFrontLedge(FZodiacTraversalCheckResult& Result, FGameplayTag& FailReason, FVector& LastTraceLocation, bool bIsTicked, AActor*& BlockingActor);

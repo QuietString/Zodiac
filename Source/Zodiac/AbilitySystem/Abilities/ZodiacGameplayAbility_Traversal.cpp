@@ -96,6 +96,7 @@ void UZodiacGameplayAbility_Traversal::CancelAbility(const FGameplayAbilitySpecH
 	{
 		if (UZodiacTraversalComponent* TraversalComponent = ZodiacCharacter->FindComponentByClass<UZodiacTraversalComponent>())
 		{
+			TraversalComponent->OnTraversalAbilityCanceled();
 			TraversalComponent->ClearCheckResultCache();
 		}
 	}

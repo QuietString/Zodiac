@@ -61,23 +61,23 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bSpawnOnBeginPlay = true;
-
-	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
-	bool bRespawnWhenDies;
-
-	// How many monsters to respawn at once. We use batch to execute EQS less frequently.
-	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = "1", EditCondition = "bRespawnWhenDies"))
-	int32 RespawnBatchSize = 10;
 	
 	// Required minimum count for spawning when can't spawn all due to AI Pawn capacity.
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = 0))
 	int32 MinimumPartialSpawnCount = 0;
-	
-	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
-	float RespawnDelay = 1.f;
 
 	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
 	bool bDespawnWhenNoTarget = false;
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn")
+	bool bRespawnWhenDies;
+
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (EditCondition = "bRespawnWhenDies"))
+	float RespawnDelay = 1.f;
+	
+	// How many monsters to respawn at once. We use batch to execute EQS less frequently.
+	UPROPERTY(EditAnywhere, Category = "Spawner|Spawn", meta = (ClampMin = "1", EditCondition = "bRespawnWhenDies"))
+	int32 RespawnBatchSize = 10;
 	
 	// The zombie character class to spawn
 	UPROPERTY(EditAnywhere, Category = "Spawner|Pawn")

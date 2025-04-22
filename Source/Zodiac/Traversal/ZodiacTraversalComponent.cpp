@@ -246,6 +246,15 @@ void UZodiacTraversalComponent::TryActivateTraversalAbility()
 	}
 }
 
+void UZodiacTraversalComponent::OnTraversalAbilityCanceled()
+{
+	// Skip execution for local predicted client.
+	if (GetOwnerRole() != ROLE_AutonomousProxy)
+	{
+		Multicast_StopTraversalAction();		
+	}
+}
+
 void UZodiacTraversalComponent::PerformTraversalAction_Local()
 {
 	bIsLocalPredicted = true;
@@ -270,6 +279,11 @@ void UZodiacTraversalComponent::Server_PerformTraversalAction_Implementation(FZo
 	// Clear cache
 	CheckResultCached = FZodiacTraversalCheckResult();
 	bHasCached = false;
+}
+
+void UZodiacTraversalComponent::Multicast_StopTraversalAction_Implementation()
+{
+	StopTraversalAction();
 }
 
 bool UZodiacTraversalComponent::CheckFrontLedge(FZodiacTraversalCheckResult& Result, FGameplayTag& FailReason, FVector& LastTraceLocation, bool bIsTicked, AActor*& BlockingActor)
