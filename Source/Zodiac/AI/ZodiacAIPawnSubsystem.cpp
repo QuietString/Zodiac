@@ -12,6 +12,12 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAIPawnSubsystem)
 
+namespace
+{
+	/** When true we draw the spawn state every frame */
+	bool GShowSpawnState = false;
+}
+
 static TAutoConsoleVariable<int32> CVarMaxGlobalAIPawns(
 	TEXT("Zodiac.ai.MaxGlobalAIPawns"),
 	60,
@@ -19,19 +25,31 @@ static TAutoConsoleVariable<int32> CVarMaxGlobalAIPawns(
 	ECVF_Default
 );
 
-static FAutoConsoleCommand GShowSpawnStateCmd(
-	TEXT("Zodiac.ai.ShowSpawnState"),
-	TEXT("Print current overall spawn state, e.g. Active, Queued, Spawning counts."),
-	FConsoleCommandWithWorldDelegate::CreateStatic(
-		&UZodiacAIPawnSubsystem::ShowSpawnStateConsoleCommand
-	)
-);
-
 static TAutoConsoleVariable<float> CVar_TargetActorLostTimeout(
 	TEXT("Zodiac.ai.TargetActorLostTimeout"),
 	60.0f,
 	TEXT("How long (in seconds) a monster can be target-less before being despawned."),
 	ECVF_Default
+);
+
+#if !UE_BUILD_SHIPPING
+static FAutoConsoleCommand GPrintSpawnStateCmd(
+	TEXT("Zodiac.ai.PrintSpawnState"),
+	TEXT("Print current overall spawn state, e.g. Active, Queued, Spawning counts."),
+	FConsoleCommandWithWorldDelegate::CreateStatic(
+		&UZodiacAIPawnSubsystem::PrintSpawnStateConsoleCommand
+	)
+);
+#endif
+
+static FAutoConsoleCommand GToggleDisplaySpawnStateCmd(
+	TEXT("Zodiac.ai.ToggleDisplaySpawnState"),
+	TEXT("Toggle continuous on‑screen display of the AI‑spawn state."),
+	FConsoleCommandDelegate::CreateLambda([]()
+	{
+		GShowSpawnState = !GShowSpawnState;
+		UE_LOG(LogZodiacSpawner, Display, TEXT("Display AI Pawn State: %s"), GShowSpawnState ? TEXT("On") : TEXT("Off"));
+	})
 );
 
 void UZodiacAIPawnSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -52,19 +70,11 @@ void UZodiacAIPawnSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 	
 	TickHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &ThisClass::Tick), TickInterval);
-}
 
-void UZodiacAIPawnSubsystem::ShowSpawnStateConsoleCommand(UWorld* World)
-{
-	if (!World) return;
-    
-	UGameInstance* GI = World->GetGameInstance();
-	if (!GI) return;
+#if !UE_BUILD_SHIPPING
+	DebugTickHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &ThisClass::DebugTick), 0.f);
+#endif
 
-	if (UZodiacAIPawnSubsystem* AISubsystem = GI->GetSubsystem<UZodiacAIPawnSubsystem>())
-	{
-		AISubsystem->PrintCurrentState();
-	}
 }
 
 void UZodiacAIPawnSubsystem::RegisterSpawner(AZodiacAIPawnSpawner* Spawner)
@@ -527,73 +537,6 @@ void UZodiacAIPawnSubsystem::KillDebugPawns()
 	}
 }
 
-void UZodiacAIPawnSubsystem::PrintCurrentState() const
-{
-	// Pull whatever data you want to show
-	int32 CurrentActive = GetNumberOfActivePawns();
-
-	int32 CurrentlySpawning = 0;
-	for (auto& KV : CachedNumberOfSpawning)
-	{
-		CurrentlySpawning += KV.Value;
-	}
-
-	int32 NumQueued = SpawnRequestsQueue.Num();
-
-	// If you want the sum of leftover TMaps in each request, you can do that here
-	int32 QueuedMonsters = 0;
-	for (auto& Request : SpawnRequestsQueue)
-	{
-		for (auto& Pair : Request.MonsterToSpawnMap)
-		{
-			QueuedMonsters += Pair.Value;
-		}
-	}
-	
-	int32 NumSpawners = SpawnerPools.Num();
-
-	int32 TotalPawnsInPools = 0;
-	for (const FZodiacSpawnerPool& SpawnerPool : SpawnerPools)
-	{
-		for (const FZodiacAIPawnClassPool& ClassPool : SpawnerPool.ClassPools)
-		{
-			TotalPawnsInPools += ClassPool.Instances.Num();
-		}
-	}
-	
-	int32 Limit = CVarMaxGlobalAIPawns.GetValueOnGameThread();
-
-	// Print to log and/or screen
-	UE_LOG(LogZodiacSpawner, Display,
-		TEXT("=== ZODIAC AI Pawn State ===\n")
-		TEXT(" MaxGlobalAIPawns Limit: %d\n")
-		TEXT(" Spawner Count: %d\n")
-		TEXT(" Total Pawns in Pools: %d\n")
-		TEXT(" Currently Active: %d\n")
-		TEXT(" Currently Spawning (EQS pending): %d\n")
-		TEXT(" Number of queued requests: %d\n")
-		TEXT(" Total queued monster count: %d\n"),
-		Limit,
-		NumSpawners,
-		TotalPawnsInPools,
-		CurrentActive,
-		CurrentlySpawning,
-		NumQueued,
-		QueuedMonsters
-	);
-
-#if !UE_BUILD_SHIPPING
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			(uint64)-1, 5.f, FColor::Green,
-			FString::Printf(TEXT("[ZODIAC AI STATE] Active=%d | Spawning=%d | QueueReq=%d | QueueMon=%d / Limit=%d"),
-				CurrentActive, CurrentlySpawning, NumQueued, QueuedMonsters, Limit)
-		);
-	}
-#endif
-}
-
 void UZodiacAIPawnSubsystem::DespawnByTimeOut(float DeltaTime)
 {
 	TArray<AZodiacMonster*> MonstersToDespawn;
@@ -661,6 +604,92 @@ bool UZodiacAIPawnSubsystem::Tick(float DeltaTime)
 	
 	// Watch out DeltaTime is time difference from previous frame, not difference from previous Tick time.
 	DespawnByTimeOut(TickInterval);
+	ProcessSpawnRequests();
 	
 	return true;
 }
+
+#if WITH_EDITORONLY_DATA | !UE_BUILD_SHIPPING
+void UZodiacAIPawnSubsystem::PrintCurrentState() const
+{
+	FString DebugMsg;
+	MakeDebugMessage(DebugMsg);
+	
+	UE_LOG(LogZodiacSpawner, Display, TEXT("%s"), *DebugMsg);
+}
+
+#endif
+
+#if !UE_BUILD_SHIPPING
+bool UZodiacAIPawnSubsystem::DebugTick(float DeltaTime)
+{
+	if (GShowSpawnState)
+	{
+		DisplayDebugMessages();
+	}
+	return true;
+}
+
+void UZodiacAIPawnSubsystem::PrintSpawnStateConsoleCommand(UWorld* World)
+{
+	if (!World) return;
+    
+	UGameInstance* GI = World->GetGameInstance();
+	if (!GI) return;
+
+	if (UZodiacAIPawnSubsystem* AISubsystem = GI->GetSubsystem<UZodiacAIPawnSubsystem>())
+	{
+		AISubsystem->PrintCurrentState();
+	}
+}
+
+void UZodiacAIPawnSubsystem::MakeDebugMessage(FString& Msg) const
+{
+	// --- gather numbers ------------------------------------------------
+	const int32 CurrentActive = GetNumberOfActivePawns();
+
+	int32 CurrentlySpawning = 0;
+	for (const TPair<TObjectPtr<AZodiacAIPawnSpawner>, int32>& KV : CachedNumberOfSpawning)
+	{
+		CurrentlySpawning += KV.Value;
+	}
+
+	int32 QueuedReq  = SpawnRequestsQueue.Num();
+	int32 QueuedPawns = 0;
+	for (const FSpawnRequest& Req : SpawnRequestsQueue)
+	{
+		for (const auto& Pair : Req.MonsterToSpawnMap)
+		{
+			QueuedPawns += Pair.Value;
+		}
+	}
+
+	const int32 Limit = CVarMaxGlobalAIPawns.GetValueOnGameThread();
+
+	int32 NumSpawners = SpawnerPools.Num();
+	
+	// --- compose message ----------------------------------------------
+	Msg = FString::Printf(
+		TEXT("[ZodiacAIPawnSubsystem]\n"
+				"Tick Interval: %.1f\n"
+				"Spawner Counts: %d\n"
+				"Pawns Capacity: %d/%d\n"
+				"Queued Requests: %d\n"
+				"Queued pawns: %d\n"
+				),
+		TickInterval, NumSpawners, CurrentActive, Limit, QueuedReq, QueuedPawns);
+}
+
+void UZodiacAIPawnSubsystem::DisplayDebugMessages()
+{
+	if (GEngine)
+	{
+		// --- compose message ----------------------------------------------
+		FString Msg;
+		MakeDebugMessage(Msg);
+
+		constexpr uint64 MsgKey = 0xA1A1A1A1u;
+		GEngine->AddOnScreenDebugMessage(MsgKey, 0.f, FColor::Green, Msg, true, FVector2D(3.f, 3.f));
+	}
+}
+#endif

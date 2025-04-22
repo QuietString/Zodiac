@@ -2,7 +2,6 @@
 setlocal
 
 REM ----------------------------------------------------------------------
-REM  Base folders (relative to the .bat file itself)
 set "ScriptDir=%~dp0"                               REM e.g. ...\Zodiac\
 set "ProjectPath=%ScriptDir%Zodiac.uproject"
 set "PackageOutputDir=%ScriptDir%Package"

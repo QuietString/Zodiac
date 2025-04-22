@@ -594,6 +594,7 @@ void AZodiacCharacter::OnExtendedMovementModeChanged(EZodiacExtendedMovementMode
 
 	SetExtendedMovementModeTag(PreviousMode, false);
 	SetExtendedMovementModeTag(ZodiacMoveComp->GetExtendedMovementMode(), true);
+	BP_OnExtendedMovementModeChanged.Broadcast(ZodiacMoveComp->GetExtendedMovementMode());
 }
 
 void AZodiacCharacter::SetExtendedMovementModeTag(EZodiacExtendedMovementMode ExtendedMovementMode, bool bTagEnabled)

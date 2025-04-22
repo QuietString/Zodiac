@@ -71,8 +71,6 @@ class ZODIAC_API UZodiacAIPawnSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
-	static void ShowSpawnStateConsoleCommand(UWorld* World);
-	
 	void RegisterSpawner(AZodiacAIPawnSpawner* Spawner);
 	void UnregisterSpawner(AZodiacAIPawnSpawner* Spawner);
 
@@ -108,13 +106,24 @@ public:
 	void KillDebugPawns();
 
 protected:
-	UFUNCTION(BlueprintCallable)
-	void PrintCurrentState() const;
-	
 	void DespawnByTimeOut(float DeltaTime);
 
 	bool Tick(float DeltaTime);
 
+#if WITH_EDITORONLY_DATA | !UE_BUILD_SHIPPING
+	UFUNCTION(BlueprintCallable)
+	void PrintCurrentState() const;
+#endif
+	
+#if !UE_BUILD_SHIPPING
+public:
+	static void PrintSpawnStateConsoleCommand(UWorld* World);
+protected:
+	bool DebugTick(float DeltaTime);
+	void MakeDebugMessage(FString& Msg) const;
+	void DisplayDebugMessages();
+#endif
+	
 public:
 	// How long (in seconds) a monster can be target-less before being despawned
 	UPROPERTY(BlueprintReadWrite, Config, Category="AI", meta=(ClampMin="0.0"))
@@ -151,5 +160,8 @@ private:
 	TMap<TObjectPtr<AZodiacAIPawnSpawner>, int32> CachedNumberOfSpawning;
 
 	FTSTicker::FDelegateHandle TickHandle;
-	
+
+#if !UE_BUILD_SHIPPING
+	FTSTicker::FDelegateHandle DebugTickHandle;
+#endif
 };

@@ -25,6 +25,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnAbilitySystemComponentInitialized, UAbili
 
 DECLARE_DELEGATE_FourParams(FOnPlayHitReact, FVector, FName, float, const FGameplayTagContainer&);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnExtendedMovementModeChangedSignature, EZodiacExtendedMovementMode, ExtendedMovementMode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FZodiacAIPawnOnWakeUpSignature);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FZodiacCharacterSleepAfterDeathDelegateSignature, AActor*, DeadActor);
@@ -168,6 +169,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FZodiacAIPawnOnWakeUpSignature OnSleep;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnExtendedMovementModeChangedSignature BP_OnExtendedMovementModeChanged;
 	
 protected:	
 	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner);

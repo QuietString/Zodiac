@@ -16,6 +16,8 @@
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
 #include "ZodiacHitReactSimulationComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/DecalComponent.h"
+#include "Utility/ZodiacUtilityLibrary.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacMonster)
 
@@ -190,6 +192,17 @@ void AZodiacMonster::Multicast_Sleep_Implementation()
 	{
 		HealthComponent->ResetHealthAndDeathState();
 	}
+
+	TArray<UDecalComponent*> DecalComps;
+	GetComponents<UDecalComponent>(DecalComps);
+
+	// Remove all blood decals.
+	for (UDecalComponent* Decal : DecalComps)
+	{
+		FName BloodDecalTag = UZodiacUtilityLibrary::GetBloodDecalTag();
+		if (!Decal->ComponentHasTag(BloodDecalTag)) continue;
+		Decal->DestroyComponent();
+	}
 	
 	OnSleep.Broadcast();
 }
@@ -211,6 +224,11 @@ void AZodiacMonster::Multicast_WakeUp_Implementation(const FVector& SpawnLocatio
 	if (USkeletalMeshComponent* MeshComponent = GetMesh())
 	{
 		MeshComponent->SetComponentTickEnabled(true);
+		
+		if (UZodiacHostAnimInstance* HostAnimInstance = Cast<UZodiacHostAnimInstance>(MeshComponent->GetAnimInstance()))
+		{
+			HostAnimInstance->InitializeAnimation();
+		}
 	}
 
 	if (RetargetedMeshComponent)
@@ -234,6 +252,12 @@ void AZodiacMonster::Multicast_WakeUp_Implementation(const FVector& SpawnLocatio
 			BlackBoard->SetValueAsFloat(FName("WaitTime"), SpawnConfig.WaitTimeAfterSpawn);
 			BlackBoard->SetValueAsFloat(FName("WaitTimeRandomDeviation"), SpawnConfig.WaitTimeRandomDeviation);
 			BlackBoard->SetValueAsBool(FName("CanSwitchExtendedMovementMode"), SpawnConfig.bAllowSwitchingExtendedMovementMode);
+
+			if (UZodiacCharacterMovementComponent* ZodiacCharacterMovementComponent = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+			{
+				EZodiacExtendedMovementMode ExtendedMovementMode = ZodiacCharacterMovementComponent->GetExtendedMovementMode();
+				BlackBoard->SetValueAsEnum(FName("ExtendedMovementMode"), static_cast<uint8>(ExtendedMovementMode));
+			}
 		}
 	}
 	
