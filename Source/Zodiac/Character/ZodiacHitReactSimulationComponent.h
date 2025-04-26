@@ -198,22 +198,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HitReact")
 	FZodiacHitReactDamageConfig DefaultBlendConfig = FZodiacHitReactDamageConfig();
-	
-	UPROPERTY(EditAnywhere, Category = "HitReact")
-	float HitReactDuration = 0.34f;
-	
-	UPROPERTY(EditAnywhere, Category = "HitReact")
-	float HitReactDuration_Explosive = 2.f;
-	
-	UPROPERTY(EditAnywhere, Category = "HitReact")
-	float HitReactStrength = 40.f;
 
-	UPROPERTY(EditAnywhere, Category = "HitReact|Ragdoll")
-	float RagdollStrength = 65.f;
-
-	UPROPERTY(EditAnywhere, Category = "HitReact|Ragdoll")
-	float RagdollStrength_Explosive = 150.f;
-	
 private:	
 	TArray<FZodiacPhysicalHitReactBody> TargetBodies;
 	

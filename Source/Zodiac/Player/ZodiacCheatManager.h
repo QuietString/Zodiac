@@ -47,7 +47,7 @@ public:
 	virtual void InfiniteAmmo();
 
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
-	virtual void ChargeUltimate();
+	virtual void ChargeUltimate(float ChargeAmount);
 	
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	virtual void InfiniteUltimate();
@@ -85,6 +85,9 @@ public:
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	void MonstersImmortal();
 
+	UFUNCTION(Exec, BlueprintAuthorityOnly)
+	void DisableAIAttack();
+	
 	UFUNCTION(Exec, BlueprintAuthorityOnly)
 	void ToggleMonsterAI();
 

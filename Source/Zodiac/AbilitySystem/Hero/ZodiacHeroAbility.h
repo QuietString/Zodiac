@@ -102,7 +102,7 @@ protected:
 	void ResetCombo() { ComboIndex = 0; }
 	
 	UFUNCTION(BlueprintCallable)
-	void ChargeUltimate();
+	void ChargeUltimate() const;
 
 	UFUNCTION(BlueprintCallable)
 	void ExecuteGameplayCueOnHost(const FGameplayTag GameplayCueTag, const FGameplayCueParameters& GameplayCueParams);

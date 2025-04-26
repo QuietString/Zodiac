@@ -120,8 +120,25 @@ void UZodiacCheatManager::InfiniteAmmo()
 	}
 }
 
-void UZodiacCheatManager::ChargeUltimate()
+void UZodiacCheatManager::ChargeUltimate(float ChargeAmount)
 {
+	if (AZodiacHostCharacter* HostCharacter = GetHostCharacter())
+	{
+		for (auto& Hero : HostCharacter->GetHeroes())
+		{
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+			{
+				TSubclassOf<UGameplayEffect> ChargeUltimate = UZodiacAssetManager::GetSubclass(UZodiacGameData::Get().ChargeUltimateGameplayEffect_SetByCaller);
+				FGameplayEffectSpecHandle SpecHandle = ZodiacASC->MakeOutgoingSpec(ChargeUltimate, 1.0f, ZodiacASC->MakeEffectContext());
+
+				if (SpecHandle.IsValid())
+				{
+					SpecHandle.Data->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Ultimate, ChargeAmount);
+					ZodiacASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				}
+			}
+		}
+	}
 }
 
 void UZodiacCheatManager::InfiniteUltimate()
@@ -284,6 +301,10 @@ void UZodiacCheatManager::MonstersImmortal()
 			}
 		}
 	}
+}
+
+void UZodiacCheatManager::DisableAIAttack()
+{
 }
 
 void UZodiacCheatManager::ToggleMonsterAI()

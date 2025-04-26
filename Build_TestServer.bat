@@ -32,7 +32,7 @@ call "%RunUAT%" BuildCookRun ^
   -archivedirectory="%PackageOutputDir%\Test" ^
   -target=ZodiacServer ^
   -utf8output ^
-  -ini:Game:[/Script/EngineSettings.GameMapsSettings]:ServerDefaultMap=/Game/Map/AnimationTest.AnimationTest
+  -ini:Engine:[/Script/EngineSettings.GameMapsSettings]:ServerDefaultMap=/Game/Map/AnimationTest.AnimationTest
 
 REM ----------------------------------------------------------------------
 echo Done packaging Test Server!

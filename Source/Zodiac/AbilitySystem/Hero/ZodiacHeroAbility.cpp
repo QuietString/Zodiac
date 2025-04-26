@@ -369,7 +369,7 @@ void UZodiacHeroAbility::AdvanceCombo()
 	}
 }
 
-void UZodiacHeroAbility::ChargeUltimate()
+void UZodiacHeroAbility::ChargeUltimate() const
 {
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(ChargeUltimateEffectClass, GetAbilityLevel());
 	EffectSpecHandle.Data.Get()->SetSetByCallerMagnitude(ZodiacGameplayTags::SetByCaller_Ultimate, UltimateChargeAmount.GetValueAtLevel(GetAbilityLevel()));

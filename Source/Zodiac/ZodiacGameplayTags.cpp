@@ -77,7 +77,8 @@ namespace ZodiacGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Invincible, "Status.Invincible", "Target doesn't take any damage");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Status_Immortal, "Status.Immortal", "Target's health can't go below 1");
 	UE_DEFINE_GAMEPLAY_TAG(Status_Physics_Collision_Disabled, "Status.Physics.Collision.Disabled");
-
+	UE_DEFINE_GAMEPLAY_TAG(Status_InputBlocked_Melee, "Status.InputBlocked.Melee");
+	
 	UE_DEFINE_GAMEPLAY_TAG(Player_PlayReady, "Player.PlayReady")
 
 	UE_DEFINE_GAMEPLAY_TAG(Camera_Aiming_Steady, "Camera.Aiming.Steady");

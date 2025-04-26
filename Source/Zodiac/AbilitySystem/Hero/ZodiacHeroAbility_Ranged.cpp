@@ -652,8 +652,8 @@ void UZodiacHeroAbility_Ranged::OnRangedWeaponTargetDataReady_Implementation(con
 				HostASC->ExecuteGameplayCue(GameplayCueTag_Impact, GameplayCueParams_Impact);
 			}
 		}
-
-		if (ChargeUltimateEffectClass && FirstHitResult->bBlockingHit /*&& HasAuthority(&CurrentActivationInfo)*/)
+		
+		if (ChargeUltimateEffectClass && FirstHitResult->bBlockingHit && HasAuthority(&CurrentActivationInfo))
 		{
 			if (AActor* HitActor = FirstHitResult->GetActor())
 			{
