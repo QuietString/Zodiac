@@ -12,7 +12,7 @@
 AZodiacAIController::AZodiacAIController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
+	PrimaryActorTick.bStartWithTickEnabled = false;	
 }
 
 UAbilitySystemComponent* AZodiacAIController::GetAbilitySystemComponent() const

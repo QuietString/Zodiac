@@ -7,5 +7,5 @@
 struct ZODIAC_API FZodiacConstants
 {
 	// A component tag name used for blood decals.
-	static const FName BloodDecalTag;
+	static const FName Tag_BloodDecal;
 };

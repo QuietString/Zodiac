@@ -15,6 +15,7 @@
 #include "System/ZodiacGameData.h"
 #include "PhysicsEngine/PhysicalAnimationComponent.h"
 #include "ZodiacHitReactSimulationComponent.h"
+#include "ZodiacPreMovementComponentTickComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/DecalComponent.h"
 #include "Utility/ZodiacUtilityLibrary.h"
@@ -24,21 +25,33 @@
 AZodiacMonster::AZodiacMonster(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	PrimaryActorTick.bStartWithTickEnabled = false;
+	
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	RetargetedMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("RetargetedMesh"));
-	RetargetedMeshComponent->SetupAttachment(GetMesh(), NAME_None);
+	GetMesh()->PrimaryComponentTick.bStartWithTickEnabled = false;
+	GetMesh()->PrimaryComponentTick.bAllowTickOnDedicatedServer = true;
 	
-	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+	RetargetedMeshComponent = ObjectInitializer.CreateDefaultSubobject<USkeletalMeshComponent>(this, TEXT("RetargetedMesh"));
+	RetargetedMeshComponent->SetupAttachment(GetMesh());
+	RetargetedMeshComponent->PrimaryComponentTick.bStartWithTickEnabled = false;
+	RetargetedMeshComponent->PrimaryComponentTick.bAllowTickOnDedicatedServer = false;
 
 	PhysicalAnimationComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicalAnimationComponent>(this, TEXT("PhysicalAnimationComponent"));
 	PhysicalAnimationComponent->PrimaryComponentTick.bStartWithTickEnabled = false;
-
+	PhysicalAnimationComponent->PrimaryComponentTick.bAllowTickOnDedicatedServer = false;
+	
 	HitReactSimulationComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHitReactSimulationComponent>(this, TEXT("HitReactSimulationComponent"));
 	HitReactSimulationComponent->PrimaryComponentTick.bStartWithTickEnabled = false;
+	HitReactSimulationComponent->PrimaryComponentTick.bAllowTickOnDedicatedServer = false;
 	
+	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UZodiacHealthComponent>(this, TEXT("HealthComponent"));
+
+	GetPreMovementComponentTick()->PrimaryComponentTick.bStartWithTickEnabled = false;
+	
+	GetCharacterMovement()->PrimaryComponentTick.bStartWithTickEnabled = false;
 	GetCharacterMovement()->GetNavMovementProperties()->bUseAccelerationForPaths = true;
 }
 
@@ -75,6 +88,13 @@ void AZodiacMonster::OnPhysicsTagChanged(FGameplayTag Tag, int Count)
 UAbilitySystemComponent* AZodiacMonster::GetTraversalAbilitySystemComponent() const
 {
 	return GetAbilitySystemComponent();
+}
+
+void AZodiacMonster::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	Sleep();
 }
 
 void AZodiacMonster::BeginPlay()
@@ -149,7 +169,7 @@ void AZodiacMonster::SetSpawnConfig(const FZodiacZombieSpawnConfig& InSpawnConfi
 	}
 }
 
-void AZodiacMonster::Multicast_Sleep_Implementation()
+void AZodiacMonster::Sleep()
 {
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
@@ -159,6 +179,14 @@ void AZodiacMonster::Multicast_Sleep_Implementation()
 	{
 		Capsule->SetCollisionProfileName(TEXT("ZodiacPawnCapsule"));
 	}
+
+	if (HasAuthority())
+	{
+		if (GetPreMovementComponentTick())
+		{
+			GetPreMovementComponentTick()->SetComponentTickEnabled(false);
+		}
+	}
 	
 	if (UMovementComponent* MovementComponent = GetMovementComponent())
 	{
@@ -167,27 +195,14 @@ void AZodiacMonster::Multicast_Sleep_Implementation()
 	
 	if (USkeletalMeshComponent* MeshComponent = GetMesh())
 	{
-		MeshComponent->InitAnim(true);
-		MeshComponent->ResetAnimInstanceDynamics();
 		MeshComponent->SetComponentTickEnabled(false);
 	}
-
+		
 	if (RetargetedMeshComponent)
 	{
 		RetargetedMeshComponent->SetComponentTickEnabled(false);
-		RetargetedMeshComponent->ResetAnimInstanceDynamics();
-		RetargetedMeshComponent->ResetAllBodiesSimulatePhysics();
 	}
 	
-	if (AAIController* AC = GetController<AAIController>())
-	{
-		if (UBrainComponent* BrainComponent = AC->GetBrainComponent())
-		{
-			FString StopReason = TEXT("Sleep By AZodiacMonster");
-			BrainComponent->StopLogic(StopReason);
-		}
-	}
-
 	if (HealthComponent)
 	{
 		HealthComponent->ResetHealthAndDeathState();
@@ -203,18 +218,47 @@ void AZodiacMonster::Multicast_Sleep_Implementation()
 		if (!Decal->ComponentHasTag(BloodDecalTag)) continue;
 		Decal->DestroyComponent();
 	}
+
+	if (HasAuthority())
+	{
+		if (AAIController* AC = GetController<AAIController>())
+		{
+			AC->SetActorTickEnabled(false);
+		
+			if (UBrainComponent* BrainComponent = AC->GetBrainComponent())
+			{
+				FString StopReason = TEXT("Sleep By AZodiacMonster");
+				BrainComponent->StopLogic(StopReason);
+			}
+		}
+		
+		SetNetDormancy(DORM_DormantAll);
+	}
 	
 	OnSleep.Broadcast();
 }
 
-void AZodiacMonster::Multicast_WakeUp_Implementation(const FVector& SpawnLocation, const FRotator& SpawnRotation)
+void AZodiacMonster::WakeUp(const FVector& SpawnLocation, const FRotator& SpawnRotation)
 {
+	if (HasAuthority())
+	{
+		SetNetDormancy(DORM_Awake);
+	}
+	
 	FVector ActorScale = GetActorScale();
 	FTransform SpawnTransform = FTransform(SpawnRotation, SpawnLocation, ActorScale);
 	SetActorTransform(SpawnTransform, false, nullptr, ETeleportType::ResetPhysics);
 	
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
+
+	if (HasAuthority())
+	{
+		if (GetPreMovementComponentTick())
+		{
+			GetPreMovementComponentTick()->SetComponentTickEnabled(true);
+		}
+	}
 	
 	if (UMovementComponent* MovementComponent = GetMovementComponent())
 	{
@@ -223,44 +267,52 @@ void AZodiacMonster::Multicast_WakeUp_Implementation(const FVector& SpawnLocatio
 	
 	if (USkeletalMeshComponent* MeshComponent = GetMesh())
 	{
+		MeshComponent->ResetAnimInstanceDynamics();
+		MeshComponent->InitAnim(true);
 		MeshComponent->SetComponentTickEnabled(true);
-		
-		if (UZodiacHostAnimInstance* HostAnimInstance = Cast<UZodiacHostAnimInstance>(MeshComponent->GetAnimInstance()))
-		{
-			HostAnimInstance->InitializeAnimation();
-		}
-	}
-
-	if (RetargetedMeshComponent)
-	{
-		RetargetedMeshComponent->SetComponentTickEnabled(true);
 	}
 	
-	if (AAIController* AC = GetController<AAIController>())
+	if (GetNetMode() != NM_DedicatedServer)
 	{
-		AC->RunBehaviorTree(BehaviorTree);
+		if (RetargetedMeshComponent)
+		{
+			RetargetedMeshComponent->ResetAnimInstanceDynamics();
+			RetargetedMeshComponent->ResetAllBodiesSimulatePhysics();
+			RetargetedMeshComponent->SetComponentTickEnabled(true);
+		}	
+	}
+	
+	if (HasAuthority())
+	{
+		if (AAIController* AC = GetController<AAIController>())
+		{
+			AC->SetActorTickEnabled(true);
+			AC->RunBehaviorTree(BehaviorTree);
 		
-		if (UBrainComponent* BrainComponent = AC->GetBrainComponent())
-		{
-			BrainComponent->RestartLogic();
-		}
-
-		if (UBlackboardComponent* BlackBoard = AC->GetBlackboardComponent())
-		{
-			BlackBoard->SetValueAsBool(FName("UseTargetSearchRadius"), SpawnConfig.bUseTargetSearchRadius);
-			BlackBoard->SetValueAsFloat(FName("SearchRadius"), SpawnConfig.TargetSearchRadius);
-			BlackBoard->SetValueAsFloat(FName("WaitTime"), SpawnConfig.WaitTimeAfterSpawn);
-			BlackBoard->SetValueAsFloat(FName("WaitTimeRandomDeviation"), SpawnConfig.WaitTimeRandomDeviation);
-			BlackBoard->SetValueAsBool(FName("CanSwitchExtendedMovementMode"), SpawnConfig.bAllowSwitchingExtendedMovementMode);
-
-			if (UZodiacCharacterMovementComponent* ZodiacCharacterMovementComponent = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+			if (UBrainComponent* BrainComponent = AC->GetBrainComponent())
 			{
-				EZodiacExtendedMovementMode ExtendedMovementMode = ZodiacCharacterMovementComponent->GetExtendedMovementMode();
-				BlackBoard->SetValueAsEnum(FName("ExtendedMovementMode"), static_cast<uint8>(ExtendedMovementMode));
+				BrainComponent->RestartLogic();
+			}
+
+			if (UBlackboardComponent* BlackBoard = AC->GetBlackboardComponent())
+			{
+				BlackBoard->SetValueAsBool(FName("UseTargetSearchRadius"), SpawnConfig.bUseTargetSearchRadius);
+				BlackBoard->SetValueAsFloat(FName("SearchRadius"), SpawnConfig.TargetSearchRadius);
+				BlackBoard->SetValueAsFloat(FName("WaitTime"), SpawnConfig.WaitTimeAfterSpawn);
+				BlackBoard->SetValueAsFloat(FName("WaitTimeRandomDeviation"), SpawnConfig.WaitTimeRandomDeviation);
+				BlackBoard->SetValueAsBool(FName("CanSwitchExtendedMovementMode"), SpawnConfig.bAllowSwitchingExtendedMovementMode);
+
+				if (UZodiacCharacterMovementComponent* ZodiacCharacterMovementComponent = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+				{
+					EZodiacExtendedMovementMode ExtendedMovementMode = ZodiacCharacterMovementComponent->GetExtendedMovementMode();
+					BlackBoard->SetValueAsEnum(FName("ExtendedMovementMode"), static_cast<uint8>(ExtendedMovementMode));
+				}
 			}
 		}
+		
+		ForceNetUpdate();
 	}
-	
+
 	OnWakeUp.Broadcast();
 }
 

@@ -7,5 +7,5 @@
 
 FName UZodiacUtilityLibrary::GetBloodDecalTag()
 {
-	return FZodiacConstants::BloodDecalTag;
+	return FZodiacConstants::Tag_BloodDecal;
 }
