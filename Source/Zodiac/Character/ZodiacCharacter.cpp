@@ -610,12 +610,22 @@ void AZodiacCharacter::SetExtendedMovementModeTag(EZodiacExtendedMovementMode Ex
 	}
 }
 
+void AZodiacCharacter::WakeUp(const FVector& SpawnLocation, const FRotator& SpawnRotation)
+{
+}
+
 void AZodiacCharacter::Multicast_WakeUp_Implementation(const FVector& SpawnLocation, const FRotator& SpawnRotation)
+{
+	WakeUp(SpawnLocation, SpawnRotation);
+}
+
+void AZodiacCharacter::Sleep()
 {
 }
 
 void AZodiacCharacter::Multicast_Sleep_Implementation()
 {
+	Sleep();
 }
 
 bool AZodiacCharacter::UpdateSharedReplication()

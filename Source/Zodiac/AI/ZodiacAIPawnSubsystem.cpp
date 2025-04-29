@@ -689,7 +689,7 @@ void UZodiacAIPawnSubsystem::DisplayDebugMessages()
 		MakeDebugMessage(Msg);
 
 		constexpr uint64 MsgKey = 0xA1A1A1A1u;
-		GEngine->AddOnScreenDebugMessage(MsgKey, 0.f, FColor::Green, Msg, true, FVector2D(3.f, 3.f));
+		GEngine->AddOnScreenDebugMessage(MsgKey, 0.f, FColor::Green, Msg);
 	}
 }
 #endif

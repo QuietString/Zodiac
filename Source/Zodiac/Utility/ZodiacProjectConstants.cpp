@@ -3,4 +3,4 @@
 
 #include "ZodiacProjectConstants.h"
 
-const FName FZodiacConstants::BloodDecalTag(TEXT("BloodDecal"));
+const FName FZodiacConstants::Tag_BloodDecal(TEXT("BloodDecal"));

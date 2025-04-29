@@ -329,8 +329,16 @@ void UZodiacHitReactSimulationComponent::OnDeathStarted(AActor* OwningActor)
 		OwnerCapsule->SetCollisionProfileName(ZodiacCollisionProfileName::Dying);
 	}
 
-	TargetMeshComponent->bPauseAnims = true;
-
+	if (AActor* Owner = GetOwner())
+	{
+		// Stop mesh animations.
+		TArray<USkeletalMeshComponent*> Components;
+		Owner->GetComponents(USkeletalMeshComponent::StaticClass(), Components);
+		for (auto& Mesh : Components)
+		{
+			Mesh->bPauseAnims = true;
+		}	
+	}
 
 	if (GetNetMode() == NM_DedicatedServer)
 	{
@@ -350,14 +358,6 @@ void UZodiacHitReactSimulationComponent::StartRagdoll()
 {
 	if (AActor* Owner = GetOwner())
 	{
-		// Stop mesh animations.
-		TArray<USkeletalMeshComponent*> Components;
-		Owner->GetComponents(USkeletalMeshComponent::StaticClass(), Components);
-		for (auto& Mesh : Components)
-		{
-			Mesh->bPauseAnims = true;
-		}
-
 		// Clear hit react profile.
 		PhysicalAnimationComponent->ApplyPhysicalAnimationProfileBelow(Root, NAME_None, true, true);
 		TargetMeshComponent->SetEnableGravity(true);

@@ -122,6 +122,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual USkeletalMeshComponent* GetRetargetedMesh() const { return  nullptr; }
 
+	UZodiacPreMovementComponentTickComponent* GetPreMovementComponentTick() const { return PreMovementComponentTick; }
+	
 	//~IGameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 	virtual bool HasMatchingGameplayTag(FGameplayTag TagToCheck) const override;
@@ -159,10 +161,12 @@ public:
 	FZodiacReplicatedIndependentYaw GetReplicatedIndependentYaw() const { return ReplicatedIndependentYaw; };
 
 	UFUNCTION(NetMulticast, Reliable)
-	virtual void Multicast_Sleep();
-
-	UFUNCTION(NetMulticast, Reliable)
 	virtual void Multicast_WakeUp(const FVector& SpawnLocation, const FRotator& SpawnRotation);
+	virtual void WakeUp(const FVector& SpawnLocation, const FRotator& SpawnRotation);
+	
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void Multicast_Sleep();
+	virtual void Sleep();
 	
 	UPROPERTY(BlueprintAssignable)
 	FZodiacAIPawnOnWakeUpSignature OnWakeUp;
@@ -212,7 +216,7 @@ protected:
 	FZodiacReplicatedIndependentYaw ReplicatedIndependentYaw;
 
 private:
-	UPROPERTY(meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UZodiacPreMovementComponentTickComponent> PreMovementComponentTick;
 	
 private:

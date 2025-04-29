@@ -34,7 +34,8 @@ public:
 	//~IZodiacTraversalActorInterface
 	virtual UAbilitySystemComponent* GetTraversalAbilitySystemComponent() const override;
 	//~End of IZodiacTraversalActorInterface
-	
+
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -49,9 +50,9 @@ public:
 
 	FZodiacZombieSpawnConfig GetZombieSpawnConfig() const { return SpawnConfig; }
 	void SetSpawnConfig(const FZodiacZombieSpawnConfig& InSpawnConfig);
-	
-	virtual void Multicast_Sleep_Implementation() override;
-	virtual void Multicast_WakeUp_Implementation(const FVector& SpawnLocation, const FRotator& SpawnRotation) override;
+
+	virtual void Sleep() override;
+	virtual void WakeUp(const FVector& SpawnLocation, const FRotator& SpawnRotation) override;
 	
 protected:
 	void OnSpawnSeedSet_Internal();
@@ -76,7 +77,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<UZodiacHealthComponent> HealthComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UPhysicalAnimationComponent> PhysicalAnimationComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
