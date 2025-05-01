@@ -2,7 +2,6 @@
 
 #include "ZodiacHeroList.h"
 
-#include "ZodiacHeroActor.h"
 #include "ZodiacHeroCharacter.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroList)

@@ -7,12 +7,8 @@
 #include "Net/Serialization/FastArraySerializer.h"
 #include "ZodiacHeroList.generated.h"
 
-struct FZodiacHeroList2;
-class AZodiacHeroActor;
 struct FZodiacHeroList;
-class UZodiacAbilitySystemComponent;
 class AZodiacHeroCharacter;
-class UGameplayAbility;
 
 /** A single entry of HeroList */
 USTRUCT(BlueprintType)

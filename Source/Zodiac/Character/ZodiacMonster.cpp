@@ -138,7 +138,6 @@ void AZodiacMonster::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION(ThisClass, SpawnSeed, COND_InitialOnly);
 	DOREPLIFETIME_CONDITION(ThisClass, SpawnConfig, COND_InitialOnly);
 }
 
@@ -148,17 +147,6 @@ void AZodiacMonster::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InAS
 	
 	HealthComponent->InitializeWithAbilitySystem(AbilitySystemComponent);
 }
-
-void AZodiacMonster::SetSpawnSeed(const int32 Seed)
-{
-	SpawnSeed = Seed;
-	
-	if (HasAuthority())
-	{
-		OnSpawnSeedSet_Internal();
-	}
-}
-
 
 void AZodiacMonster::SetSpawnConfig(const FZodiacZombieSpawnConfig& InSpawnConfig)
 {
@@ -316,47 +304,6 @@ void AZodiacMonster::WakeUp(const FVector& SpawnLocation, const FRotator& SpawnR
 	OnWakeUp.Broadcast();
 }
 
-void AZodiacMonster::OnSpawnSeedSet_Internal()
-{
-	check(CharacterData);
-	
-	float MovementSpeedMultiplier = FMath::GetMappedRangeValueClamped(FVector2d(0, 255), FVector2d(0.9f, 1.1f), SpawnSeed);
-
-	const UZodiacGameData& GameData = UZodiacGameData::Get();
-	
-	TArray<FZodiacExtendedMovementConfig> MovementConfigs = GameData.MovementConfigTemplates;
-	uint8 Num = MovementConfigs.Num();
-	if (Num > 0)
-	{
-		FZodiacExtendedMovementConfig MovementConfig = MovementConfigs[SpawnSeed % Num];
-	
-		if (UZodiacCharacterMovementComponent* ZodiacCharMovComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
-		{
-			for (auto& [K, V] : MovementConfig.MovementSpeedsMap)
-			{
-				V = V * MovementSpeedMultiplier;
-			}
-		
-			// Change movement speed
-			ZodiacCharMovComp->SetExtendedMovementConfig(MovementConfig);
-			bHasMovementInitialized = true;
-
-			if (FVector* WalkSpeeds = MovementConfig.MovementSpeedsMap.Find(EZodiacExtendedMovementMode::Walking))
-			{
-				if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
-				{
-					if (UZodiacZombieAnimInstance* ZombieAnimInstance = Cast<UZodiacZombieAnimInstance>(AnimInstance))
-					{
-						ZombieAnimInstance->WalkSpeed = WalkSpeeds->X;
-						ZombieAnimInstance->MovementSpeedMultiplier = MovementSpeedMultiplier;
-						ZombieAnimInstance->SelectAnimsBySeed(SpawnSeed);
-					}
-				}
-			}
-		}
-	}
-}
-
 void AZodiacMonster::OnSpawnConfigSet()
 {
 	check(CharacterData);
@@ -420,11 +367,6 @@ void AZodiacMonster::OnSpawnConfigSet()
 		float JumpVelocityMultiplier = FMath::GetMappedRangeValueClamped(FVector2d(0, 150), FVector2d(0.75f, 1.f), Seed);
 		ZodiacCharMovComp->JumpZVelocity *= JumpVelocityMultiplier;
 	}
-}
-
-void AZodiacMonster::OnRep_SpawnSeed()
-{
-	OnSpawnSeedSet_Internal();
 }
 
 void AZodiacMonster::OnRep_SpawnConfig()

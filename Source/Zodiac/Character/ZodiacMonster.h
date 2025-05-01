@@ -45,7 +45,7 @@ public:
 	void Multicast_OnPhysicsTagChanged(FGameplayTag Tag, int Count);
 
 	UFUNCTION(BlueprintPure)
-	uint8 GetSpawnSeed() const { return SpawnSeed; }
+	uint8 GetSpawnSeed() const { return SpawnConfig.Seed; }
 	void SetSpawnSeed(const int32 Seed);
 
 	FZodiacZombieSpawnConfig GetZombieSpawnConfig() const { return SpawnConfig; }
@@ -82,14 +82,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<UZodiacHitReactSimulationComponent> HitReactSimulationComponent;
-	
-	// A randomizer seed for movement speed, walk/run animations when it's spawned by ZodiacZombieSpawner.
-	UPROPERTY(ReplicatedUsing = OnRep_SpawnSeed)
-	uint8 SpawnSeed;
 
-	UFUNCTION()
-	void OnRep_SpawnSeed();
-	
 	UPROPERTY(ReplicatedUsing = OnRep_SpawnConfig)
 	FZodiacZombieSpawnConfig SpawnConfig;
 
