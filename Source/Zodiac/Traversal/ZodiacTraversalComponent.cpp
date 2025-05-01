@@ -11,7 +11,6 @@
 #include "ZodiacTraversalTypes.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/InstancedStaticMeshComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
