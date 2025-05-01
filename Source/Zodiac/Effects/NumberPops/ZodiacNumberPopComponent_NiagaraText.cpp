@@ -1,4 +1,5 @@
-﻿// the.quiet.string@gmail.com
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// the.quiet.string@gmail.com
 
 
 #include "ZodiacNumberPopComponent_NiagaraText.h"
