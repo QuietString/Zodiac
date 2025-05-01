@@ -462,20 +462,6 @@ void AZodiacCharacter::OnStatusTagChanged(FGameplayTag Tag, int Count)
 	}
 }
 
-void AZodiacCharacter::OnMovementTagChanged(FGameplayTag Tag, int Count)
-{
-	if (UZodiacCharacterMovementComponent* ZodiacMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
-	{
-		if (const uint8* CustomMovementPtr = ZodiacGameplayTags::TagCustomMovementModeMap.Find(Tag))
-		{
-			uint8 CustomMovement = *CustomMovementPtr;
-			bool bHasTag = Count > 0;
-			uint8 CustomMode = bHasTag ? CustomMovement : Move_Custom_None;
-			ZodiacMoveComp->SetMovementMode(MOVE_Walking, CustomMode);
-		}
-	}
-}
-
 void AZodiacCharacter::OnPhysicsTagChanged(FGameplayTag Tag, int Count)
 {
 	bool bHasTag = Count > 0;

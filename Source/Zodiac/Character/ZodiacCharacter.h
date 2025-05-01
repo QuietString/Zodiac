@@ -190,7 +190,6 @@ protected:
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 
 	void OnStatusTagChanged(FGameplayTag Tag, int Count);
-	void OnMovementTagChanged(FGameplayTag Tag, int Count);
 	virtual void OnPhysicsTagChanged(FGameplayTag Tag, int Count);
 	
 	virtual void OnJustLanded();
