@@ -12,7 +12,6 @@ class UZodiacHitReactSimulationComponent;
 class UPhysicalAnimationComponent;
 
 class UBehaviorTree;
-class UZodiacHeroData;
 
 UCLASS(BlueprintType, Blueprintable)
 class ZODIAC_API AZodiacMonster : public AZodiacCharacter, public IZodiacTraversalActorInterface
@@ -46,7 +45,6 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	uint8 GetSpawnSeed() const { return SpawnConfig.Seed; }
-	void SetSpawnSeed(const int32 Seed);
 
 	FZodiacZombieSpawnConfig GetZombieSpawnConfig() const { return SpawnConfig; }
 	void SetSpawnConfig(const FZodiacZombieSpawnConfig& InSpawnConfig);
@@ -55,7 +53,6 @@ public:
 	virtual void WakeUp(const FVector& SpawnLocation, const FRotator& SpawnRotation) override;
 	
 protected:
-	void OnSpawnSeedSet_Internal();
 	void OnSpawnConfigSet();
 
 public:
