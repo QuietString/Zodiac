@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "ZodiacHeroAbilityDefinition.generated.h"
 
-class UZodiacHeroAbilityFragment;
 class UZodiacHeroAbilitySlot;
 
 UCLASS(DefaultToInstanced, EditInlineNew, Abstract, CollapseCategories)
