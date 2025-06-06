@@ -33,6 +33,7 @@ public:
 	
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(class AController* NewController) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 	
 	void ToggleSprint(bool bShouldSprint);
@@ -46,21 +47,23 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void OnCloseContactFinished();
-	
+
 protected:
+	UPROPERTY(ReplicatedUsing=OnRep_ActiveHeroIndex, BlueprintReadOnly)
+	int32 ActiveHeroIndex = INDEX_NONE;
+	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UZodiacCameraMode> DefaultAbilityCameraMode;
 	
 	UPROPERTY()
 	TSubclassOf<UZodiacCameraMode> ActiveAbilityCameraMode;
-
+	
 	UPROPERTY(EditAnywhere)
 	bool bEnableCameraHeroOffset = true;
-
 	
 	/** Spec handle for the last ability to set a camera mode. */
 	FGameplayAbilitySpecHandle AbilityCameraModeOwningSpecHandle;
-	
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
 	TObjectPtr<USkeletalMeshComponent> RetargetSourceMesh;
@@ -73,4 +76,8 @@ private:
 
 	UPROPERTY()
 	EZodiacTeam MyTeam = EZodiacTeam::Hero;
+
+private:
+	UFUNCTION()
+	void OnRep_ActiveHeroIndex(int32 OldIndex);
 };

@@ -96,7 +96,7 @@ protected:
 private:
 	UPROPERTY(Transient)
 	TObjectPtr<AZodiacCharacter> ParentCharacter;
-	
+
 	UPROPERTY(Transient)
 	TObjectPtr<UZodiacHostAnimInstance> ParentAnimInstance;
 };

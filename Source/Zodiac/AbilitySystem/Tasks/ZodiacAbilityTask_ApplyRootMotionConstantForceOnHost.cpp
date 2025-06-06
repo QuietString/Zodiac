@@ -104,7 +104,7 @@ void UZodiacAbilityTask_ApplyRootMotionConstantForceOnHost::PreDestroyFromReplic
 
 void UZodiacAbilityTask_ApplyRootMotionConstantForceOnHost::OnDestroy(bool AbilityIsEnding)
 {
-	if (MovementComponent)
+	if (MovementComponent.Get())
 	{
 		MovementComponent->RemoveRootMotionSourceByID(RootMotionSourceID);
 	}
@@ -123,7 +123,7 @@ void UZodiacAbilityTask_ApplyRootMotionConstantForceOnHost::SharedInitAndApply()
 		StartTime = GetWorld()->GetTimeSeconds();
 		EndTime = StartTime + Duration;
 
-		if (MovementComponent)
+		if (MovementComponent.Get())
 		{
 			ForceName = ForceName.IsNone() ? FName("AbilityTaskApplyRootMotionConstantForce"): ForceName;
 			TSharedPtr<FRootMotionSource_ConstantForce> ConstantForce = MakeShared<FRootMotionSource_ConstantForce>();

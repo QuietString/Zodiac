@@ -8,6 +8,7 @@
 #include "ZodiacHostAnimInstance.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
 #include "Character/ZodiacHeroCharacter.h"
+#include "Character/ZodiacHeroCharacter2.h"
 #include "Character/ZodiacHostCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -63,6 +64,13 @@ AZodiacCharacter* UZodiacHeroAnimInstance::GetParentCharacter() const
 
 UZodiacHostAnimInstance* UZodiacHeroAnimInstance::GetParentAnimInstance() const
 {
+	if (AZodiacHeroCharacter2* Hero2 = Cast<AZodiacHeroCharacter2>(ParentCharacter))
+	{
+		if (USkeletalMeshComponent* SourceMesh = Hero2->GetRetargetSourceMesh())
+		{
+			return Cast<UZodiacHostAnimInstance>(SourceMesh->GetAnimInstance());
+		}
+	}
 	if (ParentCharacter)
 	{
 		return  Cast<UZodiacHostAnimInstance>(ParentCharacter->GetMesh()->GetAnimInstance());

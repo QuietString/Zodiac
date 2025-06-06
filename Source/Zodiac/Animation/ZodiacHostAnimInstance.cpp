@@ -4,7 +4,6 @@
 #include "ZodiacHostAnimInstance.h"
 
 #include "AbilitySystemComponent.h"
-#include "MaterialHLSLTree.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHeroAnimInstance.h"
 #include "ZodiacLogChannels.h"
@@ -262,7 +261,7 @@ void UZodiacHostAnimInstance::UpdateMotionMatchingPoseSelection(const FAnimUpdat
 #if WITH_EDITORONLY_DATA
 		if (ZodiacConsoleVariables::CVarLogMotionMatching.GetValueOnAnyThread())
 		{
-			Debug_SelectedAnimSequence = Cast<UAnimSequence>(SearchResult.SelectedAnimation);
+			Debug_SelectedAnimSequence = Cast<UAnimSequence>(SearchResult.SelectedAnim);
 		}
 #endif
 		}

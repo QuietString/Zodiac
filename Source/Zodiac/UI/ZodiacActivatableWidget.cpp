@@ -14,7 +14,7 @@ UZodiacActivatableWidget::UZodiacActivatableWidget(const FObjectInitializer& Obj
 {
 }
 
-void UZodiacActivatableWidget::DeactivateOnAnimFinished(UUMGSequencePlayer& UUmgSequencePlayer)
+void UZodiacActivatableWidget::DeactivateOnAnimFinished(FWidgetAnimationState& WidgetAnimationState)
 {
 	Super::NativeOnDeactivated();
 }
@@ -23,7 +23,7 @@ void UZodiacActivatableWidget::NativeOnDeactivated()
 {
 	if (BoundAnim_OnActivated)
 	{
-		PlayAnimationReverse(BoundAnim_OnActivated)->OnSequenceFinishedPlaying().AddUObject(this, &ThisClass::DeactivateOnAnimFinished);
+		PlayAnimationReverse(BoundAnim_OnActivated).GetAnimationState()->GetOnWidgetAnimationFinished().AddUObject(this, &ThisClass::DeactivateOnAnimFinished);
 	}
 	else
 	{

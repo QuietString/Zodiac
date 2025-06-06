@@ -12,6 +12,7 @@
 #include "Camera/ZodiacCameraMode.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/PlayerState.h"
+#include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroCharacter2)
 
@@ -70,6 +71,13 @@ void AZodiacHeroCharacter2::PossessedBy(class AController* NewController)
 	InitializeAbilitySystem(AbilitySystemComponent, PS);
 }
 
+void AZodiacHeroCharacter2::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, ActiveHeroIndex);
+}
+
 void AZodiacHeroCharacter2::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -85,6 +93,13 @@ void AZodiacHeroCharacter2::PostInitializeComponents()
 			
 		}
 	}
+
+	if (RetargetSourceMesh)
+	{
+		RetargetSourceMesh->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	}
+
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 }
 
 void AZodiacHeroCharacter2::ToggleSprint(bool bShouldSprint)
@@ -104,4 +119,9 @@ TSubclassOf<UZodiacCameraMode> AZodiacHeroCharacter2::DetermineCameraMode()
 
 void AZodiacHeroCharacter2::UpdateHeroEyeLocationOffset()
 {
+}
+
+void AZodiacHeroCharacter2::OnRep_ActiveHeroIndex(int32 OldIndex)
+{
+	
 }

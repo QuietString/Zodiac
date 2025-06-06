@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{7340D250-470C-6009-884A-B8AD3D6F87C7}",
+	"EngineAssociation": "{55D32EBD-4F91-21D3-ECE4-39B55F4BC929}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -201,8 +201,8 @@
 			"Enabled": true
 		},
 		{
-			"Name": "Traffic",
-			"Enabled": true
+			"Name" : "Traffic",
+			"Enabled" : true
 		}
 	]
 }

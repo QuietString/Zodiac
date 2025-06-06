@@ -26,7 +26,7 @@ class UZodiacActivatableWidget : public UCommonActivatableWidget
 public:
 	UZodiacActivatableWidget(const FObjectInitializer& ObjectInitializer);
 
-	void DeactivateOnAnimFinished(UUMGSequencePlayer& UUmgSequencePlayer);
+	void DeactivateOnAnimFinished(FWidgetAnimationState& WidgetAnimationState);
 	virtual void NativeOnDeactivated() override;
 public:
 	

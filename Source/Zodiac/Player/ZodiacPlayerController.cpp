@@ -126,32 +126,32 @@ void AZodiacPlayerController::Tick(float DeltaTime)
 
 void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
-	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
-	{
-		if (IsLocalPlayerController())
-		{
-			if (UZodiacAbilitySystemComponent* HostASC = HostCharacter->GetHostAbilitySystemComponent())
-			{
-				HostASC->ProcessAbilityInput(DeltaTime, bGamePaused);
-			}
-			
-			if (UZodiacAbilitySystemComponent* HeroASC = HostCharacter->GetHeroAbilitySystemComponent())
-			{
-				HeroASC->ProcessAbilityInput(DeltaTime, bGamePaused);
-			}
-		}
-	}
-
-	// if (AZodiacHeroCharacter2* HeroCharacter2 = Cast<AZodiacHeroCharacter2>(GetCharacter()))
+	// if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
 	// {
 	// 	if (IsLocalPlayerController())
 	// 	{
-	// 		if (UZodiacAbilitySystemComponent* HeroASC = HeroCharacter2->GetZodiacAbilitySystemComponent())
+	// 		if (UZodiacAbilitySystemComponent* HostASC = HostCharacter->GetHostAbilitySystemComponent())
+	// 		{
+	// 			HostASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+	// 		}
+	// 		
+	// 		if (UZodiacAbilitySystemComponent* HeroASC = HostCharacter->GetHeroAbilitySystemComponent())
 	// 		{
 	// 			HeroASC->ProcessAbilityInput(DeltaTime, bGamePaused);
 	// 		}
 	// 	}
 	// }
+
+	if (AZodiacHeroCharacter2* HeroCharacter2 = Cast<AZodiacHeroCharacter2>(GetCharacter()))
+	{
+		if (IsLocalPlayerController())
+		{
+			if (UZodiacAbilitySystemComponent* HeroASC = HeroCharacter2->GetZodiacAbilitySystemComponent())
+			{
+				HeroASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+			}
+		}
+	}
 	
 	Super::PostProcessInput(DeltaTime, bGamePaused);
 }

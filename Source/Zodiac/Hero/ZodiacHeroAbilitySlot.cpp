@@ -45,7 +45,7 @@ void UZodiacHeroAbilitySlot::InitializeSlot(const UZodiacHeroAbilitySlotDefiniti
 		AZodiacHeroAbilitySlotActor* NewActor = GetWorld()->SpawnActorDeferred<AZodiacHeroAbilitySlotActor>(Actor, FTransform::Identity, OwnerCharacter, OwnerCharacter, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		NewActor->FinishSpawning(FTransform::Identity, true);
 		NewActor->AttachToComponent(OwnerCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
-		Actors.Add_GetRef(NewActor);
+		Actors.Add(NewActor);
 	}
 	SpawnedActors = Actors;
 	
