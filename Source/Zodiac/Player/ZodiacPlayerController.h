@@ -76,4 +76,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Crosshair")
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
+
+private:
+	UPROPERTY(Transient)
+	TWeakObjectPtr<UZodiacAbilitySystemComponent> PreviousAbilitySystemComponent;
 };

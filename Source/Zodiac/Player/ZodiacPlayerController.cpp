@@ -136,7 +136,14 @@ void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool
 			
 			if (UZodiacAbilitySystemComponent* HeroASC = HostCharacter->GetHeroAbilitySystemComponent())
 			{
+				// Release all inputs of the swaped-out hero actor.
+				if (PreviousAbilitySystemComponent.IsValid() && PreviousAbilitySystemComponent != HeroASC)
+				{
+					PreviousAbilitySystemComponent->ClearAbilityInput();
+				}
+				
 				HeroASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+				PreviousAbilitySystemComponent = HeroASC;
 			}
 		}
 	}

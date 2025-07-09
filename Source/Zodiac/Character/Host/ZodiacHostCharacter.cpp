@@ -149,18 +149,6 @@ void AZodiacHostCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProp
 	DOREPLIFETIME(ThisClass, HeroList);
 }
 
-void AZodiacHostCharacter::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	if (!GetWorld() || !GetWorld()->IsGameWorld())
-	{
-		return;
-	}
-
-	GetMesh()->SetVisibility(false);
-}
-
 void AZodiacHostCharacter::DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos)
 {
 	Super::DisplayDebug(Canvas, DebugDisplay, YL, YPos);

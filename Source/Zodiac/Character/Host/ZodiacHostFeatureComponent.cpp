@@ -111,7 +111,6 @@ bool UZodiacHostFeatureComponent::CanChangeInitState(UGameFrameworkComponentMana
 		{
 			if (!Manager->HaveAllFeaturesReachedInitState(Hero, InitState_DataInitialized))
 			{
-				//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Host Feature failed to change state to %s. Reason: other data is not initialized."), *DesiredState.ToString());
 				return false;
 			}
 		}

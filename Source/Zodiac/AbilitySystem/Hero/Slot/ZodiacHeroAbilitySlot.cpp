@@ -34,17 +34,17 @@ void UZodiacHeroAbilitySlot::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 
 void UZodiacHeroAbilitySlot::InitializeSlot(const UZodiacHeroAbilitySlotDefinition* InDef)
 {
-	AActor* OwnerActor = GetTypedOuter<AActor>();
-	check(OwnerActor);
+	AZodiacHeroActor* HeroActor = GetTypedOuter<AZodiacHeroActor>();
+	check(HeroActor);
 	
 	Definition = InDef;
 	
 	TArray<AZodiacHeroAbilitySlotActor*> Actors;
 	for (auto& Actor : InDef->ActorsToSpawn)
 	{
-		AZodiacHeroAbilitySlotActor* NewActor = GetWorld()->SpawnActorDeferred<AZodiacHeroAbilitySlotActor>(Actor, FTransform::Identity, OwnerActor, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		AZodiacHeroAbilitySlotActor* NewActor = GetWorld()->SpawnActorDeferred<AZodiacHeroAbilitySlotActor>(Actor, FTransform::Identity, HeroActor, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		NewActor->FinishSpawning(FTransform::Identity, true);
-		NewActor->AttachToComponent(OwnerActor->GetRootComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+		NewActor->AttachToComponent(HeroActor->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
 		Actors.Add(NewActor);
 	}
 	SpawnedActors = Actors;

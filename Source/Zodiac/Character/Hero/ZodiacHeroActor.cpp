@@ -274,13 +274,13 @@ void AZodiacHeroActor::BeginPlay()
 	// Notifies state manager that we have spawned, then try the rest of default initialization
 	ensure(TryToChangeInitState(InitState_Spawned));
 
-	if (HasAuthority())
-	{
-		GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
-		{
-			OnOwnerChanged();	
-		});
-	}
+	// if (HasAuthority())
+	// {
+	// 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+	// 	{
+	// 		OnOwnerChanged();	
+	// 	});
+	// }
 
 	//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero Owner: %s"), *GetNameSafe(Owner));
 }
@@ -532,7 +532,6 @@ void AZodiacHeroActor::ClearModularMesh()
 
 void AZodiacHeroActor::Activate()
 {
-	UE_LOG_WITH_ROLE(LogZodiacAbilitySystem, Warning, TEXT("Activate %s"), *GetName());
 	bIsActive =  true;
 
 	if (UZodiacHeroSkeletalMeshComponent* HeroMesh = Cast<UZodiacHeroSkeletalMeshComponent>(Mesh))

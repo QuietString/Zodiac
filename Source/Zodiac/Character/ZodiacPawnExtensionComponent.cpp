@@ -156,11 +156,11 @@ void UZodiacPawnExtensionComponent::InitializeAbilitySystem(UZodiacAbilitySystem
 	APawn* Pawn = GetPawnChecked<APawn>();
 	AActor* ExistingAvatar = InASC->GetAvatarActor();
 
-	//UE_LOG_WITH_ROLE(LogZodiac, Warning, TEXT("Setting up ASC [%s] on pawn [%s] owner [%s], existing [%s] "), *GetNameSafe(InASC), *GetNameSafe(Pawn), *GetNameSafe(InOwnerActor), *GetNameSafe(ExistingAvatar));
+	UE_LOG_WITH_ROLE(LogZodiac, Warning, TEXT("Setting up ASC [%s] on pawn [%s] owner [%s], existing [%s] "), *GetNameSafe(InASC), *GetNameSafe(Pawn), *GetNameSafe(InOwnerActor), *GetNameSafe(ExistingAvatar));
 
 	if ((ExistingAvatar != nullptr) && (ExistingAvatar != Pawn))
 	{
-		//UE_LOG_WITH_ROLE(LogZodiac, Log, TEXT("Existing avatar"));
+		UE_LOG_WITH_ROLE(LogZodiac, Log, TEXT("Existing avatar"));
 
 		// There is already a pawn acting as the ASC's avatar, so we need to kick it out
 		

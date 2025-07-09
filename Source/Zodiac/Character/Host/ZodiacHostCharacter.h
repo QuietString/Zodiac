@@ -48,7 +48,6 @@ public:
 	virtual void PossessedBy(class AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void PostInitializeComponents() override;
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
 
 	void SpawnHeroes();
