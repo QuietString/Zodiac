@@ -3,7 +3,7 @@
 
 #include "ZodiacReticleWidgetBase.h"
 
-#include "Hero/ZodiacHeroAbilitySlot_RangedWeapon.h"
+#include "AbilitySystem/Hero/Slot/ZodiacHeroAbilitySlot_RangedWeapon.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacReticleWidgetBase)
 

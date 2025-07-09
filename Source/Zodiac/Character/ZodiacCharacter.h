@@ -5,13 +5,19 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayAbilitySpecHandle.h"
 #include "GameplayTagAssetInterface.h"
 #include "GameplayTagContainer.h"
-#include "GameFramework/Character.h"
+#include "ModularCharacter.h"
+#include "Components/GameFrameworkInitStateInterface.h"
 #include "Input/ZodiacInputComponent.h"
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacCharacter.generated.h"
 
+class UZodiacPawnExtensionComponent;
+class UZodiacCameraComponent;
+struct FGameplayAbilitySpecHandle;
+class UZodiacCameraMode;
 class UZodiacPreMovementComponentTickComponent;
 class UZodiacHeroData;
 struct FZodiacExtendedMovementConfig;
@@ -22,7 +28,6 @@ class UZodiacAbilitySystemComponent;
 struct FInputActionValue;
 class UAbilitySystemComponent;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnAbilitySystemComponentInitialized, UAbilitySystemComponent*);
 
 DECLARE_DELEGATE_FourParams(FOnPlayHitReact, FVector, FName, float, const FGameplayTagContainer&);
 
@@ -100,20 +105,35 @@ struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBas
 };
 
 UCLASS(BlueprintType)
-class ZODIAC_API AZodiacCharacter : public ACharacter, public IAbilitySystemInterface, public IZodiacTeamAgentInterface, public IGameplayTagAssetInterface
+class ZODIAC_API AZodiacCharacter : public AModularCharacter, public IAbilitySystemInterface, public IZodiacTeamAgentInterface, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
 public:
 	AZodiacCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	static const FName ExtensionComponentName;
+
+	UFUNCTION(BlueprintPure)
+	UZodiacPawnExtensionComponent* GetPawnExtensionComponent() const { return PawnExtComponent; }
+	
 	//~AActor interface
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker) override;
 	//~End of AActor interface
+
+	virtual void RegisterGameplayTagEvents(UAbilitySystemComponent* InASC);
 	
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
+	virtual void OnRep_Controller() override;
+	virtual void OnRep_PlayerState() override;
+
 	virtual void BeginPlay() override;
 	virtual void DisplayDebug(UCanvas* Canvas, const FDebugDisplayInfo& DebugDisplay, float& YL, float& YPos) override;
+
+	UFUNCTION(BlueprintCallable)
+	const UZodiacHeroData* GetPawnData() const { return PawnData; };
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
@@ -131,12 +151,8 @@ public:
 	virtual bool HasAllMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
 	virtual bool HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagContainer) const override;
 	//~End of IGameplayTagAssetInterface
-	
-	/** Delegate fired when the ability system component of this actor initialized */
-	FOnAbilitySystemComponentInitialized OnAbilitySystemComponentInitialized;
-	void CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySystemComponentInitialized::FDelegate&& Delegate);
-	
-	void OnCharacterAttached(ACharacter* AttachedCharacter);
+
+	void OnCharacterAttached(AActor* AttachedActor);
 	
 	virtual bool UpdateSharedReplication();
 
@@ -152,6 +168,9 @@ public:
 
 	FOnPlayHitReact OnSimulateOrPlayHitReact;
 
+	void OnStatusTagChanged(FGameplayTag Tag, int Count);
+	virtual void OnPhysicsTagChanged(FGameplayTag Tag, int Count);
+	
 	UFUNCTION(BlueprintCallable)
 	void SetExtendedMovementMode(const EZodiacExtendedMovementMode& InMode);
 	void SetExtendedMovementConfig(const FZodiacExtendedMovementConfig& InConfig);
@@ -159,6 +178,11 @@ public:
 	virtual void OnExtendedMovementModeChanged(EZodiacExtendedMovementMode PreviousMode);
 	virtual void SetExtendedMovementModeTag(EZodiacExtendedMovementMode ExtendedMovementMode, bool bTagEnabled);
 
+	void ToggleSprint(bool bShouldSprint);
+
+	UFUNCTION(BlueprintPure)
+	bool GetIsStrafing() const;
+	
 	FZodiacReplicatedIndependentYaw GetReplicatedIndependentYaw() const { return ReplicatedIndependentYaw; };
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -177,9 +201,28 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnExtendedMovementModeChangedSignature BP_OnExtendedMovementModeChanged;
+
+	TSubclassOf<UZodiacCameraMode> DetermineCameraMode();
+
+	/** Overrides the camera from an active gameplay ability */
+	void SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle);
 	
-protected:	
-	virtual void InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner);
+	/** Clears the camera override if it is set */
+	void ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle);
+	
+protected:
+	virtual void OnAbilitySystemInitialized();
+	virtual void OnAbilitySystemUninitialized();
+
+	virtual void InitializeGameplayTags();
+
+	void SetupCameraComponent();
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void OnCloseContactStarted();
+
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void OnCloseContactFinished();
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void InitializePlayerInput();
@@ -188,34 +231,39 @@ protected:
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_Fly(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
-
-	void OnStatusTagChanged(FGameplayTag Tag, int Count);
-	virtual void OnPhysicsTagChanged(FGameplayTag Tag, int Count);
 	
 	virtual void OnJustLanded();
 	virtual void OnJustLifted();
 	
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode) override;
 	virtual void SetMovementModeTag(EMovementMode MovementMode, uint8 CustomMovementMode, bool bTagEnabled);
-
+	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
-	UZodiacHeroData* CharacterData;
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Pawn")
+	const UZodiacHeroData* PawnData;
+
+	UPROPERTY(EditAnywhere, Category = "Zodiac|Camera")
+	TSubclassOf<UZodiacCameraMode> DefaultAbilityCameraMode;
 	
-	// @TODO: It's temporary testing usage for AHeroCharacter2
-	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
-	TArray<UZodiacHeroData*> HeroData;
+	UPROPERTY()
+	TSubclassOf<UZodiacCameraMode> ActiveAbilityCameraMode;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Config")
+	/** Spec handle for the last ability to set a camera mode. */
+	FGameplayAbilitySpecHandle AbilityCameraModeOwningSpecHandle;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Zodiac|Input")
 	FZodiacInputConfig InputConfig;
 
-	UPROPERTY()
-	TObjectPtr<UZodiacAbilitySystemComponent> AbilitySystemComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+	TObjectPtr<UZodiacCameraComponent> CameraComponent;
 
 	UPROPERTY(Replicated, Transient)
 	FZodiacReplicatedIndependentYaw ReplicatedIndependentYaw;
 
 private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Zodiac|Feature", meta = (AllowPrivateAccess = true))
+	TObjectPtr<UZodiacPawnExtensionComponent> PawnExtComponent;
+	
 	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UZodiacPreMovementComponentTickComponent> PreMovementComponentTick;
 	

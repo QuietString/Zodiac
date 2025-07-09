@@ -13,4 +13,6 @@ UCLASS()
 class ZODIAC_API UZodiacGameInstance : public UCommonGameInstance
 {
 	GENERATED_BODY()
+
+	virtual void Init() override;
 };

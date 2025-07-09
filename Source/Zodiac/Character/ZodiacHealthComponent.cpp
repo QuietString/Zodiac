@@ -5,12 +5,12 @@
 #include "ZodiacCharacter.h"
 #include "ZodiacLogChannels.h"
 #include "ZodiacGameplayTags.h"
-#include "ZodiacHeroCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/ZodiacHealthSet.h"
 #include "Engine/World.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
+#include "Hero/ZodiacHeroActor.h"
 #include "Messages/ZodiacMessageTypes.h"
 #include "Messages/ZodiacVerbMessageHelpers.h"
 
@@ -188,9 +188,9 @@ void UZodiacHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 
 		// Send the "Event.Elimination" gameplay event to the instigator's ability system.  This can be used to trigger an OnElimination gameplay ability.
 		{
-			if (AZodiacHeroCharacter* HeroCharacter = Cast<AZodiacHeroCharacter>(DamageCauser))
+			if (AZodiacHeroActor* HeroActor = Cast<AZodiacHeroActor>(DamageCauser))
 			{
-				if (UAbilitySystemComponent* InstigatorASC = HeroCharacter->GetAbilitySystemComponent())
+				if (UAbilitySystemComponent* InstigatorASC = HeroActor->GetAbilitySystemComponent())
 				{
 					FGameplayEventData Payload;
 					Payload.EventTag = ZodiacGameplayTags::Event_Elimination;

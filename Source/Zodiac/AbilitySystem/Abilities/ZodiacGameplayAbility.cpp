@@ -9,9 +9,10 @@
 #include "ZodiacAbilitySimpleFailureMessage.h"
 #include "ZodiacGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "Character/ZodiacHostCharacter.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "ZodiacLogChannels.h"
+#include "Camera/ZodiacCameraMode.h"
+#include "Character/ZodiacCharacter.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Player/ZodiacPlayerController.h"
 
@@ -38,21 +39,6 @@ UZodiacGameplayAbility::UZodiacGameplayAbility(const FObjectInitializer& ObjectI
 
 	ActivationPolicy = EZodiacAbilityActivationPolicy::OnInputTriggered;
 	ActivationGroup = EZodiacAbilityActivationGroup::Independent;
-}
-
-UZodiacAbilitySystemComponent* UZodiacGameplayAbility::GetHeroAbilitySystemComponentFromActorInfo() const
-{
-	if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
-	{
-		return Cast<UZodiacAbilitySystemComponent>(ASC);
-	}
-	
-	return nullptr;
-}
-
-AZodiacHostCharacter* UZodiacGameplayAbility::GetZodiacHostCharacterFromActorInfo() const
-{
-	return (CurrentActorInfo ? Cast<AZodiacHostCharacter>(CurrentActorInfo->AvatarActor.Get()) : nullptr);
 }
 
 AZodiacCharacter* UZodiacGameplayAbility::GetZodiacCharacterFromActorInfo() const
@@ -140,9 +126,9 @@ void UZodiacGameplayAbility::SetCameraMode(TSubclassOf<UZodiacCameraMode> Camera
 {
 	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(SetCameraMode, );
 
-	if (AZodiacHostCharacter* HostCharacter = GetZodiacHostCharacterFromActorInfo())
+	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
 	{
-		HostCharacter->SetAbilityCameraMode(CameraMode, CurrentSpecHandle);
+		ZodiacCharacter->SetAbilityCameraMode(CameraMode, CurrentSpecHandle);
 		ActiveCameraMode = CameraMode;
 	}
 }
@@ -153,9 +139,9 @@ void UZodiacGameplayAbility::ClearCameraMode()
 
 	if (ActiveCameraMode)
 	{
-		if (AZodiacHostCharacter* HostCharacter = GetZodiacHostCharacterFromActorInfo())
+		if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
 		{
-			HostCharacter->ClearAbilityCameraMode(CurrentSpecHandle);
+			ZodiacCharacter->ClearAbilityCameraMode(CurrentSpecHandle);
 		}
 
 		ActiveCameraMode = nullptr;

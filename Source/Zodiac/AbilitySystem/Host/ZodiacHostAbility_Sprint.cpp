@@ -4,7 +4,7 @@
 #include "ZodiacHostAbility_Sprint.h"
 
 #include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
-#include "Character/ZodiacHostCharacter.h"
+#include "Character/Host/ZodiacHostCharacter.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHostAbility_Sprint)
 
@@ -25,7 +25,7 @@ void UZodiacHostAbility_Sprint::ActivateAbility(const FGameplayAbilitySpecHandle
 	WaitInputRelease->OnRelease.AddDynamic(this, &ThisClass::OnInputRelease);
 	WaitInputRelease->Activate();
 	
-	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacHostCharacterFromActorInfo())
+	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
 	{
 		ZodiacCharacter->ToggleSprint(true);
 	}
@@ -39,7 +39,7 @@ void UZodiacHostAbility_Sprint::EndAbility(const FGameplayAbilitySpecHandle Hand
 
 	WaitInputRelease->OnRelease.Clear();
 
-	if (AZodiacHostCharacter* ZodiacCharacter = GetZodiacHostCharacterFromActorInfo())
+	if (AZodiacCharacter* ZodiacCharacter = GetZodiacCharacterFromActorInfo())
 	{
 		ZodiacCharacter->ToggleSprint(false);
 	}

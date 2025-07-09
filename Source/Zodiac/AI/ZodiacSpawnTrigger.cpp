@@ -3,7 +3,7 @@
 
 #include "ZodiacSpawnTrigger.h"
 
-#include "Character/ZodiacHostCharacter.h"
+#include "Character/Host/ZodiacHostCharacter.h"
 #include "ZodiacAIPawnSpawner.h"
 #include "Components/BillboardComponent.h"
 #include "Components/BoxComponent.h"

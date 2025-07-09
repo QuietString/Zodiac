@@ -29,12 +29,7 @@
 		},
 		{
 			"Name": "Fab",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Win64",
-				"Mac",
-				"Linux"
-			]
+			"Enabled": true
 		},
 		{
 			"Name": "GameplayAbilities",
@@ -201,8 +196,8 @@
 			"Enabled": true
 		},
 		{
-			"Name" : "Traffic",
-			"Enabled" : true
+			"Name": "Traffic",
+			"Enabled": true
 		}
 	]
 }

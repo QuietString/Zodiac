@@ -7,6 +7,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "ZodiacCameraMode.h"
+#include "Character/Host/ZodiacHostCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCameraComponent)

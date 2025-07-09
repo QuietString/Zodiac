@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Hero/ZodiacHeroAbility.h"
+#include "AbilitySystem/Abilities/ZodiacGameplayAbility.h"
 #include "Traversal/ZodiacTraversalTypes.h"
 #include "ZodiacGameplayAbility_Traversal.generated.h"
 

@@ -4,7 +4,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Engine/Canvas.h"
-#include "Character/ZodiacHostCharacter.h"
+#include "Character/Host/ZodiacHostCharacter.h"
 #include "ZodiacCameraComponent.h"
 #include "ZodiacPlayerCameraManager.h"
 #include "GameFramework/CharacterMovementComponent.h"

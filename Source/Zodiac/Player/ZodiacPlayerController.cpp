@@ -8,10 +8,10 @@
 #include "ZodiacCheatManager.h"
 #include "ZodiacLogChannels.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
+#include "AbilitySystem/Host/ZodiacHostAbilitySystemComponent.h"
 #include "Camera/ZodiacPlayerCameraManager.h"
 #include "Character/ZodiacHealthComponent.h"
-#include "Character/ZodiacHeroCharacter2.h"
-#include "Character/ZodiacHostCharacter.h"
+#include "Character/Host/ZodiacHostCharacter.h"
 #include "Development/ZodiacDeveloperSettings.h"
 #include "Teams/ZodiacTeamSubsystem.h"
 #include "Utility/ZodiacKismetSystemLibrary.h"
@@ -79,7 +79,6 @@ void AZodiacPlayerController::ServerCheatAll_Implementation(const FString& Msg)
 	if (CheatManager)
 	{
 		UE_LOG(LogZodiac, Warning, TEXT("ServerCheatAll: %s"), *Msg);
-		
 	}
 #endif
 }
@@ -126,27 +125,16 @@ void AZodiacPlayerController::Tick(float DeltaTime)
 
 void AZodiacPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
-	// if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
-	// {
-	// 	if (IsLocalPlayerController())
-	// 	{
-	// 		if (UZodiacAbilitySystemComponent* HostASC = HostCharacter->GetHostAbilitySystemComponent())
-	// 		{
-	// 			HostASC->ProcessAbilityInput(DeltaTime, bGamePaused);
-	// 		}
-	// 		
-	// 		if (UZodiacAbilitySystemComponent* HeroASC = HostCharacter->GetHeroAbilitySystemComponent())
-	// 		{
-	// 			HeroASC->ProcessAbilityInput(DeltaTime, bGamePaused);
-	// 		}
-	// 	}
-	// }
-
-	if (AZodiacHeroCharacter2* HeroCharacter2 = Cast<AZodiacHeroCharacter2>(GetCharacter()))
+	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(GetCharacter()))
 	{
 		if (IsLocalPlayerController())
 		{
-			if (UZodiacAbilitySystemComponent* HeroASC = HeroCharacter2->GetZodiacAbilitySystemComponent())
+			if (UZodiacAbilitySystemComponent* HostASC = HostCharacter->GetHostAbilitySystemComponent())
+			{
+				HostASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+			}
+			
+			if (UZodiacAbilitySystemComponent* HeroASC = HostCharacter->GetHeroAbilitySystemComponent())
 			{
 				HeroASC->ProcessAbilityInput(DeltaTime, bGamePaused);
 			}

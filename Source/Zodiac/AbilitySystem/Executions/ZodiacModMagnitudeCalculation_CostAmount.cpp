@@ -3,8 +3,7 @@
 
 #include "ZodiacModMagnitudeCalculation_CostAmount.h"
 
-#include "AbilitySystem/Hero/ZodiacHeroAbility.h"
-#include "Character/ZodiacHeroCharacter.h"
+#include "AbilitySystem/Hero/Abilities/ZodiacHeroAbility.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacModMagnitudeCalculation_CostAmount)
 

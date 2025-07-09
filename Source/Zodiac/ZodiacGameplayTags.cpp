@@ -9,6 +9,16 @@
 
 namespace ZodiacGameplayTags
 {
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_Spawned, "InitState.Spawned", "1: Actor/component has initially spawned and can be extended");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_DataAvailable, "InitState.DataAvailable", "2: All required data has been loaded/replicated and is ready for initialization");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_DataInitialized, "InitState.DataInitialized", "3: The available data has been initialized for this actor/component, but it is not ready for full gameplay");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_GameplayReady, "InitState.GameplayReady", "4: The actor/component is fully ready for active gameplay");
+
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_Host_HeroSpawned, "InitState.Host.HeroSpawned", "3.1: The owning heroes are spawned");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_Host_HeroDataAvailable, "InitState.Host.HeroDataAvailable", "3.2:  All required data for heroes has been loaded/replicated and is ready for initialization");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_Host_HeroDataInitialized, "InitState.Host.HeroDataInitialized", "3.3: The available data of owning heroes are initialized");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_Host_HeroGameplayReady, "InitState.Host.HeroGameplayReady", "3.4: The owning heroes are ready for active gameplay");
+	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_IsDead, "Ability.ActivateFail.IsDead", "Ability failed to activate because its owner is dead.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_Cooldown, "Ability.ActivateFail.Cooldown", "Ability failed to activate because it is on cool down.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_Cost, "Ability.ActivateFail.Cost", "Ability failed to activate because it did not pass the cost checks.");

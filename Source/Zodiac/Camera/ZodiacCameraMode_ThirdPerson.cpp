@@ -10,7 +10,7 @@
 #include "GameFramework/CameraBlockingVolume.h"
 #include "ZodiacCameraAssistInterface.h"
 #include "ZodiacCameraComponent.h"
-#include "Character/ZodiacMonster.h"
+#include "AI/ZodiacMonster.h"
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Controller.h"
 #include "Math/RotationMatrix.h"

@@ -11,6 +11,7 @@
 #define USING_CHEAT_MANAGER (1 && !UE_BUILD_SHIPPING)
 #endif
 
+class AZodiacHostCharacter;
 struct FGameplayTag;
 class AZodiacHostCharacter;
 class UZodiacHeroAbilitySystemComponent;

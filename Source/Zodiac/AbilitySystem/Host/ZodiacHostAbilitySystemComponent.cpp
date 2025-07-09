@@ -4,8 +4,8 @@
 #include "ZodiacHostAbilitySystemComponent.h"
 
 #include "AbilitySystem/Hero/ZodiacHeroAbilitySystemComponent.h"
-#include "Character/ZodiacHeroCharacter.h"
-#include "Character/ZodiacHostCharacter.h"
+#include "Character/Host/ZodiacHostCharacter.h"
+#include "Character/Hero/ZodiacHeroActor.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHostAbilitySystemComponent)
 

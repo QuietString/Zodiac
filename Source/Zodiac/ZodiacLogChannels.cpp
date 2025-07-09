@@ -2,7 +2,7 @@
 #include "GameFramework/Actor.h"
 
 DEFINE_LOG_CATEGORY(LogZodiac);
-DEFINE_LOG_CATEGORY(LogZodiacExperience);
+DEFINE_LOG_CATEGORY(LogZodiacFramework);
 DEFINE_LOG_CATEGORY(LogZodiacAbilitySystem);
 DEFINE_LOG_CATEGORY(LogZodiacTeams);
 DEFINE_LOG_CATEGORY(LogZodiacMovement);

@@ -181,7 +181,7 @@ public:
 	float MaxRootRotationOffset;
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Trajectory")
-	TArray<TObjectPtr<ACharacter>> ActorsToIgnoreTrajectory;
+	TArray<TObjectPtr<AActor>> ActorsToIgnoreTrajectory;
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Aiming")
 	float AimYaw;

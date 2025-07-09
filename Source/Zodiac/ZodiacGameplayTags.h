@@ -13,6 +13,16 @@ namespace ZodiacGameplayTags
 
 	ZODIAC_API	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag);
 
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_Spawned);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataAvailable);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_DataInitialized);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_GameplayReady);
+
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_Host_HeroSpawned);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_Host_HeroDataAvailable);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_Host_HeroDataInitialized);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InitState_Host_HeroGameplayReady);
+
 	// Declare all the custom native tags that Zodiac will use
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_IsDead);
 	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cooldown);

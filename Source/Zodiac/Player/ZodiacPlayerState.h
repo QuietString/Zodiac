@@ -10,6 +10,7 @@
 #include "Teams/ZodiacTeamAgentInterface.h"
 #include "ZodiacPlayerState.generated.h"
 
+class UZodiacHeroData;
 class UZodiacAbilitySystemComponent;
 
 /** Defines the types of client connected */
@@ -41,18 +42,32 @@ public:
 	AZodiacPlayerState(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UZodiacAbilitySystemComponent* GetZodiacAbilitySystemComponent() const;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&) const override;
+
+	template <class T>
+	const T* GetPawnData() const { return Cast<T>(PawnData); }
+
+	void SetPawnData(const UZodiacHeroData* InPawnData);
 	
 	//~IZodiacTeamAgentInterface interface
 	virtual FGenericTeamId GetGenericTeamId() const override { return static_cast<uint8>(MyTeam); }
 	//~End of IZodiacTeamAgentInterface interface
 
-	virtual void BeginPlay() override;
+	//~APlayerState interface
+	virtual void Reset() override;
+	virtual void ClientInitialize(AController* C) override;
+	virtual void CopyProperties(APlayerState* PlayerState) override;
+	virtual void OnDeactivated() override;
+	virtual void OnReactivated() override;
+	//~End of APlayerState interface
+	
+	static const FName NAME_ZodiacAbilityReady;
 	
 protected:
-	UFUNCTION(Server, Reliable)
-	void ServerNotifyClientIsReady();
-
+	UPROPERTY(Replicated)
+	TObjectPtr<const UZodiacHeroData> PawnData;
+	
 private:
 	// The ability system component sub-object used by player characters.
 	UPROPERTY(VisibleAnywhere, Category = "Zodiac|PlayerState")

@@ -4,8 +4,8 @@
 
 #include "NativeGameplayTags.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "AbilitySystem/Hero/ZodiacHeroAbility.h"
-#include "Hero/ZodiacHeroAbilitySlot.h"
+#include "AbilitySystem/Hero/Abilities/ZodiacHeroAbility.h"
+#include "AbilitySystem/Hero/Slot/ZodiacHeroAbilitySlot.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacAbilityCost_TagStack)
 

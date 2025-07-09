@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Character/ZodiacMonster.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "ZodiacAIPawnSpawner.h"
 #include "ZodiacAIPawnSubsystem.generated.h"

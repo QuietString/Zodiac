@@ -75,13 +75,13 @@ protected:
 	virtual void NotifyAbilityEnded(FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, bool bWasCancelled) override;
 	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
 
-	/** Notify client that an ability failed to activate */
+	/** Notify the client that an ability failed to activate */
 	UFUNCTION(Client, Unreliable)
 	void ClientNotifyAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason);
 
 	auto HandleAbilityFailed(const UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) -> void;
 
-	// Add local gameplay tag. Added tag will be removed even when the ability added this tag ended before the scheduled time.
+	// Add a local gameplay tag for a given duration from an ability. The duration will last even after the ability ends.
 	UFUNCTION(BlueprintCallable)
 	void AddLooseGameplayTagForDuration(FGameplayTag Tag, float Duration, FTimerHandle& RemoveHandle);
 	

@@ -4,8 +4,8 @@
 #include "ZodiacProjectileActor.h"
 
 #include "Character/ZodiacHealthComponent.h"
-#include "Character/ZodiacHostCharacter.h"
-#include "Character/ZodiacHeroCharacter.h"
+#include "Character/Host/ZodiacHostCharacter.h"
+#include "Character/Hero/ZodiacHeroActor.h"
 #include "Engine/OverlapResult.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Physics/ZodiacCollisionChannels.h"
@@ -27,7 +27,7 @@ void AZodiacProjectileActor::BeginPlay()
 
 	if (AZodiacHostCharacter* Host = Cast<AZodiacHostCharacter>(GetInstigator()))
 	{
-		for (AZodiacHeroCharacter* Hero : Host->GetHeroes())
+		for (AZodiacHeroActor* Hero : Host->GetHeroes())
 		{
 			HeroActors.Add(Hero);
 		}

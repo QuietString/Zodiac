@@ -4,7 +4,7 @@
 #include "ZodiacModMagnitudeCalculation_Fuel.h"
 
 #include "AbilitySystem/Attributes/ZodiacHeroAttributeSet_Twinblast.h"
-#include "AbilitySystem/Hero/ZodiacHeroAbility.h"
+#include "AbilitySystem/Hero/Abilities/ZodiacHeroAbility.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacModMagnitudeCalculation_Fuel)
 

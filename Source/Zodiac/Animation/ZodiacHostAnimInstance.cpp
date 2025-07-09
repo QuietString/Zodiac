@@ -9,9 +9,10 @@
 #include "ZodiacLogChannels.h"
 #include "Animation/AnimNodeReference.h"
 #include "Character/ZodiacCharacter.h"
-#include "Character/ZodiacHostCharacter.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
-#include "Character/ZodiacHeroCharacter.h"
+#include "Character/ZodiacPawnExtensionComponent.h"
+#include "Character/Host/ZodiacHostCharacter.h"
+#include "Character/Hero/ZodiacHeroActor.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PoseSearch/MotionMatchingAnimNodeLibrary.h"
 #include "PoseSearch/PoseSearchDatabase.h"
@@ -28,10 +29,15 @@ void UZodiacHostAnimInstance::InitializeWithAbilitySystem(UAbilitySystemComponen
 
 void UZodiacHostAnimInstance::NativeInitializeAnimation()
 {
-	if (AZodiacCharacter* PawnOwner = Cast<AZodiacCharacter>(TryGetPawnOwner()))
+	if (APawn* Pawn = TryGetPawnOwner())
 	{
-		OwningCharacter = PawnOwner;
-		OwningCharacter->CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySystemComponentInitialized::FDelegate::CreateUObject(this, &ThisClass::InitializeWithAbilitySystem));
+		// if (UZodiacPawnExtensionComponent* PawnExtensionComponent = Pawn->FindComponentByClass<UZodiacPawnExtensionComponent>())
+		// {
+		// 	PawnExtensionComponent->RegisterAndCall_OnAbilitySystemInitialized(FOnAbilitySystemComponentInitialized::FDelegate::CreateUObject(this, &ThisClass::InitializeWithAbilitySystem));
+		// 	OwningCharacter = PawnOwner;
+		// 		
+		// }
+		
 	}
 
 	MaxRootRotationOffset = MaxRootRotationOffset_Idle;
@@ -164,7 +170,7 @@ void UZodiacHostAnimInstance::UpdateHeroData()
 {
 	if (AZodiacHostCharacter* HostCharacter = Cast<AZodiacHostCharacter>(OwningCharacter))
 	{
-		if (AZodiacHeroCharacter* Hero = HostCharacter->GetHero())
+		if (AZodiacHeroActor* Hero = HostCharacter->GetHero())
 		{
 			if (UZodiacHeroAnimInstance* HeroAnimInstance = Hero->GetHeroAnimInstance())
 			{

@@ -40,13 +40,13 @@ void UZodiacAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 	check(ActorInfo);
 	check(InOwnerActor);
 	
-	const bool bHasNewPawnAvatar = Cast<APawn>(InAvatarActor) && (InAvatarActor != ActorInfo->AvatarActor);
+	const bool bHasNewAvatar = IsValid(InAvatarActor) && (InAvatarActor != ActorInfo->AvatarActor);
 
 	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
 	
-	if (bHasNewPawnAvatar)
+	if (bHasNewAvatar)
 	{
-		// Register with the global system once we actually have a pawn avatar. We wait until this time since some globally-applied effects may require an avatar.
+		// Register with the global system once we actually have an avatar actor. We wait until this time since some globally-applied effects may require an avatar.
 		if (UZodiacGlobalAbilitySystem* GlobalAbilitySystem = UWorld::GetSubsystem<UZodiacGlobalAbilitySystem>(GetWorld()))
 		{
 			GlobalAbilitySystem->RegisterASC(this);
@@ -194,17 +194,11 @@ void UZodiacAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bG
 			}
 		}
 	}
-
-	const FGameplayAbilityActorInfo* ActorInfo = AbilityActorInfo.Get();
-	if (ActorInfo->AvatarActor->GetLocalRole() == ROLE_SimulatedProxy && ActorInfo->OwnerActor->GetLocalRole() == ROLE_AutonomousProxy)
-	{
-		ActorInfo->AvatarActor->SetRole(ROLE_AutonomousProxy);
-	}
 	
 	//
 	// Try to activate all the abilities that are from presses and holds.
 	// We do it all at once so that held inputs don't activate the ability
-	// and then also send a input event to the ability because of the press.
+	// and then also send an input event to the ability because of the press.
 	//
 	for (const FGameplayAbilitySpecHandle& AbilitySpecHandle : AbilitiesToActivate)
 	{

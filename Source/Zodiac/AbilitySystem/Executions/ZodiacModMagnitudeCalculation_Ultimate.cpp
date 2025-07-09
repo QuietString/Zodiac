@@ -5,7 +5,7 @@
 
 #include "ZodiacGameplayTags.h"
 #include "AbilitySystem/Attributes/ZodiacUltimateSet.h"
-#include "AbilitySystem/Hero/ZodiacHeroAbility.h"
+#include "AbilitySystem/Hero/Abilities/ZodiacHeroAbility.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacModMagnitudeCalculation_Ultimate)
 

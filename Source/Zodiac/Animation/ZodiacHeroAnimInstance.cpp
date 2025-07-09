@@ -7,9 +7,8 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHostAnimInstance.h"
 #include "Character/ZodiacCharacterMovementComponent.h"
-#include "Character/ZodiacHeroCharacter.h"
-#include "Character/ZodiacHeroCharacter2.h"
-#include "Character/ZodiacHostCharacter.h"
+#include "Character/Host/ZodiacHostCharacter.h"
+#include "Character/Hero/ZodiacHeroActor.h"
 #include "Kismet/KismetMathLibrary.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacHeroAnimInstance)
@@ -54,7 +53,7 @@ AZodiacCharacter* UZodiacHeroAnimInstance::GetParentCharacter() const
 		return ZodiacCharacter;
 	}
 	
-	if (AZodiacHeroCharacter* Hero = Cast<AZodiacHeroCharacter>(GetOwningActor()))
+	if (AZodiacHeroActor* Hero = Cast<AZodiacHeroActor>(GetOwningActor()))
 	{
 		return Hero->GetHostCharacter();
 	}
@@ -64,13 +63,6 @@ AZodiacCharacter* UZodiacHeroAnimInstance::GetParentCharacter() const
 
 UZodiacHostAnimInstance* UZodiacHeroAnimInstance::GetParentAnimInstance() const
 {
-	if (AZodiacHeroCharacter2* Hero2 = Cast<AZodiacHeroCharacter2>(ParentCharacter))
-	{
-		if (USkeletalMeshComponent* SourceMesh = Hero2->GetRetargetSourceMesh())
-		{
-			return Cast<UZodiacHostAnimInstance>(SourceMesh->GetAnimInstance());
-		}
-	}
 	if (ParentCharacter)
 	{
 		return  Cast<UZodiacHostAnimInstance>(ParentCharacter->GetMesh()->GetAnimInstance());

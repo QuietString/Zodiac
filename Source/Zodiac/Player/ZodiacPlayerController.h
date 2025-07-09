@@ -8,6 +8,7 @@
 #include "ZodiacPlayerController.generated.h"
 
 class AZodiacHostCharacter;
+class AZodiacHostCharacter;
 class UZodiacAbilitySystemComponent;
 class AZodiacPlayerState;
 

@@ -4,7 +4,7 @@
 
 
 #include "ZodiacLogChannels.h"
-#include "Character/ZodiacMonster.h"
+#include "AI/ZodiacMonster.h"
 #include "AI/ZodiacAIPawnSubsystem.h"
 #include "Algo/RandomShuffle.h"
 #include "Character/ZodiacHealthComponent.h"

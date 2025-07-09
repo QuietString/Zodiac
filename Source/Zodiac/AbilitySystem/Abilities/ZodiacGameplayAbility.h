@@ -8,6 +8,7 @@
 #include "System/GameplayTagStack.h"
 #include "ZodiacGameplayAbility.generated.h"
 
+class AZodiacHostCharacter;
 class AZodiacCharacter;
 class UZodiacAbilitySystemComponent;
 class UZodiacAbilityCost;
@@ -79,13 +80,7 @@ class ZODIAC_API UZodiacGameplayAbility : public UGameplayAbility
 
 public:
 	UZodiacGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-	UFUNCTION(BlueprintCallable)
-	UZodiacAbilitySystemComponent* GetHeroAbilitySystemComponentFromActorInfo() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
-	virtual AZodiacHostCharacter* GetZodiacHostCharacterFromActorInfo() const;
-
+	
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
 	AZodiacCharacter* GetZodiacCharacterFromActorInfo() const;
 	
@@ -102,11 +97,11 @@ public:
 	
 	// Sets the ability's camera mode.
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
-	void SetCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode);
+	virtual void SetCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode);
 
 	// Clears the ability's camera mode.  Automatically called if needed when the ability ends.
 	UFUNCTION(BlueprintCallable, Category = "Zodiac|Ability")
-	void ClearCameraMode();
+	virtual void ClearCameraMode();
 	
 	void OnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const
 	{

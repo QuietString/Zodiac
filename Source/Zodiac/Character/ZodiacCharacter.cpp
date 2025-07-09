@@ -3,19 +3,24 @@
 
 
 #include "ZodiacCharacter.h"
+#include "ZodiacPawnExtensionComponent.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ZodiacCharacterMovementComponent.h"
 #include "ZodiacGameplayTags.h"
 #include "ZodiacHealthComponent.h"
-#include "ZodiacHeroData.h"
+#include "Hero/ZodiacHeroData.h"
 #include "ZodiacPreMovementComponentTickComponent.h"
 #include "AbilitySystem/ZodiacAbilitySet.h"
 #include "Animation/ZodiacHostAnimInstance.h"
+#include "Camera/ZodiacCameraComponent.h"
+#include "Camera/ZodiacCameraMode.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/Canvas.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/ZodiacPlayerController.h"
+#include "Player/ZodiacPlayerState.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ZodiacCharacter)
 
@@ -109,6 +114,8 @@ bool FSharedRepMovement::NetSerialize(FArchive& Ar, UPackageMap* Map, bool& bOut
 ////////////////////////////////////////////////////////////////////////////
 ///
 
+const FName AZodiacCharacter::ExtensionComponentName("PawnExtensionComponent");
+
 AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UZodiacCharacterMovementComponent>(CharacterMovementComponentName))
 {
@@ -128,7 +135,14 @@ AZodiacCharacter::AZodiacCharacter(const FObjectInitializer& ObjectInitializer)
 	ZodiacMoveComp->GetNavAgentPropertiesRef().bCanCrouch = true;
 	ZodiacMoveComp->bCanWalkOffLedgesWhenCrouching = true;
 	ZodiacMoveComp->SetCrouchedHalfHeight(65.0f);
-
+	
+	PawnExtComponent = CreateDefaultSubobject<UZodiacPawnExtensionComponent>(ExtensionComponentName);
+	PawnExtComponent->RegisterAndCall_OnAbilitySystemInitialized(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
+	PawnExtComponent->Register_OnAbilitySystemUninitialized(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemUninitialized));
+	
+	CameraComponent = CreateDefaultSubobject<UZodiacCameraComponent>(TEXT("CameraComponent"));
+	CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
+	
 	PreMovementComponentTick = ObjectInitializer.CreateDefaultSubobject<UZodiacPreMovementComponentTickComponent>(this, TEXT("PreMovementComponentTick"));
 }
 
@@ -162,6 +176,59 @@ void AZodiacCharacter::PreReplication(IRepChangedPropertyTracker& ChangedPropert
 		const FRotator ControlRotation = Controller->GetControlRotation();
 		ReplicatedIndependentYaw.Yaw = FMath::FloorToInt(ControlRotation.Yaw * 255.0 / 360.0);     // [0, 360] -> [0, 255]
 	}
+}
+
+void AZodiacCharacter::RegisterGameplayTagEvents(UAbilitySystemComponent* InASC)
+{
+	if (!InASC)
+	{
+		return;
+	}
+	
+	InASC->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Death, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AZodiacCharacter::OnStatusTagChanged);
+	InASC->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Movement_Disabled, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AZodiacCharacter::OnStatusTagChanged);
+	InASC->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AZodiacCharacter::OnStatusTagChanged);
+	InASC->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Physics_Collision_Disabled, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AZodiacCharacter::OnPhysicsTagChanged);
+}
+
+void AZodiacCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (IsLocallyControlled())
+	{
+		SetupCameraComponent();
+	}
+	
+	PawnExtComponent->HandleControllerChanged();
+}
+
+void AZodiacCharacter::UnPossessed()
+{
+	Super::UnPossessed();
+
+	PawnExtComponent->HandleControllerChanged();
+}
+
+void AZodiacCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	UE_LOG(LogTemp, Warning, TEXT("%s Onrep Controller: %s"), HasAuthority() ? TEXT("server") : TEXT("Client"), *GetNameSafe(Controller));
+	
+	if (IsLocallyControlled())
+	{
+		SetupCameraComponent();	
+	}
+	
+	PawnExtComponent->HandleControllerChanged();
+}
+
+void AZodiacCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	PawnExtComponent->HandlePlayerStateReplicated();
 }
 
 void AZodiacCharacter::BeginPlay()
@@ -229,23 +296,11 @@ bool AZodiacCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& T
 	return false;
 }
 
-void AZodiacCharacter::CallOrRegister_OnAbilitySystemInitialized(FOnAbilitySystemComponentInitialized::FDelegate&& Delegate)
-{
-	if (AbilitySystemComponent)
-	{
-		Delegate.Execute(AbilitySystemComponent);
-	}
-	else
-	{
-		OnAbilitySystemComponentInitialized.Add(MoveTemp(Delegate));
-	}
-}
-
-void AZodiacCharacter::OnCharacterAttached(ACharacter* AttachedCharacter)
+void AZodiacCharacter::OnCharacterAttached(AActor* AttachedActor)
 {
 	if (UZodiacHostAnimInstance* HostAnimInstance = CastChecked<UZodiacHostAnimInstance>(GetMesh()->GetAnimInstance()))
 	{
-		HostAnimInstance->ActorsToIgnoreTrajectory.AddUnique(AttachedCharacter);
+		HostAnimInstance->ActorsToIgnoreTrajectory.AddUnique(AttachedActor);
 	}
 }
 
@@ -288,42 +343,111 @@ void AZodiacCharacter::SetExtendedMovementConfig(const FZodiacExtendedMovementCo
 	}
 }
 
-void AZodiacCharacter::InitializeAbilitySystem(UZodiacAbilitySystemComponent* InASC, AActor* InOwner)
+TSubclassOf<UZodiacCameraMode> AZodiacCharacter::DetermineCameraMode()
 {
-	check(InASC);
-
-	AbilitySystemComponent = InASC;
-	AbilitySystemComponent->InitAbilityActorInfo(InOwner, this);
-
-	// Focus and ADS is not applied to host character.
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Death, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Movement_Disabled, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnStatusTagChanged);
-	AbilitySystemComponent->RegisterGameplayTagEvent(ZodiacGameplayTags::Status_Physics_Collision_Disabled, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &ThisClass::OnPhysicsTagChanged);
-	
-	OnAbilitySystemComponentInitialized.Broadcast(AbilitySystemComponent);
-	OnAbilitySystemComponentInitialized.Clear();
-
-	if (CharacterData && HasAuthority())
+	if (ActiveAbilityCameraMode)
 	{
-		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : CharacterData->AbilitySets)
+		return ActiveAbilityCameraMode;
+	}
+
+	return DefaultAbilityCameraMode;
+}
+
+void AZodiacCharacter::SetAbilityCameraMode(TSubclassOf<UZodiacCameraMode> CameraMode, const FGameplayAbilitySpecHandle& OwningSpecHandle)
+{
+	if (CameraMode)
+	{
+		ActiveAbilityCameraMode = CameraMode;
+		AbilityCameraModeOwningSpecHandle = OwningSpecHandle;
+	}
+}
+
+void AZodiacCharacter::ClearAbilityCameraMode(const FGameplayAbilitySpecHandle& OwningSpecHandle)
+{
+	if (AbilityCameraModeOwningSpecHandle == OwningSpecHandle)
+	{
+		ActiveAbilityCameraMode = nullptr;
+		AbilityCameraModeOwningSpecHandle = FGameplayAbilitySpecHandle();
+	}
+}
+
+void AZodiacCharacter::OnAbilitySystemInitialized()
+{
+	UZodiacAbilitySystemComponent* ZodiacASC = GetZodiacAbilitySystemComponent();
+	check(ZodiacASC);
+
+	if (GetHealthComponent())
+	{
+		GetHealthComponent()->InitializeWithAbilitySystem(ZodiacASC);
+	}
+
+	InitializeGameplayTags();
+}
+
+void AZodiacCharacter::OnAbilitySystemUninitialized()
+{
+	if (GetHealthComponent())
+	{
+		GetHealthComponent()->UninitializeFromAbilitySystem();	
+	}
+}
+
+void AZodiacCharacter::InitializeGameplayTags()
+{
+	// Clear tags that may be lingering on the ability system from the previous pawn.
+	if (UAbilitySystemComponent* ZodiacASC = GetAbilitySystemComponent())
+	{
+		for (const TPair<uint8, FGameplayTag>& TagMapping : ZodiacGameplayTags::MovementModeTagMap)
 		{
-			if (AbilitySet)
+			if (TagMapping.Value.IsValid())
 			{
-				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+				ZodiacASC->SetLooseGameplayTagCount(TagMapping.Value, 0);
 			}
 		}
+
+		for (const TPair<uint8, FGameplayTag>& TagMapping : ZodiacGameplayTags::CustomMovementModeTagMap)
+		{
+			if (TagMapping.Value.IsValid())
+			{
+				ZodiacASC->SetLooseGameplayTagCount(TagMapping.Value, 0);
+			}
+		}
+
+		UZodiacCharacterMovementComponent* ZodiacMoveComp = CastChecked<UZodiacCharacterMovementComponent>(GetCharacterMovement());
+		SetMovementModeTag(ZodiacMoveComp->MovementMode, ZodiacMoveComp->CustomMovementMode, true);
+	}
+}
+
+void AZodiacCharacter::SetupCameraComponent()
+{
+	if (!CameraComponent->DetermineCameraModeDelegate.IsBound())
+	{
+		CameraComponent->DetermineCameraModeDelegate.BindUObject(this, &ThisClass::DetermineCameraMode);	
+	}
+
+	if (!CameraComponent->OnCloseContactFinished.IsBound())
+	{
+		CameraComponent->OnCloseContactStarted.BindUObject(this, &ThisClass::OnCloseContactStarted);	
+	}
+
+	if (!CameraComponent->OnCloseContactFinished.IsBound())
+	{
+		CameraComponent->OnCloseContactFinished.BindUObject(this, &ThisClass::OnCloseContactFinished);	
 	}
 	
-	for (auto& Data : HeroData)
+	if (CameraComponent->bApplyTranslationOffset)
 	{
-		for (TObjectPtr<UZodiacAbilitySet> AbilitySet : Data->AbilitySets)
+		if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 		{
-			if (AbilitySet)
+			if (UZodiacHostAnimInstance* HostAnimInstance = Cast<UZodiacHostAnimInstance>(AnimInstance))
 			{
-				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);	
+				if (!CameraComponent->UpdateCameraTranslationOffsetDelegate.IsBound())
+				{
+					CameraComponent->UpdateCameraTranslationOffsetDelegate.BindUObject(HostAnimInstance, &UZodiacHostAnimInstance::GetTranslationOffset);
+					CameraComponent->AimYawPtr = &HostAnimInstance->AimYaw;	
+				}
 			}
-		}
+		}	
 	}
 }
 
@@ -595,6 +719,28 @@ void AZodiacCharacter::SetExtendedMovementModeTag(EZodiacExtendedMovementMode Ex
 			ZodiacASC->SetLooseGameplayTagCount(*MovementModeTag, (bTagEnabled ? 1 : 0));
 		}
 	}
+}
+
+void AZodiacCharacter::ToggleSprint(bool bShouldSprint)
+{
+	if (UZodiacCharacterMovementComponent* ZodiacCharMoveComp = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		ReplicatedIndependentYaw.bIsAllowed = bShouldSprint;
+		ZodiacCharMoveComp->ToggleSprint(bShouldSprint);
+
+		// Don't strafe when sprinting
+		ZodiacCharMoveComp->ToggleStrafe(!bShouldSprint);
+	}
+}
+
+bool AZodiacCharacter::GetIsStrafing() const
+{
+	if (UZodiacCharacterMovementComponent* ZodiacCharacterMovementComponent = Cast<UZodiacCharacterMovementComponent>(GetCharacterMovement()))
+	{
+		return ZodiacCharacterMovementComponent->GetIsStrafing();
+	}
+
+	return false;
 }
 
 void AZodiacCharacter::WakeUp(const FVector& SpawnLocation, const FRotator& SpawnRotation)

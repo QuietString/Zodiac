@@ -18,6 +18,10 @@ public:
 	UZodiacHostAbilitySystemComponent* GetHostAbilitySystemComponent() const { return HostAbilitySystemComponent; }
 	void SetHostAbilitySystemComponent(UZodiacHostAbilitySystemComponent* InASC);
 
+	virtual void NotifyAbilityActivated(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability) override;
+	virtual void NotifyAbilityEnded(FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, bool bWasCancelled) override;
+	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
+	
 	virtual void ApplyAbilityBlockAndCancelTags(const FGameplayTagContainer& AbilityTags, UGameplayAbility* RequestingAbility, bool bEnableBlockTags, const FGameplayTagContainer& BlockTags, bool bExecuteCancelTags, const FGameplayTagContainer& CancelTags) override;
 
 	// When should call ApplyAbilityBlockAndCancelTags from HostASC, don't call HostASC's one. 

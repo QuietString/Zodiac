@@ -9,14 +9,14 @@
 #include "ZodiacGameplayTags.h"
 #include "ZodiacPlayerController.h"
 #include "AbilitySystem/ZodiacAbilitySystemComponent.h"
-#include "AbilitySystem/Hero/ZodiacHeroAbilitySystemComponent.h"
 #include "AI/ZodiacAIPawnSubsystem.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
-#include "Character/ZodiacHeroCharacter.h"
-#include "Character/ZodiacHostCharacter.h"
-#include "Character/ZodiacMonster.h"
+
+#include "Character/Host/ZodiacHostCharacter.h"
+#include "AI/ZodiacMonster.h"
 #include "Development/ZodiacDeveloperSettings.h"
 #include "GameModes/ZodiacGameState.h"
+#include "Character/Hero/ZodiacHeroActor.h"
 #include "System/ZodiacAssetManager.h"
 #include "System/ZodiacGameData.h"
 
@@ -85,7 +85,7 @@ void UZodiacCheatManager::AddTagToSelf(FString TagName)
 		{
 			for (auto& Hero : HostCharacter->GetHeroes())
 			{
-				if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+				if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetZodiacAbilitySystemComponent())
 				{
 					ToggleDynamicTag(ZodiacASC, Tag);
 				}
@@ -112,7 +112,7 @@ void UZodiacCheatManager::InfiniteAmmo()
 	{
 		for (auto& Hero : HostCharacter->GetHeroes())
 		{
-			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetZodiacAbilitySystemComponent())
 			{
 				ToggleDynamicTag(ZodiacASC, ZodiacGameplayTags::Cheat_InfiniteAmmo);
 			}
@@ -126,7 +126,7 @@ void UZodiacCheatManager::ChargeUltimate(float ChargeAmount)
 	{
 		for (auto& Hero : HostCharacter->GetHeroes())
 		{
-			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetZodiacAbilitySystemComponent())
 			{
 				TSubclassOf<UGameplayEffect> ChargeUltimate = UZodiacAssetManager::GetSubclass(UZodiacGameData::Get().ChargeUltimateGameplayEffect_SetByCaller);
 				FGameplayEffectSpecHandle SpecHandle = ZodiacASC->MakeOutgoingSpec(ChargeUltimate, 1.0f, ZodiacASC->MakeEffectContext());
@@ -147,7 +147,7 @@ void UZodiacCheatManager::InfiniteUltimate()
 	{
 		for (auto& Hero : HostCharacter->GetHeroes())
 		{
-			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetZodiacAbilitySystemComponent())
 			{
 				ToggleDynamicTag(ZodiacASC, ZodiacGameplayTags::Cheat_InfiniteUltimate);
 			}
@@ -161,7 +161,7 @@ void UZodiacCheatManager::God()
 	{
 		for (auto& Hero : HostCharacter->GetHeroes())
 		{
-			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetHeroAbilitySystemComponent())
+			if (UZodiacAbilitySystemComponent* ZodiacASC = Hero->GetZodiacAbilitySystemComponent())
 			{
 				ToggleDynamicTag(ZodiacASC, ZodiacGameplayTags::Cheat_GodMode);
 			}

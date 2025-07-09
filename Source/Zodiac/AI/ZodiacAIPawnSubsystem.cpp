@@ -5,7 +5,7 @@
 
 #include "AIController.h"
 #include "BrainComponent.h"
-#include "Character/ZodiacMonster.h"
+#include "AI/ZodiacMonster.h"
 #include "ZodiacAIPawnSpawner.h"
 #include "ZodiacLogChannels.h"
 #include "Algo/RandomShuffle.h"

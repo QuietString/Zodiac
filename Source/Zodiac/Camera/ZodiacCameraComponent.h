@@ -3,8 +3,6 @@
 #pragma once
 
 #include "Camera/CameraComponent.h"
-#include "Character/ZodiacHeroCharacter.h"
-#include "Character/ZodiacHostCharacter.h"
 #include "GameFramework/Actor.h"
 
 #include "ZodiacCameraComponent.generated.h"
