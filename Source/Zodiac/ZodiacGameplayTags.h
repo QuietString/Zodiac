@@ -1,0 +1,137 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+
+#include "NativeGameplayTags.h"
+
+enum class EZodiacExtendedMovementMode : uint8;
+
+namespace ZodiacGameplayTags
+{
+	ZODIAC_API	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
+
+	ZODIAC_API	FGameplayTag GetCooldownExtendedTag(const FGameplayTag& SkillTag);
+
+	// Declare all the custom native tags that Zodiac will use
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_IsDead);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cooldown);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cost);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_TagsBlocked);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_TagsMissing);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Networking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_ActivationGroup);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_OutOfAllowedAimRange);
+
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cost_Stack);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cost_Stack_MagazineAmmo);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cost_Stack_MagazineSize);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cost_Stack_MinimumCheckOnly);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cost_Cooldown);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Cost_Attribute);
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Behavior_SurvivesDeath);
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move_Sprint);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move_Fly);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Mouse);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look_Stick);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Hero);
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Ability_Traversal);
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Damaged_Message);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Elimination);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Death);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Reset);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_RequestReset);
+
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Effect_Type_Damage_Explosive);
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Damage);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Duration);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Amount);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cost);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Heal);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cooldown);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Ultimate);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(SetByCaller_Cost_MinimumCheck);
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_GodMode);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_InfiniteAmmo);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_InfiniteUltimate);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Cheat_UnlimitedHealth);
+
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Movement_Attacking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Movement_Disabled);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Weapon_Firing);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_WeaponReady);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_ADS);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Focus);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dying);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Death_Dead);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Controlled_BindInAir);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Stun);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Invincible);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Immortal);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Status_Physics_Collision_Disabled);
+
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Player_PlayReady);
+
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Camera_Aiming_Steady);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Camera_Aiming_Unstable);
+	
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Menu);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Game);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_GameMenu);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Layer_Modal);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UI_Action_Escape);
+
+	// Gameplay HUD Message channels
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_ReticleChanged);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_GlobalReticleChanged);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_HealthChanged);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HUD_Message_WidgetChanged);
+
+	// Message channels
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Message_Gameplay_Elimination);
+
+	// Traversal Action
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_NoTraceHit);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_NoFrontLedgeFound);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_OutOfAngle);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_OutOfDistance);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_BlockedByCeiling);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_NoProperActionType);
+	ZODIAC_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Traversal_FailReason_NoMatchingMontage);
+	
+	// These are mappings from MovementMode enums to GameplayTags associated with those enums (below)
+	ZODIAC_API	extern const TMap<uint8, FGameplayTag> MovementModeTagMap;
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_None);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Walking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_NavWalking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Falling);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Swimming);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Flying);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Mode_Custom);
+
+	// Extended MovementMode
+	ZODIAC_API	extern const TMap<EZodiacExtendedMovementMode, FGameplayTag> ExtendedMovementModeTagMap;
+	ZODIAC_API	extern const TMap<FGameplayTag, uint8> TagExtendedMovementModeMap;
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Extended_None);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Extended_Walking);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Extended_Running);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Extended_Sprinting);
+	
+	// Custom MovementMode
+	ZODIAC_API	extern const TMap<uint8, FGameplayTag> CustomMovementModeTagMap;
+	ZODIAC_API	extern const TMap<FGameplayTag, uint8> TagCustomMovementModeMap;
+	
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Custom_None);
+	ZODIAC_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Movement_Custom_Traversal);
+
+};
