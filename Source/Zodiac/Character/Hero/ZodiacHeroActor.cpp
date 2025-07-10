@@ -64,11 +64,12 @@ AZodiacHeroActor::AZodiacHeroActor(const FObjectInitializer& ObjectInitializer)
 
 bool AZodiacHeroActor::CanChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState) const
 {
+	// @TODO: IDK why but without logs, suddenly InitState doesn't work. 
 	check(Manager);
 
 	if (!CurrentState.IsValid() && DesiredState == InitState_Spawned)
 	{
-		//UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero actor success to change state to %s"), *DesiredState.ToString());
+		UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero actor success to change state to %s"), *DesiredState.ToString());
 		return true;
 	}
 	else if (CurrentState == InitState_Spawned && DesiredState == InitState_DataAvailable)
@@ -76,7 +77,7 @@ bool AZodiacHeroActor::CanChangeInitState(UGameFrameworkComponentManager* Manage
 		// Hero data is required.
 		if (!HeroData)
 		{
-			//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero Actor failed to change state to %s. Reason: no hero data"), *DesiredState.ToString());
+			UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero Actor failed to change state to %s. Reason: no hero data"), *DesiredState.ToString());
 			return false;
 		}
 		
@@ -87,13 +88,13 @@ bool AZodiacHeroActor::CanChangeInitState(UGameFrameworkComponentManager* Manage
 			// Host ASC is required.
 			if (!Host->GetHostAbilitySystemComponent())
 			{
-				//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero actor failed to change state to %s. Reason: no host asc"), *DesiredState.ToString());
+				UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero actor failed to change state to %s. Reason: no host asc"), *DesiredState.ToString());
 				return false;
 			}
 		}
 		else
 		{
-			//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero actor failed to change state to %s. Reason: no host"), *DesiredState.ToString());
+			UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero actor failed to change state to %s. Reason: no host"), *DesiredState.ToString());
 			return false;
 		}
 
@@ -105,12 +106,12 @@ bool AZodiacHeroActor::CanChangeInitState(UGameFrameworkComponentManager* Manage
 			// Check for being possessed by a controller.
 			if (!Host->GetController<AController>())
 			{
-				//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero actor failed to change state to %s. Reason: no controller"), *DesiredState.ToString());
+				UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero actor failed to change state to %s. Reason: no controller"), *DesiredState.ToString());
 				return false;
 			}
 		}
 		
-		//UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero actor success to change state to %s"), *CurrentState.ToString());
+		UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero actor success to change state to %s"), *CurrentState.ToString());
 		return true;
 	}
 	else if (CurrentState == InitState_DataAvailable && DesiredState == InitState_DataInitialized)
@@ -118,18 +119,18 @@ bool AZodiacHeroActor::CanChangeInitState(UGameFrameworkComponentManager* Manage
 		// Transition to initialize if all features have their data available
 		if (Manager->HaveAllFeaturesReachedInitState(const_cast<AZodiacHeroActor*>(this), InitState_DataAvailable))
 		{
-			//UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero actor success to change state to %s"), *DesiredState.ToString());
+			UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero actor success to change state to %s"), *DesiredState.ToString());
 			return true;
 		}
 		else
 		{
-			//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero actor failed to change state to %s. Reason: other feature data is not available"), *DesiredState.ToString());
+			UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero actor failed to change state to %s. Reason: other feature data is not available"), *DesiredState.ToString());
 			return false;
 		}
 	}
 	else if (CurrentState == InitState_DataInitialized && DesiredState == InitState_GameplayReady)
 	{
-		//UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero actor success to change state to %s"), *DesiredState.ToString());
+		UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero actor success to change state to %s"), *DesiredState.ToString());
 		return true;
 	}
 
@@ -138,7 +139,7 @@ bool AZodiacHeroActor::CanChangeInitState(UGameFrameworkComponentManager* Manage
 
 void AZodiacHeroActor::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState)
 {
-	//UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero current state: %s, desired state: %s"), *CurrentState.ToString(), *DesiredState.ToString());
+	UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Hero current state: %s, desired state: %s"), *CurrentState.ToString(), *DesiredState.ToString());
 
 	if (CurrentState == InitState_Spawned && DesiredState == InitState_DataAvailable)
 	{
@@ -173,14 +174,14 @@ void AZodiacHeroActor::OnActorInitStateChanged(const FActorInitStateChangedParam
 	}
 	else if (Params.FeatureName == NAME_ActorFeatureName)
 	{
-		//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero Actor Call Host CheckDefaultInit"));
+		UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero Actor Call Host CheckDefaultInit"));
 		CheckHostDefaultInitializationNextTick();
 	}
 }
 
 void AZodiacHeroActor::CheckDefaultInitialization()
 {
-	//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero CheckDefaultInit"));
+	UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Hero CheckDefaultInit"));
 	
 	// Before checking our progress, try progressing any other features we might depend on
 	CheckDefaultInitializationForImplementers();

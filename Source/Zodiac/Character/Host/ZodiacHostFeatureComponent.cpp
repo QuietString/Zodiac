@@ -111,6 +111,7 @@ bool UZodiacHostFeatureComponent::CanChangeInitState(UGameFrameworkComponentMana
 		{
 			if (!Manager->HaveAllFeaturesReachedInitState(Hero, InitState_DataInitialized))
 			{
+				UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Host Feature failed to change state to %s. Reason: other feature data not ready"), *DesiredState.ToString());
 				return false;
 			}
 		}
@@ -132,7 +133,7 @@ bool UZodiacHostFeatureComponent::CanChangeInitState(UGameFrameworkComponentMana
 
 void UZodiacHostFeatureComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState)
 {
-	//UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Host Feature Current State: %s, Desired State: %s"), *CurrentState.ToString(), *DesiredState.ToString());
+	UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Host Feature Current State: %s, Desired State: %s"), *CurrentState.ToString(), *DesiredState.ToString());
 
 	AZodiacHostCharacter* HostCharacter = GetPawn<AZodiacHostCharacter>();
 	
@@ -158,7 +159,6 @@ void UZodiacHostFeatureComponent::HandleChangeInitState(UGameFrameworkComponentM
 	{
 		if (HasAuthority())
 		{
-			//UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Spawn Heroes"));
 			HostCharacter->SpawnHeroes();
 		}
 	}
@@ -168,11 +168,11 @@ void UZodiacHostFeatureComponent::HandleChangeInitState(UGameFrameworkComponentM
 	}
 	else if (CurrentState == InitState_Host_HeroDataAvailable && DesiredState == InitState_Host_HeroDataInitialized)
 	{
-		
+		UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("HostFeature Changed to: %s"), *DesiredState.ToString());
 	}
 	else if (CurrentState == InitState_Host_HeroDataInitialized && DesiredState == InitState_Host_HeroGameplayReady)
 	{
-		
+		UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("HostFeature Changed to: %s"), *DesiredState.ToString());
 	}
 	else if (CurrentState == InitState_Host_HeroGameplayReady && DesiredState == InitState_GameplayReady)
 	{
@@ -196,12 +196,12 @@ void UZodiacHostFeatureComponent::OnActorInitStateChanged(const FActorInitStateC
 
 	if (Params.FeatureName == NAME_ActorFeatureName && !HasReachedInitState(InitState_Host_HeroGameplayReady))
 	{
-		//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("HostFeature OnActorInitStateChanged: %s"), *Params.FeatureState.ToString());
+		UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("HostFeature OnActorInitStateChanged: %s"), *Params.FeatureState.ToString());
 		if (AZodiacHostCharacter* HostCharacter = GetPawn<AZodiacHostCharacter>())
 		{
 			for (auto& Hero : HostCharacter->GetHeroes())
 			{
-				//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Called Hero Check Init from HostFeature OnActorInit"));
+				UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Called Hero Check Init from HostFeature OnActorInit"));
 				Hero->CheckDefaultInitialization();
 			}	
 		}
@@ -210,7 +210,7 @@ void UZodiacHostFeatureComponent::OnActorInitStateChanged(const FActorInitStateC
 
 void UZodiacHostFeatureComponent::CheckDefaultInitialization()
 {
-	//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Host Feature check init"));
+	UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Host Feature check init"));
 	// This will try to progress from spawned (which is only set in BeginPlay) through the data initialization stages until it gets to gameplay ready
 	ContinueInitStateChain(StateChain);
 }

@@ -78,7 +78,7 @@ bool UZodiacPawnExtensionComponent::CanChangeInitState(UGameFrameworkComponentMa
 
 void UZodiacPawnExtensionComponent::HandleChangeInitState(UGameFrameworkComponentManager* Manager, FGameplayTag CurrentState, FGameplayTag DesiredState)
 {
-	//UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Pawn Ext current state: %s, desired state: %s"), *CurrentState.ToString(), *DesiredState.ToString());
+	UE_LOG_WITH_ROLE(LogZodiacFramework, Warning, TEXT("Pawn Ext current state: %s, desired state: %s"), *CurrentState.ToString(), *DesiredState.ToString());
 	// This is currently all handled by other components listening to this state change
 }
 
@@ -96,7 +96,7 @@ void UZodiacPawnExtensionComponent::OnActorInitStateChanged(const FActorInitStat
 
 void UZodiacPawnExtensionComponent::CheckDefaultInitialization()
 {
-	//UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Pawn extension check init"));
+	UE_LOG_WITH_ROLE(LogZodiacFramework, Log, TEXT("Pawn extension check init"));
 	
 	// Before checking our progress, try progressing any other features we might depend on
 	CheckDefaultInitializationForImplementers();
